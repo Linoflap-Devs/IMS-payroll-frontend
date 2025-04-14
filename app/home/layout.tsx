@@ -31,6 +31,8 @@ import { TbCurrencyDollarOff } from "react-icons/tb";
 import { BiReceipt } from "react-icons/bi";
 import { MdOutlinePendingActions } from "react-icons/md";
 import { PiClockCounterClockwiseBold } from "react-icons/pi";
+import { getCookie } from "@/utils/cookies";
+import { authService } from "@/src/services/api";
 
 // Define the Sidebar component interface
 interface SidebarProps {
@@ -46,6 +48,20 @@ interface SidebarProps {
 
 // Sidebar component
 function Sidebar({ routes, isCollapsed, onToggleCollapse }: SidebarProps) {
+  const [userEmail, setUserEmail] = useState<string>("");
+
+  useEffect(() => {
+    // Get user email from cookie when component mounts
+    const email = getCookie("userEmail");
+    setUserEmail(email || "");
+  }, []);
+
+  const handleLogout = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    // Simple client-side logout - no API call
+    authService.logout();
+  };
+
   return (
     <>
       <div
@@ -130,21 +146,35 @@ function Sidebar({ routes, isCollapsed, onToggleCollapse }: SidebarProps) {
             >
               <AvatarImage src="" />
               <AvatarFallback className="bg-primary text-primary-foreground text-base">
-                JD
+                {userEmail ? userEmail.substring(0, 2).toUpperCase() : "JD"}
               </AvatarFallback>
             </Avatar>
             {!isCollapsed && (
               <>
                 <div className="flex flex-col min-w-0 overflow-hidden">
-                  <p className="text-base font-medium truncate">John Doe</p>
                   <p className="text-sm text-sidebar-foreground truncate">
-                    johndoe@gmail.com
+                    {userEmail || "johndoe@gmail.com"}
                   </p>
                 </div>
-                <Link href="/" className="ml-auto flex-shrink-0">
+                <a 
+                  href="#" 
+                  onClick={handleLogout} 
+                  className="ml-auto flex-shrink-0"
+                  title="Logout"
+                >
                   <LogOut className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
-                </Link>
+                </a>
               </>
+            )}
+            {isCollapsed && (
+              <a 
+                href="#" 
+                onClick={handleLogout} 
+                className="mt-2"
+                title="Logout"
+              >
+                <LogOut className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
+              </a>
             )}
           </div>
         </div>

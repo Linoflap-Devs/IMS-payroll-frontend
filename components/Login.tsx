@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import api from "@/lib/axios";
+import { useRouter } from "next/navigation";
+import { authService, LoginResponse } from "@/src/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useRouter } from "next/navigation";
 import { setCookie, setAuthCookie } from "@/utils/cookies";
 import {
   Card,
@@ -53,15 +53,7 @@ export default function Login() {
     setError("");
 
     try {
-      type LoginResponse = {
-        success: boolean;
-        data: {
-          token: string;
-          email: string;
-        };
-      };
-
-      const response = await api.post<LoginResponse>("/api/auth/login", values);
+      const response = await authService.login(values);
 
       if (response.data.success) {
         // Store auth token in httpOnly cookie
@@ -71,6 +63,9 @@ export default function Login() {
 
         // Redirect to dashboard after successful login
         router.push("/home/dashboard");
+      } else {
+        // Handle unsuccessful login
+        setError(response.data.message || "Invalid email or password");
       }
     } catch (error: any) {
       setError(
