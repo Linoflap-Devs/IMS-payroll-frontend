@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import api from "@/lib/axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { setCookie, setAuthCookie } from "@/utils/cookies";
 import {
   Card,
   CardContent,
@@ -37,7 +35,6 @@ const formSchema = z.object({
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -48,38 +45,15 @@ export default function Login() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    setError("");
-
-    try {
-      type LoginResponse = {
-        success: boolean;
-        data: {
-          token: string;
-          email: string;
-        };
-      };
-
-      const response = await api.post<LoginResponse>("/api/auth/login", values);
-
-      if (response.data.success) {
-        // Store auth token in httpOnly cookie
-        setAuthCookie(response.data.data.token);
-        // Store user email in regular cookie
-        setCookie("userEmail", response.data.data.email);
-
-        // Redirect to dashboard after successful login
-        router.push("/home/dashboard");
-      }
-    } catch (error: any) {
-      setError(
-        error.response?.data?.message ||
-          "An error occurred during login. Please try again."
-      );
-    } finally {
+    // Simulate API call
+    console.log(values);
+    setTimeout(() => {
       setIsLoading(false);
-    }
+      // Redirect to dashboard after successful login
+      router.push("/home/dashboard");
+    }, 1000);
   }
 
   return (
@@ -91,9 +65,6 @@ export default function Login() {
           </h2>
         </div>
         <div className="space-y-5">
-          {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
-          )}
           <div className="">
             <Form {...form}>
               <form
