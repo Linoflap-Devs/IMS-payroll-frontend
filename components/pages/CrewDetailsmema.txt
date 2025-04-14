@@ -1,0 +1,1482 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Icon } from "@iconify/react";
+import {
+  ChevronLeft,
+  Pencil,
+  User,
+  Ship,
+  Calendar,
+  Phone,
+  PhoneCall,
+  Mail,
+  Filter,
+  Save,
+  X,
+  CircleMinus,
+  Plus,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DataTable } from "@/components/ui/data-table";
+import { ColumnDef } from "@tanstack/react-table";
+
+// Import the sample crew data from CrewList
+// In a real application, you would fetch this data from an API
+const crewData = [
+  {
+    id: "CR001",
+    name: "John Doe",
+    firstName: "John",
+    lastName: "Doe",
+    middleName: "",
+    rank: "Captain",
+    status: "on board",
+    vessel: "Atlas Island",
+    email: "email@address",
+    phone: "0919292929",
+    landline: "2102-345-461",
+    address: "123 Seafarer St., Manila, Philippines",
+    city: "",
+    province: "",
+    dateOfBirth: "1992-06-15",
+    age: "31 yrs old",
+    nationality: "Filipino",
+    joinDate: "2023-01-10",
+    contractEnd: "2023-07-10",
+    maritalStatus: "",
+    sex: "",
+    sssNumber: "",
+    taxIdNumber: "",
+    philhealthNumber: "",
+    hdmfNumber: "",
+    passportNumber: "",
+    passportIssueDate: "",
+    passportExpiryDate: "",
+    seamansBookNumber: "",
+    seamansBookIssueDate: "",
+    seamansBookExpiryDate: "",
+    movements: [
+      {
+        type: "Sign off",
+        date: "10-23-23",
+        rank: "Captain",
+        vessel: "Atlas Island",
+      },
+      {
+        type: "Sign in",
+        date: "08-30-24",
+        rank: "Captain",
+        vessel: "Atlas Island",
+      },
+    ],
+  },
+  {
+    id: "CR002",
+    name: "Emily Chen",
+    rank: "First Officer",
+    status: "on board",
+    vessel: "MV Pacific Voyager",
+    email: "emily.chen@example.com",
+    phone: "+1 (555) 987-6543",
+    address: "456 Ocean Ave., Singapore",
+    dateOfBirth: "1990-03-22",
+    nationality: "Singaporean",
+    joinDate: "2023-02-15",
+    contractEnd: "2023-08-15",
+    movements: [
+      {
+        type: "Sign off",
+        date: "10-23-23",
+        rank: "First Officer",
+        vessel: "Atlas Island",
+      },
+      {
+        type: "Sign in",
+        date: "09-30-24",
+        rank: "First Officer",
+        vessel: "Atlas Island",
+      },
+    ],
+  },
+  {
+    id: "CR003",
+    name: "Michael Rodriguez",
+    rank: "Chief Engineer",
+    status: "off board",
+    vessel: "",
+    email: "michael.rodriguez@example.com",
+    phone: "+1 (555) 456-7890",
+    address: "789 Marine Dr., Manila, Philippines",
+    dateOfBirth: "1982-11-05",
+    nationality: "Filipino",
+    joinDate: "2022-10-05",
+    contractEnd: "2023-04-05",
+  },
+  {
+    id: "CR004",
+    name: "Sarah Johnson",
+    rank: "Second Officer",
+    status: "active",
+    vessel: "MV Atlantic Explorer",
+    email: "sarah.johnson@example.com",
+    phone: "+1 (555) 234-5678",
+    address: "321 Sailor's Way, London, UK",
+    dateOfBirth: "1988-09-12",
+    nationality: "British",
+    joinDate: "2023-03-20",
+    contractEnd: "2023-09-20",
+  },
+];
+
+// Helper functions for status colors
+const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "on board":
+      return "bg-green-500";
+    case "off board":
+      return "bg-yellow-500";
+    case "active":
+      return "bg-blue-500";
+    case "inactive":
+      return "bg-red-500";
+    default:
+      return "bg-gray-500";
+  }
+};
+
+const getStatusBgColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "on board":
+      return "bg-green-100 text-green-800";
+    case "off board":
+      return "bg-yellow-100 text-yellow-800";
+    case "active":
+      return "bg-blue-100 text-blue-800";
+    case "inactive":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+// Define the columns for the crew movement DataTable
+type Movement = {
+  type: string;
+  date: string;
+  rank: string;
+  vessel: string;
+};
+
+const movementColumns: ColumnDef<Movement>[] = [
+  {
+    accessorKey: "type",
+    header: "Movement Type",
+    cell: ({ row }) => {
+      const type = row.getValue("type") as string;
+      return (
+        <div className="p-2 flex items-center">
+          <span
+            className={`inline-block px-3 py-1 rounded-full text-sm ${
+              type === "Sign in"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {type}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "date",
+    header: "Date",
+    cell: ({ row }) => <div className="p-2">{row.getValue("date")}</div>,
+  },
+  {
+    accessorKey: "rank",
+    header: "Rank",
+    cell: ({ row }) => <div className="p-2">{row.getValue("rank")}</div>,
+  },
+];
+
+export default function CrewDetails() {
+  const searchParams = useSearchParams();
+  const crewId = searchParams.get("id");
+  const [crew, setCrew] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("details");
+  const [selectedVessel, setSelectedVessel] = useState<string>("");
+  const [selectedAllottee, setSelectedAllottee] = useState<string>("");
+  const [selectedAllotmentType, setSelectedAllotmentType] =
+    useState<string>("");
+  const [filteredMovements, setFilteredMovements] = useState<any[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedCrew, setEditedCrew] = useState<any>(null);
+  const [allotteeActive, setAllotteeActive] = useState(true);
+  const [priorityAmount, setPriorityAmount] = useState(false);
+  const [dollarAllotment, setDollarAllotment] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{
+    [key: string]: string;
+  }>({});
+
+  useEffect(() => {
+    // Find the crew member with the matching ID
+    if (crewId) {
+      const foundCrew = crewData.find((c) => c.id === crewId);
+      if (foundCrew) {
+        // Ensure all required fields are present
+        const completeCrewData = {
+          ...foundCrew,
+          firstName:
+            foundCrew.firstName ||
+            (foundCrew.name ? foundCrew.name.split(" ")[0] : ""),
+          lastName:
+            foundCrew.lastName ||
+            (foundCrew.name ? foundCrew.name.split(" ")[1] || "" : ""),
+          middleName: foundCrew.middleName || "",
+          city: foundCrew.city || "",
+          province: foundCrew.province || "",
+          age: foundCrew.age || "",
+          landline: foundCrew.landline || "",
+          maritalStatus: foundCrew.maritalStatus || "",
+          sex: foundCrew.sex || "",
+          sssNumber: foundCrew.sssNumber || "",
+          taxIdNumber: foundCrew.taxIdNumber || "",
+          philhealthNumber: foundCrew.philhealthNumber || "",
+          hdmfNumber: foundCrew.hdmfNumber || "",
+          passportNumber: foundCrew.passportNumber || "",
+          passportIssueDate: foundCrew.passportIssueDate || "",
+          passportExpiryDate: foundCrew.passportExpiryDate || "",
+          seamansBookNumber: foundCrew.seamansBookNumber || "",
+          seamansBookIssueDate: foundCrew.seamansBookIssueDate || "",
+          seamansBookExpiryDate: foundCrew.seamansBookExpiryDate || "",
+          movements: foundCrew.movements || [],
+        };
+        setCrew(completeCrewData);
+        setEditedCrew(completeCrewData);
+        setSelectedVessel(completeCrewData.vessel);
+        setFilteredMovements(completeCrewData.movements || []);
+      } else {
+        setCrew(null);
+        setEditedCrew(null);
+      }
+    }
+
+    // Set active tab based on URL parameter
+    const tab = searchParams.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+      // If switching to movement or allottee tab, exit edit mode
+      if (tab === "movement" || tab === "allottee") {
+        setIsEditing(false);
+      }
+    }
+  }, [crewId, searchParams]);
+
+  // Filter movements based on selected vessel
+  const handleVesselChange = (value: string) => {
+    setSelectedVessel(value);
+    if (value && crew?.movements) {
+      setFilteredMovements(
+        crew.movements.filter((m: any) => m.vessel === value)
+      );
+    } else {
+      setFilteredMovements(crew?.movements || []);
+    }
+  };
+
+  // Handle edit mode toggle
+  const toggleEditMode = () => {
+    if (isEditing) {
+      // Cancel editing - reset to original data
+      setEditedCrew(crew);
+    }
+    setIsEditing(!isEditing);
+  };
+
+  // Add validation function
+  const validateFields = () => {
+    const errors: { [key: string]: string } = {};
+    const requiredFields = [
+      { key: "firstName", label: "First Name" },
+      { key: "lastName", label: "Last Name" },
+      { key: "email", label: "Email" },
+      { key: "phone", label: "Mobile Number" },
+      { key: "dateOfBirth", label: "Birthdate" },
+      { key: "city", label: "City" },
+      { key: "province", label: "Province" },
+    ];
+
+    requiredFields.forEach(({ key, label }) => {
+      if (!editedCrew[key] || editedCrew[key].trim() === "") {
+        errors[key] = `${label} is required`;
+      }
+    });
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Modify saveChanges function
+  const saveChanges = () => {
+    if (!validateFields()) {
+      return; // Don't save if there are validation errors
+    }
+
+    // Update the name field based on first and last name
+    const updatedCrew = {
+      ...editedCrew,
+      name: `${editedCrew.firstName} ${editedCrew.lastName}`,
+    };
+
+    // In a real app, you would send this data to an API
+    setCrew(updatedCrew);
+    setEditedCrew(updatedCrew);
+    setIsEditing(false);
+  };
+
+  // Modify handleInputChange function
+  const handleInputChange = (field: string, value: string) => {
+    setEditedCrew({
+      ...editedCrew,
+      [field]: value,
+    });
+    // Clear validation error when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors({
+        ...validationErrors,
+        [field]: "",
+      });
+    }
+  };
+
+  // Calculate age from date of birth
+  const calculateAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return "";
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return `${age} yrs old`;
+  };
+
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // If switching to movement or allottee tab, exit edit mode
+    if (value === "movement" || value === "allottee") {
+      setIsEditing(false);
+    }
+  };
+
+  if (!crew) {
+    return (
+      <div className="h-full w-full p-4 flex items-center justify-center">
+        <p>Crew member not found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full w-full p-4">
+      <div className="flex flex-col space-y-6">
+        {/* Header with back button and title */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Link href="/home/crew">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold">Crew Details</h1>
+          </div>
+          {isEditing ? (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={toggleEditMode}
+                className="border-gray-300"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+              <Button
+                className="bg-primary hover:bg-primary/90"
+                onClick={saveChanges}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            </div>
+          ) : (
+            activeTab === "details" && (
+              <Button
+                className="bg-primary hover:bg-primary/90"
+                onClick={toggleEditMode}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit Crew
+              </Button>
+            )
+          )}
+        </div>
+
+        {/* Main content */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Left sidebar with crew info */}
+          <div className="md:col-span-1">
+            <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
+              <CardContent className="p-4 flex flex-col items-center text-center overflow-y-auto scrollbar-hide flex-1">
+                <style jsx global>{`
+                  /* Hide scrollbar for Chrome, Safari and Opera */
+                  .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                  }
+
+                  /* Hide scrollbar for IE, Edge and Firefox */
+                  .scrollbar-hide {
+                    -ms-overflow-style: none; /* IE and Edge */
+                    scrollbar-width: none; /* Firefox */
+                  }
+                `}</style>
+                <div className="w-60 h-60 min-w-[160px] bg-white rounded-md mb-3 flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
+                  <img
+                    src="/image.png"
+                    alt="Profile Logo"
+                    className="w-full h-full object-contain p-1"
+                  />
+                </div>
+                {isEditing && (
+                  <Button
+                    variant="outline"
+                    className="mb-3 text-sm w-60 min-w-[160px] flex-shrink-0"
+                  >
+                    CHANGE PHOTO
+                  </Button>
+                )}
+                <h2 className="text-lg font-bold mb-1 w-full">
+                  {isEditing
+                    ? `${editedCrew.firstName} ${editedCrew.lastName}`
+                    : crew.name}
+                </h2>
+                <div className="flex items-center gap-3 mb-3 flex-wrap justify-center">
+                  <div className="flex items-center gap-1">
+                    <Icon
+                      icon="mdi:badge-outline"
+                      width="24"
+                      height="24"
+                      className="text-yellow-500"
+                    />
+                    {crew.rank}
+                  </div>
+                  <div className="text-sm px-2 py-0.5 bg-green-100 text-green-800 rounded-full border-green-300 flex items-center gap-1 flex-shrink-0">
+                    {crew.status}
+                  </div>
+                </div>
+
+                <div className="w-full space-y-3 text-left min-w-0">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-gray-500">Crew Code</div>
+                      {isEditing ? (
+                        <Input
+                          value={editedCrew.id}
+                          onChange={(e) =>
+                            handleInputChange("id", e.target.value)
+                          }
+                          className="h-8 mt-1 text-sm"
+                        />
+                      ) : (
+                        <div className="text-sm font-medium truncate">
+                          {crew.id}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {isEditing && (
+                    <div className="flex items-center gap-2">
+                      <Badge className="h-4 w-4 text-primary bg-transparent border-0 p-0 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-500">Rank</div>
+                        <Input
+                          value={editedCrew.rank}
+                          onChange={(e) =>
+                            handleInputChange("rank", e.target.value)
+                          }
+                          className="h-8 mt-1 text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <Ship className="h-4 w-4 text-primary flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-gray-500">
+                        Current Vessel
+                      </div>
+                      {isEditing ? (
+                        <Input
+                          value={editedCrew.vessel}
+                          onChange={(e) =>
+                            handleInputChange("vessel", e.target.value)
+                          }
+                          className="h-8 mt-1 text-sm"
+                        />
+                      ) : (
+                        <div className="text-sm font-medium truncate">
+                          {crew.vessel}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {!isEditing && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-500">Age</div>
+                        <div className="text-sm font-medium truncate">
+                          {calculateAge(crew.dateOfBirth)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-full mt-4 pt-4 border-t min-w-0">
+                  <h3 className="text-md font-semibold mb-3 text-left">
+                    Contact Information
+                  </h3>
+
+                  <div className="space-y-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-primary flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-500">
+                          Mobile Number
+                        </div>
+                        {isEditing ? (
+                          <Input
+                            value={editedCrew.phone}
+                            onChange={(e) =>
+                              handleInputChange("phone", e.target.value)
+                            }
+                            className="h-8 mt-1 text-sm"
+                          />
+                        ) : (
+                          <div className="text-sm font-medium truncate">
+                            {crew.phone}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <PhoneCall className="h-4 w-4 text-primary flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-500">
+                          Landline Number
+                        </div>
+                        {isEditing ? (
+                          <Input
+                            value={editedCrew.landline}
+                            onChange={(e) =>
+                              handleInputChange("landline", e.target.value)
+                            }
+                            className="h-8 mt-1 text-sm"
+                          />
+                        ) : (
+                          <div className="text-sm font-medium truncate">
+                            {crew.landline}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-primary flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-500">
+                          Email Address
+                        </div>
+                        {isEditing ? (
+                          <Input
+                            value={editedCrew.email}
+                            onChange={(e) =>
+                              handleInputChange("email", e.target.value)
+                            }
+                            className="h-8 mt-1 text-sm"
+                          />
+                        ) : (
+                          <div className="text-sm font-medium truncate">
+                            {crew.email}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right content area with tabs */}
+          <div className="md:col-span-3">
+            <Card className="h-[calc(100vh-180px)] flex flex-col">
+              <Tabs
+                defaultValue={activeTab}
+                value={activeTab}
+                onValueChange={handleTabChange}
+                className="w-full flex flex-col h-full"
+              >
+                <div className="border-b">
+                  <div className="px-4 pt-1">
+                    <TabsList className="bg-transparent p-0 h-8 w-full flex justify-between space-x-0">
+                      <TabsTrigger
+                        value="details"
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
+                        Crew Details
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="movement"
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
+                        Crew Movement
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="allottee"
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
+                        View Allottee
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+                </div>
+
+                <TabsContent
+                  value="details"
+                  className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                >
+                  <div className="space-y-8">
+                    {/* Personal Information Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">
+                        Personal Information
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Last Name
+                          </label>
+                          <Input
+                            placeholder="Enter last name"
+                            value={
+                              isEditing ? editedCrew.lastName : crew.lastName
+                            }
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange("lastName", e.target.value)
+                            }
+                            readOnly={!isEditing}
+                            className={
+                              validationErrors.lastName ? "border-red-500" : ""
+                            }
+                          />
+                          {isEditing && validationErrors.lastName && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {validationErrors.lastName}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            First Name
+                          </label>
+                          <Input
+                            placeholder="Enter first name"
+                            value={
+                              isEditing ? editedCrew.firstName : crew.firstName
+                            }
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange("firstName", e.target.value)
+                            }
+                            readOnly={!isEditing}
+                            className={
+                              validationErrors.firstName ? "border-red-500" : ""
+                            }
+                          />
+                          {isEditing && validationErrors.firstName && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {validationErrors.firstName}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Middle Name
+                          </label>
+                          <Input
+                            placeholder="Enter middle name"
+                            value={
+                              isEditing
+                                ? editedCrew.middleName
+                                : crew.middleName
+                            }
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange("middleName", e.target.value)
+                            }
+                            readOnly={!isEditing}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Marital Status
+                          </label>
+                          <Select
+                            value={
+                              isEditing
+                                ? editedCrew.maritalStatus
+                                : crew.maritalStatus
+                            }
+                            onValueChange={(value) =>
+                              isEditing &&
+                              handleInputChange("maritalStatus", value)
+                            }
+                            disabled={!isEditing}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select an option" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="single">Single</SelectItem>
+                              <SelectItem value="married">Married</SelectItem>
+                              <SelectItem value="divorced">Divorced</SelectItem>
+                              <SelectItem value="widowed">Widowed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Sex
+                          </label>
+                          <Select
+                            value={isEditing ? editedCrew.sex : crew.sex}
+                            onValueChange={(value) =>
+                              isEditing && handleInputChange("sex", value)
+                            }
+                            disabled={!isEditing}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select an option" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Birthdate
+                          </label>
+                          <div className="relative">
+                            <Input
+                              type="date"
+                              placeholder="Pick a date"
+                              value={
+                                isEditing
+                                  ? editedCrew.dateOfBirth
+                                  : crew.dateOfBirth
+                              }
+                              onChange={(e) =>
+                                isEditing &&
+                                handleInputChange("dateOfBirth", e.target.value)
+                              }
+                              readOnly={!isEditing}
+                              className={
+                                validationErrors.dateOfBirth
+                                  ? "border-red-500"
+                                  : ""
+                              }
+                            />
+                            {isEditing && validationErrors.dateOfBirth && (
+                              <p className="text-sm text-red-500 mt-1">
+                                {validationErrors.dateOfBirth}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            City
+                          </label>
+                          <Input
+                            placeholder="Enter city"
+                            value={isEditing ? editedCrew.city : crew.city}
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange("city", e.target.value)
+                            }
+                            readOnly={!isEditing}
+                            className={
+                              validationErrors.city ? "border-red-500" : ""
+                            }
+                          />
+                          {isEditing && validationErrors.city && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {validationErrors.city}
+                            </p>
+                          )}
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Province
+                          </label>
+                          <Input
+                            placeholder="Enter province"
+                            value={
+                              isEditing ? editedCrew.province : crew.province
+                            }
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange("province", e.target.value)
+                            }
+                            readOnly={!isEditing}
+                            className={
+                              validationErrors.province ? "border-red-500" : ""
+                            }
+                          />
+                          {isEditing && validationErrors.province && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {validationErrors.province}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Government IDs Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">
+                        Government IDs
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            SSS Number
+                          </label>
+                          <Input
+                            placeholder="Enter SSS number"
+                            value={
+                              isEditing ? editedCrew.sssNumber : crew.sssNumber
+                            }
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange("sssNumber", e.target.value)
+                            }
+                            readOnly={!isEditing}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Tax ID Number
+                          </label>
+                          <Input
+                            placeholder="Enter Tax ID number"
+                            value={
+                              isEditing
+                                ? editedCrew.taxIdNumber
+                                : crew.taxIdNumber
+                            }
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange("taxIdNumber", e.target.value)
+                            }
+                            readOnly={!isEditing}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Philhealth Number
+                          </label>
+                          <Input
+                            placeholder="Enter Philhealth number"
+                            value={
+                              isEditing
+                                ? editedCrew.philhealthNumber
+                                : crew.philhealthNumber
+                            }
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange(
+                                "philhealthNumber",
+                                e.target.value
+                              )
+                            }
+                            readOnly={!isEditing}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            HDMF Number
+                          </label>
+                          <Input
+                            placeholder="Enter HDMF number"
+                            value={
+                              isEditing
+                                ? editedCrew.hdmfNumber
+                                : crew.hdmfNumber
+                            }
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange("hdmfNumber", e.target.value)
+                            }
+                            readOnly={!isEditing}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    {/* Travel Documents Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">
+                        Travel Documents
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Passport Number
+                          </label>
+                          <Input
+                            placeholder="Enter passport number"
+                            value={
+                              isEditing
+                                ? editedCrew.passportNumber
+                                : crew.passportNumber
+                            }
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange(
+                                "passportNumber",
+                                e.target.value
+                              )
+                            }
+                            readOnly={!isEditing}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Passport Issue Date
+                          </label>
+                          <div className="relative">
+                            <Input
+                              type="date"
+                              placeholder="Pick a date"
+                              value={
+                                isEditing
+                                  ? editedCrew.passportIssueDate
+                                  : crew.passportIssueDate
+                              }
+                              onChange={(e) =>
+                                isEditing &&
+                                handleInputChange(
+                                  "passportIssueDate",
+                                  e.target.value
+                                )
+                              }
+                              readOnly={!isEditing}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Passport Expiration Date
+                          </label>
+                          <div className="relative">
+                            <Input
+                              type="date"
+                              placeholder="Pick a date"
+                              value={
+                                isEditing
+                                  ? editedCrew.passportExpiryDate
+                                  : crew.passportExpiryDate
+                              }
+                              onChange={(e) =>
+                                isEditing &&
+                                handleInputChange(
+                                  "passportExpiryDate",
+                                  e.target.value
+                                )
+                              }
+                              readOnly={!isEditing}
+                            />
+                          </div>
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Seamans Book
+                          </label>
+                          <Input
+                            placeholder="Enter seamans book number"
+                            value={
+                              isEditing
+                                ? editedCrew.seamansBookNumber
+                                : crew.seamansBookNumber
+                            }
+                            onChange={(e) =>
+                              isEditing &&
+                              handleInputChange(
+                                "seamansBookNumber",
+                                e.target.value
+                              )
+                            }
+                            readOnly={!isEditing}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Seamans Book Issue Date
+                          </label>
+                          <div className="relative">
+                            <Input
+                              type="date"
+                              placeholder="Pick a date"
+                              value={
+                                isEditing
+                                  ? editedCrew.seamansBookIssueDate
+                                  : crew.seamansBookIssueDate
+                              }
+                              onChange={(e) =>
+                                isEditing &&
+                                handleInputChange(
+                                  "seamansBookIssueDate",
+                                  e.target.value
+                                )
+                              }
+                              readOnly={!isEditing}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            Seamans Book Expiration Date
+                          </label>
+                          <div className="relative">
+                            <Input
+                              type="date"
+                              placeholder="Pick a date"
+                              value={
+                                isEditing
+                                  ? editedCrew.seamansBookExpiryDate
+                                  : crew.seamansBookExpiryDate
+                              }
+                              onChange={(e) =>
+                                isEditing &&
+                                handleInputChange(
+                                  "seamansBookExpiryDate",
+                                  e.target.value
+                                )
+                              }
+                              readOnly={!isEditing}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent
+                  value="movement"
+                  className="p-4 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                >
+                  <div className="space-y-6">
+                    {/* Vessel selection and filter */}
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <div className="relative rounded-lg border shadow-sm overflow-hidden">
+                          <div className="flex h-11 w-full">
+                            <div className="flex items-center px-4 bg-gray-50 border-r">
+                              <span className="text-gray-700 font-medium whitespace-nowrap">
+                                Select Vessel
+                              </span>
+                            </div>
+                            <div className="flex-1 w-full flex items-center">
+                              <Select
+                                value={selectedVessel}
+                                onValueChange={handleVesselChange}
+                              >
+                                <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                                  <SelectValue placeholder="Select vessel" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Atlas Island">
+                                    Atlas Island
+                                  </SelectItem>
+                                  <SelectItem value="MV Pacific Voyager">
+                                    MV Pacific Voyager
+                                  </SelectItem>
+                                  <SelectItem value="MV Atlantic Explorer">
+                                    MV Atlantic Explorer
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <Button
+                          variant="outline"
+                          className="h-11 px-5 border rounded-lg shadow-sm cursor-pointer"
+                        >
+                          <Filter className="h-5 w-5 text-primary mr-2" />
+                          <span className="text-gray-700 font-medium">
+                            Filter
+                          </span>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Movement history table */}
+                    <div className="border rounded-md overflow-hidden">
+                      {filteredMovements.length > 0 ? (
+                        <DataTable
+                          columns={movementColumns}
+                          data={filteredMovements}
+                          pagination={filteredMovements.length > 10}
+                        />
+                      ) : (
+                        <div className="p-4 text-center text-gray-500">
+                          No movement records found for this vessel.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent
+                  value="allottee"
+                  className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                >
+                  <div className="space-y-5">
+                    {/* Allottee selection and type */}
+                    <div className="flex gap-4">
+                      <div className="w-4/6">
+                        <div className="relative rounded-lg border shadow-sm overflow-hidden">
+                          <div className="flex h-11 w-full">
+                            <div className="flex items-center px-4 bg-gray-50 border-r">
+                              <span className="text-gray-700 font-medium whitespace-nowrap">
+                                Select Allottee
+                              </span>
+                            </div>
+                            <div className="flex-1 w-full flex items-center">
+                              <Select
+                                value={selectedAllottee}
+                                onValueChange={setSelectedAllottee}
+                              >
+                                <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                                  <SelectValue placeholder="Select allottee" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="jayjay">
+                                    JayJay Jasper
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-2/6">
+                        <div className="relative rounded-lg border shadow-sm overflow-hidden">
+                          <div className="flex h-11 w-full">
+                            <div className="flex items-center px-4 bg-gray-50 border-r">
+                              <span className="text-gray-700 font-medium whitespace-nowrap">
+                                Select
+                              </span>
+                            </div>
+                            <div className="flex-1 w-full flex items-center">
+                              <Select
+                                value={selectedAllotmentType}
+                                onValueChange={setSelectedAllotmentType}
+                              >
+                                <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                                  <SelectValue placeholder="Allotment Type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="monthly">
+                                    Monthly Allotment
+                                  </SelectItem>
+                                  <SelectItem value="one-time">
+                                    One-time Payment
+                                  </SelectItem>
+                                  <SelectItem value="percentage">
+                                    Percentage Based
+                                  </SelectItem>
+                                  <SelectItem value="fixed">
+                                    Fixed Amount
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Allottee Information Card */}
+
+                    <div className="p-1 space-y-6">
+                      {/* Allottee Personal Information */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-lg font-semibold text-primary">
+                            Allottee Personal Information
+                          </h3>
+                          <div className="flex items-center gap-6">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="active"
+                                checked={allotteeActive}
+                                onChange={(e) =>
+                                  setAllotteeActive(e.target.checked)
+                                }
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <label
+                                htmlFor="active"
+                                className="text-sm font-medium text-gray-900"
+                              >
+                                Active
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="priority"
+                                checked={priorityAmount}
+                                onChange={(e) =>
+                                  setPriorityAmount(e.target.checked)
+                                }
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <label
+                                htmlFor="priority"
+                                className="text-sm font-medium text-gray-900"
+                              >
+                                Priority for Amount Type
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="dollar"
+                                checked={dollarAllotment}
+                                onChange={(e) =>
+                                  setDollarAllotment(e.target.checked)
+                                }
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <label
+                                htmlFor="dollar"
+                                className="text-sm font-medium text-gray-900"
+                              >
+                                Dollar Allottment
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="w-full">
+                            <label className="text-sm text-gray-500 mb-1 block">
+                              Name
+                            </label>
+                            <Input
+                              value="JayJay Jasper"
+                              readOnly
+                              className="bg-gray-50 w-full h-10"
+                            />
+                          </div>
+                          <div className="w-full">
+                            <label className="text-sm text-gray-500 mb-1 block">
+                              Relationship
+                            </label>
+                            <Select>
+                              <SelectTrigger className="bg-gray-50 w-full h-10">
+                                <SelectValue placeholder="Sister" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="sister">Sister</SelectItem>
+                                <SelectItem value="brother">Brother</SelectItem>
+                                <SelectItem value="mother">Mother</SelectItem>
+                                <SelectItem value="father">Father</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="w-full">
+                            <label className="text-sm text-gray-500 mb-1 block">
+                              Contact Number
+                            </label>
+                            <Input
+                              value="09939939393"
+                              readOnly
+                              className="bg-gray-50 w-full h-10"
+                            />
+                          </div>
+                          <div className="w-full">
+                            <label className="text-sm text-gray-500 mb-1 block">
+                              Address
+                            </label>
+                            <Input
+                              value="123 Barangay Mabuhay Street"
+                              readOnly
+                              className="bg-gray-50 w-full h-10"
+                            />
+                          </div>
+                          <div className="w-full">
+                            <label className="text-sm text-gray-500 mb-1 block">
+                              City
+                            </label>
+                            <Input
+                              value="Quezon City"
+                              readOnly
+                              className="bg-gray-50 w-full h-10"
+                            />
+                          </div>
+                          <div className="w-full">
+                            <label className="text-sm text-gray-500 mb-1 block">
+                              Province
+                            </label>
+                            <Input
+                              value="Metro Manila"
+                              readOnly
+                              className="bg-gray-50 w-full h-10"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bank Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 text-primary">
+                          Bank Information
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="w-full">
+                            <label className="text-sm text-gray-500 mb-1 block">
+                              Bank
+                            </label>
+                            <Select>
+                              <SelectTrigger className="bg-gray-50 w-full h-10">
+                                <SelectValue placeholder="BPI" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="bpi">BPI</SelectItem>
+                                <SelectItem value="bdo">BDO</SelectItem>
+                                <SelectItem value="metrobank">
+                                  Metrobank
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="w-full">
+                            <label className="text-sm text-gray-500 mb-1 block">
+                              Branch
+                            </label>
+                            <Select>
+                              <SelectTrigger className="bg-gray-50 w-full h-10">
+                                <SelectValue placeholder="Ermita, Manila" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="ermita">
+                                  Ermita, Manila
+                                </SelectItem>
+                                <SelectItem value="makati">Makati</SelectItem>
+                                <SelectItem value="quezon">
+                                  Quezon City
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="w-full">
+                            <label className="text-sm text-gray-500 mb-1 block">
+                              Account Number
+                            </label>
+                            <Input
+                              value="3535436457568"
+                              readOnly
+                              className="bg-gray-50 w-full h-10"
+                            />
+                          </div>
+                          <div className="w-full">
+                            <label className="text-sm text-gray-500 mb-1 block">
+                              Allottment
+                            </label>
+                            <Input
+                              value="Dela Cruz"
+                              readOnly
+                              className="bg-gray-50 w-full h-10"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex justify-end gap-3 pt-1">
+                        <Button
+                          variant="destructive"
+                          className="px-6 bg-[#B63C3C] w-45 h-11"
+                        >
+                          <CircleMinus />
+                          Remove
+                        </Button>
+                        <Button className="bg-[#2BA148] hover:bg-green-700 px-6 w-45 h-11">
+                          <Pencil />
+                          Edit
+                        </Button>
+                        <Button className="bg-[#21299D] hover:bg-indigo-700 px-6 w-45 h-11">
+                          <Plus />
+                          Add Allottee
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

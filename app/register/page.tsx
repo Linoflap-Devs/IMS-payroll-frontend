@@ -1,7 +1,7 @@
-import Login from "@/components/Login";
+import Register from "@/components/Register";
 import Image from "next/image";
 
-export default function Home() {
+export default function RegisterPage() {
   return (
     <main className="flex h-screen relative">
       <div className="hidden lg:block lg:w-3/4 bg-[#1e2f8d] relative pl-5">
@@ -35,7 +35,7 @@ export default function Home() {
       </div>
       <div className="w-full lg:w-1/4 bg-[#E8EDF3]" />
       <div className="absolute inset-y-0 left-[75%] -translate-x-1/2 flex items-center z-20">
-        <Login />
+        <Register />
       </div>
     </main>
   );
