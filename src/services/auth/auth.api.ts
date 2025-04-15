@@ -1,0 +1,27 @@
+
+import axiosInstance from "../../lib/axios";
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  data: {
+    token: string;
+    email: string;
+  };
+  message: string;
+}
+
+
+export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
+  const response = await axiosInstance.post<LoginResponse>("/auth/login", data);
+  return response.data;
+};
+
+
+export const logoutUser = async (): Promise<void> => {
+  await axiosInstance.post("/auth/logout");
+};

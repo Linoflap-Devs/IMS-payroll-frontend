@@ -1,3 +1,5 @@
+// components/Login.tsx
+
 "use client";
 
 import { useState } from "react";
@@ -23,6 +25,7 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
+import { loginUser, LoginResponse } from "../src/services/auth/auth.api";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -45,15 +48,26 @@ export default function Login() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Simulate API call
-    console.log(values);
-    setTimeout(() => {
+    try {
+      // Call the login API with email and password
+      const response: LoginResponse = await loginUser(values);
+      console.log("Login response:", response);
+
+      if (response.success) {
+        // On success, the backend sets the auth cookie.
+        // Redirect the user to the dashboard.
+        router.push("/home/dashboard");
+      } else {
+        // You might want to handle errors (e.g., display a notification)
+        console.error("Error during login:", response.message);
+      }
+    } catch (error: any) {
+      console.error("Login failed:", error.response?.data || error.message);
+    } finally {
       setIsLoading(false);
-      // Redirect to dashboard after successful login
-      router.push("/home/dashboard");
-    }, 1000);
+    }
   }
 
   return (
@@ -65,63 +79,57 @@ export default function Login() {
           </h2>
         </div>
         <div className="space-y-5">
-          <div className="">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-5"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <div className="mb-28 space-y-5">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Email Address</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter email address"
+                          {...field}
+                          className="h-10 text-sm"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-base" />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter password"
+                          {...field}
+                          className="h-10 text-sm"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-base" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 mt-4"
+                disabled={isLoading}
               >
-                <div className="mb-28 space-y-5">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm">Email Address</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter email address"
-                            {...field}
-                            className="h-10 text-sm"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-base" />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm">Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Enter password"
-                            {...field}
-                            className="h-10 text-sm"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-base" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 mt-4"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Logging in..." : "Log in"}
-                </Button>
-              </form>
-            </Form>
-          </div>
-
+                {isLoading ? "Logging in..." : "Log in"}
+              </Button>
+            </form>
+          </Form>
           <p className="text-base text-center text-gray-600 mb-20">
-            Dont have account yet?{" "}
+            Don't have an account yet?{" "}
             <a href="/register" className="text-[#1e2f8d] hover:underline">
               Register here
             </a>

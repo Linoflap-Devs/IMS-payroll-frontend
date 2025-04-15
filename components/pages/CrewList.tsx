@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -34,193 +33,11 @@ import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";
+import { getCrewList, CrewItem } from "../../src/services/crew/crew.api";
 
-// Sample crew data
-const crewData = [
-  {
-    id: "CR001",
-    name: "John Smith Alperen Segundo",
-    rank: "Captain",
-    status: "On board",
-    vessel: "MV Pacific Voyager",
-    email: "john.smith@example.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Seafarer St., Manila, Philippines",
-    dateOfBirth: "1985-06-15",
-    nationality: "Filipino",
-    joinDate: "2023-01-10",
-    contractEnd: "2023-07-10",
-    accountValidation: "Verified",
-  },
-  {
-    id: "CR002",
-    name: "Emily Chen",
-    rank: "First Officer",
-    status: "On board",
-    vessel: "MV Pacific Voyager",
-    email: "emily.chen@example.com",
-    phone: "+1 (555) 987-6543",
-    address: "456 Ocean Ave., Singapore",
-    dateOfBirth: "1990-03-22",
-    nationality: "Singaporean",
-    joinDate: "2023-02-15",
-    contractEnd: "2023-08-15",
-    accountValidation: "Not Registered",
-  },
-  {
-    id: "CR003",
-    name: "Michael Rodriguez",
-    rank: "Chief Engineer",
-    status: "Off board",
-    vessel: "",
-    email: "michael.rodriguez@example.com",
-    phone: "+1 (555) 456-7890",
-    address: "789 Marine Dr., Manila, Philippines",
-    dateOfBirth: "1982-11-05",
-    nationality: "Filipino",
-    joinDate: "2022-10-05",
-    contractEnd: "2023-04-05",
-    accountValidation: "Verified",
-  },
-  {
-    id: "CR004",
-    name: "Sarah Johnson",
-    rank: "Second Officer",
-    status: "Active",
-    vessel: "MV Atlantic Explorer",
-    email: "sarah.johnson@example.com",
-    phone: "+1 (555) 234-5678",
-    address: "321 Sailor's Way, London, UK",
-    dateOfBirth: "1988-09-12",
-    nationality: "British",
-    joinDate: "2023-03-20",
-    contractEnd: "2023-09-20",
-    accountValidation: "Not Registered",
-  },
-  {
-    id: "CR005",
-    name: "David Kim",
-    rank: "Third Engineer",
-    status: "Inactive",
-    vessel: "",
-    email: "david.kim@example.com",
-    phone: "+1 (555) 345-6789",
-    address: "567 Harbor Blvd., Busan, South Korea",
-    dateOfBirth: "1992-04-30",
-    nationality: "South Korean",
-    joinDate: "2022-08-15",
-    contractEnd: "2023-02-15",
-    accountValidation: "Pending",
-  },
-  {
-    id: "CR006",
-    name: "Emily Brown",
-    rank: "Cook",
-    status: "Active",
-    vessel: "MV Pacific Voyager",
-    email: "emily.brown@example.com",
-    phone: "+1 (555) 567-8901",
-    address: "890 Culinary Lane, Manila, Philippines",
-    dateOfBirth: "1991-08-18",
-    nationality: "Filipino",
-    joinDate: "2023-01-25",
-    contractEnd: "2023-07-25",
-    accountValidation: "Pending",
-  },
-  {
-    id: "CR007",
-    name: "Robert Garcia",
-    rank: "Bosun",
-    status: "Off board",
-    vessel: "",
-    email: "robert.garcia@example.com",
-    phone: "+1 (555) 678-9012",
-    address: "432 Mariner Blvd., Barcelona, Spain",
-    dateOfBirth: "1987-12-03",
-    nationality: "Spanish",
-    joinDate: "2022-11-10",
-    contractEnd: "2023-05-10",
-    accountValidation: "Verified",
-  },
-  {
-    id: "CR008",
-    name: "Azraelu Calleja",
-    rank: "Captain",
-    status: "On board",
-    vessel: "MV Atlantic Explorer",
-    email: "asta.calleja@example.com",
-    phone: "+1 (555) 789-0123",
-    address: "654 Mariner Ave., Manila, Philippines",
-    dateOfBirth: "1986-07-22",
-    nationality: "Filipino",
-    joinDate: "2023-02-01",
-    contractEnd: "2023-08-01",
-    accountValidation: "Not Registered",
-  },
-  {
-    id: "CR009",
-    name: "James Wilson",
-    rank: "Second Engineer",
-    status: "Active",
-    vessel: "MV Pacific Voyager",
-    email: "james.wilson@example.com",
-    phone: "+1 (555) 890-1234",
-    address: "789 Engineer St., Sydney, Australia",
-    dateOfBirth: "1989-05-14",
-    nationality: "Australian",
-    joinDate: "2023-01-15",
-    contractEnd: "2023-07-15",
-    accountValidation: "Not Registered",
-  },
-  {
-    id: "CR010",
-    name: "Sophia Martinez",
-    rank: "Third Officer",
-    status: "Off board",
-    vessel: "",
-    email: "sophia.martinez@example.com",
-    phone: "+1 (555) 901-2345",
-    address: "321 Seafarer Blvd., Barcelona, Spain",
-    dateOfBirth: "1993-09-28",
-    nationality: "Spanish",
-    joinDate: "2022-12-10",
-    contractEnd: "2023-06-10",
-    accountValidation: "Verified",
-  },
-  {
-    id: "CR011",
-    name: "Daniel Lee",
-    rank: "Electrician",
-    status: "Inactive",
-    vessel: "",
-    email: "daniel.lee@example.com",
-    phone: "+1 (555) 012-3456",
-    address: "456 Electric Ave., Seoul, South Korea",
-    dateOfBirth: "1990-11-03",
-    nationality: "South Korean",
-    joinDate: "2022-09-20",
-    contractEnd: "2023-03-20",
-    accountValidation: "Pending",
-  },
-  {
-    id: "CR012",
-    name: "Olivia Thompson",
-    rank: "Chief Officer",
-    status: "On board",
-    vessel: "MV Atlantic Explorer",
-    email: "olivia.thompson@example.com",
-    phone: "+1 (555) 123-4567",
-    address: "789 Officer St., London, UK",
-    dateOfBirth: "1987-03-17",
-    nationality: "British",
-    joinDate: "2023-03-01",
-    contractEnd: "2023-09-01",
-    accountValidation: "Verified",
-  },
-];
-
+// Function to convert status or account validation value to a badge style
 const getStatusBgColor = (status: string) => {
-  switch (status.toLowerCase()) {
+  switch (status.toLowerCase().trim()) {
     case "on board":
       return "bg-[#EBF5E4] text-green-800 rounded-full";
     case "off board":
@@ -240,42 +57,42 @@ const getStatusBgColor = (status: string) => {
   }
 };
 
-// Define the columns for the DataTable
-type Crew = (typeof crewData)[number];
-
-const columns: ColumnDef<Crew>[] = [
+const columns: ColumnDef<CrewItem>[] = [
   {
-    accessorKey: "id",
+    accessorKey: "CrewCode",
     header: "Crew Code",
     cell: ({ row }) => (
       <div className="font-medium text-xs sm:text-sm text-center">
-        {row.getValue("id")}
+        {(row.getValue("CrewCode") as string).trim()}
       </div>
     ),
   },
   {
-    accessorKey: "name",
+    accessorKey: "FirstName",
     header: "Crew Name",
     cell: ({ row }) => (
       <div className="text-xs sm:text-sm text-center">
-        {row.getValue("name")}
+        {/* Adjust as necessary if you want to combine first, middle, last names */}
+        {(row.getValue("FirstName") as string).trim()}{" "}
+        {(row.getValue("LastName") as string).trim()}
       </div>
     ),
   },
   {
-    accessorKey: "rank",
+    accessorKey: "RankID",
     header: "Rank",
     cell: ({ row }) => (
       <div className="text-xs sm:text-sm text-center">
-        {row.getValue("rank")}
+        {row.getValue("RankID")}
       </div>
     ),
   },
   {
-    accessorKey: "status",
+    accessorKey: "CrewStatusID",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
+      // Here, convert the CrewStatusID or map to a proper status label if needed.
+      const status = row.getValue("CrewStatusID") === 1 ? "Active" : "Inactive";
       return (
         <div className="text-center">
           <Badge
@@ -291,32 +108,32 @@ const columns: ColumnDef<Crew>[] = [
     },
   },
   {
-    accessorKey: "accountValidation",
+    accessorKey: "IsActive",
     header: "Account Validation",
     cell: ({ row }) => {
-      const accountValidation = row.getValue("accountValidation") as string;
+      // Adjust this mapping as necessary.
+      const validation =
+        row.getValue("IsActive") === 1 ? "Verified" : "Not Registered";
       return (
         <div className="text-center">
           <Badge
             variant="outline"
             className={`mx-auto justify-center text-xs sm:text-sm font-medium px-2 sm:px-2.5 py-0.5 flex items-center gap-1.5 sm:gap-2 w-24 sm:w-28 ${getStatusBgColor(
-              accountValidation
+              validation
             )}`}
           >
-            {accountValidation}
+            {validation}
           </Badge>
         </div>
       );
     },
   },
-
   {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
       const crew = row.original;
 
-      // Function that displays SweetAlert2 confirmation when deleting a crew member
       const handleDelete = (crewId: string) => {
         const swalWithBootstrapButtons = Swal.mixin({
           customClass: {
@@ -340,7 +157,7 @@ const columns: ColumnDef<Crew>[] = [
           })
           .then((result) => {
             if (result.isConfirmed) {
-              // Place your delete logic here, for example, API call or state update
+              // Place your delete logic here, e.g. API call or state update
               swalWithBootstrapButtons.fire({
                 title: "Deleted!",
                 text: "The crew has been successfully deleted.",
@@ -367,32 +184,38 @@ const columns: ColumnDef<Crew>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
               <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                <Link href={`/home/crew/details?id=${crew.id}`}>
+                <Link href={`/home/crew/details?id=${crew.CrewCode}`}>
                   <IdCard className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   View Crew Details
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                <Link href={`/home/crew/details?id=${crew.id}&tab=movement`}>
+                <Link
+                  href={`/home/crew/details?id=${crew.CrewCode}&tab=movement`}
+                >
                   <FolderClock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   View Crew Movement
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                <Link href={`/home/crew/details?id=${crew.id}&tab=allottee`}>
+                <Link
+                  href={`/home/crew/details?id=${crew.CrewCode}&tab=allottee`}
+                >
                   <Users className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   View Allottee
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                <Link href={`/home/crew/details?id=${crew.id}&tab=validation`}>
+                <Link
+                  href={`/home/crew/details?id=${crew.CrewCode}&tab=validation`}
+                >
                   <Users className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   View Account Validation
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => handleDelete(crew.id)}
+                onClick={() => handleDelete(crew.CrewCode)}
                 className="text-destructive text-xs sm:text-sm cursor-pointer"
               >
                 <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
@@ -411,26 +234,53 @@ export default function CrewList() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [rankFilter, setRankFilter] = useState("all");
   const [validationFilter, setValidationFilter] = useState("all");
+  const [crewData, setCrewData] = useState<CrewItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filter crew based on search term and status filter
+  // Fetch crew data on component mount
+  useEffect(() => {
+    const fetchCrew = async () => {
+      try {
+        const res = await getCrewList();
+        if (res.success) {
+          setCrewData(res.data);
+        } else {
+          console.error("Error fetching crew:", res.message);
+        }
+      } catch (error) {
+        console.error("Error fetching crew data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCrew();
+  }, []);
+
+  // Filter crew based on search term and filters
   const filteredCrew = crewData.filter((crew) => {
     const matchesSearch =
-      crew.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      crew.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      crew.rank.toLowerCase().includes(searchTerm.toLowerCase());
+      crew.FirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      crew.LastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      crew.CrewCode.toLowerCase().includes(searchTerm.toLowerCase());
 
+    // For demonstration, here's a simple filtering for status and rank
+    // Adjust these if your API returns status or rank as descriptive strings
     const matchesStatus =
       statusFilter === "all" ||
-      crew.status.toLowerCase() === statusFilter.toLowerCase();
+      (crew.CrewStatusID === 1 && statusFilter.toLowerCase() === "active") ||
+      (crew.CrewStatusID !== 1 && statusFilter.toLowerCase() === "inactive");
 
     const matchesRank =
       rankFilter === "all" ||
-      crew.rank.toLowerCase() === rankFilter.toLowerCase();
+      // Implement mapping of RankID to rank names if needed
+      crew.RankID.toString() === rankFilter.toLowerCase();
 
     const matchesValidation =
       validationFilter === "all" ||
-      (crew.accountValidation ?? "").toLowerCase() ===
-        validationFilter.toLowerCase();
+      (crew.IsActive === 1 && validationFilter.toLowerCase() === "verified") ||
+      (crew.IsActive !== 1 &&
+        validationFilter.toLowerCase() === "not registered");
 
     return matchesSearch && matchesStatus && matchesRank && matchesValidation;
   });
@@ -442,11 +292,10 @@ export default function CrewList() {
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
-
         /* Hide scrollbar for IE, Edge and Firefox */
         .scrollbar-hide {
-          -ms-overflow-style: none; /* IE and Edge */
-          scrollbar-width: none; /* Firefox */
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
       <div className="h-full overflow-y-auto scrollbar-hide">
@@ -476,33 +325,20 @@ export default function CrewList() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Filter by status</SelectItem>
-                  <SelectItem value="On board">On board</SelectItem>
-                  <SelectItem value="Off board">Off Board</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={rankFilter} onValueChange={setRankFilter}>
                 <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                   <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Filter by rank" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Filter by rank</SelectItem>
-                  <SelectItem value="Captain">Captain</SelectItem>
-                  <SelectItem value="First Officer">First Officer</SelectItem>
-                  <SelectItem value="Second Officer">Second Officer</SelectItem>
-                  <SelectItem value="Third Officer">Third Officer</SelectItem>
-                  <SelectItem value="Chief Engineer">Chief Engineer</SelectItem>
-                  <SelectItem value="Second Engineer">
-                    Second Engineer
-                  </SelectItem>
-                  <SelectItem value="Third Engineer">Third Engineer</SelectItem>
-                  <SelectItem value="Bosun">Bosun</SelectItem>
-                  <SelectItem value="Electrician">Electrician</SelectItem>
-                  <SelectItem value="Cook">Cook</SelectItem>
-                  <SelectItem value="Deckhand">Deckhand</SelectItem>
-                  <SelectItem value="Steward">Steward</SelectItem>
+                  <SelectItem value="13">Captain</SelectItem>
+                  <SelectItem value="6">First Officer</SelectItem>
+                  {/* Add additional mapping as needed */}
                 </SelectContent>
               </Select>
               <Select
@@ -511,13 +347,12 @@ export default function CrewList() {
               >
                 <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                   <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Filter by validation" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Filter by validation</SelectItem>
-                  <SelectItem value="Verified">Verified</SelectItem>
-                  <SelectItem value="Not Registered">Not Registered</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="verified">Verified</SelectItem>
+                  <SelectItem value="not registered">Not Registered</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -533,10 +368,14 @@ export default function CrewList() {
             </div>
           </div>
 
-          {/* DataTable with custom styling */}
-          <div className="bg-white rounded-md border pb-3">
-            <DataTable columns={columns} data={filteredCrew} />
-          </div>
+          {/* Display loader or data table */}
+          {loading ? (
+            <div className="text-center">Loading crew data...</div>
+          ) : (
+            <div className="bg-white rounded-md border pb-3">
+              <DataTable columns={columns} data={filteredCrew} />
+            </div>
+          )}
         </div>
       </div>
     </div>
