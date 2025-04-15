@@ -7,7 +7,9 @@ export interface CrewItem {
   FirstName: string;
   MiddleName: string;
   RankID: number;
+  Rank: string;  // Add this
   CrewStatusID: number;
+  AccountValidation: string | null;  // Add this
   IsActive: number;
 }
 

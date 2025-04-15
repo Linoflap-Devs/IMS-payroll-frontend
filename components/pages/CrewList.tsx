@@ -68,22 +68,24 @@ const columns: ColumnDef<CrewItem>[] = [
     ),
   },
   {
-    accessorKey: "FirstName",
+    accessorKey: "FirstName", // This remains the same as the entry point
     header: "Crew Name",
-    cell: ({ row }) => (
-      <div className="text-xs sm:text-sm text-center">
-        {/* Adjust as necessary if you want to combine first, middle, last names */}
-        {(row.getValue("FirstName") as string).trim()}{" "}
-        {(row.getValue("LastName") as string).trim()}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const firstName = row.original.FirstName || ""; // Use row.original to access the raw data
+      const lastName = row.original.LastName || "";
+      return (
+        <div className="text-xs sm:text-sm text-center">
+          {firstName.trim()} {lastName.trim()}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "RankID",
     header: "Rank",
     cell: ({ row }) => (
       <div className="text-xs sm:text-sm text-center">
-        {row.getValue("RankID")}
+        {row.original.Rank || row.getValue("RankID")}
       </div>
     ),
   },
