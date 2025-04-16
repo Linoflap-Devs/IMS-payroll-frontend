@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,12 +42,21 @@ import { EditSalaryScaleDialog } from "@/components/dialogs/EditSalaryScaleDialo
 import { EditWageDescriptionDialog } from "@/components/dialogs/EditWageDescriptionDialog";
 import { EditForexDialog } from "@/components/dialogs/EditForexDialog";
 import Swal from "sweetalert2";
+import { SalaryScaleItem, getSalaryScaleList } from "../../src/services/wages/salaryScale.api";
+import { WageDescriptionItem, getWageDescriptionList } from "../../src/services/wages/wageDescription.api";
+
+// Define vessel type interface
+type VesselType = {
+  id: number;
+  name: string;
+};
 
 type SalaryScaleData = {
   rank: string;
   wageType: string;
   amount: number;
 };
+
 
 type VesselId = "amakus-island" | "pacific-voyager" | "atlantic-star";
 
@@ -260,64 +269,19 @@ const vesselData: VesselData = {
   ],
 };
 
-const wageDescriptionData = [
-  {
-    wageCode: "W001",
-    wageName: "Basic Wage",
-    payableOnBoard: true,
-  },
-  {
-    wageCode: "W002",
-    wageName: "Command Allowance",
-    payableOnBoard: false,
-  },
-  {
-    wageCode: "W003",
-    wageName: "Leave Pay",
-    payableOnBoard: true,
-  },
-  {
-    wageCode: "W004",
-    wageName: "Bonus",
-    payableOnBoard: true,
-  },
-  {
-    wageCode: "W005",
-    wageName: "Fixed Overtime",
-    payableOnBoard: true,
-  },
-  {
-    wageCode: "W006",
-    wageName: "Fixed Supervisory Allowance",
-    payableOnBoard: true,
-  },
-  {
-    wageCode: "W007",
-    wageName: "Guaranteed Allowance",
-    payableOnBoard: true,
-  },
-  {
-    wageCode: "W008",
-    wageName: "Provident Fund",
-    payableOnBoard: true,
-  },
-  {
-    wageCode: "W009",
-    wageName: "Seniority Allowance",
-    payableOnBoard: true,
-  },
-  {
-    wageCode: "W010",
-    wageName: "Subsistence Allowance",
-    payableOnBoard: true,
-  },
-  {
-    wageCode: "W011",
-    wageName: "Tanker Allowance",
-    payableOnBoard: true,
-  },
-];
+type WageDescriptionData = {
+  wageCode: string;
+  wageName: string;
+  payableOnBoard: boolean;
+};
 
+type ForexData = {
+  year: number;
+  month: string;
+  exchangeRate: number;
+};
+
+// Add the forexData back
 const forexData = [
   {
     year: 2024,
@@ -381,31 +345,21 @@ const forexData = [
   },
 ];
 
-type WageDescriptionData = {
-  wageCode: string;
-  wageName: string;
-  payableOnBoard: boolean;
-};
-
-type ForexData = {
-  year: number;
-  month: string;
-  exchangeRate: number;
-};
-
 export default function Wages() {
   const [activeTab, setActiveTab] = useState("salary");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedVessel, setSelectedVessel] =
-    useState<VesselId>("amakus-island");
+  const [selectedVesselTypeId, setSelectedVesselTypeId] = useState<number | null>(null);
+  const [vesselTypes, setVesselTypes] = useState<VesselType[]>([]);
   const [columnVisibility, setColumnVisibility] = useState<{
     [key: string]: boolean;
   }>({
-    rank: true,
-    wageType: true,
-    amount: true,
+    RankID: true,
+    WageID: true,
+    Rank: true,
+    WageAmount: true,
     action: true,
+    Wage: true,
   });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedSalaryScale, setSelectedSalaryScale] =
@@ -416,35 +370,108 @@ export default function Wages() {
     useState<WageDescriptionData | null>(null);
   const [editForexDialogOpen, setEditForexDialogOpen] = useState(false);
   const [selectedForex, setSelectedForex] = useState<ForexData | null>(null);
+  
+  // New state for API data
+  const [salaryScaleItems, setSalaryScaleItems] = useState<SalaryScaleItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // New state for wage description API data
+  const [wageDescriptionItems, setWageDescriptionItems] = useState<WageDescriptionItem[]>([]);
+  const [isLoadingWageDescription, setIsLoadingWageDescription] = useState(false);
+  const [wageDescriptionError, setWageDescriptionError] = useState<string | null>(null);
+
+  // Fetch salary scale data
+  useEffect(() => {
+    async function fetchSalaryScale() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await getSalaryScaleList();
+        if (response.success) {
+          setSalaryScaleItems(response.data);
+          
+          // Extract unique vessel types from the data
+          const uniqueVesselTypes = Array.from(
+            new Set(response.data.map(item => JSON.stringify({ 
+              id: item.VesselTypeId, 
+              name: item.VesselTypeName 
+            })))
+          )
+          .map(str => JSON.parse(str) as VesselType)
+          .filter(item => item.id !== undefined && item.name !== undefined);
+          
+          setVesselTypes(uniqueVesselTypes);
+          
+          // Set default selected vessel to the first one
+          if (uniqueVesselTypes.length > 0 && selectedVesselTypeId === null) {
+            setSelectedVesselTypeId(uniqueVesselTypes[0].id);
+          }
+        } else {
+          setError(response.message || "Failed to fetch salary scale data");
+        }
+      } catch (err) {
+        setError("An error occurred while fetching salary scale data");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchSalaryScale();
+  }, []);
+
+  // Fetch wage description data
+  useEffect(() => {
+    async function fetchWageDescription() {
+      setIsLoadingWageDescription(true);
+      setWageDescriptionError(null);
+      try {
+        const response = await getWageDescriptionList();
+        if (response.success) {
+          setWageDescriptionItems(response.data);
+        } else {
+          setWageDescriptionError(response.message || "Failed to fetch wage description data");
+        }
+      } catch (err) {
+        setWageDescriptionError("An error occurred while fetching wage description data");
+        console.error(err);
+      } finally {
+        setIsLoadingWageDescription(false);
+      }
+    }
+
+    fetchWageDescription();
+  }, []);
 
   // Handle tab change
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
 
-  const salaryScaleColumns: ColumnDef<SalaryScaleData>[] = [
+  const salaryScaleColumns: ColumnDef<SalaryScaleItem>[] = [
     {
-      id: "rank",
-      accessorKey: "rank",
-      header: ({ column }) => <div className="text-left">Rank</div>,
+      id: "Rank",
+      accessorKey: "Rank",
+      header: ({ column }) => <div className="text-left">Rank ID</div>,
       cell: ({ row }) => (
-        <div className="text-left">{row.getValue("rank")}</div>
+        <div className="text-left">{row.getValue("Rank")}</div>
       ),
     },
     {
-      id: "wageType",
-      accessorKey: "wageType",
-      header: ({ column }) => <div className="text-center">Wage Type</div>,
+      id: "WageID",
+      accessorKey: "WageID",
+      header: ({ column }) => <div className="text-center">Wage ID</div>,
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("wageType")}</div>
+        <div className="text-center">{row.original.Wage || row.getValue("WageID")}</div>
       ),
     },
     {
-      id: "amount",
-      accessorKey: "amount",
+      id: "WageAmount",
+      accessorKey: "WageAmount",
       header: ({ column }) => <div className="text-center">Amount</div>,
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("amount")}</div>
+        <div className="text-center">{row.getValue("WageAmount")}</div>
       ),
     },
     {
@@ -453,7 +480,7 @@ export default function Wages() {
       cell: ({ row }) => {
         const salaryScale = row.original;
         // Function that displays SweetAlert2 confirmation when deleting a crew member
-        const handleDelete = (vesselCode: string) => {
+        const handleDelete = (rankId: number) => {
           const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
               confirmButton:
@@ -504,7 +531,13 @@ export default function Wages() {
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
                   onClick={() => {
-                    setSelectedSalaryScale(salaryScale);
+                    // Convert SalaryScaleItem to SalaryScaleData for the dialog
+                    const dialogData: SalaryScaleData = {
+                      rank: salaryScale.RankID.toString(),
+                      wageType: salaryScale.WageID.toString(),
+                      amount: salaryScale.WageAmount,
+                    };
+                    setSelectedSalaryScale(dialogData);
                     setEditDialogOpen(true);
                   }}
                 >
@@ -514,7 +547,7 @@ export default function Wages() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleDelete(salaryScale.rank)}
+                  onClick={() => handleDelete(salaryScale.RankID)}
                 >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
@@ -527,31 +560,31 @@ export default function Wages() {
     },
   ];
 
-  const wageDescriptionColumns: ColumnDef<WageDescriptionData>[] = [
+  const wageDescriptionColumns: ColumnDef<WageDescriptionItem>[] = [
     {
-      id: "wageCode",
-      accessorKey: "wageCode",
+      id: "WageCode",
+      accessorKey: "WageCode",
       header: ({ column }) => <div className="text-left">Wage Code</div>,
       cell: ({ row }) => (
-        <div className="text-left">{row.getValue("wageCode")}</div>
+        <div className="text-left">{row.getValue("WageCode")}</div>
       ),
     },
     {
-      id: "wageName",
-      accessorKey: "wageName",
+      id: "WageName",
+      accessorKey: "WageName",
       header: ({ column }) => <div className="text-center">Wage Name</div>,
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("wageName")}</div>
+        <div className="text-center">{row.getValue("WageName")}</div>
       ),
     },
     {
-      id: "payableOnBoard",
-      accessorKey: "payableOnBoard",
+      id: "PayableOnBoard",
+      accessorKey: "PayableOnBoard",
       header: ({ column }) => (
         <div className="text-center">Payable On Board</div>
       ),
       cell: ({ row }) => {
-        const value = row.getValue("payableOnBoard");
+        const value = Boolean(row.getValue("PayableOnBoard"));
         return (
           <div className="text-center">
             <div
@@ -574,7 +607,7 @@ export default function Wages() {
       cell: ({ row }) => {
         const wageDescription = row.original;
         // Function that displays SweetAlert2 confirmation when deleting a crew member
-        const handleDelete = (vesselCode: string) => {
+        const handleDelete = (wageCode: string) => {
           const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
               confirmButton:
@@ -624,7 +657,13 @@ export default function Wages() {
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
                   onClick={() => {
-                    setSelectedWageDescription(wageDescription);
+                    // Convert API data to the format expected by the dialog
+                    const dialogData: WageDescriptionData = {
+                      wageCode: wageDescription.WageCode,
+                      wageName: wageDescription.WageName,
+                      payableOnBoard: Boolean(wageDescription.PayableOnBoard),
+                    };
+                    setSelectedWageDescription(dialogData);
                     setEditWageDescriptionDialogOpen(true);
                   }}
                 >
@@ -634,7 +673,7 @@ export default function Wages() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleDelete(wageDescription.wageCode)}
+                  onClick={() => handleDelete(wageDescription.WageCode)}
                 >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
@@ -751,24 +790,46 @@ export default function Wages() {
     },
   ];
 
-  const filteredWageDescription = wageDescriptionData.filter(
-    (wageDescription) => {
-      const matchesSearch = wageDescription.wageCode
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-
-      return matchesSearch;
-    }
-  );
-
-  const filteredForex = forexData.filter((forex) => {
-    const matchesSearch = forex.year
-      .toString()
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-
-    return matchesSearch;
+  // Filter wage description data based on search term
+  const filteredWageDescription = wageDescriptionItems.filter((item) => {
+    if (!searchTerm) return true;
+    
+    return (
+      item.WageCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.WageName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   });
+  
+  // Filter forex data based on search term
+  const filteredForex = forexData.filter((forex) => {
+    if (!searchTerm) return true;
+    
+    return (
+      forex.year.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+      forex.month.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      forex.exchangeRate.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+  
+  // Filter salary scale data based on search term and vessel type
+  const filteredSalaryScale = salaryScaleItems.filter((item) => {
+    // First filter by selected vessel type
+    if (selectedVesselTypeId !== null && item.VesselTypeId !== selectedVesselTypeId) {
+      return false;
+    }
+    
+    // Then filter by search term
+    if (!searchTerm) return true;
+    
+    return (
+      (item.RankID && item.RankID.toString().toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.WageID && item.WageID.toString().toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.WageAmount && item.WageAmount.toString().toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.Rank && item.Rank.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.Wage && item.Wage.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  });
+  
   const toggleColumnVisibility = (columnId: string) => {
     setColumnVisibility((prev) => ({
       ...prev,
@@ -864,7 +925,7 @@ export default function Wages() {
                       <div className="relative w-full md:flex-1">
                         <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
                         <Input
-                          placeholder="Search crew by rank, wage type, or amount..."
+                          placeholder="Search salary scale by Rank ID, Wage ID, or amount..."
                           className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
@@ -873,42 +934,34 @@ export default function Wages() {
 
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                         <Select
-                          value={selectedVessel}
-                          onValueChange={(value: VesselId) =>
-                            setSelectedVessel(value)
-                          }
+                          value={selectedVesselTypeId !== null ? selectedVesselTypeId.toString() : ""}
+                          onValueChange={(value) => setSelectedVesselTypeId(Number(value))}
                         >
                           <SelectTrigger className="bg-white h-full sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[300px] sm:min-w-[320px] w-full sm:w-auto">
                             <div className="flex items-center justify-between w-full -mx-4">
                               <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md">
                                 <span className="text-muted-foreground text-base">
-                                  Select Vessel
+                                  Select Vessel Type
                                 </span>
                               </div>
                               <span className="text-foreground text-base px-4">
-                                {selectedVessel === "amakus-island"
-                                  ? "Amakus Island"
-                                  : selectedVessel === "pacific-voyager"
-                                  ? "Pacific Voyager"
-                                  : selectedVessel === "atlantic-star"
-                                  ? "Atlantic Star"
-                                  : ""}
+                                {selectedVesselTypeId !== null 
+                                  ? vesselTypes.find(v => v.id === selectedVesselTypeId)?.name || "Unknown"
+                                  : "Select..."}
                               </span>
                             </div>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="amakus-island">
-                              Amakus Island
-                            </SelectItem>
-                            <SelectItem value="pacific-voyager">
-                              Pacific Voyager
-                            </SelectItem>
-                            <SelectItem value="atlantic-star">
-                              Atlantic Star
-                            </SelectItem>
+                            {vesselTypes.length > 0 ? vesselTypes.map((vessel) => (
+                              <SelectItem key={vessel.id} value={vessel.id.toString()}>
+                                {vessel.name}
+                              </SelectItem>
+                            )) : (
+                              <SelectItem value="0">No vessel types available</SelectItem>
+                            )}
                           </SelectContent>
                         </Select>
-
+                        
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -923,8 +976,6 @@ export default function Wages() {
                             align="end"
                             className="w-[150px] bg-[#FFFFFF]"
                           >
-                            {/* <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-                            <DropdownMenuSeparator /> */}
                             {salaryScaleColumns.map((column) => {
                               const columnId = column.id;
                               if (!columnId) return null;
@@ -949,14 +1000,30 @@ export default function Wages() {
                         </DropdownMenu>
                       </div>
                     </div>
+                    
+                    {/* Loading and error states */}
+                    {isLoading && (
+                      <div className="flex justify-center items-center h-40">
+                        <p className="text-muted-foreground">Loading salary scale data...</p>
+                      </div>
+                    )}
+                    
+                    {error && (
+                      <div className="flex justify-center items-center h-40">
+                        <p className="text-red-500">{error}</p>
+                      </div>
+                    )}
+                    
                     {/* DataTable with custom styling */}
-                    <div className="bg-[#F9F9F9] rounded-md border mb-3">
-                      <DataTable
-                        columns={visibleColumns}
-                        data={vesselData[selectedVessel]}
-                        pageSize={7}
-                      />
-                    </div>
+                    {!isLoading && !error && (
+                      <div className="bg-[#F9F9F9] rounded-md border mb-3">
+                        <DataTable
+                          columns={visibleColumns}
+                          data={filteredSalaryScale}
+                          pageSize={7}
+                        />
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
 
@@ -970,21 +1037,42 @@ export default function Wages() {
                       <div className="relative w-full md:flex-1">
                         <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
                         <Input
-                          placeholder="Search crew by wage code, wage name..."
+                          placeholder="Search by wage code or name..."
                           className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
                       </div>
+                      
+                      <Button className="bg-primary text-white hover:bg-primary/90 h-9 sm:h-10 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                        <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                        Add Wage Type
+                      </Button>
                     </div>
+                    
+                    {/* Loading and error states */}
+                    {isLoadingWageDescription && (
+                      <div className="flex justify-center items-center h-40">
+                        <p className="text-muted-foreground">Loading wage description data...</p>
+                      </div>
+                    )}
+                    
+                    {wageDescriptionError && (
+                      <div className="flex justify-center items-center h-40">
+                        <p className="text-red-500">{wageDescriptionError}</p>
+                      </div>
+                    )}
+                    
                     {/* DataTable with custom styling */}
-                    <div className="bg-[#F9F9F9] rounded-md border mb-3">
-                      <DataTable
-                        columns={wageDescriptionColumns}
-                        data={filteredWageDescription}
-                        pageSize={7}
-                      />
-                    </div>
+                    {!isLoadingWageDescription && !wageDescriptionError && (
+                      <div className="bg-[#F9F9F9] rounded-md border mb-3">
+                        <DataTable
+                          columns={wageDescriptionColumns}
+                          data={filteredWageDescription}
+                          pageSize={7}
+                        />
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
 
