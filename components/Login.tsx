@@ -1,5 +1,3 @@
-// components/Login.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -38,6 +36,7 @@ const formSchema = z.object({
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -50,6 +49,8 @@ export default function Login() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+    setErrorMessage(""); // reset any previous error
+
     try {
       // Call the login API with email and password
       const response: LoginResponse = await loginUser(values);
@@ -60,11 +61,20 @@ export default function Login() {
         // Redirect the user to the dashboard.
         router.push("/home/dashboard");
       } else {
-        // You might want to handle errors (e.g., display a notification)
+        // Display error message from API when login fails
+        setErrorMessage(
+          response.message || "Invalid credentials, please try again."
+        );
         console.error("Error during login:", response.message);
       }
     } catch (error: any) {
-      console.error("Login failed:", error.response?.data || error.message);
+      // Handle any unexpected errors. Customize the message as needed.
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "An unexpected error occurred.";
+      setErrorMessage(errorMsg);
+      console.error("Login failed:", errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -118,6 +128,13 @@ export default function Login() {
                   )}
                 />
               </div>
+
+              {/* Display error message if any */}
+              {errorMessage && (
+                <div className="text-sm text-red-500 text-center">
+                  {errorMessage}
+                </div>
+              )}
 
               <Button
                 type="submit"
