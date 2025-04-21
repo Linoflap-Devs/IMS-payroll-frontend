@@ -11,8 +11,9 @@ interface EditVesselTypeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   vesselTypeData: {
+    vesselTypeId: number;
     vesselTypeCode: string;
-    vesselType: string;
+    vesselTypeName: string;
   };
 }
 
@@ -47,7 +48,7 @@ export function EditVesselTypeDialog({
             <Input
               placeholder="Enter vessel type"
               className="h-10"
-              defaultValue={vesselTypeData.vesselType}
+              defaultValue={vesselTypeData.vesselTypeName}
             />
           </div>
 

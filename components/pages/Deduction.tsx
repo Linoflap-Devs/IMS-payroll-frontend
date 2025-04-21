@@ -42,9 +42,7 @@ import { PiUserListFill } from "react-icons/pi";
 import { AddDeductionTypeDialog } from "@/components/dialogs/AddDeductionTypeDialog";
 import { EditDeductionTypeDialog } from "@/components/dialogs/EditDeductionTypeDialog";
 import Swal from "sweetalert2";
-// import { EditSalaryScaleDialog } from "@/components/dialogs/EditSalaryScaleDialog";
-// import { EditWageDescriptionDialog } from "@/components/dialogs/EditWageDescriptionDialog";
-// import { EditForexDialog } from "@/components/dialogs/EditForexDialog";
+import { getCrewDeductionList, CrewDeductionItem } from "@/src/services/deduction/crewDeduction.api";
 
 const crewDeductionData = [
   {
@@ -584,27 +582,7 @@ export default function Deduction() {
           </div>
         </div>
       </div>
-      {/* {selectedSalaryScale && (
-        <EditSalaryScaleDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          salaryScale={selectedSalaryScale}
-        />
-      )}
-      {selectedWageDescription && (
-        <EditWageDescriptionDialog
-          open={editWageDescriptionDialogOpen}
-          onOpenChange={setEditWageDescriptionDialogOpen}
-          wageDescription={selectedWageDescription}
-        />
-      )}
-      {selectedForex && (
-        <EditForexDialog
-          open={editForexDialogOpen}
-          onOpenChange={setEditForexDialogOpen}
-          forex={selectedForex}
-        />
-      )} */}
+      
       <AddDeductionTypeDialog
         open={addDeductionTypeDialogOpen}
         onOpenChange={setAddDeductionTypeDialogOpen}

@@ -20,7 +20,7 @@ interface EditForexDialogProps {
   onOpenChange: (open: boolean) => void;
   forex: {
     year: number;
-    month: string;
+    month: number;
     exchangeRate: number;
   };
 }
@@ -65,13 +65,13 @@ export function EditForexDialog({
 
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Month</label>
-            <Select defaultValue={forex.month}>
+            <Select defaultValue={forex.month.toString()}>
               <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
-                {months.map((month) => (
-                  <SelectItem key={month} value={month}>
+                {months.map((month, index) => (
+                  <SelectItem key={index} value={(index + 1).toString()}>
                     {month}
                   </SelectItem>
                 ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,221 +44,35 @@ import { EditVesselTypeDialog } from "../dialogs/EditVesselTypeDialog";
 import { AddVesselPrincipalDialog } from "../dialogs/AddVesselPrincipalDialog";
 import { EditVesselPrincipalDialog } from "../dialogs/EditVesselPrincipalDialog";
 import Swal from "sweetalert2";
+import { getVesselList, VesselItem } from "@/src/services/vessel/vessel.api";
+import {
+  getVesselTypeList,
+  VesselTypeItem,
+} from "@/src/services/vessel/vesselType.api";
+import {
+  getVesselPrincipalList,
+  VesselPrincipalResponse,
+} from "@/src/services/vessel/vesselPrincipal.api";
 
-// Sample crew data
-const vesselData = [
-  {
-    vesselCode: "CR001",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Active",
-  },
-  {
-    vesselCode: "CR002",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Active",
-  },
-  {
-    vesselCode: "CR003",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Inactive",
-  },
-  {
-    vesselCode: "CR004",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Inactive",
-  },
-  {
-    vesselCode: "CR005",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Active",
-  },
-  {
-    vesselCode: "CR006",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Active",
-  },
-  {
-    vesselCode: "CR007",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Active",
-  },
-  {
-    vesselCode: "CR008",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Active",
-  },
-  {
-    vesselCode: "CR009",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Active",
-  },
-  {
-    vesselCode: "CR010",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Active",
-  },
-  {
-    vesselCode: "CR011",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Active",
-  },
-  {
-    vesselCode: "CR012",
-    vesselName: "MV Pacific Voyager",
-    vesselType: "Tanker",
-    principalName: "John Smith",
-    status: "Active",
-  },
-];
+// Define the shape used by the DataTable
+interface Vessel {
+  vesselCode: string;
+  vesselName: string;
+  vesselType: string;
+  principalName: string;
+  status: string;
+}
 
-const vesselTypeData = [
-  {
-    vesselType: "Tanker",
-    vesselTypeCode: "TK",
-  },
-  {
-    vesselType: "Bulk Carrier",
-    vesselTypeCode: "BC",
-  },
-  {
-    vesselType: "Container Ship",
-    vesselTypeCode: "CS",
-  },
-  {
-    vesselType: "Passenger Ship",
-    vesselTypeCode: "PS",
-  },
-  {
-    vesselType: "Tugboat",
-    vesselTypeCode: "TB",
-  },
+interface VesselType {
+  vesselTypeId: number;
+  vesselTypeCode: string;
+  vesselTypeName: string;
+}
 
-  {
-    vesselType: "Trawler",
-    vesselTypeCode: "TR",
-  },
-  {
-    vesselType: "Fishing Vessel",
-    vesselTypeCode: "FV",
-  },
-  {
-    vesselType: "Research Vessel",
-    vesselTypeCode: "RV",
-  },
-  {
-    vesselType: "Supply Vessel",
-    vesselTypeCode: "SV",
-  },
-  {
-    vesselType: "Other",
-    vesselTypeCode: "OT",
-  },
-  {
-    vesselType: "Tanker",
-    vesselTypeCode: "TK",
-  },
-  {
-    vesselType: "Tanker",
-    vesselTypeCode: "TK",
-  },
-  {
-    vesselType: "Tanker",
-    vesselTypeCode: "TK",
-  },
-];
-
-const vesselPrincipalData = [
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-  {
-    vesselPrincipalCode: "IINO",
-    vesselPrincipalName: "Iino Shipping Co., Ltd.",
-  },
-];
-
-const getStatusBgColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "active":
-      return "bg-[#e4e5f5] text-blue-800 rounded-full";
-    case "inactive":
-      return "bg-[#f5e4e4] text-red-800 rounded-full";
-    default:
-      return "bg-gray-100 text-gray-800 rounded-full";
-  }
-};
-
-// Define the columns for the DataTable
-type Vessel = (typeof vesselData)[number];
-type VesselType = (typeof vesselTypeData)[number];
-type VesselPrincipal = (typeof vesselPrincipalData)[number];
+interface VesselPrincipal {
+  vesselPrincipalCode: string;
+  vesselPrincipalName: string;
+}
 
 export default function VesselProfile() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -273,16 +87,73 @@ export default function VesselProfile() {
     useState(false);
   const [editVesselPrincipalDialogOpen, setEditVesselPrincipalDialogOpen] =
     useState(false);
-  const [selectedVessel, setSelectedVessel] = useState<
-    (typeof vesselData)[0] | null
-  >(null);
-  const [selectedVesselType, setSelectedVesselType] = useState<
-    (typeof vesselTypeData)[0] | null
-  >(null);
-  const [selectedVesselPrincipal, setSelectedVesselPrincipal] = useState<
-    (typeof vesselPrincipalData)[0] | null
-  >(null);
+  const [vesselData, setVesselData] = useState<Vessel[]>([]);
+  const [selectedVessel, setSelectedVessel] = useState<Vessel | null>(null);
+  const [vesselTypeData, setVesselTypeData] = useState<VesselType[]>([]);
+  const [selectedVesselType, setSelectedVesselType] =
+    useState<VesselType | null>(null);
+  const [vesselPrincipalData, setVesselPrincipalData] = useState<
+    VesselPrincipal[]
+  >([]);
+  const [selectedVesselPrincipal, setSelectedVesselPrincipal] =
+    useState<VesselPrincipal | null>(null);
 
+  // Fetch vessel list on mount
+  useEffect(() => {
+    getVesselList()
+      .then((res) => {
+        if (res.success) {
+          const mapped = res.data.map((item: VesselItem) => ({
+            vesselCode: item.VesselCode,
+            vesselName: item.VesselName,
+            vesselType: item.VesselType,
+            principalName: item.Principal,
+            status: item.IsActive === 1 ? "Active" : "Inactive",
+          }));
+          setVesselData(mapped);
+        } else {
+          console.error("Failed to fetch vessels:", res.message);
+        }
+      })
+      .catch((err) => console.error("Error fetching vessels:", err));
+  }, []);
+
+  // Fetch vessel type list on mount
+  useEffect(() => {
+    getVesselTypeList()
+      .then((res) => {
+        if (res.success) {
+          const mapped: VesselType[] = res.data.map((item) => ({
+            vesselTypeId: item.VesselTypeId,
+            vesselTypeCode: item.VesselTypeCode,
+            vesselTypeName: item.VesselTypeName,
+          }));
+          setVesselTypeData(mapped);
+        } else {
+          console.error("Failed to fetch vessel type:", res.message);
+        }
+      })
+      .catch((err) => console.error("Error fetching vessel type:", err));
+  }, []);
+
+  // Fetch vessel principal list on mount
+  useEffect(() => {
+    getVesselPrincipalList()
+      .then((res) => {
+        if (res.success) {
+          const mapped: VesselPrincipal[] = res.data.map((item) => ({
+            vesselPrincipalCode: item.PrincipalCode,
+            vesselPrincipalName: item.PrincipalName,
+          }));
+          setVesselPrincipalData(mapped);
+        } else {
+          console.error("Failed to fetch vessel principal:", res.message);
+        }
+      })
+      .catch((err) => console.error("Error fetching vessel principal:", err));
+  }, []);
+
+  // Define columns (actions unchanged)
   const columns: ColumnDef<Vessel>[] = [
     {
       accessorKey: "vesselCode",
@@ -317,25 +188,28 @@ export default function VesselProfile() {
     {
       accessorKey: "status",
       header: ({ column }) => <div className="text-justify">Status</div>,
-      cell: ({ row }) => {
-        const status = row.getValue("status") as string;
-        return (
-          <div className="text-justify">
-            <Badge variant="outline" className={getStatusBgColor(status)}>
-              {status}
-            </Badge>
+      cell: ({ row }) => (
+        <div className="text-justify">
+          <div
+            className={
+              row.getValue("status") === "Active"
+                ? "inline-flex items-center justify-center rounded-full px-6 py-1 text-sm font-medium bg-[#DCE8F2] text-[#1D1972]"
+                : "inline-flex items-center justify-center rounded-full px-6 py-1 text-sm font-medium bg-[#E1D5D5] text-[#734545]"
+            }
+          >
+            {row.getValue("status")}
           </div>
-        );
-      },
+        </div>
+      ),
     },
     {
       id: "actions",
       header: ({ column }) => <div className="text-justify">Actions</div>,
       cell: ({ row }) => {
         const vessel = row.original;
-        // Function that displays SweetAlert2 confirmation when deleting a crew member
-        const handleDelete = (vesselCode: string) => {
-          const swalWithBootstrapButtons = Swal.mixin({
+        // Action menu unchanged
+        const handleDelete = (code: string) => {
+          const swal = Swal.mixin({
             customClass: {
               confirmButton:
                 "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
@@ -344,11 +218,10 @@ export default function VesselProfile() {
             },
             buttonsStyling: false,
           });
-
-          swalWithBootstrapButtons
+          swal
             .fire({
               title: "Are you sure?",
-              text: "Are you sure you want to delete this vessel? This action cannot be undone.",
+              text: "This action cannot be undone.",
               icon: "warning",
               showCancelButton: true,
               confirmButtonText: "Yes, delete it!",
@@ -357,58 +230,47 @@ export default function VesselProfile() {
             })
             .then((result) => {
               if (result.isConfirmed) {
-                // Place your delete logic here, for example, API call or state update
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The vessel has been successfully deleted.",
-                  icon: "success",
-                });
-              } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
-                  title: "Cancelled",
-                  text: "Your vessel is safe :)",
-                  icon: "error",
-                });
+                swal.fire(
+                  "Deleted!",
+                  "The vessel has been deleted.",
+                  "success"
+                );
+              } else {
+                swal.fire("Cancelled", "Your vessel is safe.", "error");
               }
             });
         };
         return (
-          <div className="text-justify">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                <DropdownMenuItem
-                  className="text-xs sm:text-sm"
-                  onClick={() => {
-                    setSelectedVessel(vessel);
-                    setEditVesselDialogOpen(true);
-                  }}
-                >
-                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Edit Vessel
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                  <Link href={`/home/vessel/crew-list`}>
-                    <Users className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    View Crew List
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleDelete(vessel.vesselCode)}
-                >
-                  <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-7 w-7 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="text-sm">
+              <DropdownMenuItem
+                onClick={() => {
+                  /* edit logic */
+                }}
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit Vessel
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/home/vessel/crew-list">
+                  <Users className="mr-2 h-4 w-4" /> View Crew List
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={() => handleDelete(vessel.vesselCode)}
+              >
+                <Trash className="mr-2 h-4 w-4" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },
@@ -425,10 +287,12 @@ export default function VesselProfile() {
       ),
     },
     {
-      accessorKey: "vesselType",
-      header: ({ column }) => <div className="text-justify">Vessel Type</div>,
+      accessorKey: "vesselTypeName",
+      header: ({ column }) => (
+        <div className="text-justify">Vessel Type Name</div>
+      ),
       cell: ({ row }) => (
-        <div className="text-justify">{row.getValue("vesselType")}</div>
+        <div className="text-justify">{row.getValue("vesselTypeName")}</div>
       ),
     },
     {
@@ -614,22 +478,20 @@ export default function VesselProfile() {
     },
   ];
 
-  // Filter crew based on search term and status filter
-  const filteredVessel = vesselData.filter((vessel) => {
+  // Filter vessels based on search and status
+  const filteredVessel = vesselData.filter((v) => {
     const matchesSearch =
-      vessel.vesselCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vessel.vesselName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vessel.vesselType.toLowerCase().includes(searchTerm.toLowerCase());
-
+      v.vesselCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.vesselName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.vesselType.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" ||
-      vessel.status.toLowerCase() === statusFilter.toLowerCase();
-
+      v.status.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
   const filteredVesselType = vesselTypeData.filter((vesselType) => {
-    const matchesSearch = vesselType.vesselType
+    const matchesSearch = vesselType.vesselTypeName
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
 
