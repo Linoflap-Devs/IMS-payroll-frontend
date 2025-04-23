@@ -1,17 +1,29 @@
 import axiosInstance from "@/src/lib/axios";
 
 export interface VesselTypeItem {
-  VesselTypeId: number;
+  VesselTypeID: number;
   VesselTypeCode: string;
   VesselTypeName: string;
 }
 
 export interface VesselTypeResponse {
   success: boolean;
-  data: VesselTypeItem[];
+  data: VesselTypeItem[] | VesselTypeItem;
   message?: string;
 }
+
 export const getVesselTypeList = async (): Promise<VesselTypeResponse> => {
   const response = await axiosInstance.get<VesselTypeResponse>("/vessels/type");
+  return response.data;
+}
+
+interface AddVesselTypePayload {
+  vesselTypeCode: string;
+  vesselTypeName: string;
+}
+
+
+export const addVesselType = async (payload: AddVesselTypePayload): Promise<VesselTypeResponse> => {
+  const response = await axiosInstance.post<VesselTypeResponse>("/vessels/type", payload);
   return response.data;
 }

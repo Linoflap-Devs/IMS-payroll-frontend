@@ -48,6 +48,7 @@ import { getVesselList, VesselItem } from "@/src/services/vessel/vessel.api";
 import {
   getVesselTypeList,
   VesselTypeItem,
+  addVesselType,
 } from "@/src/services/vessel/vesselType.api";
 import {
   getVesselPrincipalList,
@@ -98,6 +99,17 @@ export default function VesselProfile() {
   const [selectedVesselPrincipal, setSelectedVesselPrincipal] =
     useState<VesselPrincipal | null>(null);
 
+  const handleVesselTypeAdded = (newVesselType: any) => {
+    // Convert API response format to your internal format
+    const newItem: VesselType = {
+      vesselTypeId: newVesselType.VesselTypeID,
+      vesselTypeCode: newVesselType.VesselTypeCode,
+      vesselTypeName: newVesselType.VesselTypeName,
+    };
+
+    // Add the new vessel type to the list
+    setVesselTypeData((prevData) => [...prevData, newItem]);
+  };
   // Fetch vessel list on mount
   useEffect(() => {
     getVesselList()
@@ -122,9 +134,9 @@ export default function VesselProfile() {
   useEffect(() => {
     getVesselTypeList()
       .then((res) => {
-        if (res.success) {
-          const mapped: VesselType[] = res.data.map((item) => ({
-            vesselTypeId: item.VesselTypeId,
+        if (res.success && Array.isArray(res.data)) {
+          const mapped: VesselType[] = res.data.map((item: VesselTypeItem) => ({
+            vesselTypeId: item.VesselTypeID,
             vesselTypeCode: item.VesselTypeCode,
             vesselTypeName: item.VesselTypeName,
           }));
@@ -740,6 +752,7 @@ export default function VesselProfile() {
       <AddVesselTypeDialog
         open={addVesselTypeDialogOpen}
         onOpenChange={setAddVesselTypeDialogOpen}
+        onSuccess={handleVesselTypeAdded}
       />
 
       {/* Edit Vessel Type Dialog */}

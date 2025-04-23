@@ -25,9 +25,76 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "../ui/chart";
-import React from "react";
+import React, { useEffect } from "react";
+import {
+  getDashboardList,
+  DashboardItem,
+} from "@/src/services/dashboard/dashboard.api";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+type Dashboard = {
+  TotalVessels: number;
+  TotalActiveCrew: number;
+  TotalOnBoard: number;
+  TotalOffBoard: number;
+  ForexRate: number;
+  MonthlyAllotmentPHP: number;
+  MonthlyAllotmentUSD: number;
+  PerVesselAllotmentPHP: {
+    [vesselName: string]: number;
+  };
+  PerVesselAllotmentUSD: {
+    [vesselName: string]: number;
+  };
+  TotalSalaryProcessed: number;
+};
 
 export default function Dashboard() {
+  const [dashboardData, setDashboardData] =
+    React.useState<DashboardItem | null>(null);
+
+  useEffect(() => {
+    getDashboardList()
+      .then((res) => {
+        if (res.success) {
+          const mapped: Dashboard = {
+            TotalVessels: res.data.TotalVessels,
+            TotalActiveCrew: res.data.TotalActiveCrew,
+            TotalOnBoard: res.data.TotalOnBoard,
+            TotalOffBoard: res.data.TotalOffBoard,
+            ForexRate: res.data.ForexRate,
+            MonthlyAllotmentPHP: res.data.MonthlyAllotmentPHP,
+            MonthlyAllotmentUSD: res.data.MonthlyAllotmentUSD,
+            PerVesselAllotmentPHP: res.data.PerVesselAllotmentPHP,
+            PerVesselAllotmentUSD: res.data.PerVesselAllotmentUSD,
+            TotalSalaryProcessed: res.data.TotalSalaryProcessed,
+          };
+          setDashboardData(mapped);
+        } else {
+          console.error("Failed to fetch vessel principal:", res.message);
+        }
+      })
+      .catch((err) => console.error("Error fetching vessel principal:", err));
+  }, []);
+
+  const totalPerVesselAllotmentPHP = React.useMemo(() => {
+    if (!dashboardData?.PerVesselAllotmentPHP) return 0;
+
+    return Object.values(dashboardData.PerVesselAllotmentPHP).reduce(
+      (sum, current) => sum + current,
+      0
+    );
+  }, [dashboardData?.PerVesselAllotmentPHP]);
+
+  const totalPerVesselAllotmentUSD = React.useMemo(() => {
+    if (!dashboardData?.PerVesselAllotmentUSD) return 0;
+
+    return Object.values(dashboardData.PerVesselAllotmentUSD).reduce(
+      (sum, current) => sum + current,
+      0
+    );
+  }, [dashboardData?.PerVesselAllotmentUSD]);
+
   const salaryData = [
     { name: "Jan 2025", value: 3000000 },
     { name: "Feb 2025", value: 2500000 },
@@ -36,23 +103,43 @@ export default function Dashboard() {
     { name: "May 2025", value: 5000000 },
   ];
 
-  const vesselData = [
-    { name: "CALI LUNA GAS", value: 2908212, fill: "#4F46E5" },
-    { name: "CHEMROAD ECHO", value: 900278, fill: "#60A5FA" },
-    { name: "CHEMROAD JOURNEY", value: 789277, fill: "#34D399" },
-    { name: "CHEMROAD ROSE", value: 989212, fill: "#F472B6" },
-    { name: "CHEMROUTE PEGASUS", value: 1290212, fill: "#A78BFA" },
-    { name: "CHEMROUTE SKY", value: 890212, fill: "#FBBF24" },
-    { name: "CHEMWAY LARA", value: 990212, fill: "#FB923C" },
-    { name: "CREOLE SUN", value: 790212, fill: "#2DD4BF" },
-    { name: "DORAJI GAS", value: 1190212, fill: "#F87171" },
-    { name: "FUJISAN MARU", value: 1090212, fill: "#818CF8" },
-    { name: "GAS INNOVATOR", value: 890212, fill: "#C084FC" },
-    { name: "JIPRO ISIS", value: 990212, fill: "#FB7185" },
-  ];
-  const totalVisitors = React.useMemo(() => {
+  const vesselData = React.useMemo(() => {
+    if (!dashboardData?.PerVesselAllotmentPHP) return [];
+
+    // Array of colors to use for the chart segments
+    const colors = [
+      "#4F46E5",
+      "#60A5FA",
+      "#34D399",
+      "#F472B6",
+      "#A78BFA",
+      "#FBBF24",
+      "#FB923C",
+      "#2DD4BF",
+      "#F87171",
+      "#818CF8",
+      "#C084FC",
+      "#FB7185",
+      "#38BDF8",
+      "#A3E635",
+      "#FCD34D",
+    ];
+
+    // Convert the object to array format needed by the chart
+    return Object.entries(dashboardData.PerVesselAllotmentPHP).map(
+      ([name, value], index) => ({
+        name,
+        value,
+        // Cycle through colors if there are more vessels than colors
+        fill: colors[index % colors.length],
+      })
+    );
+  }, [dashboardData?.PerVesselAllotmentPHP]);
+
+  // Update the totalVisitors calculation to use the dynamic vesselData
+  const totalVesselAllotment = React.useMemo(() => {
     return vesselData.reduce((acc, curr) => acc + curr.value, 0);
-  }, []);
+  }, [vesselData]);
 
   const chartConfig = {
     name: {
@@ -78,6 +165,31 @@ export default function Dashboard() {
       color: "#4F46E5",
     },
   } satisfies ChartConfig;
+
+  const CustomLegend = ({ payload }: any) => {
+    if (!payload) return null;
+
+    return (
+      <ScrollArea className="h-[280px] w-full pr-4">
+        <div className="grid grid-cols-2 gap-2">
+          {payload.map((entry: any, index: number) => (
+            <div key={`legend-${index}`} className="flex items-center gap-2">
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: entry.payload.fill }}
+              />
+              <span
+                className="text-xs truncate max-w-[130px]"
+                title={entry.value}
+              >
+                {entry.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    );
+  };
 
   return (
     <div className="h-full w-full p-6 pt-3">
@@ -120,28 +232,36 @@ export default function Dashboard() {
         <Card className="bg-blue-800 text-white py-3">
           <CardContent className=" pt-0 h-full flex flex-col justify-between gap-y-5">
             <p className="text-xl pt-0">Total Vessel</p>
-            <h3 className="text-3xl font-bold self-end mt-4">123</h3>
+            <h3 className="text-3xl font-bold self-end mt-4">
+              {dashboardData?.TotalVessels ?? 0}
+            </h3>
           </CardContent>
         </Card>
 
         <Card className="bg-blue-800 text-white py-3">
           <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-10">
             <p className="text-xl pt-0">Total Active Crew</p>
-            <h3 className="text-3xl font-bold self-end mt-4">5149</h3>
+            <h3 className="text-3xl font-bold self-end mt-4">
+              {dashboardData?.TotalActiveCrew ?? 0}
+            </h3>
           </CardContent>
         </Card>
 
         <Card className="bg-blue-800 text-white py-3">
           <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
             <p className="text-xl pt-0">Total On Board Crew</p>
-            <h3 className="text-3xl font-bold self-end mt-4">3249</h3>
+            <h3 className="text-3xl font-bold self-end mt-4">
+              {dashboardData?.TotalOnBoard ?? 0}
+            </h3>
           </CardContent>
         </Card>
 
         <Card className="bg-blue-800 text-white py-3">
           <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
             <p className="text-xl pt-0">Total Off Board Crew</p>
-            <h3 className="text-3xl font-bold self-end mt-4">3249</h3>
+            <h3 className="text-3xl font-bold self-end mt-4">
+              {dashboardData?.TotalOffBoard ?? 0}
+            </h3>
           </CardContent>
         </Card>
       </div>
@@ -155,7 +275,9 @@ export default function Dashboard() {
                 <p className="text-lg text-gray-600 mb-6">
                   Current Forex Rate (USD to PHP)
                 </p>
-                <h3 className="text-xl font-bold">1 USD = 56 PHP</h3>
+                <h3 className="text-xl font-bold">
+                  1 USD = {dashboardData?.ForexRate ?? 0} PHP
+                </h3>
               </div>
               <div className="text-blue-600">
                 <GrLineChart className="h-20 w-20 mr-5 mt-5" />
@@ -172,7 +294,9 @@ export default function Dashboard() {
                 <p className="text-lg text-gray-600 mb-6">
                   Total Allotment Process
                 </p>
-                <h3 className="text-xl font-bold">$2,500,000</h3>
+                <h3 className="text-xl font-bold">
+                  $ {dashboardData?.MonthlyAllotmentPHP.toFixed(2) ?? 0}
+                </h3>
               </div>
               <div className="text-blue-600">
                 <GrLineChart className="h-20 w-20 mr-5 mt-5" />
@@ -188,7 +312,9 @@ export default function Dashboard() {
                 <p className="text-lg text-gray-600 mb-6">
                   Total Grosss Allotment
                 </p>
-                <h3 className="text-xl font-bold">$24,348,508.12</h3>
+                <h3 className="text-xl font-bold">
+                  $ {totalPerVesselAllotmentPHP.toFixed(2).toLocaleString()}
+                </h3>
               </div>
               <div className="text-blue-600">
                 <GrLineChart className="h-20 w-20 mr-5 mt-5" />
@@ -240,14 +366,7 @@ export default function Dashboard() {
                                 y={viewBox.cy}
                                 className="fill-foreground text-2xl font-bold"
                               >
-                                {totalVisitors.toLocaleString()}
-                              </tspan>
-                              <tspan
-                                x={viewBox.cx}
-                                y={(viewBox.cy || 0) + 20}
-                                className="fill-muted-foreground text-sm"
-                              >
-                                Visitors
+                                {totalVesselAllotment.toLocaleString()}
                               </tspan>
                             </text>
                           );
@@ -256,17 +375,11 @@ export default function Dashboard() {
                     />
                   </Pie>
                   <Legend
+                    content={<CustomLegend />}
                     layout="vertical"
                     align="right"
                     verticalAlign="middle"
-                    wrapperStyle={{ marginLeft: 16, fontSize: "12px" }}
-                    iconSize={8}
-                    iconType="circle"
-                    formatter={(value) => (
-                      <span style={{ marginTop: 4, display: "inline-block" }}>
-                        {value}
-                      </span>
-                    )}
+                    wrapperStyle={{ marginLeft: 16 }}
                   />
                 </PieChart>
               </ChartContainer>

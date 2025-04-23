@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,158 +33,134 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-
-// Sample crew data
-const crewData = [
-  {
-    id: 2121,
-    crewName: "John Doe",
-    rank: "Captain",
-    vessel: "Vessel A",
-  },
-  {
-    id: 2122,
-    crewName: "Jane Smith",
-    rank: "First Officer",
-    vessel: "Vessel B",
-  },
-  {
-    id: 2123,
-    crewName: "Alice Johnson",
-    rank: "Second Officer",
-    vessel: "Vessel C",
-  },
-  {
-    id: 2124,
-    crewName: "Bob Brown",
-    rank: "Chief Engineer",
-    vessel: "Vessel D",
-  },
-  {
-    id: 2125,
-    crewName: "Charlie Davis",
-    rank: "Electrician",
-    vessel: "Vessel E",
-  },
-  {
-    id: 2126,
-    crewName: "David Wilson",
-    rank: "Chief Cook",
-    vessel: "Vessel F",
-  },
-  {
-    id: 2127,
-    crewName: "Eva Garcia",
-    rank: "Steward",
-    vessel: "Vessel G",
-  },
-  {
-    id: 2128,
-    crewName: "Frank Martinez",
-    rank: "Deckhand",
-    vessel: "Vessel H",
-  },
-  {
-    id: 2129,
-    crewName: "Grace Lee",
-    rank: "Bosun",
-    vessel: "Vessel I",
-  },
-  {
-    id: 2130,
-    crewName: "Henry Walker",
-    rank: "Able Seaman",
-    vessel: "Vessel J",
-  },
-];
-
-const getStatusBgColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "on board":
-      return "bg-[#EBF5E4] text-green-800 rounded-full";
-    case "off board":
-      return "bg-[#F5ECE4] text-yellow-800 rounded-full";
-    case "active":
-      return "bg-[#e4e5f5] text-blue-800 rounded-full";
-    case "inactive":
-      return "bg-[#f5e4e4] text-red-800 rounded-full";
-    default:
-      return "bg-gray-100 text-gray-800 rounded-full";
-  }
-};
+import {
+  getCrewRemittanceList,
+  CrewRemittanceItem,
+} from "@/src/services/remittance/crewRemittance.api";
 
 // Define the columns for the DataTable
-type Crew = (typeof crewData)[number];
-
-const columns: ColumnDef<Crew>[] = [
-  {
-    accessorKey: "id",
-    header: "Crew Code",
-    cell: ({ row }) => (
-      <div className="font-medium text-xs sm:text-sm text-center">
-        {row.getValue("id")}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "crewName",
-    header: "Crew Name",
-    cell: ({ row }) => (
-      <div className="text-xs sm:text-sm text-center">
-        {row.getValue("crewName")}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "rank",
-    header: "Rank",
-    cell: ({ row }) => (
-      <div className="text-xs sm:text-sm text-center">
-        {row.getValue("rank")}
-      </div>
-    ),
-  },
-
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const crew = row.original;
-      return (
-        <div className="text-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-              <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                <Link
-                  href={`/home/remittance/details?name=${encodeURIComponent(
-                    crew.crewName
-                  )}&rank=${encodeURIComponent(
-                    crew.rank
-                  )}&vessel=${encodeURIComponent(
-                    crew.vessel
-                  )}&crewCode=${encodeURIComponent(crew.id)}`}
-                >
-                  <IdCard className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  View Remittance
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-  },
-];
+type Crew = {
+  id: number;
+  crewCode: string;
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  rankId: number;
+  rank: string;
+  vessel: string;
+  crewName: string;
+};
 
 export default function Remittance() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [crewData, setCrewData] = useState<Crew[]>([]);
+
+  useEffect(() => {
+    getCrewRemittanceList()
+      .then((res) => {
+        if (res.success) {
+          const mapped: (Crew & { crewName: string })[] = res.data.map(
+            (item) => {
+              const mi = item.MiddleName
+                ? item.MiddleName.charAt(0).toUpperCase() + "."
+                : "";
+              return {
+                id: item.CrewID,
+                crewCode: item.CrewCode,
+                firstName: item.FirstName,
+                middleName: item.MiddleName,
+                lastName: item.LastName,
+                rankId: item.RankID,
+                rank: item.Rank,
+                vessel: item.Vessel,
+                // John F. Kennedy
+                crewName: `${item.FirstName} ${mi} ${item.LastName}`,
+              };
+            }
+          );
+          setCrewData(mapped);
+        } else {
+          console.error("Failed to fetch vessel principal:", res.message);
+        }
+      })
+      .catch((err) => console.error("Error fetching vessel principal:", err));
+  }, []);
+
+  const columns: ColumnDef<Crew>[] = [
+    {
+      accessorKey: "crewCode",
+      header: "Crew Code",
+      cell: ({ row }) => (
+        <div className="font-medium text-xs sm:text-sm text-center">
+          {row.getValue("crewCode")}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "crewName",
+      header: "Crew Name",
+      cell: ({ row }) => (
+        <div className="text-xs sm:text-sm text-center">
+          {row.getValue("crewName")}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "rank",
+      header: "Rank",
+      cell: ({ row }) => (
+        <div className="text-xs sm:text-sm text-center">
+          {row.getValue("rank")}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "vessel",
+      header: "Vessel",
+      cell: ({ row }) => (
+        <div className="text-xs sm:text-sm text-center">
+          {row.getValue("vessel")}
+        </div>
+      ),
+    },
+
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const crew = row.original;
+        return (
+          <div className="text-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+                <DropdownMenuItem asChild className="text-xs sm:text-sm">
+                  <Link
+                    href={`/home/remittance/details?name=${encodeURIComponent(
+                      crew.crewName
+                    )}&rank=${encodeURIComponent(
+                      crew.rank
+                    )}&vessel=${encodeURIComponent(
+                      crew.vessel
+                    )}&crewCode=${encodeURIComponent(crew.id)}`}
+                  >
+                    <IdCard className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    View Remittance
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
 
   // Filter crew based on search term and status filter
   const filteredCrew = crewData.filter((crew) => {
