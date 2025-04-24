@@ -41,6 +41,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditSalaryScaleDialog } from "@/components/dialogs/EditSalaryScaleDialog";
 import { EditWageDescriptionDialog } from "@/components/dialogs/EditWageDescriptionDialog";
 import { EditForexDialog } from "@/components/dialogs/EditForexDialog";
+import { AddWageDescriptionDialog } from "@/components/dialogs/AddWageDescriptionDialog";
 import Swal from "sweetalert2";
 import {
   SalaryScaleItem,
@@ -103,6 +104,8 @@ export default function Wages() {
   const [editWageDescriptionDialogOpen, setEditWageDescriptionDialogOpen] =
     useState(false);
   const [editForexDialogOpen, setEditForexDialogOpen] = useState(false);
+  const [AddWageDescriptionDialogOpen, setAddWageDescriptionDialogOpen] =
+    useState(false);
   const [forexData, setForexData] = useState<ForexData[]>([]);
   const [selectedForex, setSelectedForex] = useState<ForexData | null>(null);
 
@@ -902,7 +905,10 @@ export default function Wages() {
                         />
                       </div>
 
-                      <Button className="bg-primary text-white hover:bg-primary/90 h-9 sm:h-10 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                      <Button
+                        className="bg-primary text-white hover:bg-primary/90 h-9 sm:h-10 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2"
+                        onClick={() => setAddWageDescriptionDialogOpen(true)}
+                      >
                         <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                         Add Wage Type
                       </Button>
@@ -1026,6 +1032,7 @@ export default function Wages() {
           </div>
         </div>
       </div>
+
       {selectedSalaryScale && (
         <EditSalaryScaleDialog
           open={editDialogOpen}
@@ -1047,6 +1054,14 @@ export default function Wages() {
           forex={selectedForex}
         />
       )}
+      <AddWageDescriptionDialog
+        open={AddWageDescriptionDialogOpen}
+        onOpenChange={setAddWageDescriptionDialogOpen}
+        onSuccess={(newWageDescription) => {
+          // Add the new wage description to the list
+          setWageDescriptionItems((prev) => [...prev, newWageDescription]);
+        }}
+      />
     </>
   );
 }

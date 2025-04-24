@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useCrewStore } from "@/src/store/useCrewStore";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -13,10 +14,6 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { Filter } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
-import {
-  getCrewMovement,
-  CrewMovement as CrewMovementApi,
-} from "@/src/services/crew/crew.api";
 import { format } from "date-fns";
 
 // Define the shape of the movement data we display
@@ -89,38 +86,59 @@ const formatDateString = (dateString: string): string => {
 export function CrewMovement() {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
-  const [movements, setMovements] = useState<Movement[]>([]);
   const [filteredMovements, setFilteredMovements] = useState<Movement[]>([]);
   const [selectedVessel, setSelectedVessel] = useState<string>("");
+
+  const {
+    movements,
+    isLoadingMovements,
+    movementsError,
+    fetchCrewMovements,
+    resetMovements,
+  } = useCrewStore();
 
   // Fetch movements on mount or when crewId changes
   useEffect(() => {
     if (!crewId) return;
-    getCrewMovement(crewId)
-      .then((res) => {
-        if (res.success) {
-          const mapped = res.data.map((m: CrewMovementApi) => ({
-            type: mapTransactionType(m.TransactionType),
-            date: formatDateString(m.TransactionDate),
-            rank: m.Rank,
-            vessel: m.Vessel,
-          }));
-          setMovements(mapped);
-          setFilteredMovements(mapped);
-        }
-      })
-      .catch((err) => console.error("Error fetching movements:", err));
-  }, [crewId]);
+    fetchCrewMovements(crewId);
+    return () => {
+      resetMovements(); // Clean up on unmount
+    };
+  }, [crewId, fetchCrewMovements, resetMovements]);
+
+  // Map API data to UI model whenever movements change
+  useEffect(() => {
+    const mapped = movements.map((m) => ({
+      type: mapTransactionType(m.TransactionType),
+      date: formatDateString(m.TransactionDate),
+      rank: m.Rank,
+      vessel: m.Vessel,
+    }));
+    setFilteredMovements(mapped);
+  }, [movements]);
 
   // Handle vessel filter
   const handleVesselChange = (value: string) => {
     setSelectedVessel(value);
+    const mapped = movements.map((m) => ({
+      type: mapTransactionType(m.TransactionType),
+      date: formatDateString(m.TransactionDate),
+      rank: m.Rank,
+      vessel: m.Vessel,
+    }));
+
     if (value) {
-      setFilteredMovements(movements.filter((m) => m.vessel === value));
+      setFilteredMovements(mapped.filter((m) => m.vessel === value));
     } else {
-      setFilteredMovements(movements);
+      setFilteredMovements(mapped);
     }
   };
+
+  if (movementsError) {
+    return (
+      <div className="text-center text-red-500">Error: {movementsError}</div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -143,7 +161,7 @@ export function CrewMovement() {
                     <SelectValue placeholder="Select vessel" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from(new Set(movements.map((m) => m.vessel))).map(
+                    {Array.from(new Set(movements.map((m) => m.Vessel))).map(
                       (vessel) => (
                         <SelectItem key={vessel} value={vessel}>
                           {vessel}
@@ -170,7 +188,11 @@ export function CrewMovement() {
 
       {/* Movement history table */}
       <div className="border rounded-md overflow-hidden pb-3">
-        {filteredMovements.length > 0 ? (
+        {isLoadingMovements ? (
+          <div className="p-4 text-center text-gray-500">
+            Loading movements...
+          </div>
+        ) : filteredMovements.length > 0 ? (
           <DataTable
             columns={movementColumns}
             data={filteredMovements}

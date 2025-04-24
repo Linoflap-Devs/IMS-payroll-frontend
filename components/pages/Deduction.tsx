@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,70 +42,11 @@ import { PiUserListFill } from "react-icons/pi";
 import { AddDeductionTypeDialog } from "@/components/dialogs/AddDeductionTypeDialog";
 import { EditDeductionTypeDialog } from "@/components/dialogs/EditDeductionTypeDialog";
 import Swal from "sweetalert2";
-import { getCrewDeductionList, CrewDeductionItem } from "@/src/services/deduction/crewDeduction.api";
+import {
+  getCrewDeductionList,
+  CrewDeductionItem,
+} from "@/src/services/deduction/crewDeduction.api";
 
-const crewDeductionData = [
-  {
-    crewCode: "CR001",
-    name: "John Doe",
-    rank: "Chief Engineer",
-    vessel: "Atlantic Star",
-  },
-  {
-    crewCode: "CR002",
-    name: "Jane Doe",
-    rank: "Second Engineer",
-    vessel: "Atlantic Star",
-  },
-  {
-    crewCode: "CR003",
-    name: "John Doe",
-    rank: "Chief Engineer",
-    vessel: "Atlantic Star",
-  },
-  {
-    crewCode: "CR004",
-    name: "Jane Doe",
-    rank: "Second Engineer",
-    vessel: "Atlantic Star",
-  },
-  {
-    crewCode: "CR005",
-    name: "John Doe",
-    rank: "Chief Engineer",
-    vessel: "Atlantic Star",
-  },
-  {
-    crewCode: "CR006",
-    name: "Jane Doe",
-    rank: "Second Engineer",
-    vessel: "Atlantic Star",
-  },
-  {
-    crewCode: "CR007",
-    name: "John Doe",
-    rank: "Chief Engineer",
-    vessel: "Atlantic Star",
-  },
-  {
-    crewCode: "CR008",
-    name: "Jane Doe",
-    rank: "Second Engineer",
-    vessel: "Atlantic Star",
-  },
-  {
-    crewCode: "CR009",
-    name: "John Doe",
-    rank: "Chief Engineer",
-    vessel: "Atlantic Star",
-  },
-  {
-    crewCode: "CR010",
-    name: "Jane Doe",
-    rank: "Second Engineer",
-    vessel: "Atlantic Star",
-  },
-];
 const deductionDescriptionData = [
   {
     deductionCode: "DED001",
@@ -187,7 +128,15 @@ const deductionDescriptionData = [
   },
 ];
 
-type CrewDeduction = (typeof crewDeductionData)[number];
+type CrewDeduction = {
+  CrewCode: string;
+  FirstName: string;
+  LastName: string;
+  MiddleName: string;
+  Rank: string;
+  VesselName: string;
+  crewName: string;
+};
 type DeductionDescription = (typeof deductionDescriptionData)[number];
 
 export default function Deduction() {
@@ -200,6 +149,26 @@ export default function Deduction() {
   const [selectedDeduction, setSelectedDeduction] =
     useState<DeductionDescription | null>(null);
 
+  const [crewDeductionData, setCrewDeductionData] = useState<CrewDeduction[]>(
+    []
+  );
+
+  useEffect(() => {
+    getCrewDeductionList()
+      .then((res) => {
+        if (res.success) {
+          const mapped: CrewDeduction[] = res.data.map((item) => ({
+            ...item, // Spread all the original properties
+            crewName: `${item.FirstName} ${item.MiddleName} ${item.LastName}`, // Add the computed property
+          }));
+          setCrewDeductionData(mapped);
+        } else {
+          console.error("Failed to fetch crew deduction:", res.message);
+        }
+      })
+      .catch((err) => console.error("Error fetching crew deduction:", err));
+  }, []); // Add empty dependency array to run only once on mount
+
   // Handle tab change
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -207,36 +176,32 @@ export default function Deduction() {
 
   const crewDeductionColumns: ColumnDef<CrewDeduction>[] = [
     {
-      accessorKey: "crewCode",
+      accessorKey: "CrewCode",
       header: ({ column }) => <div className="text-justify">Crew Code</div>,
-      cell: ({ row }) => {
-        const crew = row.original;
-        return <div className="text-justify">{crew.crewCode}</div>;
-      },
+      cell: ({ row }) => (
+        <div className="text-justify">{row.getValue("CrewCode")}</div>
+      ),
     },
     {
-      accessorKey: "name",
+      accessorKey: "crewName",
       header: ({ column }) => <div className="text-justify">Name</div>,
-      cell: ({ row }) => {
-        const crew = row.original;
-        return <div className="text-justify">{crew.name}</div>;
-      },
+      cell: ({ row }) => (
+        <div className="text-justify">{row.getValue("crewName")}</div>
+      ),
     },
     {
-      accessorKey: "vessel",
+      accessorKey: "VesselName",
       header: ({ column }) => <div className="text-center">Vessel</div>,
-      cell: ({ row }) => {
-        const crew = row.original;
-        return <div className="text-center">{crew.vessel}</div>;
-      },
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("VesselName")}</div>
+      ),
     },
     {
-      accessorKey: "rank",
+      accessorKey: "Rank",
       header: ({ column }) => <div className="text-center">Rank</div>,
-      cell: ({ row }) => {
-        const crew = row.original;
-        return <div className="text-center">{crew.rank}</div>;
-      },
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("Rank")}</div>
+      ),
     },
 
     {
@@ -257,12 +222,14 @@ export default function Deduction() {
                 <DropdownMenuItem asChild className="text-xs sm:text-sm">
                   <Link
                     href={`/home/deduction/deduction-entries?name=${encodeURIComponent(
-                      row.original.name
+                      row.getValue("crewName")
                     )}&rank=${encodeURIComponent(
-                      row.original.rank
+                      row.getValue("Rank")
                     )}&vessel=${encodeURIComponent(
-                      row.original.vessel
-                    )}&crewCode=${encodeURIComponent(row.original.crewCode)}`}
+                      row.getValue("VesselName")
+                    )}&crewCode=${encodeURIComponent(
+                      row.getValue("CrewCode")
+                    )}`}
                   >
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View Deduction Entries
@@ -271,12 +238,14 @@ export default function Deduction() {
                 <DropdownMenuItem asChild className="text-xs sm:text-sm">
                   <Link
                     href={`/home/deduction/deduction-entries?tab=hdmf-upgrade&name=${encodeURIComponent(
-                      row.original.name
+                      row.getValue("crewName")
                     )}&rank=${encodeURIComponent(
-                      row.original.rank
+                      row.getValue("Rank")
                     )}&vessel=${encodeURIComponent(
-                      row.original.vessel
-                    )}&crewCode=${encodeURIComponent(row.original.crewCode)}`}
+                      row.getValue("VesselName")
+                    )}&crewCode=${encodeURIComponent(
+                      row.getValue("CrewCode")
+                    )}`}
                   >
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View HDMF Upgrade Contributions
@@ -415,7 +384,7 @@ export default function Deduction() {
   ];
 
   const filteredCrewDeduction = crewDeductionData.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    item.CrewCode.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const filteredDeductionDescription = deductionDescriptionData.filter((item) =>
     item.deductionName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -582,7 +551,7 @@ export default function Deduction() {
           </div>
         </div>
       </div>
-      
+
       <AddDeductionTypeDialog
         open={addDeductionTypeDialogOpen}
         onOpenChange={setAddDeductionTypeDialogOpen}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useCrewStore } from "@/src/store/useCrewStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -33,7 +34,7 @@ import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";
-import { getCrewList, CrewItem } from "../../src/services/crew/crew.api";
+import { CrewItem } from "../../src/services/crew/crew.api";
 
 // Function to convert status or account validation value to a badge style
 const getStatusBgColor = (status: string) => {
@@ -236,38 +237,21 @@ export default function CrewList() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [rankFilter, setRankFilter] = useState("all");
   const [validationFilter, setValidationFilter] = useState("all");
-  const [crewData, setCrewData] = useState<CrewItem[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const { crews, isLoading, error, fetchCrews } = useCrewStore();
 
   // Fetch crew data on component mount
   useEffect(() => {
-    const fetchCrew = async () => {
-      try {
-        const res = await getCrewList();
-        if (res.success) {
-          setCrewData(res.data);
-        } else {
-          console.error("Error fetching crew:", res.message);
-        }
-      } catch (error) {
-        console.error("Error fetching crew data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCrew();
-  }, []);
+    fetchCrews();
+  }, [fetchCrews]);
 
   // Filter crew based on search term and filters
-  const filteredCrew = crewData.filter((crew) => {
+  const filteredCrew = crews.filter((crew) => {
     const matchesSearch =
       crew.FirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crew.LastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crew.CrewCode.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // For demonstration, here's a simple filtering for status and rank
-    // Adjust these if your API returns status or rank as descriptive strings
     const matchesStatus =
       statusFilter === "all" ||
       (crew.CrewStatusID === 1 && statusFilter.toLowerCase() === "active") ||
@@ -275,7 +259,6 @@ export default function CrewList() {
 
     const matchesRank =
       rankFilter === "all" ||
-      // Implement mapping of RankID to rank names if needed
       crew.RankID.toString() === rankFilter.toLowerCase();
 
     const matchesValidation =
@@ -286,6 +269,10 @@ export default function CrewList() {
 
     return matchesSearch && matchesStatus && matchesRank && matchesValidation;
   });
+
+  if (error) {
+    return <div className="text-center text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="h-full w-full p-4 pt-2">
@@ -371,7 +358,7 @@ export default function CrewList() {
           </div>
 
           {/* Display loader or data table */}
-          {loading ? (
+          {isLoading ? (
             <div className="text-center">Loading crew data...</div>
           ) : (
             <div className="bg-white rounded-md border pb-3">

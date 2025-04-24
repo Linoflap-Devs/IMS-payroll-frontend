@@ -44,7 +44,11 @@ import { EditVesselTypeDialog } from "../dialogs/EditVesselTypeDialog";
 import { AddVesselPrincipalDialog } from "../dialogs/AddVesselPrincipalDialog";
 import { EditVesselPrincipalDialog } from "../dialogs/EditVesselPrincipalDialog";
 import Swal from "sweetalert2";
-import { getVesselList, VesselItem } from "@/src/services/vessel/vessel.api";
+import {
+  getVesselList,
+  VesselItem,
+  addVessel,
+} from "@/src/services/vessel/vessel.api";
 import {
   getVesselTypeList,
   VesselTypeItem,
@@ -53,6 +57,7 @@ import {
 import {
   getVesselPrincipalList,
   VesselPrincipalResponse,
+  addVesselPrincipal,
 } from "@/src/services/vessel/vesselPrincipal.api";
 
 // Define the shape used by the DataTable
@@ -109,6 +114,30 @@ export default function VesselProfile() {
 
     // Add the new vessel type to the list
     setVesselTypeData((prevData) => [...prevData, newItem]);
+  };
+  const handleVesselPrincipalAdded = (newVesselPrincipal: any) => {
+    // Convert API response format to your internal format
+    const newItem: VesselPrincipal = {
+      vesselPrincipalCode: newVesselPrincipal.PrincipalCode,
+      vesselPrincipalName: newVesselPrincipal.PrincipalName,
+    };
+
+    // Add the new vessel principal to the list
+    setVesselPrincipalData((prevData) => [...prevData, newItem]);
+  };
+
+  const handleVesselAdded = (newVessel: any) => {
+    // Convert API response format to your internal format
+    const newItem: Vessel = {
+      vesselCode: newVessel.VesselCode,
+      vesselName: newVessel.VesselName,
+      vesselType: newVessel.VesselType,
+      principalName: newVessel.Principal,
+      status: "Active", // Set status directly to Active since new vessels are always active
+    };
+
+    // Add the new vessel to the list
+    setVesselData((prevData) => [...prevData, newItem]);
   };
   // Fetch vessel list on mount
   useEffect(() => {
@@ -737,6 +766,7 @@ export default function VesselProfile() {
       <AddVesselDialog
         open={addVesselDialogOpen}
         onOpenChange={setAddVesselDialogOpen}
+        onSuccess={handleVesselAdded}
       />
 
       {/* Edit Vessel Dialog */}
@@ -768,6 +798,7 @@ export default function VesselProfile() {
       <AddVesselPrincipalDialog
         open={addVesselPrincipalDialogOpen}
         onOpenChange={setAddVesselPrincipalDialogOpen}
+        onSuccess={handleVesselPrincipalAdded}
       />
 
       {/* Edit Vessel Principal Dialog */}

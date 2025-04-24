@@ -27,7 +27,7 @@ export interface AddVesselPayload {
   vesselCode: string;
   vesselName: string;
   vesselType: number;
-  principal: number;
+  vesselPrincipal: number;
 }
 
 export interface AddVesselResponse {
