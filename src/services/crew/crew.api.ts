@@ -54,6 +54,29 @@ export const getCrewDetails = async (crewCode: string): Promise<CrewDetailsRespo
   return response.data;
 };
 
+export interface CrewBasic{
+  FirstName: string;
+  MiddleName: string;
+  LastName: string;
+  Rank: string;
+  CrewStatusID: number;
+  CrewCode: string;
+  Birthday: string;
+  MobileNo: string;
+  LandlineNo: string;
+  EmailAddress: string;
+}
+
+export interface CrewBasicResponse {
+  success: boolean;
+  data: CrewBasic;
+  message?: string;
+}
+export const getCrewBasic = async (crewCode: string): Promise<CrewBasicResponse> => {
+  const response = await axiosInstance.get<CrewBasicResponse>(`/crew/${crewCode}`);
+  return response.data;
+}
+
 
 export interface CrewMovement {
   Vessel: string;

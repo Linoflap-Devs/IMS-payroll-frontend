@@ -221,13 +221,7 @@ export default function Deduction() {
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
                 <DropdownMenuItem asChild className="text-xs sm:text-sm">
                   <Link
-                    href={`/home/deduction/deduction-entries?name=${encodeURIComponent(
-                      row.getValue("crewName")
-                    )}&rank=${encodeURIComponent(
-                      row.getValue("Rank")
-                    )}&vessel=${encodeURIComponent(
-                      row.getValue("VesselName")
-                    )}&crewCode=${encodeURIComponent(
+                    href={`/home/deduction/deduction-entries?&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
                     )}`}
                   >
@@ -237,13 +231,7 @@ export default function Deduction() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="text-xs sm:text-sm">
                   <Link
-                    href={`/home/deduction/deduction-entries?tab=hdmf-upgrade&name=${encodeURIComponent(
-                      row.getValue("crewName")
-                    )}&rank=${encodeURIComponent(
-                      row.getValue("Rank")
-                    )}&vessel=${encodeURIComponent(
-                      row.getValue("VesselName")
-                    )}&crewCode=${encodeURIComponent(
+                    href={`/home/deduction/deduction-entries?tab=hdmf-upgrade&&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
                     )}`}
                   >

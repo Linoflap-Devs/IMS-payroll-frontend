@@ -9,8 +9,7 @@ const nextConfig: NextConfig = {
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 2,
   },
-  // This setting suppresses React hydration errors
-  suppressHydrationWarning: true,
+ 
 };
 
 export default nextConfig;
