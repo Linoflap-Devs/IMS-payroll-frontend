@@ -147,20 +147,33 @@ export default function CrewDetails() {
     detailsError,
     fetchCrewDetails,
     resetDetails,
+    crewBasic,           // Added
+    isLoadingBasic,      // Added
+    basicError,          // Added
+    fetchCrewBasic,      // Added
+    resetBasic           // Added
   } = useCrewStore();
 
   useEffect(() => {
     if (crewId) {
       fetchCrewDetails(crewId);
+      fetchCrewBasic(crewId);     // Added
     }
     return () => {
-      resetDetails(); // Clean up on unmount
+      resetDetails();
+      resetBasic();              // Added cleanup
     };
-  }, [crewId, fetchCrewDetails, resetDetails]);
+  }, [crewId, fetchCrewDetails, resetDetails, fetchCrewBasic, resetBasic]);
 
   useEffect(() => {
-    if (crewDetails) {
+    if (crewDetails && crewBasic) {
       const mappedCrew = {
+        id: crewBasic.CrewCode, 
+        rank: crewBasic.Rank,   
+        status: crewBasic.CrewStatusID === 1 ? "Active" : "Inactive",
+        email: crewBasic.EmailAddress,                        // From basic info
+      phone: crewBasic.MobileNo,                           // From basic info
+      landline: crewBasic.LandlineNo, 
         firstName: crewDetails.FirstName,
         lastName: crewDetails.LastName,
         middleName: crewDetails.MiddleName,
@@ -240,16 +253,7 @@ export default function CrewDetails() {
       });
   };
 
-  const handleVesselChange = (value: string) => {
-    setSelectedVessel(value);
-    if (value && crew?.movements) {
-      setFilteredMovements(
-        crew.movements.filter((m: any) => m.vessel === value)
-      );
-    } else {
-      setFilteredMovements(crew?.movements || []);
-    }
-  };
+
 
   const toggleEditMode = () => {
     if (isEditing) {
@@ -304,13 +308,7 @@ export default function CrewDetails() {
     setIsEditingAllottee(!isEditingAllottee);
   };
 
-  const handleAllotteeChange = (value: string) => {
-    setSelectedAllottee(value);
-    if (crew?.allottees) {
-      const selectedAllotteeData = crew.allottees[parseInt(value)];
-      setEditedAllottee(selectedAllotteeData);
-    }
-  };
+ 
 
   if (!crew) {
     return (

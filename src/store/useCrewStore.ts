@@ -2,10 +2,12 @@ import { create } from 'zustand';
 import { 
   getCrewList, 
   getCrewDetails,
+  getCrewBasic,
   getCrewMovement,
   getCrewAllottee,
   CrewItem, 
   CrewDetails,
+  CrewBasic,
   CrewMovement,
   CrewAllottee
 } from '../services/crew/crew.api';
@@ -21,6 +23,11 @@ interface CrewStore {
   isLoadingDetails: boolean;
   detailsError: string | null;
 
+  // Crew basic state
+  crewBasic: CrewBasic | null;
+  isLoadingBasic: boolean;
+  basicError: string | null;
+
   // Crew movement state
   movements: CrewMovement[];
   isLoadingMovements: boolean;
@@ -34,9 +41,11 @@ interface CrewStore {
   // Actions
   fetchCrews: () => Promise<void>;
   fetchCrewDetails: (crewCode: string) => Promise<void>;
+  fetchCrewBasic: (crewCode: string) => Promise<void>;
   fetchCrewMovements: (crewCode: string) => Promise<void>;
   fetchCrewAllottees: (crewCode: string) => Promise<void>;
   resetDetails: () => void;
+  resetBasic: () => void;
   resetMovements: () => void;
   resetAllottees: () => void;
 }
@@ -49,6 +58,9 @@ export const useCrewStore = create<CrewStore>((set) => ({
   crewDetails: null,
   isLoadingDetails: false,
   detailsError: null,
+  crewBasic: null,
+  isLoadingBasic: false,
+  basicError: null,
   movements: [],
   isLoadingMovements: false,
   movementsError: null,
@@ -90,6 +102,26 @@ export const useCrewStore = create<CrewStore>((set) => ({
       set({ 
         detailsError: error instanceof Error ? error.message : 'An error occurred while fetching crew details',
         isLoadingDetails: false 
+      });
+    }
+  },
+
+  fetchCrewBasic: async (crewCode: string) => {
+    set({ isLoadingBasic: true, basicError: null });
+    try {
+      const response = await getCrewBasic(crewCode);
+      if (response.success) {
+        set({ crewBasic: response.data, isLoadingBasic: false });
+      } else {
+        set({ 
+          basicError: response.message || 'Failed to fetch crew basic information',
+          isLoadingBasic: false 
+        });
+      }
+    } catch (error) {
+      set({ 
+        basicError: error instanceof Error ? error.message : 'An error occurred while fetching crew basic information',
+        isLoadingBasic: false 
       });
     }
   },
@@ -139,6 +171,14 @@ export const useCrewStore = create<CrewStore>((set) => ({
       crewDetails: null, 
       isLoadingDetails: false, 
       detailsError: null 
+    });
+  },
+
+  resetBasic: () => {
+    set({
+      crewBasic: null,
+      isLoadingBasic: false,
+      basicError: null
     });
   },
 
