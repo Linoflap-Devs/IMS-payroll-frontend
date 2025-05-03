@@ -119,3 +119,58 @@ export const getCrewAllottee = async (crewCode: string): Promise<CrewAllotteeRes
   const response = await axiosInstance.get<CrewAllotteeResponse>(`/crew/${crewCode}/allottee`);
   return response.data;
 }
+
+
+export interface CrewRankItem{
+  RankID: number;
+  RankCode: string;
+  RankName: string;
+  Rsequence: number;
+}
+export interface CrewRankResponse {
+  success: boolean;
+  data: CrewRankItem[];
+  message?: string;
+}
+export const getCrewRankList = async (): Promise<CrewRankResponse> => {
+  const response = await axiosInstance.get<CrewRankResponse>(`/ranks`);
+  return response.data;
+}
+
+
+export interface AddCrewPayload{
+ CrewCode: string;
+ rank: number;
+ mobileNumber: string;
+ emailAddress: string;
+ landlineNumber: string;
+ lastName: string;
+  firstName: string;
+  middleName: string;
+  sex: number;
+  dateOfBirth: string;
+  city: number;
+  province: number;
+  sssNumber: number;
+  hdmfNumber: number;
+  tinNumber: number;
+  philhealthNumber: number;
+  passportNumber: string;
+  passportIssueDate: string;
+  passportExpiryDate: string;
+  seamanBookNumber: string;
+  seamanBookIssueDate: string;
+  seamanBookExpiryDate: string;
+  crewPhoto: string;
+
+}
+
+export interface AddCrewResponse {
+  success: boolean;
+  data: CrewItem;
+  message?: string;
+}
+export const addCrew = async (payload: AddCrewPayload): Promise<AddCrewResponse> => {
+  const response = await axiosInstance.post<AddCrewResponse>(`/crew`, payload);
+  return response.data;
+}

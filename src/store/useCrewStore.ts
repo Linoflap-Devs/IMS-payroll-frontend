@@ -5,11 +5,13 @@ import {
   getCrewBasic,
   getCrewMovement,
   getCrewAllottee,
+  getCrewRankList,
   CrewItem, 
   CrewDetails,
   CrewBasic,
   CrewMovement,
-  CrewAllottee
+  CrewAllottee,
+  CrewRankItem,
 } from '../services/crew/crew.api';
 
 interface CrewStore {
@@ -38,16 +40,23 @@ interface CrewStore {
   isLoadingAllottees: boolean;
   allotteesError: string | null;
 
+  // Crew rank state
+  crewRanks: CrewRankItem[];
+  isLoadingRanks: boolean;
+  ranksError: string | null;
+
   // Actions
   fetchCrews: () => Promise<void>;
   fetchCrewDetails: (crewCode: string) => Promise<void>;
   fetchCrewBasic: (crewCode: string) => Promise<void>;
   fetchCrewMovements: (crewCode: string) => Promise<void>;
   fetchCrewAllottees: (crewCode: string) => Promise<void>;
+  fetchCrewRanks: () => Promise<void>;
   resetDetails: () => void;
   resetBasic: () => void;
   resetMovements: () => void;
   resetAllottees: () => void;
+  resetRanks: () => void;
 }
 
 export const useCrewStore = create<CrewStore>((set) => ({
@@ -67,6 +76,9 @@ export const useCrewStore = create<CrewStore>((set) => ({
   allottees: [],
   isLoadingAllottees: false,
   allotteesError: null,
+  crewRanks: [],
+  isLoadingRanks: false,
+  ranksError: null,
 
   // Actions
   fetchCrews: async () => {
@@ -166,35 +178,29 @@ export const useCrewStore = create<CrewStore>((set) => ({
     }
   },
 
-  resetDetails: () => {
-    set({ 
-      crewDetails: null, 
-      isLoadingDetails: false, 
-      detailsError: null 
-    });
+  fetchCrewRanks: async () => {
+    set({ isLoadingRanks: true, ranksError: null });
+    try {
+      const response = await getCrewRankList();
+      if (response.success) {
+        set({ crewRanks: response.data, isLoadingRanks: false });
+      } else {
+        set({ 
+          ranksError: response.message || 'Failed to fetch crew ranks',
+          isLoadingRanks: false 
+        });
+      }
+    } catch (error) {
+      set({ 
+        ranksError: error instanceof Error ? error.message : 'An error occurred while fetching crew ranks',
+        isLoadingRanks: false 
+      });
+    }
   },
 
-  resetBasic: () => {
-    set({
-      crewBasic: null,
-      isLoadingBasic: false,
-      basicError: null
-    });
-  },
-
-  resetMovements: () => {
-    set({
-      movements: [],
-      isLoadingMovements: false,
-      movementsError: null
-    });
-  },
-
-  resetAllottees: () => {
-    set({
-      allottees: [],
-      isLoadingAllottees: false,
-      allotteesError: null
-    });
-  },
+  resetDetails: () => set({ crewDetails: null, isLoadingDetails: false, detailsError: null }),
+  resetBasic: () => set({ crewBasic: null, isLoadingBasic: false, basicError: null }),
+  resetMovements: () => set({ movements: [], isLoadingMovements: false, movementsError: null }),
+  resetAllottees: () => set({ allottees: [], isLoadingAllottees: false, allotteesError: null }),
+  resetRanks: () => set({ crewRanks: [], isLoadingRanks: false, ranksError: null }),
 }));

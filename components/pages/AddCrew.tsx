@@ -15,19 +15,29 @@ import {
 import { Card, CardContent } from "../ui/card";
 import { Input } from "../ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
 import { SelectValue } from "@radix-ui/react-select";
 import { Icon } from "@iconify/react";
 import { Check } from "lucide-react";
 import { useToast } from "../ui/use-toast";
 import Swal from "sweetalert2";
+import { useLocationStore } from "@/src/store/useLocationStore";
+import { useCrewStore } from "@/src/store/useCrewStore";
+import { addCrew } from "@/src/services/crew/crew.api";
 
 export default function AddCrew() {
   const router = useRouter();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("details");
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
+  const { cities, provinces, fetchCities, fetchProvinces, loading } =
+    useLocationStore();
+  const { crewRanks, fetchCrewRanks } = useCrewStore();
+  const [citySearch, setCitySearch] = useState("");
+  const [provinceSearch, setProvinceSearch] = useState("");
+  const [rankSearch, setRankSearch] = useState("");
+
   // Add form state
   const [formData, setFormData] = useState({
     crewName: "",
@@ -60,6 +70,11 @@ export default function AddCrew() {
     seamansBookExpiryDate: "",
   });
 
+  useEffect(() => {
+    fetchCities();
+    fetchProvinces();
+    fetchCrewRanks();
+  }, [fetchCities, fetchProvinces, fetchCrewRanks]);
   // Add tab order array
   const tabOrder = ["details", "movement", "travel", "summary"];
 
@@ -118,6 +133,34 @@ export default function AddCrew() {
       router.push("/home/crew");
     }, 1000);
   };
+  const filteredCities = useMemo(() => {
+    if (!citySearch.trim()) {
+      // Return a limited number of cities when no search is active
+      return cities.slice(0, 50); // Only show first 50 cities initially
+    }
+    return cities
+      .filter((city) =>
+        city.CityName.toLowerCase().includes(citySearch.toLowerCase())
+      )
+      .slice(0, 100); // Limit to 100 results maximum for performance
+  }, [cities, citySearch]);
+
+  const filteredProvinces = useMemo(() => {
+    if (!provinceSearch.trim()) {
+      return provinces; // Usually provinces are fewer, so we can show all
+    }
+    return provinces.filter((province) =>
+      province.ProvinceName.toLowerCase().includes(provinceSearch.toLowerCase())
+    );
+  }, [provinces, provinceSearch]);
+  const filteredRanks = useMemo(() => {
+    if (!rankSearch.trim()) {
+      return crewRanks; // Usually ranks are fewer, so we can show all
+    }
+    return crewRanks.filter((rank) =>
+      rank.RankName.toLowerCase().includes(rankSearch.toLowerCase())
+    );
+  }, [crewRanks, rankSearch]);
 
   const handleCancel = () => {
     const swalWithBootstrapButtons = Swal.mixin({
@@ -215,12 +258,26 @@ export default function AddCrew() {
                       scrollbar-width: none; /* Firefox */
                     }
                   `}</style>
-                  <div className="w-60 h-60 min-w-[160px] bg-white rounded-md mb-3 flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
-                    <img
-                      src="/image.png"
-                      alt="Profile Logo"
-                      className="w-full h-full object-contain p-1"
-                    />
+                  <div className="flex flex-col items-center mb-3">
+                    <div className="w-60 h-60 min-w-[160px] bg-white rounded-md flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0 relative">
+                      <img
+                        src="/image.png"
+                        alt="Profile Logo"
+                        className="w-full h-full object-contain p-1"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 w-60"
+                      onClick={() => {
+                        // This would normally trigger a file input
+                        console.log("Add image clicked");
+                        // You could add actual file upload functionality here
+                      }}
+                    >
+                      Add Image
+                    </Button>
                   </div>
 
                   <div className="w-full space-y-3 text-left min-w-0">
@@ -242,13 +299,40 @@ export default function AddCrew() {
                     <div className="flex items-center gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="text-sm text-gray-500">Rank</div>
-                        <Input
+                        <Select
                           value={formData.rank}
-                          onChange={(e) =>
-                            handleInputChange("rank", e.target.value)
+                          onValueChange={(value) =>
+                            handleInputChange("rank", value)
                           }
-                          className="h-8 mt-1 text-sm"
-                        />
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a rank" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-80">
+                            <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                              <Input
+                                placeholder="Search ranks..."
+                                value={rankSearch}
+                                onChange={(e) => setRankSearch(e.target.value)}
+                                className="h-8"
+                              />
+                            </div>
+                            {filteredRanks.length > 0 ? (
+                              filteredRanks.map((rank) => (
+                                <SelectItem
+                                  key={rank.RankID}
+                                  value={rank.RankID.toString()}
+                                >
+                                  {rank.RankName}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <div className="px-2 py-2 text-sm text-gray-500">
+                                No ranks found
+                              </div>
+                            )}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
@@ -455,12 +539,8 @@ export default function AddCrew() {
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="single">Single</SelectItem>
-                                <SelectItem value="married">Married</SelectItem>
-                                <SelectItem value="divorced">
-                                  Divorced
-                                </SelectItem>
-                                <SelectItem value="widowed">Widowed</SelectItem>
+                                <SelectItem value="1">Single</SelectItem>
+                                <SelectItem value="2">Married</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -478,9 +558,8 @@ export default function AddCrew() {
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="male">Male</SelectItem>
-                                <SelectItem value="female">Female</SelectItem>
-                                <SelectItem value="other">Other</SelectItem>
+                                <SelectItem value="1">Male</SelectItem>
+                                <SelectItem value="2">Female</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -503,25 +582,97 @@ export default function AddCrew() {
                             <label className="text-sm text-gray-500 mb-1 block">
                               City
                             </label>
-                            <Input
-                              placeholder="Enter city"
+                            <Select
                               value={formData.city}
-                              onChange={(e) =>
-                                handleInputChange("city", e.target.value)
+                              onValueChange={(value) =>
+                                handleInputChange("city", value)
                               }
-                            />
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a city" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-80">
+                                <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                                  <Input
+                                    placeholder="Search cities..."
+                                    value={citySearch}
+                                    onChange={(e) =>
+                                      setCitySearch(e.target.value)
+                                    }
+                                    className="h-8"
+                                  />
+                                </div>
+                                {loading ? (
+                                  <SelectItem value="loading">
+                                    Loading...
+                                  </SelectItem>
+                                ) : filteredCities.length > 0 ? (
+                                  filteredCities.map((city) => (
+                                    <SelectItem
+                                      key={city.CityID}
+                                      value={city.CityID.toString()}
+                                    >
+                                      {city.CityName}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <div className="px-2 py-2 text-sm text-gray-500">
+                                    No cities found
+                                  </div>
+                                )}
+                                {!citySearch && cities.length > 50 && (
+                                  <div className="px-2 py-2 text-xs text-gray-500">
+                                    Showing first 50 cities. Use search to find
+                                    more.
+                                  </div>
+                                )}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div className="md:col-span-2">
                             <label className="text-sm text-gray-500 mb-1 block">
                               Province
                             </label>
-                            <Input
-                              placeholder="Enter province"
+                            <Select
                               value={formData.province}
-                              onChange={(e) =>
-                                handleInputChange("province", e.target.value)
+                              onValueChange={(value) =>
+                                handleInputChange("province", value)
                               }
-                            />
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a province" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-80">
+                                <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                                  <Input
+                                    placeholder="Search provinces..."
+                                    value={provinceSearch}
+                                    onChange={(e) =>
+                                      setProvinceSearch(e.target.value)
+                                    }
+                                    className="h-8"
+                                  />
+                                </div>
+                                {loading ? (
+                                  <SelectItem value="loading">
+                                    Loading...
+                                  </SelectItem>
+                                ) : filteredProvinces.length > 0 ? (
+                                  filteredProvinces.map((province) => (
+                                    <SelectItem
+                                      key={province.ProvinceID}
+                                      value={province.ProvinceID.toString()}
+                                    >
+                                      {province.ProvinceName}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <div className="px-2 py-2 text-sm text-gray-500">
+                                    No provinces found
+                                  </div>
+                                )}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
                       </div>
@@ -926,24 +1077,6 @@ export default function AddCrew() {
                             />
                           </div>
                         </div>
-                      </div>
-
-                      {/* Navigation Buttons */}
-                      <div className="flex justify-end gap-3">
-                        <Button
-                          variant="outline"
-                          onClick={handlePrevious}
-                          className="px-4"
-                        >
-                          <ChevronLeft className="w-4 h-4 mr-2" />
-                          Previous
-                        </Button>
-                        <Button
-                          onClick={handleSubmit}
-                          className="bg-primary hover:bg-primary/90 px-4"
-                        >
-                          Add Crew
-                        </Button>
                       </div>
                     </div>
                   </TabsContent>

@@ -1,9 +1,9 @@
-import Deduction from "@/components/pages/Deduction";
+import CrewEntries from "@/components/pages/CrewEntries";
 
 export default function page() {
   return (
     <div>
-      <Deduction />
+      <CrewEntries />
     </div>
   );
 }

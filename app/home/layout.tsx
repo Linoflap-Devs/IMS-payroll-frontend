@@ -22,6 +22,7 @@ import {
   Ship,
   HandCoins,
   CircleMinus,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -39,6 +40,11 @@ interface SidebarProps {
     icon: React.ElementType;
     href: string;
     active: boolean;
+    subItems?: {
+      label: string;
+      href: string;
+      active: boolean;
+    }[];
   }[];
   isCollapsed: boolean;
   onToggleCollapse: () => void;
@@ -46,11 +52,25 @@ interface SidebarProps {
 
 // Sidebar component
 function Sidebar({ routes, isCollapsed, onToggleCollapse }: SidebarProps) {
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({
+    // Initialize Deduction dropdown as open by default
+    Deduction: true,
+  });
+
+  const toggleDropdown = (label: string) => {
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
+  };
+
   return (
     <>
       <div
         className={cn(
-          "flex h-full flex-col rounded-xl bg-background text-sidebar-foreground  transition-all duration-300 gap-y-3",
+          "flex h-full flex-col rounded-xl bg-background text-sidebar-foreground transition-all duration-300 gap-y-3",
           isCollapsed ? "w-18" : "w-full"
         )}
       >
@@ -85,27 +105,97 @@ function Sidebar({ routes, isCollapsed, onToggleCollapse }: SidebarProps) {
         <div className="flex-1 overflow-auto py-6 bg-[#F9F9F9] rounded-lg shadow-sm">
           <nav className={cn("grid gap-2", isCollapsed ? "px-2" : "px-4")}>
             {routes.map((route) => (
-              <Link
-                key={route.href}
-                href={route.href}
-                className={cn(
-                  "flex items-center rounded-lg transition-colors relative",
-                  isCollapsed ? "justify-center" : "gap-3 px-3",
-                  "py-3 text-base font-medium",
-                  route.active
-                    ? cn(
-                        "text-primary bg-white shadow-md font-bold",
-                        isCollapsed ? "" : "border-l-4 border-primary pl-2"
-                      )
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              <div key={route.href}>
+                {route.subItems ? (
+                  <>
+                    <Link
+                      href={route.href}
+                      className={cn(
+                        "flex items-center rounded-lg transition-colors cursor-pointer",
+                        isCollapsed ? "justify-center" : "gap-3 px-3",
+                        "py-3 text-base font-medium",
+                        route.active
+                          ? cn(
+                              "text-primary bg-white shadow-md font-bold",
+                              isCollapsed
+                                ? ""
+                                : "border-l-4 border-primary pl-2"
+                            )
+                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )}
+                      onClick={(e) => {
+                        if (!isCollapsed) {
+                          e.preventDefault();
+                          toggleDropdown(route.label);
+                        }
+                      }}
+                      title={isCollapsed ? route.label : ""}
+                    >
+                      <route.icon
+                        className={cn(
+                          "h-6 w-6",
+                          route.active ? "text-primary" : ""
+                        )}
+                      />
+                      {!isCollapsed && (
+                        <>
+                          <span className="flex-1">{route.label}</span>
+                          <ChevronDown
+                            className={cn(
+                              "h-4 w-4 transition-transform",
+                              openDropdowns[route.label]
+                                ? "transform rotate-180"
+                                : ""
+                            )}
+                          />
+                        </>
+                      )}
+                    </Link>
+                    {!isCollapsed && openDropdowns[route.label] && (
+                      <div className="ml-8 mt-1 space-y-1">
+                        {route.subItems.map((subItem) => (
+                          <Link
+                            key={subItem.href}
+                            href={subItem.href}
+                            className={cn(
+                              "block py-2 pl-3 rounded-lg text-sm",
+                              subItem.active
+                                ? "bg-white text-primary font-medium shadow-sm"
+                                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                            )}
+                          >
+                            {subItem.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    href={route.href}
+                    className={cn(
+                      "flex items-center rounded-lg transition-colors relative",
+                      isCollapsed ? "justify-center" : "gap-3 px-3",
+                      "py-3 text-base font-medium",
+                      route.active
+                        ? cn(
+                            "text-primary bg-white shadow-md font-bold",
+                            isCollapsed ? "" : "border-l-4 border-primary pl-2"
+                          )
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    )}
+                    title={isCollapsed ? route.label : ""}
+                  >
+                    <route.icon
+                      className={cn(
+                        "h-6 w-6",
+                        route.active ? "text-primary" : ""
+                      )}
+                    />
+                    {!isCollapsed && route.label}
+                  </Link>
                 )}
-                title={isCollapsed ? route.label : ""}
-              >
-                <route.icon
-                  className={cn("h-6 w-6", route.active ? "text-primary" : "")}
-                />
-                {!isCollapsed && route.label}
-              </Link>
+              </div>
             ))}
           </nav>
         </div>
@@ -197,10 +287,48 @@ export default function HomeLayout({
         </div>
       );
     }
+    if (pathname === "/home/deduction") {
+      return (
+        <div className="flex items-center">
+          <span className="text-primary">Deduction</span>
+          <ChevronRightIcon className="h-3 w-3 mx-2" />
+          <span className="text-primary">Crew Entries</span>
+        </div>
+      );
+    }
+    if (pathname.startsWith("/home/deduction/description")) {
+      return (
+        <div className="flex items-center">
+          <Link href="/home/deduction" className="hover:text-foreground">
+            Deduction
+          </Link>
+          <ChevronRightIcon className="h-3 w-3 mx-2" />
+          <span className="text-primary">Description</span>
+        </div>
+      );
+    }
 
     // Handle regular routes
     const currentRoute = routes.find((route) => route.href === pathname);
-    return currentRoute?.label || "Home";
+    if (currentRoute) return currentRoute.label;
+
+    // Check for subitems
+    for (const route of routes) {
+      if (route.subItems) {
+        const subItem = route.subItems.find((item) => item.href === pathname);
+        if (subItem) {
+          return (
+            <div className="flex items-center">
+              <span className="text-muted-foreground">{route.label}</span>
+              <ChevronRightIcon className="h-3 w-3 mx-2" />
+              <span className="text-primary">{subItem.label}</span>
+            </div>
+          );
+        }
+      }
+    }
+
+    return "Home";
   };
 
   const routes = [
@@ -233,6 +361,20 @@ export default function HomeLayout({
       icon: TbCurrencyDollarOff,
       href: "/home/deduction",
       active: pathname.startsWith("/home/deduction"),
+      subItems: [
+        {
+          label: "Crew Entries",
+          href: "/home/deduction",
+          active:
+            pathname === "/home/deduction" ||
+            pathname === "/home/deduction/crew-entries",
+        },
+        {
+          label: "Description",
+          href: "/home/deduction/description",
+          active: pathname === "/home/deduction/description",
+        },
+      ],
     },
     {
       label: "Remittance",
@@ -320,13 +462,6 @@ export default function HomeLayout({
               )}
             </span>
             <div className="flex items-center text-base text-muted-foreground">
-              {/* <Link
-                href="/home/dashboard"
-                className="flex items-center hover:text-foreground"
-              >
-                <Home className="h-5 w-5" />
-              </Link>
-              <ChevronRightIcon className="h-5 w-5 mx-2" /> */}
               <div className="font-medium text-foreground text-sm">
                 {getBreadcrumb()}
               </div>
