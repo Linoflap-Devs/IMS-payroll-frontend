@@ -38,6 +38,12 @@ import { ColumnDef } from "@tanstack/react-table";
 import { RiShieldStarLine } from "react-icons/ri";
 import { AddDeductionDialog } from "@/components/dialogs/AddDeductionDialog";
 import { Switch } from "@/components/ui/switch";
+import {
+  getDeductionEntries,
+  DeductionEntries as DeductionEntriesType,
+  getCrewDeductionList,
+} from "@/src/services/deduction/crewDeduction.api";
+import { getCrewBasic } from "@/src/services/crew/crew.api";
 
 type DeductionEntry = {
   deduction: string;
@@ -123,36 +129,91 @@ const deductionColumns: ColumnDef<DeductionEntry>[] = [
   },
 ];
 
-const sampleDeductions: DeductionEntry[] = [
+// Updated columns definition to match the API data structure
+const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
   {
-    deduction: "Cash Advance",
-    amount: 200.0,
-    remarks: "Remarks",
-    status: "Completed",
+    accessorKey: "Deduction",
+    header: "Deduction",
   },
   {
-    deduction: "LBC Courier",
-    amount: 200.0,
-    remarks: "Remarks",
-    status: "Pending",
+    accessorKey: "Amount",
+    header: "Amount",
+    cell: ({ row }) => {
+      return <div className="text-right">{row.original.Amount.toFixed(2)}</div>;
+    },
   },
   {
-    deduction: "LBC Courier",
-    amount: 200.0,
-    remarks: "Remarks",
-    status: "Adjusted",
+    accessorKey: "Remarks",
+    header: "Remarks",
   },
   {
-    deduction: "LBC Courier",
-    amount: 200.0,
-    remarks: "Remarks",
-    status: "Failed",
+    accessorKey: "Status",
+    header: "Status",
+    cell: ({ row }) => {
+      // Map numeric status to string labels
+      const statusMap: Record<number, string> = {
+        0: "Completed",
+        2: "Pending",
+        3: "Adjusted",
+        4: "Failed",
+        5: "On Hold",
+      };
+
+      const statusLabel = statusMap[row.original.Status] || "Unknown";
+
+      const getStatusColor = (statusCode: number) => {
+        switch (statusCode) {
+          case 0: // Completed
+            return "bg-green-100 text-green-800";
+          case 2: // Pending
+            return "bg-yellow-100 text-yellow-800";
+          case 3: // Adjusted
+            return "bg-blue-100 text-blue-800";
+          case 4: // Failed
+            return "bg-red-100 text-red-800";
+          case 5: // On Hold
+            return "bg-gray-100 text-gray-800";
+          default:
+            return "bg-gray-100 text-gray-800";
+        }
+      };
+
+      return (
+        <div className="flex justify-center">
+          <span
+            className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+              row.original.Status
+            )}`}
+          >
+            {statusLabel}
+          </span>
+        </div>
+      );
+    },
   },
   {
-    deduction: "LBC Courier",
-    amount: 200.0,
-    remarks: "Remarks",
-    status: "On Hold",
+    id: "actions",
+    header: "Actions",
+    cell: () => {
+      return (
+        <div className="text-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+              <DropdownMenuItem>Edit</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600">
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    },
   },
 ];
 
@@ -160,6 +221,8 @@ export default function DeductionEntries() {
   const [activeTab, setActiveTab] = useState("deduction-entries");
   const [selectedMonth, setSelectedMonth] = useState("August");
   const [selectedYear, setSelectedYear] = useState("2025");
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [isAddDeductionOpen, setIsAddDeductionOpen] = useState(false);
   const [isDollar, setIsDollar] = useState(false);
   const [crewData, setCrewData] = useState({
@@ -167,35 +230,174 @@ export default function DeductionEntries() {
     rank: "",
     vessel: "",
     crewCode: "",
+    mobileNo: "",
+    landlineNo: "",
+    emailAddress: "",
+    birthday: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [deductionEntries, setDeductionEntries] = useState<
+    DeductionEntriesType[]
+  >([]);
+  const [error, setError] = useState<string | null>(null);
 
-  // Read the parameters from URL on component mount
+  // Read the parameters from URL and fetch crew details
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get("tab");
-    const nameParam = params.get("name");
-    const rankParam = params.get("rank");
-    const vesselParam = params.get("vessel");
     const crewCodeParam = params.get("crewCode");
 
     if (tabParam === "hdmf-upgrade") {
       setActiveTab("hdmf-upgrade");
     }
 
-    if (nameParam && rankParam && vesselParam && crewCodeParam) {
-      setCrewData({
-        name: decodeURIComponent(nameParam),
-        rank: decodeURIComponent(rankParam),
-        vessel: decodeURIComponent(vesselParam),
-        crewCode: decodeURIComponent(crewCodeParam),
-      });
+    // Fetch crew details if we have a crew code
+    if (crewCodeParam) {
+      const decodedCrewCode = decodeURIComponent(crewCodeParam);
+
+      // Fetch both crew basic info and vessel info in parallel
+      Promise.all([getCrewBasic(decodedCrewCode), getCrewDeductionList()])
+        .then(([basicResponse, deductionResponse]) => {
+          if (basicResponse.success) {
+            const { data } = basicResponse;
+
+            // Find the crew's vessel from the deduction list
+            const crewVessel = deductionResponse.success
+              ? deductionResponse.data.find(
+                  (item) => item.CrewCode === decodedCrewCode
+                )?.VesselName
+              : "";
+
+            setCrewData({
+              name: `${data.FirstName} ${
+                data.MiddleName ? data.MiddleName.charAt(0) + ". " : ""
+              }${data.LastName}`,
+              rank: data.Rank,
+              vessel: crewVessel || "",
+              crewCode: decodedCrewCode,
+              mobileNo: data.MobileNo,
+              landlineNo: data.LandlineNo,
+              emailAddress: data.EmailAddress,
+              birthday: data.Birthday,
+            });
+
+            // After getting crew info, fetch deduction entries
+            fetchDeductionEntries(decodedCrewCode);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching crew details:", error);
+          setError("Failed to fetch crew details");
+        });
     }
   }, []);
+
+  // Function to fetch deduction entries
+  const fetchDeductionEntries = async (crewCode: string) => {
+    if (!crewCode) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await getDeductionEntries(crewCode);
+
+      if (response.success) {
+        setDeductionEntries(response.data);
+
+        // Process the years and months from the data
+        if (response.data.length > 0) {
+          // Extract unique years from the data
+          const years = [
+            ...new Set(response.data.map((entry) => entry.Year.toString())),
+          ];
+
+          // Sort years in descending order (newest first)
+          years.sort((a, b) => parseInt(b) - parseInt(a));
+
+          setAvailableYears(years);
+
+          // Set the default selected year to the most recent one
+          if (years.length > 0 && !years.includes(selectedYear)) {
+            setSelectedYear(years[0]);
+          }
+
+          // Extract unique months from the data
+          const months = [
+            ...new Set(response.data.map((entry) => entry.Month)),
+          ];
+
+          // Sort months in calendar order
+          const monthOrder = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+          ];
+          months.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+
+          setAvailableMonths(months.length > 0 ? months : monthOrder);
+
+          // Set default month if current selection isn't in the available months
+          if (months.length > 0 && !months.includes(selectedMonth)) {
+            setSelectedMonth(months[0]);
+          }
+        } else {
+          // Default values if no data
+          setAvailableYears(["2025", "2024", "2023"]);
+          setAvailableMonths([
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+          ]);
+        }
+      } else {
+        setError(response.message || "Failed to fetch deduction entries");
+        console.error("API Error:", response.message);
+      }
+    } catch (err) {
+      setError("Error fetching deduction entries");
+      console.error("Error fetching deduction entries:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Re-fetch data when month or year changes
+  useEffect(() => {
+    if (crewData.crewCode) {
+      fetchDeductionEntries(crewData.crewCode);
+    }
+  }, [selectedMonth, selectedYear]);
 
   // Handle tab change
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
+
+  // Filter entries by selected month and year
+  const filteredEntries = deductionEntries.filter((entry) => {
+    return (
+      entry.Month === selectedMonth && entry.Year.toString() === selectedYear
+    );
+  });
 
   return (
     <div className="h-full w-full p-4 pt-3">
@@ -309,7 +511,7 @@ export default function DeductionEntries() {
                         </div>
 
                         <div className="text-sm font-medium truncate">
-                          099989898889
+                          {crewData.mobileNo}
                         </div>
                       </div>
                     </div>
@@ -322,7 +524,7 @@ export default function DeductionEntries() {
                         </div>
 
                         <div className="text-sm font-medium truncate">
-                          4327966
+                          {crewData.landlineNo}
                         </div>
                       </div>
                     </div>
@@ -335,7 +537,7 @@ export default function DeductionEntries() {
                         </div>
 
                         <div className="text-sm font-medium truncate">
-                          sample@gmail.com
+                          {crewData.emailAddress}
                         </div>
                       </div>
                     </div>
@@ -393,18 +595,36 @@ export default function DeductionEntries() {
                             </div>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="January">January</SelectItem>
-                            <SelectItem value="February">February</SelectItem>
-                            <SelectItem value="March">March</SelectItem>
-                            <SelectItem value="April">April</SelectItem>
-                            <SelectItem value="May">May</SelectItem>
-                            <SelectItem value="June">June</SelectItem>
-                            <SelectItem value="July">July</SelectItem>
-                            <SelectItem value="August">August</SelectItem>
-                            <SelectItem value="September">September</SelectItem>
-                            <SelectItem value="October">October</SelectItem>
-                            <SelectItem value="November">November</SelectItem>
-                            <SelectItem value="December">December</SelectItem>
+                            {availableMonths.length > 0 ? (
+                              availableMonths.map((month) => (
+                                <SelectItem key={month} value={month}>
+                                  {month}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <>
+                                <SelectItem value="January">January</SelectItem>
+                                <SelectItem value="February">
+                                  February
+                                </SelectItem>
+                                <SelectItem value="March">March</SelectItem>
+                                <SelectItem value="April">April</SelectItem>
+                                <SelectItem value="May">May</SelectItem>
+                                <SelectItem value="June">June</SelectItem>
+                                <SelectItem value="July">July</SelectItem>
+                                <SelectItem value="August">August</SelectItem>
+                                <SelectItem value="September">
+                                  September
+                                </SelectItem>
+                                <SelectItem value="October">October</SelectItem>
+                                <SelectItem value="November">
+                                  November
+                                </SelectItem>
+                                <SelectItem value="December">
+                                  December
+                                </SelectItem>
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
@@ -422,21 +642,44 @@ export default function DeductionEntries() {
                             </div>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="2023">2023</SelectItem>
-                            <SelectItem value="2024">2024</SelectItem>
-                            <SelectItem value="2025">2025</SelectItem>
-                            <SelectItem value="2026">2026</SelectItem>
+                            {availableYears.length > 0 ? (
+                              availableYears.map((year) => (
+                                <SelectItem key={year} value={year}>
+                                  {year}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <>
+                                <SelectItem value="2025">2025</SelectItem>
+                                <SelectItem value="2024">2024</SelectItem>
+                                <SelectItem value="2023">2023</SelectItem>
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
 
                     <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
-                      <DataTable
-                        columns={deductionColumns}
-                        data={sampleDeductions}
-                        pageSize={7}
-                      />
+                      {loading ? (
+                        <div className="flex justify-center items-center py-10">
+                          <p>Loading deduction entries...</p>
+                        </div>
+                      ) : error ? (
+                        <div className="flex justify-center items-center py-10 text-red-500">
+                          <p>{error}</p>
+                        </div>
+                      ) : filteredEntries.length === 0 ? (
+                        <div className="flex justify-center items-center py-10">
+                          <p>No deduction entries found for this period.</p>
+                        </div>
+                      ) : (
+                        <DataTable
+                          columns={apiDeductionColumns}
+                          data={filteredEntries}
+                          pageSize={7}
+                        />
+                      )}
                     </div>
                   </div>
                 </TabsContent>

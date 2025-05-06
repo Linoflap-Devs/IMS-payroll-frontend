@@ -367,7 +367,7 @@ export default function HomeLayout({
           href: "/home/deduction",
           active:
             pathname === "/home/deduction" ||
-            pathname === "/home/deduction/crew-entries",
+            pathname === "/home/deduction/deduction-entries",
         },
         {
           label: "Description",

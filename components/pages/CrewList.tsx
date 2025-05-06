@@ -69,14 +69,16 @@ const columns: ColumnDef<CrewItem>[] = [
     ),
   },
   {
-    accessorKey: "FirstName", // This remains the same as the entry point
+    accessorKey: "FirstName",
     header: "Crew Name",
     cell: ({ row }) => {
-      const firstName = row.original.FirstName || ""; // Use row.original to access the raw data
+      const firstName = row.original.FirstName || "";
+      const middleName = row.original.MiddleName || "";
       const lastName = row.original.LastName || "";
+      const middleInitial = middleName ? ` ${middleName.charAt(0)}.` : "";
       return (
         <div className="text-xs sm:text-sm text-center">
-          {firstName.trim()} {lastName.trim()}
+          {`${firstName}${middleInitial} ${lastName}`.trim()}
         </div>
       );
     },

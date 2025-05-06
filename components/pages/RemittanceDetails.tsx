@@ -42,6 +42,13 @@ import { Switch } from "@/components/ui/switch";
 import { CheckboxItem } from "@radix-ui/react-dropdown-menu";
 import { Checkbox } from "../ui/checkbox";
 import Swal from "sweetalert2";
+import {
+  getCrewRemittanceDetails,
+  CrewRemittanceDetailItem,
+  CrewRemittanceItem,
+  getCrewRemittanceList,
+} from "@/src/services/remittance/crewRemittance.api";
+import { getCrewBasic } from "@/src/services/crew/crew.api";
 
 type RemittanceEntry = {
   allottee: string;
@@ -49,39 +56,6 @@ type RemittanceEntry = {
   remarks?: string;
   status: "Completed" | "Pending" | "Adjusted" | "Failed" | "On Hold";
 };
-
-const sampleRemittance: RemittanceEntry[] = [
-  {
-    allottee: "Thomas Shelby",
-    amount: 200.0,
-    remarks: "Remarks",
-    status: "Completed",
-  },
-  {
-    allottee: "Arthur Shelby",
-    amount: 200.0,
-    remarks: "Remarks",
-    status: "Pending",
-  },
-  {
-    allottee: "Ada Thorne",
-    amount: 200.0,
-    remarks: "Remarks",
-    status: "Adjusted",
-  },
-  {
-    allottee: "Polly Shelby",
-    amount: 200.0,
-    remarks: "Remarks",
-    status: "Failed",
-  },
-  {
-    allottee: "Grace Burgess",
-    amount: 200.0,
-    remarks: "Remarks",
-    status: "On Hold",
-  },
-];
 
 const remittanceColumns: ColumnDef<RemittanceEntry>[] = [
   {
@@ -201,42 +175,168 @@ const remittanceColumns: ColumnDef<RemittanceEntry>[] = [
 ];
 
 export default function DeductionEntries() {
-  const [selectedMonth, setSelectedMonth] = useState("August");
-  const [selectedYear, setSelectedYear] = useState("2025");
-  const [selectedAllottee, setSelectedAllottee] = useState("1");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
   const [isAddRemittanceOpen, setIsAddRemittanceOpen] = useState(false);
   const [isDollar, setIsDollar] = useState(false);
+  const [remittanceData, setRemittanceData] = useState<RemittanceEntry[]>([]);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [crewData, setCrewData] = useState({
     name: "",
     rank: "",
     vessel: "",
     crewCode: "",
+    mobileNo: "",
+    landlineNo: "",
+    emailAddress: "",
+    birthday: "",
   });
 
-  // Read the parameters from URL on component mount
+  const fetchRemittanceData = async (crewCode: string) => {
+    if (crewCode) {
+      try {
+        const response = await getCrewRemittanceDetails(crewCode);
+        if (response.success && response.data.length > 0) {
+          // Get unique years from the data
+          const years = [...new Set(response.data.map((item) => item.Year))];
+          setAvailableYears(years.sort((a, b) => b - a)); // Sort years in descending order
+
+          // Find the latest remittance date
+          const sortedData = [...response.data].sort((a, b) => {
+            const dateA = new Date(a.Year, getMonthNumber(a.Month));
+            const dateB = new Date(b.Year, getMonthNumber(b.Month));
+            return dateB.getTime() - dateA.getTime();
+          });
+
+          const latestRemittance = sortedData[0];
+
+          // Set the latest month and year
+          setSelectedMonth(latestRemittance.Month);
+          setSelectedYear(latestRemittance.Year.toString());
+
+          // Filter and map the data for display
+          const filteredData = sortedData
+            .filter(
+              (item) =>
+                item.Month === latestRemittance.Month &&
+                item.Year === latestRemittance.Year
+            )
+            .map((item) => ({
+              allottee: item.AllotteeName || "",
+              amount: item.Amount,
+              remarks: item.Remarks || "",
+              status: item.IsActive
+                ? "Completed"
+                : ("Pending" as "Completed" | "Pending"),
+            }));
+
+          setRemittanceData(filteredData);
+        }
+      } catch (error) {
+        console.error("Error fetching remittance details:", error);
+      }
+    }
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const nameParam = params.get("name");
-    const rankParam = params.get("rank");
-    const vesselParam = params.get("vessel");
     const crewCodeParam = params.get("crewCode");
 
-    if (nameParam && rankParam && vesselParam && crewCodeParam) {
-      setCrewData({
-        name: decodeURIComponent(nameParam),
-        rank: decodeURIComponent(rankParam),
-        vessel: decodeURIComponent(vesselParam),
-        crewCode: decodeURIComponent(crewCodeParam),
-      });
+    if (crewCodeParam) {
+      const decodedCrewCode = decodeURIComponent(crewCodeParam);
+
+      // Fetch both crew basic info and vessel info in parallel
+      Promise.all([getCrewBasic(decodedCrewCode), getCrewRemittanceList()])
+        .then(([basicResponse, remittanceResponse]) => {
+          if (basicResponse.success) {
+            const { data } = basicResponse;
+
+            // Find the crew's vessel from the remittance list
+            const crewVessel = remittanceResponse.success
+              ? remittanceResponse.data.find(
+                  (item: CrewRemittanceItem) =>
+                    item.CrewCode === decodedCrewCode
+                )?.Vessel
+              : "";
+
+            setCrewData({
+              name: `${data.FirstName} ${
+                data.MiddleName ? data.MiddleName.charAt(0) + ". " : ""
+              }${data.LastName}`,
+              rank: data.Rank,
+              vessel: crewVessel || "",
+              crewCode: decodedCrewCode,
+              mobileNo: data.MobileNo,
+              landlineNo: data.LandlineNo,
+              emailAddress: data.EmailAddress,
+              birthday: data.Birthday,
+            });
+
+            // After getting crew info, fetch remittance details
+            fetchRemittanceData(decodedCrewCode);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching crew details:", error);
+        });
     }
   }, []);
 
-  // Handle tab change
+  // Update remittance data when month/year selection changes
+  useEffect(() => {
+    const updateRemittanceData = async () => {
+      if (crewData.crewCode && selectedMonth && selectedYear) {
+        try {
+          const response = await getCrewRemittanceDetails(crewData.crewCode);
+          if (response.success) {
+            const filteredData = response.data
+              .filter(
+                (item) =>
+                  item.Month === selectedMonth &&
+                  item.Year.toString() === selectedYear
+              )
+              .map((item) => ({
+                allottee: item.AllotteeName || "",
+                amount: item.Amount,
+                remarks: item.Remarks || "",
+                status: item.IsActive
+                  ? "Completed"
+                  : ("Pending" as "Completed" | "Pending"),
+              }));
+            setRemittanceData(filteredData);
+          }
+        } catch (error) {
+          console.error("Error updating remittance details:", error);
+        }
+      }
+    };
+
+    updateRemittanceData();
+  }, [crewData.crewCode, selectedMonth, selectedYear]);
+
+  // Helper function to convert month name to number
+  const getMonthNumber = (month: string): number => {
+    const months = {
+      January: 0,
+      February: 1,
+      March: 2,
+      April: 3,
+      May: 4,
+      June: 5,
+      July: 6,
+      August: 7,
+      September: 8,
+      October: 9,
+      November: 10,
+      December: 11,
+    };
+    return months[month as keyof typeof months] || 0;
+  };
 
   return (
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
-        {/* Header with back button and title */}
+        {/* Header section */}
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-2">
             <Link href="/home/remittance">
@@ -256,9 +356,8 @@ export default function DeductionEntries() {
           </Button>
         </div>
 
-        {/* Main content */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Left sidebar with crew info */}
+          {/* Left sidebar */}
           <div className="md:col-span-1">
             <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
               <CardContent className="p-4 flex flex-col items-center text-center overflow-y-auto scrollbar-hide flex-1">
@@ -343,7 +442,7 @@ export default function DeductionEntries() {
                           Mobile Number
                         </div>
                         <div className="text-sm font-medium truncate">
-                          099989898889
+                          {crewData.mobileNo}
                         </div>
                       </div>
                     </div>
@@ -355,7 +454,7 @@ export default function DeductionEntries() {
                           Landline Number
                         </div>
                         <div className="text-sm font-medium truncate">
-                          4327966
+                          {crewData.landlineNo}
                         </div>
                       </div>
                     </div>
@@ -367,7 +466,7 @@ export default function DeductionEntries() {
                           Email Address
                         </div>
                         <div className="text-sm font-medium truncate">
-                          sample@gmail.com
+                          {crewData.emailAddress}
                         </div>
                       </div>
                     </div>
@@ -377,107 +476,99 @@ export default function DeductionEntries() {
             </Card>
           </div>
 
-          {/* Right content area with tabs */}
+          {/* Right content area */}
           <div className="md:col-span-3">
             <Card className="h-[calc(100vh-180px)] flex flex-col">
-              <div className="w-full flex flex-col h-full">
-                <div className="p-6 mt-0 overflow-y-auto flex-1">
-                  <div className="space-y-6">
-                    {/* New select on top */}
-                    <div className="flex justify-center">
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Month and Year filters */}
+                  <div className="flex items-center justify-center gap-6 w-full">
+                    <div className="w-1/2">
                       <Select
-                        value={selectedAllottee}
-                        onValueChange={setSelectedAllottee}
+                        value={selectedMonth}
+                        onValueChange={setSelectedMonth}
                       >
                         <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                           <div className="flex items-center w-full">
                             <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
-                              Select Allottee
+                              Select Month
                             </span>
-                            <SelectValue className="text-black text-base pl-3" />
+                            <SelectValue
+                              placeholder="Select month"
+                              className="text-black text-base pl-3"
+                            />
                           </div>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">Juan De La Cruz</SelectItem>
-                          <SelectItem value="2">Asta Calleja</SelectItem>
+                          {[
+                            "January",
+                            "February",
+                            "March",
+                            "April",
+                            "May",
+                            "June",
+                            "July",
+                            "August",
+                            "September",
+                            "October",
+                            "November",
+                            "December",
+                          ].map((month) => (
+                            <SelectItem key={month} value={month}>
+                              {month}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
-
-                    <div className="flex items-center justify-center gap-6 w-full">
-                      <div className="w-1/2">
-                        <Select
-                          value={selectedMonth}
-                          onValueChange={setSelectedMonth}
-                        >
-                          <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
-                            <div className="flex items-center w-full">
-                              <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
-                                Select Month
-                              </span>
-                              <SelectValue className="text-black text-base pl-3" />
-                            </div>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="January">January</SelectItem>
-                            <SelectItem value="February">February</SelectItem>
-                            <SelectItem value="March">March</SelectItem>
-                            <SelectItem value="April">April</SelectItem>
-                            <SelectItem value="May">May</SelectItem>
-                            <SelectItem value="June">June</SelectItem>
-                            <SelectItem value="July">July</SelectItem>
-                            <SelectItem value="August">August</SelectItem>
-                            <SelectItem value="September">September</SelectItem>
-                            <SelectItem value="October">October</SelectItem>
-                            <SelectItem value="November">November</SelectItem>
-                            <SelectItem value="December">December</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="w-1/2">
-                        <Select
-                          value={selectedYear}
-                          onValueChange={setSelectedYear}
-                        >
-                          <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
-                            <div className="flex items-center w-full">
-                              <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
-                                Select Year
-                              </span>
-                              <SelectValue className="text-black text-base pl-3" />
-                            </div>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="2023">2023</SelectItem>
-                            <SelectItem value="2024">2024</SelectItem>
-                            <SelectItem value="2025">2025</SelectItem>
-                            <SelectItem value="2026">2026</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end">
-                      <div>
-                        <Checkbox />
-                        <span className="ml-2">Remit with payroll</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
-                      <DataTable
-                        columns={remittanceColumns}
-                        data={sampleRemittance}
-                        pageSize={7}
-                      />
+                    <div className="w-1/2">
+                      <Select
+                        value={selectedYear}
+                        onValueChange={setSelectedYear}
+                      >
+                        <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
+                          <div className="flex items-center w-full">
+                            <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
+                              Select Year
+                            </span>
+                            <SelectValue
+                              placeholder="Select year"
+                              className="text-black text-base pl-3"
+                            />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableYears.map((year) => (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
+
+                  <div className="flex justify-end">
+                    <div>
+                      <Checkbox />
+                      <span className="ml-2">Remit with payroll</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden">
+                    <DataTable
+                      columns={remittanceColumns}
+                      data={remittanceData}
+                      pageSize={7}
+                    />
+                  </div>
                 </div>
-              </div>
+              </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
       <AddRemittanceDialog
         open={isAddRemittanceOpen}
         onOpenChange={setIsAddRemittanceOpen}

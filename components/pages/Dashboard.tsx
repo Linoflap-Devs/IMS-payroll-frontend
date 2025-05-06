@@ -29,6 +29,7 @@ import React, { useEffect } from "react";
 import {
   getDashboardList,
   DashboardItem,
+  SalaryProcessedItem,
 } from "@/src/services/dashboard/dashboard.api";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -46,7 +47,7 @@ type Dashboard = {
   PerVesselAllotmentUSD: {
     [vesselName: string]: number;
   };
-  TotalSalaryProcessed: number;
+  TotalSalaryProcessed: SalaryProcessedItem[];
 };
 
 export default function Dashboard() {
@@ -57,24 +58,12 @@ export default function Dashboard() {
     getDashboardList()
       .then((res) => {
         if (res.success) {
-          const mapped: Dashboard = {
-            TotalVessels: res.data.TotalVessels,
-            TotalActiveCrew: res.data.TotalActiveCrew,
-            TotalOnBoard: res.data.TotalOnBoard,
-            TotalOffBoard: res.data.TotalOffBoard,
-            ForexRate: res.data.ForexRate,
-            MonthlyAllotmentPHP: res.data.MonthlyAllotmentPHP,
-            MonthlyAllotmentUSD: res.data.MonthlyAllotmentUSD,
-            PerVesselAllotmentPHP: res.data.PerVesselAllotmentPHP,
-            PerVesselAllotmentUSD: res.data.PerVesselAllotmentUSD,
-            TotalSalaryProcessed: res.data.TotalSalaryProcessed,
-          };
-          setDashboardData(mapped);
+          setDashboardData(res.data);
         } else {
-          console.error("Failed to fetch vessel principal:", res.message);
+          console.error("Failed to fetch dashboard data:", res.message);
         }
       })
-      .catch((err) => console.error("Error fetching vessel principal:", err));
+      .catch((err) => console.error("Error fetching dashboard data:", err));
   }, []);
 
   const totalPerVesselAllotmentPHP = React.useMemo(() => {
@@ -95,13 +84,26 @@ export default function Dashboard() {
     );
   }, [dashboardData?.PerVesselAllotmentUSD]);
 
-  const salaryData = [
-    { name: "Jan 2025", value: 3000000 },
-    { name: "Feb 2025", value: 2500000 },
-    { name: "March 2025", value: 2000000 },
-    { name: "April 2025", value: 3500000 },
-    { name: "May 2025", value: 5000000 },
-  ];
+  // Format salary data for the chart
+  const formattedSalaryData = React.useMemo(() => {
+    if (!dashboardData?.TotalSalaryProcessed) return [];
+
+    return dashboardData.TotalSalaryProcessed.map((item) => {
+      // Parse the ISO date string
+      const date = new Date(item.MonthYear);
+
+      // Format the month name
+      const monthName = date.toLocaleString("default", { month: "long" });
+      const year = date.getFullYear();
+
+      return {
+        month: `${monthName} ${year}`,
+        shortMonth: monthName.slice(0, 3),
+        salary: item.Value,
+        date: date, // Keep the date object for sorting
+      };
+    }).sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date
+  }, [dashboardData?.TotalSalaryProcessed]);
 
   const vesselData = React.useMemo(() => {
     if (!dashboardData?.PerVesselAllotmentPHP) return [];
@@ -149,15 +151,6 @@ export default function Dashboard() {
       label: "Value",
     },
   } satisfies ChartConfig;
-
-  const chartData = [
-    { month: "January", salary: 1078909 },
-    { month: "February", salary: 1534678 },
-    { month: "March", salary: 1082129 },
-    { month: "April", salary: 1806540 },
-    { month: "May", salary: 1390980 },
-    { month: "June", salary: 1935221 },
-  ];
 
   const chartConfig2 = {
     salary: {
@@ -398,7 +391,7 @@ export default function Dashboard() {
               <ChartContainer config={chartConfig2} className="w-full h-full">
                 <AreaChart
                   accessibilityLayer
-                  data={chartData}
+                  data={formattedSalaryData}
                   margin={{
                     left: 40,
                     right: 12,
@@ -424,23 +417,54 @@ export default function Dashboard() {
                   </defs>
                   <CartesianGrid vertical={false} />
                   <XAxis
-                    dataKey="month"
+                    dataKey="shortMonth"
                     tickLine={false}
                     axisLine={false}
                     tickMargin={4}
-                    tickFormatter={(value) => value.slice(0, 3)}
                     style={{ fontSize: "12px" }}
                   />
                   <YAxis
                     axisLine={false}
                     tickLine={false}
                     tickMargin={4}
-                    tickFormatter={(value) => `$${value}`}
+                    tickFormatter={(value) => `$${value.toLocaleString()}`}
                     style={{ fontSize: "12px" }}
                   />
                   <ChartTooltip
                     cursor={false}
-                    content={<ChartTooltipContent indicator="line" />}
+                    content={({ active, payload }) => {
+                      if (
+                        active &&
+                        payload &&
+                        payload.length &&
+                        payload[0]?.value !== undefined
+                      ) {
+                        const value = payload[0].value as number;
+                        return (
+                          <div className="rounded-lg border bg-background p-2 shadow-sm">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="flex flex-col">
+                                <span className="text-[0.70rem] uppercase text-muted-foreground">
+                                  Month
+                                </span>
+                                <span className="font-bold text-foreground">
+                                  {payload[0].payload.month}
+                                </span>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[0.70rem] uppercase text-muted-foreground">
+                                  Value
+                                </span>
+                                <span className="font-bold text-foreground">
+                                  ${payload[0].value.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
                   />
                   <Area
                     dataKey="salary"

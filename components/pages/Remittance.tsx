@@ -62,9 +62,11 @@ export default function Remittance() {
         if (res.success) {
           const mapped: (Crew & { crewName: string })[] = res.data.map(
             (item) => {
-              const mi = item.MiddleName
-                ? item.MiddleName.charAt(0).toUpperCase() + "."
+              // Format middle name as initial if it exists
+              const middleInitial = item.MiddleName
+                ? ` ${item.MiddleName.charAt(0)}.`
                 : "";
+
               return {
                 id: item.CrewID,
                 crewCode: item.CrewCode,
@@ -74,8 +76,8 @@ export default function Remittance() {
                 rankId: item.RankID,
                 rank: item.Rank,
                 vessel: item.Vessel,
-                // John F. Kennedy
-                crewName: `${item.FirstName} ${mi} ${item.LastName}`,
+                // Format: FirstName M. LastName
+                crewName: `${item.FirstName}${middleInitial} ${item.LastName}`,
               };
             }
           );
@@ -144,11 +146,11 @@ export default function Remittance() {
                   <Link
                     href={`/home/remittance/details?name=${encodeURIComponent(
                       crew.crewName
+                    )}&crewCode=${encodeURIComponent(
+                      crew.crewCode
                     )}&rank=${encodeURIComponent(
                       crew.rank
-                    )}&vessel=${encodeURIComponent(
-                      crew.vessel
-                    )}&crewCode=${encodeURIComponent(crew.id)}`}
+                    )}&vessel=${encodeURIComponent(crew.vessel)}`}
                   >
                     <IdCard className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View Remittance

@@ -1,5 +1,10 @@
 import axiosInstance from "@/src/lib/axios";
 
+export interface SalaryProcessedItem {
+  MonthYear: string; // ISO string format
+  Value: number;
+}
+
 export interface DashboardItem {
   TotalVessels: number;
   TotalActiveCrew: number;
@@ -14,7 +19,7 @@ export interface DashboardItem {
   PerVesselAllotmentUSD: {
     [vesselName: string]: number;
   };
-  TotalSalaryProcessed: number;
+  TotalSalaryProcessed: SalaryProcessedItem[];
 }
 
 export interface DashboardResponse {

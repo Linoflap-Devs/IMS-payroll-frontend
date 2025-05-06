@@ -133,17 +133,28 @@ export default function AddCrew() {
       router.push("/home/crew");
     }, 1000);
   };
+
   const filteredCities = useMemo(() => {
-    if (!citySearch.trim()) {
-      // Return a limited number of cities when no search is active
-      return cities.slice(0, 50); // Only show first 50 cities initially
+    // If no province is selected, return empty array
+    if (!formData.province) {
+      return [];
     }
-    return cities
+
+    const provinceId = parseInt(formData.province);
+    const citiesInProvince = cities.filter(
+      (city) => city.ProvinceID === provinceId
+    );
+
+    if (!citySearch.trim()) {
+      return citiesInProvince.slice(0, 50); // Only show first 50 cities initially
+    }
+
+    return citiesInProvince
       .filter((city) =>
         city.CityName.toLowerCase().includes(citySearch.toLowerCase())
       )
       .slice(0, 100); // Limit to 100 results maximum for performance
-  }, [cities, citySearch]);
+  }, [cities, citySearch, formData.province]);
 
   const filteredProvinces = useMemo(() => {
     if (!provinceSearch.trim()) {
@@ -580,6 +591,51 @@ export default function AddCrew() {
                           </div>
                           <div className="md:col-span-2">
                             <label className="text-sm text-gray-500 mb-1 block">
+                              Province
+                            </label>
+                            <Select
+                              value={formData.province}
+                              onValueChange={(value) =>
+                                handleInputChange("province", value)
+                              }
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a province" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-80">
+                                <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                                  <Input
+                                    placeholder="Search provinces..."
+                                    value={provinceSearch}
+                                    onChange={(e) =>
+                                      setProvinceSearch(e.target.value)
+                                    }
+                                    className="h-8"
+                                  />
+                                </div>
+                                {loading ? (
+                                  <SelectItem value="loading">
+                                    Loading...
+                                  </SelectItem>
+                                ) : filteredProvinces.length > 0 ? (
+                                  filteredProvinces.map((province) => (
+                                    <SelectItem
+                                      key={province.ProvinceID}
+                                      value={province.ProvinceID.toString()}
+                                    >
+                                      {province.ProvinceName}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <div className="px-2 py-2 text-sm text-gray-500">
+                                    No provinces found
+                                  </div>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="text-sm text-gray-500 mb-1 block">
                               City
                             </label>
                             <Select
@@ -621,55 +677,7 @@ export default function AddCrew() {
                                   </div>
                                 )}
                                 {!citySearch && cities.length > 50 && (
-                                  <div className="px-2 py-2 text-xs text-gray-500">
-                                    Showing first 50 cities. Use search to find
-                                    more.
-                                  </div>
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
-                              Province
-                            </label>
-                            <Select
-                              value={formData.province}
-                              onValueChange={(value) =>
-                                handleInputChange("province", value)
-                              }
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select a province" />
-                              </SelectTrigger>
-                              <SelectContent className="max-h-80">
-                                <div className="px-2 py-2 sticky top-0 bg-white z-10">
-                                  <Input
-                                    placeholder="Search provinces..."
-                                    value={provinceSearch}
-                                    onChange={(e) =>
-                                      setProvinceSearch(e.target.value)
-                                    }
-                                    className="h-8"
-                                  />
-                                </div>
-                                {loading ? (
-                                  <SelectItem value="loading">
-                                    Loading...
-                                  </SelectItem>
-                                ) : filteredProvinces.length > 0 ? (
-                                  filteredProvinces.map((province) => (
-                                    <SelectItem
-                                      key={province.ProvinceID}
-                                      value={province.ProvinceID.toString()}
-                                    >
-                                      {province.ProvinceName}
-                                    </SelectItem>
-                                  ))
-                                ) : (
-                                  <div className="px-2 py-2 text-sm text-gray-500">
-                                    No provinces found
-                                  </div>
+                                  <div className="px-2 py-2 text-sm text-gray-500"></div>
                                 )}
                               </SelectContent>
                             </Select>
