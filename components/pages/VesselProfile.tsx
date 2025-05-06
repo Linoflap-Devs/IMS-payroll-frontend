@@ -56,6 +56,7 @@ import {
 } from "@/src/services/vessel/vesselType.api";
 import {
   getVesselPrincipalList,
+  VesselPrincipalItem,
   VesselPrincipalResponse,
   addVesselPrincipal,
 } from "@/src/services/vessel/vesselPrincipal.api";
@@ -76,6 +77,7 @@ interface VesselType {
 }
 
 interface VesselPrincipal {
+  vesselPrincipalId: number;
   vesselPrincipalCode: string;
   vesselPrincipalName: string;
 }
@@ -118,6 +120,7 @@ export default function VesselProfile() {
   const handleVesselPrincipalAdded = (newVesselPrincipal: any) => {
     // Convert API response format to your internal format
     const newItem: VesselPrincipal = {
+      vesselPrincipalId: newVesselPrincipal.PrincipalID,
       vesselPrincipalCode: newVesselPrincipal.PrincipalCode,
       vesselPrincipalName: newVesselPrincipal.PrincipalName,
     };
@@ -133,11 +136,41 @@ export default function VesselProfile() {
       vesselName: newVessel.VesselName,
       vesselType: newVessel.VesselType,
       principalName: newVessel.Principal,
-      status: "Active", // Set status directly to Active since new vessels are always active
+      status: newVessel.IsActive === 1 ? "Active" : "Inactive",
     };
 
     // Add the new vessel to the list
     setVesselData((prevData) => [...prevData, newItem]);
+  };
+  const handleVesselTypeUpdated = (updatedVesselType: VesselTypeItem) => {
+    // Update the vessel type in the list
+    setVesselTypeData((prevData) =>
+      prevData.map((item) =>
+        item.vesselTypeId === updatedVesselType.VesselTypeID
+          ? {
+              vesselTypeId: updatedVesselType.VesselTypeID,
+              vesselTypeCode: updatedVesselType.VesselTypeCode,
+              vesselTypeName: updatedVesselType.VesselTypeName,
+            }
+          : item
+      )
+    );
+  };
+  const handleVesselPrincipalUpdated = (
+    updatedVesselPrincipal: VesselPrincipalItem
+  ) => {
+    // Update the vessel principal in the list
+    setVesselPrincipalData((prevData) =>
+      prevData.map((item) =>
+        item.vesselPrincipalId === updatedVesselPrincipal.PrincipalID
+          ? {
+              vesselPrincipalId: updatedVesselPrincipal.PrincipalID,
+              vesselPrincipalCode: updatedVesselPrincipal.PrincipalCode,
+              vesselPrincipalName: updatedVesselPrincipal.PrincipalName,
+            }
+          : item
+      )
+    );
   };
   // Fetch vessel list on mount
   useEffect(() => {
@@ -183,6 +216,7 @@ export default function VesselProfile() {
       .then((res) => {
         if (res.success) {
           const mapped: VesselPrincipal[] = res.data.map((item) => ({
+            vesselPrincipalId: item.PrincipalID,
             vesselPrincipalCode: item.PrincipalCode,
             vesselPrincipalName: item.PrincipalName,
           }));
@@ -292,7 +326,8 @@ export default function VesselProfile() {
             <DropdownMenuContent align="end" className="text-sm">
               <DropdownMenuItem
                 onClick={() => {
-                  /* edit logic */
+                  setSelectedVessel(vessel);
+                  setEditVesselDialogOpen(true);
                 }}
               >
                 <Pencil className="mr-2 h-4 w-4" />
@@ -791,6 +826,7 @@ export default function VesselProfile() {
           open={editVesselTypeDialogOpen}
           onOpenChange={setEditVesselTypeDialogOpen}
           vesselTypeData={selectedVesselType}
+          onSuccess={handleVesselTypeUpdated}
         />
       )}
 
@@ -807,6 +843,7 @@ export default function VesselProfile() {
           open={editVesselPrincipalDialogOpen}
           onOpenChange={setEditVesselPrincipalDialogOpen}
           vesselPrincipalData={selectedVesselPrincipal}
+          onSuccess={handleVesselPrincipalUpdated}
         />
       )}
     </div>

@@ -96,25 +96,6 @@ export function EditVesselDialog({
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="status" className="block text-sm font-medium">
-                  Status
-                </label>
-                <Select
-                  name="status"
-                  value={formData.status}
-                  onValueChange={(value) => handleSelectChange("status", value)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div className="space-y-2 col-span-2">
                 <label
                   htmlFor="vesselName"

@@ -6,6 +6,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { updateVesselType } from "@/src/services/vessel/vesselType.api"; // Import the new API function
+import { VesselTypeItem } from "@/src/services/vessel/vesselType.api";
+import { useState } from "react";
 
 interface EditVesselTypeDialogProps {
   open: boolean;
@@ -15,15 +19,76 @@ interface EditVesselTypeDialogProps {
     vesselTypeCode: string;
     vesselTypeName: string;
   };
+  onSuccess?: (updatedVesselType: VesselTypeItem) => void; // Add this prop
 }
 
 export function EditVesselTypeDialog({
   open,
   onOpenChange,
   vesselTypeData,
+  onSuccess,
 }: EditVesselTypeDialogProps) {
+  const [vesselTypeCode, setVesselTypeCode] = useState(
+    vesselTypeData.vesselTypeCode
+  );
+  const [vesselTypeName, setVesselTypeName] = useState(
+    vesselTypeData.vesselTypeName
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setVesselTypeCode(vesselTypeData.vesselTypeCode);
+      setVesselTypeName(vesselTypeData.vesselTypeName);
+      setIsSubmitting(false);
+    }
+    onOpenChange(open);
+  };
+
+  const handleSubmit = async () => {
+    // Basic validation
+    if (!vesselTypeCode.trim() || !vesselTypeName.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Vessel Code and Vessel Type Name are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const response = await updateVesselType({
+        vesselTypeID: vesselTypeData.vesselTypeId, // Match the API's expected casing
+        vesselTypeCode: vesselTypeCode.trim(),
+        vesselTypeName: vesselTypeName.trim(),
+        isActive: 1, // Assuming you want to set it as active
+      });
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Vessel Type updated successfully.",
+          variant: "default",
+        });
+        if (onSuccess && response.data) {
+          onSuccess(response.data as VesselTypeItem);
+        }
+        onOpenChange(false);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to update vessel type.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] p-4 bg-[#FCFCFC]">
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between">
@@ -39,7 +104,9 @@ export function EditVesselTypeDialog({
             <Input
               placeholder="Enter vessel code"
               className="h-10"
-              defaultValue={vesselTypeData.vesselTypeCode}
+              value={vesselTypeCode}
+              onChange={(e) => setVesselTypeCode(e.target.value)}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -48,7 +115,9 @@ export function EditVesselTypeDialog({
             <Input
               placeholder="Enter vessel type"
               className="h-10"
-              defaultValue={vesselTypeData.vesselTypeName}
+              value={vesselTypeName}
+              onChange={(e) => setVesselTypeName(e.target.value)}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -57,10 +126,17 @@ export function EditVesselTypeDialog({
               variant="outline"
               className="flex-1 h-10"
               onClick={() => onOpenChange(false)}
+              disabled={isSubmitting} // Disable button while submitting
             >
               Cancel
             </Button>
-            <Button className="flex-1 h-10">Save Changes</Button>
+            <Button
+              className="flex-1 h-10"
+              onClick={handleSubmit}
+              disabled={isSubmitting} // Disable button while submitting
+            >
+              {isSubmitting ? "Updating..." : "Update Vessel Type"}
+            </Button>
           </div>
         </div>
       </DialogContent>

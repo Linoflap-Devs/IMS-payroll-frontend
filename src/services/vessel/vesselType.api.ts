@@ -1,4 +1,5 @@
 import axiosInstance from "@/src/lib/axios";
+import { is } from "date-fns/locale";
 
 export interface VesselTypeItem {
   VesselTypeID: number;
@@ -22,8 +23,23 @@ interface AddVesselTypePayload {
   vesselTypeName: string;
 }
 
-
 export const addVesselType = async (payload: AddVesselTypePayload): Promise<VesselTypeResponse> => {
   const response = await axiosInstance.post<VesselTypeResponse>("/vessels/type", payload);
+  return response.data;
+}
+
+export interface UpdateVesselTypePayload {
+  vesselTypeID: number;
+  vesselTypeCode: string;
+  vesselTypeName: string;
+  isActive: number;
+}
+
+export const updateVesselType = async (payload: UpdateVesselTypePayload): Promise<VesselTypeResponse> => {
+  const response = await axiosInstance.patch<VesselTypeResponse>(`/vessels/type/${payload.vesselTypeID}`, {
+    vesselTypeCode: payload.vesselTypeCode,
+    vesselTypeName: payload.vesselTypeName,
+    isActive: payload.isActive
+  });
   return response.data;
 }

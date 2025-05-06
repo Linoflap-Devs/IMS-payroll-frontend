@@ -40,3 +40,32 @@ export const addVessel = async (payload: AddVesselPayload): Promise<AddVesselRes
   const response = await axiosInstance.post<AddVesselResponse>("/vessels", payload);
   return response.data;
 };
+
+export interface VesselInfoItem {
+  VesselCode: string;
+  VesselName: string;
+  VesselType: string;
+  Principal: string;
+  Status: number;
+}
+
+export interface CrewMember {
+  FirstName: string;
+  MiddleName: string;
+  LastName: string;
+  Status: number;
+}
+
+export interface VesselCrewResponse {
+  success: boolean;
+  message: string;
+  data: {
+    VesselInfo: VesselInfoItem;
+    Crew: CrewMember[];
+  };
+}
+
+export const getVesselCrew = async (vesselId: string | number): Promise<VesselCrewResponse> => {
+  const response = await axiosInstance.get<VesselCrewResponse>(`/vessels/${vesselId}/crew`);
+  return response.data;
+};

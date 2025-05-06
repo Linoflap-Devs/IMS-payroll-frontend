@@ -24,3 +24,18 @@ export const addVesselPrincipal = async (payload: AddVesselPrincipalPayload): Pr
   const response = await axiosInstance.post<VesselPrincipalResponse>("/vessels/principal", payload);
   return response.data;
 }
+
+export interface UpdateVesselPrincipalPayload {
+  principalID: number;
+  principalCode: string;
+  principalName: string;
+  isActive: number;
+}
+export const updateVesselPrincipal = async (payload: UpdateVesselPrincipalPayload): Promise<VesselPrincipalResponse> => {
+  const response = await axiosInstance.patch<VesselPrincipalResponse>(`/vessels/principal/${payload.principalID}`, {
+    principalCode: payload.principalCode,
+    principalName: payload.principalName,
+    isActive: payload.isActive
+  });
+  return response.data;
+}
