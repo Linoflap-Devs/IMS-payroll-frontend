@@ -43,3 +43,11 @@ export const updateVesselType = async (payload: UpdateVesselTypePayload): Promis
   });
   return response.data;
 }
+export interface DeleteVesselTypeResponse {
+  success: boolean;
+  message?: string;
+}
+export const deleteVesselType = async (vesselTypeID: number): Promise<VesselTypeResponse> => {
+  const response = await axiosInstance.delete<VesselTypeResponse>(`/vessels/type/${vesselTypeID}`);
+  return response.data;
+}

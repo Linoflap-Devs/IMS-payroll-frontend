@@ -39,3 +39,13 @@ export const updateVesselPrincipal = async (payload: UpdateVesselPrincipalPayloa
   });
   return response.data;
 }
+
+export interface DeleteVesselPrincipalResponse {
+  success: boolean;
+  message: string;
+}
+
+export const deleteVesselPrincipal = async (principalId: number): Promise<DeleteVesselPrincipalResponse> => {
+  const response = await axiosInstance.delete<DeleteVesselPrincipalResponse>(`/vessels/principal/${principalId}`);
+  return response.data;
+}
