@@ -63,10 +63,13 @@ import {
 
 // Define the shape used by the DataTable
 interface Vessel {
+  vesselId: number; // Added vesselId
   vesselCode: string;
   vesselName: string;
-  vesselType: string;
+  vesselType: number;
+  vesselTypeName: string;
   principalName: string;
+  principalID: number;
   status: string;
 }
 
@@ -132,16 +135,39 @@ export default function VesselProfile() {
   const handleVesselAdded = (newVessel: any) => {
     // Convert API response format to your internal format
     const newItem: Vessel = {
+      vesselId: newVessel.VesselID,
       vesselCode: newVessel.VesselCode,
       vesselName: newVessel.VesselName,
       vesselType: newVessel.VesselType,
+      vesselTypeName: newVessel.VesselType,
       principalName: newVessel.Principal,
+      principalID: newVessel.Principal,
       status: newVessel.IsActive === 1 ? "Active" : "Inactive",
     };
 
     // Add the new vessel to the list
     setVesselData((prevData) => [...prevData, newItem]);
   };
+
+  const handleVesselUpdated = (updatedVessel: any) => {
+    setVesselData((prevData) =>
+      prevData.map((vessel) =>
+        vessel.vesselId === updatedVessel.VesselID
+          ? {
+              vesselId: updatedVessel.VesselID,
+              vesselCode: updatedVessel.VesselCode,
+              vesselName: updatedVessel.VesselName,
+              vesselType: updatedVessel.VesselType,
+              vesselTypeName: updatedVessel.VesselType,
+              principalName: updatedVessel.Principal,
+              principalID: updatedVessel.Principal,
+              status: updatedVessel.IsActive === 1 ? "Active" : "Inactive",
+            }
+          : vessel
+      )
+    );
+  };
+
   const handleVesselTypeUpdated = (updatedVesselType: VesselTypeItem) => {
     // Update the vessel type in the list
     setVesselTypeData((prevData) =>
@@ -178,10 +204,13 @@ export default function VesselProfile() {
       .then((res) => {
         if (res.success) {
           const mapped = res.data.map((item: VesselItem) => ({
+            vesselId: item.VesselID,
             vesselCode: item.VesselCode,
             vesselName: item.VesselName,
-            vesselType: item.VesselType,
+            vesselType: parseInt(item.VesselType), // Convert to number
+            vesselTypeName: item.VesselType,
             principalName: item.Principal,
+            principalID: parseInt(item.Principal), // Convert to number
             status: item.IsActive === 1 ? "Active" : "Inactive",
           }));
           setVesselData(mapped);
@@ -245,10 +274,10 @@ export default function VesselProfile() {
       ),
     },
     {
-      accessorKey: "vesselType",
+      accessorKey: "vesselTypeName",
       header: ({ column }) => <div className="text-justify">Vessel Type</div>,
       cell: ({ row }) => (
-        <div className="text-justify">{row.getValue("vesselType")}</div>
+        <div className="text-justify">{row.getValue("vesselTypeName")}</div>
       ),
     },
     {
@@ -260,26 +289,10 @@ export default function VesselProfile() {
         <div className="text-justify">{row.getValue("principalName")}</div>
       ),
     },
-    {
-      accessorKey: "status",
-      header: ({ column }) => <div className="text-justify">Status</div>,
-      cell: ({ row }) => (
-        <div className="text-justify">
-          <div
-            className={
-              row.getValue("status") === "Active"
-                ? "inline-flex items-center justify-center rounded-full px-6 py-1 text-sm font-medium bg-[#DCE8F2] text-[#1D1972]"
-                : "inline-flex items-center justify-center rounded-full px-6 py-1 text-sm font-medium bg-[#E1D5D5] text-[#734545]"
-            }
-          >
-            {row.getValue("status")}
-          </div>
-        </div>
-      ),
-    },
+
     {
       id: "actions",
-      header: ({ column }) => <div className="text-justify">Actions</div>,
+      header: ({ column }) => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const vessel = row.original;
         // Action menu unchanged
@@ -334,7 +347,7 @@ export default function VesselProfile() {
                 Edit Vessel
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/home/vessel/crew-list">
+                <Link href={`/home/vessel/crew-list?id=${vessel.vesselId}`}>
                   <Users className="mr-2 h-4 w-4" /> View Crew List
                 </Link>
               </DropdownMenuItem>
@@ -559,7 +572,7 @@ export default function VesselProfile() {
     const matchesSearch =
       v.vesselCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.vesselName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.vesselType.toLowerCase().includes(searchTerm.toLowerCase());
+      v.vesselTypeName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" ||
       v.status.toLowerCase() === statusFilter.toLowerCase();
@@ -671,7 +684,7 @@ export default function VesselProfile() {
                     <div className="relative w-full md:flex-1">
                       <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
                       <Input
-                        placeholder="Search crew by name, code, or rank..."
+                        placeholder="Search vessel by name or code..."
                         className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -810,6 +823,7 @@ export default function VesselProfile() {
           open={editVesselDialogOpen}
           onOpenChange={setEditVesselDialogOpen}
           vesselData={selectedVessel}
+          onSuccess={handleVesselUpdated}
         />
       )}
 

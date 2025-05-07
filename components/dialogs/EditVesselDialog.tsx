@@ -16,37 +16,89 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  getVesselTypeList,
+  VesselTypeItem,
+} from "@/src/services/vessel/vesselType.api";
+import {
+  getVesselPrincipalList,
+  VesselPrincipalItem,
+} from "@/src/services/vessel/vesselPrincipal.api";
+import { updateVessel } from "@/src/services/vessel/vessel.api";
+import { useToast } from "@/components/ui/use-toast";
 
 interface EditVesselDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   vesselData: {
+    vesselId: number;
     vesselCode: string;
     vesselName: string;
-    vesselType: string;
+    vesselType: number;
+    vesselTypeName: string;
     principalName: string;
+    principalID: number;
     status: string;
   };
+  onSuccess?: (updatedVessel: any) => void;
 }
 
 export function EditVesselDialog({
   open,
   onOpenChange,
   vesselData,
+  onSuccess,
 }: EditVesselDialogProps) {
   const [formData, setFormData] = useState({
-    vesselCode: "",
-    vesselName: "",
-    vesselType: "",
-    principalName: "",
-    status: "Active",
+    vesselCode: vesselData.vesselCode,
+    vesselName: vesselData.vesselName,
+    vesselType: vesselData.vesselType,
+    principalID: vesselData.principalID,
+    status: vesselData.status,
   });
 
+  const [vesselTypes, setVesselTypes] = useState<VesselTypeItem[]>([]);
+  const [principals, setPrincipals] = useState<VesselPrincipalItem[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
   useEffect(() => {
-    if (open && vesselData) {
-      setFormData(vesselData);
+    if (open) {
+      const fetchData = async () => {
+        try {
+          const [typesResponse, principalsResponse] = await Promise.all([
+            getVesselTypeList(),
+            getVesselPrincipalList(),
+          ]);
+
+          if (typesResponse.success && typesResponse.data) {
+            const types = Array.isArray(typesResponse.data)
+              ? typesResponse.data
+              : [typesResponse.data];
+            setVesselTypes(types);
+          }
+
+          if (principalsResponse.success && principalsResponse.data) {
+            setPrincipals(principalsResponse.data);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      };
+
+      fetchData();
     }
-  }, [open, vesselData]);
+  }, [open]);
+
+  useEffect(() => {
+    setFormData({
+      vesselCode: vesselData.vesselCode,
+      vesselName: vesselData.vesselName,
+      vesselType: vesselData.vesselType,
+      principalID: vesselData.principalID,
+      status: vesselData.status,
+    });
+  }, [vesselData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,16 +106,51 @@ export function EditVesselDialog({
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: Number(value) }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Updated vessel data:", formData);
+    setIsSubmitting(true);
+    try {
+      const response = await updateVessel({
+        vesselID: vesselData.vesselId,
+        vesselCode: formData.vesselCode,
+        vesselName: formData.vesselName,
+        vesselType: formData.vesselType,
+        vesselPrincipal: formData.principalID,
+        isActive: formData.status === "Active" ? 1 : 0,
+      });
 
-    // Here you would typically send the data to an API
-    // For now, we'll just close the dialog
-    onOpenChange(false);
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Vessel updated successfully",
+          variant: "default",
+        });
+        if (onSuccess) {
+          onSuccess(response.data);
+        }
+        onOpenChange(false);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to update vessel",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error updating vessel:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "An unexpected error occurred while updating the vessel",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -123,48 +210,62 @@ export function EditVesselDialog({
                 </label>
                 <Select
                   name="vesselType"
-                  value={formData.vesselType}
+                  value={formData.vesselType.toString()}
                   onValueChange={(value) =>
                     handleSelectChange("vesselType", value)
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select vessel type" />
+                    <SelectValue>
+                      {vesselTypes.find(
+                        (type) => type.VesselTypeID === formData.vesselType
+                      )?.VesselTypeName || vesselData.vesselTypeName}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Tanker">Tanker</SelectItem>
-                    <SelectItem value="Cargo">Cargo</SelectItem>
-                    <SelectItem value="Bulk Carrier">Bulk Carrier</SelectItem>
-                    <SelectItem value="Container Ship">
-                      Container Ship
-                    </SelectItem>
+                    {vesselTypes.map((type) => (
+                      <SelectItem
+                        key={type.VesselTypeID}
+                        value={type.VesselTypeID.toString()}
+                      >
+                        {type.VesselTypeName}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2 col-span-2">
                 <label
-                  htmlFor="principalName"
+                  htmlFor="principalID"
                   className="block text-sm font-medium"
                 >
                   Principal Name
                 </label>
                 <Select
-                  name="principalName"
-                  value={formData.principalName}
+                  name="principalID"
+                  value={formData.principalID.toString()}
                   onValueChange={(value) =>
-                    handleSelectChange("principalName", value)
+                    handleSelectChange("principalID", value)
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select principal name" />
+                    <SelectValue>
+                      {principals.find(
+                        (principal) =>
+                          principal.PrincipalID === formData.principalID
+                      )?.PrincipalName || vesselData.principalName}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="John Smith">John Smith</SelectItem>
-                    <SelectItem value="Jane Doe">Jane Doe</SelectItem>
-                    <SelectItem value="Robert Johnson">
-                      Robert Johnson
-                    </SelectItem>
+                    {principals.map((principal) => (
+                      <SelectItem
+                        key={principal.PrincipalID}
+                        value={principal.PrincipalID.toString()}
+                      >
+                        {principal.PrincipalName}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -176,6 +277,7 @@ export function EditVesselDialog({
                   type="button"
                   variant="outline"
                   className="flex-1 border-gray-300 rounded-md text-black hover:bg-gray-100 hover:text-black"
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
@@ -183,8 +285,10 @@ export function EditVesselDialog({
               <Button
                 type="submit"
                 className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md"
+                disabled={isSubmitting}
               >
-                <Pencil className="mr-2 h-4 w-4" /> Update Vessel
+                <Pencil className="mr-2 h-4 w-4" />
+                {isSubmitting ? "Updating..." : "Update Vessel"}
               </Button>
             </DialogFooter>
           </form>
