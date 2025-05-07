@@ -66,6 +66,15 @@ export const updateVessel = async (payload: UpdateVesselPayload): Promise<Update
   return response.data;
 };
 
+export interface DeleteVesselResponse {
+  success: boolean;
+  message: string;
+}
+export const deleteVessel = async (vesselId: number): Promise<DeleteVesselResponse> => {
+  const response = await axiosInstance.delete<DeleteVesselResponse>(`/vessels/${vesselId}`);
+  return response.data;
+};
+
 export interface VesselInfoItem {
   VesselCode: string;
   VesselName: string;
@@ -94,3 +103,4 @@ export const getVesselCrew = async (vesselId: string | number): Promise<VesselCr
   const response = await axiosInstance.get<VesselCrewResponse>(`/vessels/${vesselId}/crew`);
   return response.data;
 };
+
