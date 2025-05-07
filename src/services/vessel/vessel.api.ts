@@ -1,6 +1,7 @@
 import axiosInstance from "@/src/lib/axios";
 
 export interface VesselItem {
+  VesselID: number;
   VesselCode: string;
   VesselName: string;
   VesselType: string;
@@ -38,6 +39,30 @@ export interface AddVesselResponse {
 
 export const addVessel = async (payload: AddVesselPayload): Promise<AddVesselResponse> => {
   const response = await axiosInstance.post<AddVesselResponse>("/vessels", payload);
+  return response.data;
+};
+
+export interface UpdateVesselPayload{
+  vesselID: number;
+  vesselCode: string;
+  vesselName: string;
+  vesselType: number;
+  vesselPrincipal: number;
+  isActive: number;
+}
+export interface UpdateVesselResponse {
+  success: boolean;
+  data: VesselItem;
+  message?: string;
+}
+export const updateVessel = async (payload: UpdateVesselPayload): Promise<UpdateVesselResponse> => {
+  const response = await axiosInstance.patch<UpdateVesselResponse>(`/vessels/${payload.vesselID}`, {
+    vesselCode: payload.vesselCode,
+    vesselName: payload.vesselName,
+    vesselType: payload.vesselType,
+    vesselPrincipal: payload.vesselPrincipal,
+    isActive: payload.isActive
+  });
   return response.data;
 };
 
