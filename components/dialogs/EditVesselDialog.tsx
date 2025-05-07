@@ -24,7 +24,7 @@ import {
   getVesselPrincipalList,
   VesselPrincipalItem,
 } from "@/src/services/vessel/vesselPrincipal.api";
-import { updateVessel } from "@/src/services/vessel/vessel.api";
+import { updateVessel, getVesselCrew } from "@/src/services/vessel/vessel.api";
 import { useToast } from "@/components/ui/use-toast";
 
 interface EditVesselDialogProps {
@@ -123,29 +123,45 @@ export function EditVesselDialog({
       });
 
       if (response.success) {
+        // Get the updated crew data after successful vessel update
+        const vesselCrewResponse = await getVesselCrew(vesselData.vesselId);
+
         toast({
           title: "Success",
           description: "Vessel updated successfully",
           variant: "default",
         });
+
         if (onSuccess) {
-          onSuccess(response.data);
+          onSuccess({
+            ...response.data,
+            crewData: vesselCrewResponse.success
+              ? vesselCrewResponse.data
+              : null,
+          });
         }
         onOpenChange(false);
       } else {
         toast({
           title: "Error",
-          description: response.message || "Failed to update vessel",
+          description:
+            typeof response.message === "object"
+              ? JSON.stringify(response.message)
+              : response.message || "Failed to update vessel",
           variant: "destructive",
         });
       }
     } catch (error: any) {
       console.error("Error updating vessel:", error);
+      // Ensure error message is a string
+      const errorMessage = error.response?.data?.message;
       toast({
         title: "Error",
         description:
-          error.response?.data?.message ||
-          "An unexpected error occurred while updating the vessel",
+          typeof errorMessage === "object"
+            ? JSON.stringify(errorMessage)
+            : errorMessage ||
+              "An unexpected error occurred while updating the vessel",
         variant: "destructive",
       });
     } finally {

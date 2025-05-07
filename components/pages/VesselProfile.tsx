@@ -48,17 +48,20 @@ import {
   getVesselList,
   VesselItem,
   addVessel,
+  deleteVessel,
 } from "@/src/services/vessel/vessel.api";
 import {
   getVesselTypeList,
   VesselTypeItem,
   addVesselType,
+  deleteVesselType,
 } from "@/src/services/vessel/vesselType.api";
 import {
   getVesselPrincipalList,
   VesselPrincipalItem,
   VesselPrincipalResponse,
   addVesselPrincipal,
+  deleteVesselPrincipal,
 } from "@/src/services/vessel/vesselPrincipal.api";
 
 // Define the shape used by the DataTable
@@ -198,6 +201,107 @@ export default function VesselProfile() {
       )
     );
   };
+
+  const handleVesselTypeDelete = async (vesselType: VesselType) => {
+    const swal = Swal.mixin({
+      customClass: {
+        confirmButton:
+          "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
+        cancelButton:
+          "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+      },
+      buttonsStyling: false,
+    });
+
+    try {
+      const result = await swal.fire({
+        title: "Are you sure?",
+        text: "This vessel type will be permanently deleted.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        const response = await deleteVesselType(vesselType.vesselTypeId);
+
+        if (response.success) {
+          swal.fire("Deleted!", "The vessel type has been deleted.", "success");
+          // Remove the deleted vessel type from the state
+          setVesselTypeData((prevData) =>
+            prevData.filter((v) => v.vesselTypeId !== vesselType.vesselTypeId)
+          );
+        } else {
+          throw new Error(response.message);
+        }
+      }
+    } catch (error) {
+      swal.fire(
+        "Error",
+        error instanceof Error ? error.message : "Failed to delete vessel type",
+        "error"
+      );
+    }
+  };
+
+  const handleVesselPrincipalDelete = async (
+    vesselPrincipal: VesselPrincipal
+  ) => {
+    const swal = Swal.mixin({
+      customClass: {
+        confirmButton:
+          "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
+        cancelButton:
+          "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+      },
+      buttonsStyling: false,
+    });
+
+    try {
+      const result = await swal.fire({
+        title: "Are you sure?",
+        text: "This vessel principal will be permanently deleted.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        const response = await deleteVesselPrincipal(
+          vesselPrincipal.vesselPrincipalId
+        );
+
+        if (response.success) {
+          swal.fire(
+            "Deleted!",
+            "The vessel principal has been deleted.",
+            "success"
+          );
+          // Remove the deleted vessel principal from the state
+          setVesselPrincipalData((prevData) =>
+            prevData.filter(
+              (v) => v.vesselPrincipalId !== vesselPrincipal.vesselPrincipalId
+            )
+          );
+        } else {
+          throw new Error(response.message);
+        }
+      }
+    } catch (error) {
+      swal.fire(
+        "Error",
+        error instanceof Error
+          ? error.message
+          : "Failed to delete vessel principal",
+        "error"
+      );
+    }
+  };
+
   // Fetch vessel list on mount
   useEffect(() => {
     getVesselList()
@@ -295,8 +399,7 @@ export default function VesselProfile() {
       header: ({ column }) => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const vessel = row.original;
-        // Action menu unchanged
-        const handleDelete = (code: string) => {
+        const handleDelete = async (vessel: Vessel) => {
           const swal = Swal.mixin({
             customClass: {
               confirmButton:
@@ -306,8 +409,9 @@ export default function VesselProfile() {
             },
             buttonsStyling: false,
           });
-          swal
-            .fire({
+
+          try {
+            const result = await swal.fire({
               title: "Are you sure?",
               text: "This action cannot be undone.",
               icon: "warning",
@@ -315,18 +419,34 @@ export default function VesselProfile() {
               confirmButtonText: "Yes, delete it!",
               cancelButtonText: "No, cancel!",
               reverseButtons: true,
-            })
-            .then((result) => {
-              if (result.isConfirmed) {
+            });
+
+            if (result.isConfirmed) {
+              const response = await deleteVessel(vessel.vesselId);
+
+              if (response.success) {
                 swal.fire(
                   "Deleted!",
                   "The vessel has been deleted.",
                   "success"
                 );
+                // Remove the deleted vessel from the state
+                setVesselData((prevData) =>
+                  prevData.filter((v) => v.vesselId !== vessel.vesselId)
+                );
               } else {
-                swal.fire("Cancelled", "Your vessel is safe.", "error");
+                throw new Error(response.message);
               }
-            });
+            }
+          } catch (error) {
+            swal.fire(
+              "Error",
+              error instanceof Error
+                ? error.message
+                : "Failed to delete vessel",
+              "error"
+            );
+          }
         };
         return (
           <DropdownMenu>
@@ -354,7 +474,7 @@ export default function VesselProfile() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive"
-                onClick={() => handleDelete(vessel.vesselCode)}
+                onClick={() => handleDelete(vessel)}
               >
                 <Trash className="mr-2 h-4 w-4" /> Delete
               </DropdownMenuItem>
@@ -389,45 +509,6 @@ export default function VesselProfile() {
       header: ({ column }) => <div className="text-justify">Actions</div>,
       cell: ({ row }) => {
         const vesselType = row.original;
-        // Function that displays SweetAlert2 confirmation when deleting a crew member
-        const handleDelete = (vesselCode: string) => {
-          const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-              confirmButton:
-                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-              cancelButton:
-                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            },
-            buttonsStyling: false,
-          });
-
-          swalWithBootstrapButtons
-            .fire({
-              title: "Are you sure?",
-              text: "Are you sure you want to delete this vessel type? This action cannot be undone.",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "Yes, delete it!",
-              cancelButtonText: "No, cancel!",
-              reverseButtons: true,
-            })
-            .then((result) => {
-              if (result.isConfirmed) {
-                // Place your delete logic here, for example, API call or state update
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The vessel type has been successfully deleted.",
-                  icon: "success",
-                });
-              } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
-                  title: "Cancelled",
-                  text: "Your vessel type is safe :)",
-                  icon: "error",
-                });
-              }
-            });
-        };
         return (
           <div className="text-justify">
             <DropdownMenu>
@@ -450,7 +531,7 @@ export default function VesselProfile() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleDelete(vesselType.vesselTypeCode)}
+                  onClick={() => handleVesselTypeDelete(vesselType)}
                 >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
@@ -491,45 +572,6 @@ export default function VesselProfile() {
       header: ({ column }) => <div className="text-justify">Actions</div>,
       cell: ({ row }) => {
         const vesselPrincipal = row.original;
-        // Function that displays SweetAlert2 confirmation when deleting a crew member
-        const handleDelete = (vesselCode: string) => {
-          const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-              confirmButton:
-                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-              cancelButton:
-                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            },
-            buttonsStyling: false,
-          });
-
-          swalWithBootstrapButtons
-            .fire({
-              title: "Are you sure?",
-              text: "Are you sure you want to delete this vessel principal? This action cannot be undone.",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "Yes, delete it!",
-              cancelButtonText: "No, cancel!",
-              reverseButtons: true,
-            })
-            .then((result) => {
-              if (result.isConfirmed) {
-                // Place your delete logic here, for example, API call or state update
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The vessel principal has been successfully deleted.",
-                  icon: "success",
-                });
-              } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
-                  title: "Cancelled",
-                  text: "Your vessel principal is safe :)",
-                  icon: "error",
-                });
-              }
-            });
-        };
         return (
           <div className="text-justify">
             <DropdownMenu>
@@ -552,9 +594,7 @@ export default function VesselProfile() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() =>
-                    handleDelete(vesselPrincipal.vesselPrincipalCode)
-                  }
+                  onClick={() => handleVesselPrincipalDelete(vesselPrincipal)}
                 >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
