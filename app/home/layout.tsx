@@ -383,7 +383,7 @@ export default function HomeLayout({
       active: pathname.startsWith("/home/remittance"),
     },
     {
-      label: "Allotment",
+      label: "Allotment Payroll",
       icon: BiReceipt,
       href: "/home/allotment",
       active: pathname.startsWith("/home/allotment"),

@@ -150,7 +150,9 @@ export default function Allotment() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
               <DropdownMenuItem asChild>
-                <Link href="/">Register</Link>
+                <Link href="/home/allotment/allotment_register">
+                  Allotment Register
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/">Deduction</Link>
