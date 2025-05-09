@@ -24,7 +24,8 @@ import { useToast } from "../ui/use-toast";
 import Swal from "sweetalert2";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import { useCrewStore } from "@/src/store/useCrewStore";
-import { addCrew } from "@/src/services/crew/crew.api";
+import { addCrew, AddCrewDataForm } from "@/src/services/crew/crew.api"; // Ensure this path is correct
+import { useRef } from "react";
 
 export default function AddCrew() {
   const router = useRouter();
@@ -37,6 +38,27 @@ export default function AddCrew() {
   const [citySearch, setCitySearch] = useState("");
   const [provinceSearch, setProvinceSearch] = useState("");
   const [rankSearch, setRankSearch] = useState("");
+  const [crewPhotoFile, setCrewPhotoFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>("/image.png"); // For image preview
+  const [isSubmitting, setIsSubmitting] = useState(false); // For loading state during submission
+  const fileInputRef = useRef<HTMLInputElement>(null); // For triggering file input
+
+  const { fetchCrews: refreshCrewList } = useCrewStore.getState(); // To refresh list after adding
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setCrewPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setCrewPhotoFile(null);
+      setImagePreview("/image.png"); // Revert to default or placeholder
+    }
+  };
 
   // Add form state
   const [formData, setFormData] = useState({
@@ -79,14 +101,20 @@ export default function AddCrew() {
   const tabOrder = ["details", "movement", "travel", "summary"];
 
   // Add navigation functions
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Make handleNext async if it calls handleSubmit
     const currentIndex = tabOrder.indexOf(activeTab);
     if (currentIndex < tabOrder.length - 1) {
-      // Mark current tab as completed
+      // Basic validation example for current tab before proceeding (optional but recommended)
+      // if (!validateCurrentTab(activeTab)) { return; }
+
       if (!completedTabs.includes(activeTab)) {
         setCompletedTabs([...completedTabs, activeTab]);
       }
       setActiveTab(tabOrder[currentIndex + 1]);
+    } else if (activeTab === tabOrder[tabOrder.length - 1]) {
+      // If on the last tab (Summary)
+      await handleSubmit(); // Call the main submit function
     }
   };
 
@@ -120,18 +148,206 @@ export default function AddCrew() {
   };
 
   // Handle form submission
-  const handleSubmit = () => {
-    // Here you would typically make an API call to save the crew data
-    // For now, we'll just show a success message and redirect
-    toast({
-      title: "Success!",
-      description: "Crew member has been added successfully.",
-    });
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
 
-    // Redirect to crew list after a short delay
-    setTimeout(() => {
-      router.push("/home/crew");
-    }, 1000);
+    // ** Client-side validation (Basic example - enhance as needed) **
+    const requiredFields: (keyof typeof formData)[] = [
+      "crewCode",
+      "rank",
+      "lastName",
+      "firstName",
+      "sex",
+      "maritalStatus",
+      "birthdate",
+      "city",
+      "province",
+      "mobileNumber",
+      "emailAddress",
+      "sssNumber",
+      "taxIdNumber",
+      "philhealthNumber",
+      "hdmfNumber",
+      "passportNumber",
+      "passportIssueDate",
+      "passportExpiryDate",
+      "seamansBook",
+      "seamansBookIssueDate",
+      "seamansBookExpiryDate",
+    ];
+
+    for (const field of requiredFields) {
+      if (!formData[field] || formData[field].trim() === "") {
+        toast({
+          title: "Missing Information",
+          description: `Please fill in the '${field.replace(
+            /([A-Z])/g,
+            " $1"
+          )}' field.`, // Add spaces for readability
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        // Optionally, navigate to the tab where the missing field is
+        return;
+      }
+    }
+    // Email validation
+    if (formData.emailAddress && !/\S+@\S+\.\S+/.test(formData.emailAddress)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // ** Construct payload for the API **
+    const payload: AddCrewDataForm = {
+      crewCode: formData.crewCode,
+      rank: formData.rank, // Assuming this is RankID as string
+      vessel: formData.currentVessel || undefined, // Optional
+      mobileNumber: formData.mobileNumber,
+      landlineNumber: formData.landlineNumber || undefined, // Optional
+      emailAddress: formData.emailAddress,
+      lastName: formData.lastName,
+      firstName: formData.firstName,
+      middleName: formData.middleName || undefined, // Optional
+      sex: formData.sex, // Assuming this is "1" for Male, "2" for Female, etc.
+      maritalStatus: formData.maritalStatus, // Convert string to number
+      dateOfBirth: formData.birthdate, // HTML date input provides YYYY-MM-DD
+      city: formData.city, // Assuming this is CityID as string
+      province: formData.province, // Assuming this is ProvinceID as string
+      sssNumber: formData.sssNumber,
+      tinNumber: formData.taxIdNumber, // Mapping from taxIdNumber
+      philhealthNumber: formData.philhealthNumber,
+      hdmfNumber: formData.hdmfNumber,
+      passportNumber: formData.passportNumber,
+      passportIssueDate: formData.passportIssueDate,
+      passportExpiryDate: formData.passportExpiryDate,
+      seamanBookNumber: formData.seamansBook, // Mapping from seamansBook
+      seamanBookIssueDate: formData.seamansBookIssueDate,
+      seamanBookExpiryDate: formData.seamansBookExpiryDate,
+      crewPhoto: crewPhotoFile || undefined,
+    };
+    console.log(">>> Payload being sent to API:", payload);
+    try {
+      const response = await addCrew(payload);
+
+      if (response.success) {
+        Swal.fire({
+          title: "Success!",
+          text: response.message || "Crew member has been added successfully.",
+          icon: "success",
+          confirmButtonColor: "#3085d6", // Or your primary color
+        }).then(() => {
+          refreshCrewList(); // Refresh the crew list in the store
+          router.push("/home/crew");
+        });
+      } else {
+        Swal.fire({
+          title: "Error!",
+          text:
+            response.message ||
+            "Failed to add crew member. Please check the details and try again.",
+          icon: "error",
+        });
+      }
+    } catch (error: any) {
+      console.error("Full Submission Error Object:", error);
+
+      let detailedErrorMessage =
+        "An unexpected error occurred during submission."; // Default
+      let errorTitle = "Submission Error!"; // Default
+
+      if (error.isAxiosError && error.response) {
+        console.error(
+          ">>> IMPORTANT: Backend Error Response Data:",
+          error.response.data
+        );
+
+        const backendErrorData = error.response.data;
+        let errorsHtml = "";
+
+        if (backendErrorData && Array.isArray(backendErrorData.message)) {
+          // Handles the structure: [{fieldName: 'message'}, {fieldName: 'message'}, ...]
+          errorTitle = "Validation Errors"; // More specific title
+          errorsHtml =
+            "<p>Please correct the following issues:</p><ul style='text-align: left; margin-top: 10px; padding-left: 20px;'>";
+
+          backendErrorData.message.forEach((errorObj: any) => {
+            for (const fieldName in errorObj) {
+              if (Object.prototype.hasOwnProperty.call(errorObj, fieldName)) {
+                const errorMessageText = errorObj[fieldName];
+                // Simple capitalization and spacing for fieldName for display
+                const displayFieldName = fieldName
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (str) => str.toUpperCase());
+                errorsHtml += `<li style='margin-bottom: 5px;'><strong>${displayFieldName}</strong>: ${errorMessageText}</li>`;
+              }
+            }
+          });
+          errorsHtml += "</ul>";
+
+          // Optional: If backendErrorData.data has more info
+          if (
+            backendErrorData.data &&
+            Object.keys(backendErrorData.data).length > 0 &&
+            backendErrorData.data !== null
+          ) {
+            try {
+              errorsHtml +=
+                "<p style='margin-top:10px;'>Additional context: <pre style='text-align: left; white-space: pre-wrap;'>" +
+                JSON.stringify(backendErrorData.data, null, 2) +
+                "</pre></p>";
+            } catch (e) {
+              /* ignore stringify error */
+            }
+          }
+          detailedErrorMessage = errorsHtml;
+        } else if (
+          backendErrorData &&
+          typeof backendErrorData.message === "string"
+        ) {
+          detailedErrorMessage = `<p>${backendErrorData.message}</p>`;
+        } else if (typeof backendErrorData === "string") {
+          detailedErrorMessage = `<p>${backendErrorData}</p>`;
+        } else if (backendErrorData) {
+          try {
+            detailedErrorMessage =
+              "<p>An unexpected error structure was received:</p><pre style='text-align: left; white-space: pre-wrap;'>" +
+              JSON.stringify(backendErrorData, null, 2) +
+              "</pre>";
+          } catch (e) {
+            detailedErrorMessage = `<p>Server Error: ${error.response.status}. Response data could not be clearly displayed.</p>`;
+          }
+        } else {
+          detailedErrorMessage = `<p>Server Error: ${error.response.status}. No specific error message provided.</p>`;
+        }
+      } else if (error.isAxiosError && error.request) {
+        detailedErrorMessage =
+          "<p>No response from server. Please check your network connection and try again.</p>";
+      } else {
+        detailedErrorMessage = error.message
+          ? `<p>${error.message}</p>`
+          : "<p>Error in setting up the request.</p>";
+      }
+
+      Swal.fire({
+        title: errorTitle, // Use the potentially updated title
+        html: detailedErrorMessage, // Use the html property for formatted errors
+        icon: "error",
+        width: "auto",
+        customClass: {
+          htmlContainer: "swal2-html-container-custom",
+        },
+      });
+      // If you use customClass, add CSS to your global styles or a <style jsx global> tag:
+      // .swal2-html-container-custom ul { list-style-type: disc; }
+      // .swal2-html-container-custom pre { white-space: pre-wrap; word-break: break-all; }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const filteredCities = useMemo(() => {
@@ -241,11 +457,26 @@ export default function AddCrew() {
                   )}
                 </Button>
                 <Button
-                  onClick={handleNext}
+                  onClick={handleNext} // This now also calls handleSubmit on the last tab
                   className="bg-primary hover:bg-primary/90 px-4"
+                  disabled={isSubmitting} // Disable when submitting
                 >
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-2" />
+                  {isSubmitting ? (
+                    <>
+                      <Icon
+                        icon="line-md:loading-twotone-loop"
+                        className="w-4 h-4 mr-2"
+                      />
+                      Submitting...
+                    </>
+                  ) : activeTab === tabOrder[tabOrder.length - 1] ? (
+                    "Finish & Submit"
+                  ) : (
+                    <>
+                      Next
+                      <ChevronRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -272,23 +503,26 @@ export default function AddCrew() {
                   <div className="flex flex-col items-center mb-3">
                     <div className="w-60 h-60 min-w-[160px] bg-white rounded-md flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0 relative">
                       <img
-                        src="/image.png"
-                        alt="Profile Logo"
-                        className="w-full h-full object-contain p-1"
+                        src={imagePreview || "/image.png"} // Use the state for preview
+                        alt="Crew Photo"
+                        className="w-full h-full object-contain p-1" // Ensure image fits well
                       />
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       className="mt-2 w-60"
-                      onClick={() => {
-                        // This would normally trigger a file input
-                        console.log("Add image clicked");
-                        // You could add actual file upload functionality here
-                      }}
+                      onClick={() => fileInputRef.current?.click()} // Trigger file input
                     >
                       Add Image
                     </Button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      style={{ display: "none" }}
+                      accept="image/*,.jpeg,.jpg,.png" // Specify accepted image types
+                      onChange={handleFileChange}
+                    />
                   </div>
 
                   <div className="w-full space-y-3 text-left min-w-0">

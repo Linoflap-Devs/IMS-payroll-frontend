@@ -5,6 +5,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  updateWageDescription,
+  WageDescriptionItem,
+} from "@/src/services/wages/wageDescription.api";
 import {
   Select,
   SelectContent,
@@ -12,75 +18,152 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Save } from "lucide-react";
+import { useState } from "react";
 
 interface EditWageDescriptionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   wageDescription: {
+    wageId: number;
     wageCode: string;
     wageName: string;
     payableOnBoard: boolean;
   };
+  onUpdateSuccess?: (updatedWageDescription: WageDescriptionItem) => void;
 }
 
 export function EditWageDescriptionDialog({
   open,
   onOpenChange,
   wageDescription,
+  onUpdateSuccess,
 }: EditWageDescriptionDialogProps) {
+  const [wageCode, setWageCode] = useState(wageDescription.wageCode);
+  const [wageName, setWageName] = useState(wageDescription.wageName);
+  const [payableOnBoard, setPayableOnBoard] = useState<number>(
+    wageDescription.payableOnBoard ? 1 : 0
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setWageCode(wageDescription.wageCode);
+      setWageName(wageDescription.wageName);
+      setPayableOnBoard(wageDescription.payableOnBoard ? 1 : 0);
+      setIsSubmitting(false);
+    }
+    onOpenChange(open);
+  };
+
+  const handleSubmit = async () => {
+    if (!wageCode.trim() || !wageName.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Wage Code and Wage Name are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await updateWageDescription({
+        wageID: wageDescription.wageId,
+        wageCode: wageCode,
+        wageName: wageName,
+        payableOnBoard: payableOnBoard,
+      });
+
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Wage description updated successfully.",
+          variant: "default",
+        });
+        if (onUpdateSuccess && response.data) {
+          onUpdateSuccess(response.data);
+        }
+        onOpenChange(false);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to update wage description.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC]">
-        <DialogHeader>
-          <DialogTitle className="text-center text-lg font-semibold text-[#2E37A4]">
-            Edit Wage Description
-          </DialogTitle>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[600px] p-4 bg-[#FCFCFC]">
+        <DialogHeader className="p-6 pb-0">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-semibold text-primary w-full text-center">
+              Edit Wage Description
+            </DialogTitle>
+          </div>
         </DialogHeader>
-        <div className="mt-6 space-y-6">
+
+        <div className="p-6 flex flex-col space-y-6">
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Wage Code</label>
             <Input
-              defaultValue={wageDescription.wageCode}
-              className="border border-[#E0E0E0] rounded-md"
+              placeholder="Enter wage code"
+              className="h-10"
+              value={wageCode}
+              onChange={(e) => setWageCode(e.target.value)}
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Wage Name</label>
             <Input
-              defaultValue={wageDescription.wageName}
-              className="border border-[#E0E0E0] rounded-md"
+              placeholder="Enter wage name"
+              className="h-10"
+              value={wageName}
+              onChange={(e) => setWageName(e.target.value)}
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Payable On Board</label>
             <Select
-              defaultValue={wageDescription.payableOnBoard ? "yes" : "no"}
+              value={payableOnBoard === 1 ? "1" : "0"}
+              onValueChange={(value) => setPayableOnBoard(parseInt(value))}
+              disabled={isSubmitting}
             >
-              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
+              <SelectTrigger className="h-10">
                 <SelectValue placeholder="Select option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="yes">Yes</SelectItem>
-                <SelectItem value="no">No</SelectItem>
+                <SelectItem value="1">Yes</SelectItem>
+                <SelectItem value="0">No</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex space-x-3 pt-4">
             <Button
               variant="outline"
-              className="flex-1 text-sm h-11"
+              className="flex-1 h-10"
               onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90">
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
+            <Button
+              className="flex-1 h-10"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Updating..." : "Update Wage Description"}
             </Button>
           </div>
         </div>

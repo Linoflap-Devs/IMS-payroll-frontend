@@ -1,6 +1,7 @@
 import axiosInstance from "@/src/lib/axios";
 
 export interface WageForexItem {
+  ExchangeRateID: number;
   ExchangeRateYear: number;
   ExchangeRateMonth: number;
   ExchangeRate: number;

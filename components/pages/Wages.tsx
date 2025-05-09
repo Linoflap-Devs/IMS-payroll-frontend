@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+// Link import removed as it's not used directly in this component snippet
+// import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +16,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+  // DropdownMenuLabel, // Not used
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -24,29 +25,33 @@ import {
   Plus,
   MoreHorizontal,
   Trash,
-  Filter,
-  IdCard,
-  FolderClock,
-  Users,
+  // Filter, // Not used
+  // IdCard, // Not used
+  // FolderClock, // Not used
+  // Users, // Not used
   Pencil,
   ChevronDown,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge"; // Not used
 import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Card } from "../ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EditSalaryScaleDialog } from "@/components/dialogs/EditSalaryScaleDialog";
+import {
+  EditSalaryScaleDialog,
+  DialogSelectOption,
+} from "@/components/dialogs/EditSalaryScaleDialog"; // Added DialogSelectOption
 import { EditWageDescriptionDialog } from "@/components/dialogs/EditWageDescriptionDialog";
 import { EditForexDialog } from "@/components/dialogs/EditForexDialog";
 import { AddWageDescriptionDialog } from "@/components/dialogs/AddWageDescriptionDialog";
 import Swal from "sweetalert2";
 import {
-  SalaryScaleItem,
+  SalaryScaleItem, // Ensure this is imported
   getSalaryScaleList,
-} from "../../src/services/wages/salaryScale.api";
+  // updateSalaryScale and its payload are used in the dialog, not directly here
+} from "../../src/services/wages/salaryScale.api"; // Ensure path is correct
 import {
   WageDescriptionItem,
   getWageDescriptionList,
@@ -56,19 +61,16 @@ import {
   WageForexItem,
 } from "@/src/services/wages/wageForex.api";
 
-// Define vessel type interface
-type VesselType = {
-  id: number;
-  name: string;
-};
-
-type SalaryScaleData = {
-  rank: string;
-  wageType: string;
-  amount: number;
-};
+// Type for data passed to dialog was previously SalaryScaleData, now managed by selectedSalaryScale (SalaryScaleItem)
+// type SalaryScaleData = {
+//   rank: string;
+//   wageType: string;
+//   amount: number;
+//   vesselTypeId?: number;
+// };
 
 type WageDescriptionData = {
+  wageId: number;
   wageCode: string;
   wageName: string;
   payableOnBoard: boolean;
@@ -85,20 +87,15 @@ export default function Wages() {
   const [monthFilter, setMonthFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("salary");
   const [searchTerm, setSearchTerm] = useState("");
-  // const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedVesselTypeId, setSelectedVesselTypeId] = useState<
-    number | null
-  >(null);
-  const [vesselTypes, setVesselTypes] = useState<VesselType[]>([]);
+
   const [columnVisibility, setColumnVisibility] = useState<{
     [key: string]: boolean;
   }>({
-    RankID: true,
-    WageID: true,
     Rank: true,
-    WageAmount: true,
-    action: true,
     Wage: true,
+    WageAmount: true,
+    VesselTypeName: true,
+    action: true,
   });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editWageDescriptionDialogOpen, setEditWageDescriptionDialogOpen] =
@@ -109,16 +106,31 @@ export default function Wages() {
   const [forexData, setForexData] = useState<ForexData[]>([]);
   const [selectedForex, setSelectedForex] = useState<ForexData | null>(null);
 
-  // New state for API data
   const [selectedSalaryScale, setSelectedSalaryScale] =
-    useState<SalaryScaleData | null>(null);
+    useState<SalaryScaleItem | null>(null); // Changed type
   const [salaryScaleItems, setSalaryScaleItems] = useState<SalaryScaleItem[]>(
     []
   );
+  const [filteredSalaryScale, setFilteredSalaryScale] = useState<
+    SalaryScaleItem[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // New state for wage description API data
+  const [uniqueVesselTypes, setUniqueVesselTypes] = useState<
+    { id: number; name: string }[]
+  >([]);
+  const [selectedVesselTypeId, setSelectedVesselTypeId] =
+    useState<string>("all");
+
+  // State for lists to pass to EditSalaryScaleDialog
+  const [uniqueRanksForDialog, setUniqueRanksForDialog] = useState<
+    DialogSelectOption[]
+  >([]);
+  const [uniqueWageTypesForDialog, setUniqueWageTypesForDialog] = useState<
+    DialogSelectOption[]
+  >([]);
+
   const [selectedWageDescription, setSelectedWageDescription] =
     useState<WageDescriptionData | null>(null);
   const [wageDescriptionItems, setWageDescriptionItems] = useState<
@@ -130,51 +142,91 @@ export default function Wages() {
     string | null
   >(null);
 
-  // Fetch salary scale data
-  useEffect(() => {
-    async function fetchSalaryScale() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await getSalaryScaleList();
-        if (response.success) {
-          setSalaryScaleItems(response.data);
-
-          // Extract unique vessel types from the data
-          const uniqueVesselTypes = Array.from(
-            new Set(
-              response.data.map((item) =>
-                JSON.stringify({
-                  id: item.VesselTypeId,
-                  name: item.VesselTypeName,
-                })
-              )
-            )
-          )
-            .map((str) => JSON.parse(str) as VesselType)
-            .filter((item) => item.id !== undefined && item.name !== undefined);
-
-          setVesselTypes(uniqueVesselTypes);
-
-          // Set default selected vessel to the first one
-          if (uniqueVesselTypes.length > 0 && selectedVesselTypeId === null) {
-            setSelectedVesselTypeId(uniqueVesselTypes[0].id);
-          }
-        } else {
-          setError(response.message || "Failed to fetch salary scale data");
-        }
-      } catch (err) {
-        setError("An error occurred while fetching salary scale data");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+  const fetchSalaryScaleData = async () => {
+    // Renamed function for clarity
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await getSalaryScaleList();
+      if (response.success) {
+        setSalaryScaleItems(response.data);
+      } else {
+        setError(response.message || "Failed to fetch salary scale data");
       }
+    } catch (err) {
+      setError("An error occurred while fetching salary scale data");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    fetchSalaryScale();
+  useEffect(() => {
+    fetchSalaryScaleData();
   }, []);
 
-  // Fetch wage description data
+  useEffect(() => {
+    if (salaryScaleItems.length > 0) {
+      const vesselTypeMap = new Map<number, string>();
+      salaryScaleItems.forEach((item) => {
+        if (
+          item.VesselTypeId !== null &&
+          item.VesselTypeId !== undefined &&
+          item.VesselTypeName
+        ) {
+          vesselTypeMap.set(item.VesselTypeId, item.VesselTypeName);
+        }
+      });
+      setUniqueVesselTypes(
+        Array.from(vesselTypeMap, ([id, name]) => ({ id, name })).sort((a, b) =>
+          a.name.localeCompare(b.name)
+        )
+      );
+
+      // Populate unique ranks for dialog
+      const rankMap = new Map<number, string>();
+      salaryScaleItems.forEach((item) => rankMap.set(item.RankID, item.Rank));
+      setUniqueRanksForDialog(
+        Array.from(rankMap, ([id, name]) => ({ id, name })).sort((a, b) =>
+          a.name.localeCompare(b.name)
+        )
+      );
+
+      // Populate unique wage types for dialog
+      const wageTypeMap = new Map<number, string>();
+      salaryScaleItems.forEach((item) =>
+        wageTypeMap.set(item.WageID, item.Wage)
+      );
+      setUniqueWageTypesForDialog(
+        Array.from(wageTypeMap, ([id, name]) => ({ id, name })).sort((a, b) =>
+          a.name.localeCompare(b.name)
+        )
+      );
+    }
+  }, [salaryScaleItems]);
+
+  useEffect(() => {
+    const filtered = salaryScaleItems.filter((item) => {
+      const searchTermLower = searchTerm.toLowerCase();
+      const matchesSearchTerm =
+        !searchTermLower ||
+        item.Rank.toLowerCase().includes(searchTermLower) ||
+        item.Wage.toLowerCase().includes(searchTermLower) ||
+        item.WageAmount.toString().includes(searchTermLower) || // Amount search might not need toLowerCase
+        (item.VesselTypeName &&
+          item.VesselTypeName.toLowerCase().includes(searchTermLower));
+
+      const matchesVesselType =
+        selectedVesselTypeId === "all" ||
+        (item.VesselTypeId !== null &&
+          item.VesselTypeId !== undefined &&
+          item.VesselTypeId.toString() === selectedVesselTypeId);
+
+      return matchesSearchTerm && matchesVesselType;
+    });
+    setFilteredSalaryScale(filtered);
+  }, [searchTerm, salaryScaleItems, selectedVesselTypeId]);
+
   useEffect(() => {
     async function fetchWageDescription() {
       setIsLoadingWageDescription(true);
@@ -183,6 +235,7 @@ export default function Wages() {
         const response = await getWageDescriptionList();
         if (response.success) {
           setWageDescriptionItems(response.data);
+          console.log("Fetched Wage Descriptions (in state):", response.data);
         } else {
           setWageDescriptionError(
             response.message || "Failed to fetch wage description data"
@@ -197,11 +250,9 @@ export default function Wages() {
         setIsLoadingWageDescription(false);
       }
     }
-
     fetchWageDescription();
   }, []);
 
-  // Fetch vessel type list on mount
   useEffect(() => {
     getWageForexList()
       .then((res) => {
@@ -213,51 +264,76 @@ export default function Wages() {
           }));
           setForexData(mapped);
         } else {
-          console.error("Failed to fetch vessel type:", res.message);
+          console.error("Failed to fetch forex data:", res.message);
         }
       })
-      .catch((err) => console.error("Error fetching vessel type:", err));
+      .catch((err) => console.error("Error fetching forex data:", err));
   }, []);
 
-  // Handle tab change
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    setSearchTerm("");
+    setSelectedVesselTypeId("all");
+  };
+
+  // Callback for successful salary scale update
+  const handleSalaryScaleUpdateSuccess = (updatedItem: SalaryScaleItem) => {
+    setSalaryScaleItems((prevItems) =>
+      prevItems.map((item) =>
+        item.SalaryScaleDetailID === updatedItem.SalaryScaleDetailID
+          ? updatedItem
+          : item
+      )
+    );
+    setEditDialogOpen(false); // Close dialog handled by dialog itself via onOpenChange
+    // Swal success message is shown in the dialog itself.
+    // Optionally, refetch if there are complex side effects not covered by updating the single item:
+    // fetchSalaryScaleData();
   };
 
   const salaryScaleColumns: ColumnDef<SalaryScaleItem>[] = [
     {
       id: "Rank",
       accessorKey: "Rank",
-      header: ({ column }) => <div className="text-left">Rank ID</div>,
+      header: () => <div className="text-left">Rank</div>,
       cell: ({ row }) => (
         <div className="text-left">{row.getValue("Rank")}</div>
       ),
     },
     {
-      id: "WageID",
-      accessorKey: "WageID",
-      header: ({ column }) => <div className="text-center">Wage ID</div>,
+      id: "Wage",
+      accessorKey: "Wage",
+      header: () => <div className="text-center">Wage Type</div>,
       cell: ({ row }) => (
         <div className="text-center">
-          {row.original.Wage || row.getValue("WageID")}
+          {row.original.Wage || `ID: ${row.original.WageID}`}
         </div>
       ),
     },
     {
       id: "WageAmount",
       accessorKey: "WageAmount",
-      header: ({ column }) => <div className="text-center">Amount</div>,
+      header: () => <div className="text-center">Amount</div>,
       cell: ({ row }) => (
         <div className="text-center">{row.getValue("WageAmount")}</div>
       ),
     },
     {
+      id: "VesselTypeName",
+      accessorKey: "VesselTypeName",
+      header: () => <div className="text-center">Vessel Type</div>,
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.getValue("VesselTypeName") || "N/A"}
+        </div>
+      ),
+    },
+    {
       id: "action",
-      header: ({ column }) => <div className="text-center">Action</div>,
+      header: () => <div className="text-center">Action</div>,
       cell: ({ row }) => {
-        const salaryScale = row.original;
-        // Function that displays SweetAlert2 confirmation when deleting a crew member
-        const handleDelete = (rankId: number) => {
+        const salaryScaleItem = row.original; // Renamed for clarity
+        const handleDelete = (detailId: number) => {
           const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
               confirmButton:
@@ -267,11 +343,10 @@ export default function Wages() {
             },
             buttonsStyling: false,
           });
-
           swalWithBootstrapButtons
             .fire({
               title: "Are you sure?",
-              text: "Are you sure you want to delete this salary scale? This action cannot be undone.",
+              text: `Delete ${salaryScaleItem.Rank} - ${salaryScaleItem.Wage}? This cannot be undone.`,
               icon: "warning",
               showCancelButton: true,
               confirmButtonText: "Yes, delete it!",
@@ -280,18 +355,23 @@ export default function Wages() {
             })
             .then((result) => {
               if (result.isConfirmed) {
-                // Place your delete logic here, for example, API call or state update
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The salary scale has been successfully deleted.",
-                  icon: "success",
-                });
+                // TODO: Implement actual delete API call
+                console.log("Deleting salary scale detail ID:", detailId);
+                // Example: deleteSalaryScale(detailId).then(() => {
+                //   swalWithBootstrapButtons.fire("Deleted!", "Item deleted.", "success");
+                //   fetchSalaryScaleData(); // Refresh list
+                // }).catch(err => swalWithBootstrapButtons.fire("Error", "Could not delete.", "error"));
+                swalWithBootstrapButtons.fire(
+                  "Simulated Delete!",
+                  "Item would be deleted.",
+                  "success"
+                );
               } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
-                  title: "Cancelled",
-                  text: "Your salary scale is safe :)",
-                  icon: "error",
-                });
+                swalWithBootstrapButtons.fire(
+                  "Cancelled",
+                  "Item is safe :)",
+                  "error"
+                );
               }
             });
         };
@@ -308,13 +388,7 @@ export default function Wages() {
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
                   onClick={() => {
-                    // Convert SalaryScaleItem to SalaryScaleData for the dialog
-                    const dialogData: SalaryScaleData = {
-                      rank: salaryScale.RankID.toString(),
-                      wageType: salaryScale.WageID.toString(),
-                      amount: salaryScale.WageAmount,
-                    };
-                    setSelectedSalaryScale(dialogData);
+                    setSelectedSalaryScale(salaryScaleItem); // Set the full item
                     setEditDialogOpen(true);
                   }}
                 >
@@ -324,7 +398,9 @@ export default function Wages() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleDelete(salaryScale.RankID)}
+                  onClick={() =>
+                    handleDelete(salaryScaleItem.SalaryScaleDetailID)
+                  }
                 >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
@@ -341,7 +417,7 @@ export default function Wages() {
     {
       id: "WageCode",
       accessorKey: "WageCode",
-      header: ({ column }) => <div className="text-left">Wage Code</div>,
+      header: () => <div className="text-left">Wage Code</div>,
       cell: ({ row }) => (
         <div className="text-left">{row.getValue("WageCode")}</div>
       ),
@@ -349,7 +425,7 @@ export default function Wages() {
     {
       id: "WageName",
       accessorKey: "WageName",
-      header: ({ column }) => <div className="text-center">Wage Name</div>,
+      header: () => <div className="text-center">Wage Name</div>,
       cell: ({ row }) => (
         <div className="text-center">{row.getValue("WageName")}</div>
       ),
@@ -357,11 +433,16 @@ export default function Wages() {
     {
       id: "PayableOnBoard",
       accessorKey: "PayableOnBoard",
-      header: ({ column }) => (
-        <div className="text-center">Payable On Board</div>
-      ),
+      header: () => <div className="text-center">Payable On Board</div>,
       cell: ({ row }) => {
-        const value = Boolean(row.getValue("PayableOnBoard"));
+        console.log("row.original in PayableOnBoard cell:", row.original);
+        const rawValue = row.original?.PayableOnBoard;
+        console.log(
+          "PayableOnBoard Raw Value (row.original):",
+          rawValue,
+          typeof rawValue
+        );
+        const value = rawValue === 1;
         return (
           <div className="text-center">
             <div
@@ -379,48 +460,27 @@ export default function Wages() {
       },
     },
     {
-      id: "actions",
-      header: ({ column }) => <div className="text-center">Actions</div>,
+      id: "actions_wagedesc", // Ensure unique ID if "actions" is used elsewhere
+      header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const wageDescription = row.original;
-        // Function that displays SweetAlert2 confirmation when deleting a crew member
         const handleDelete = (wageCode: string) => {
-          const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-              confirmButton:
-                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-              cancelButton:
-                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            },
-            buttonsStyling: false,
+          Swal.fire({
+            title: "Are you sure?",
+            text: "Delete this wage type?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "No, cancel!",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              /* TODO: delete logic */ Swal.fire(
+                "Deleted!",
+                "Wage type deleted.",
+                "success"
+              );
+            }
           });
-
-          swalWithBootstrapButtons
-            .fire({
-              title: "Are you sure?",
-              text: "Are you sure you want to delete this wage type? This action cannot be undone.",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "Yes, delete it!",
-              cancelButtonText: "No, cancel!",
-              reverseButtons: true,
-            })
-            .then((result) => {
-              if (result.isConfirmed) {
-                // Place your delete logic here, for example, API call or state update
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The wage type has been successfully deleted.",
-                  icon: "success",
-                });
-              } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
-                  title: "Cancelled",
-                  text: "Your wage type is safe :)",
-                  icon: "error",
-                });
-              }
-            });
         };
         return (
           <div className="text-center">
@@ -430,30 +490,25 @@ export default function Wages() {
                   <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem
-                  className="text-xs sm:text-sm"
                   onClick={() => {
-                    // Convert API data to the format expected by the dialog
-                    const dialogData: WageDescriptionData = {
+                    setSelectedWageDescription({
+                      wageId: wageDescription.WageID,
                       wageCode: wageDescription.WageCode,
                       wageName: wageDescription.WageName,
                       payableOnBoard: Boolean(wageDescription.PayableOnBoard),
-                    };
-                    setSelectedWageDescription(dialogData);
+                    });
                     setEditWageDescriptionDialogOpen(true);
                   }}
                 >
-                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Edit Wage
+                  <Pencil className="mr-2 h-4 w-4" /> Edit
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-destructive text-xs sm:text-sm"
                   onClick={() => handleDelete(wageDescription.WageCode)}
+                  className="text-destructive"
                 >
-                  <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Delete
+                  <Trash className="mr-2 h-4 w-4" /> Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -467,7 +522,7 @@ export default function Wages() {
     {
       id: "year",
       accessorKey: "year",
-      header: ({ column }) => <div className="text-justify">Year</div>,
+      header: () => <div className="text-justify">Year</div>,
       cell: ({ row }) => (
         <div className="text-justify">{row.getValue("year")}</div>
       ),
@@ -475,7 +530,7 @@ export default function Wages() {
     {
       id: "month",
       accessorKey: "month",
-      header: ({ column }) => <div className="text-center">Month</div>,
+      header: () => <div className="text-center">Month</div>,
       cell: ({ row }) => {
         const monthNum = row.getValue("month") as number;
         const monthNames = [
@@ -492,62 +547,43 @@ export default function Wages() {
           "November",
           "December",
         ];
-        // Convert numeric month (1-12) to month name (adjusting for zero-based index)
-        const monthName = monthNames[monthNum - 1] || "Unknown";
-        return <div className="text-center">{monthName}</div>;
+        return (
+          <div className="text-center">
+            {monthNames[monthNum - 1] || "Unknown"}
+          </div>
+        );
       },
     },
     {
       id: "exchangeRate",
       accessorKey: "exchangeRate",
-      header: ({ column }) => <div className="text-center">Exchange Rate</div>,
+      header: () => <div className="text-center">Exchange Rate</div>,
       cell: ({ row }) => (
         <div className="text-center">{row.getValue("exchangeRate")}</div>
       ),
     },
     {
-      id: "actions",
-      header: ({ column }) => <div className="text-center">Actions</div>,
+      id: "actions_forex", // Ensure unique ID
+      header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const forex = row.original;
-        // Function that displays SweetAlert2 confirmation when deleting a crew member
-        const handleDelete = (vesselCode: string) => {
-          const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-              confirmButton:
-                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-              cancelButton:
-                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            },
-            buttonsStyling: false,
+        const handleDelete = (year: number, month: number) => {
+          Swal.fire({
+            title: "Are you sure?",
+            text: "Delete this forex entry?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "No, cancel!",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              /* TODO: delete logic */ Swal.fire(
+                "Deleted!",
+                "Forex entry deleted.",
+                "success"
+              );
+            }
           });
-
-          swalWithBootstrapButtons
-            .fire({
-              title: "Are you sure?",
-              text: "Are you sure you want to delete this forex? This action cannot be undone.",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "Yes, delete it!",
-              cancelButtonText: "No, cancel!",
-              reverseButtons: true,
-            })
-            .then((result) => {
-              if (result.isConfirmed) {
-                // Place your delete logic here, for example, API call or state update
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The forex has been successfully deleted.",
-                  icon: "success",
-                });
-              } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
-                  title: "Cancelled",
-                  text: "Your forex is safe :)",
-                  icon: "error",
-                });
-              }
-            });
         };
         return (
           <div className="text-center">
@@ -557,24 +593,20 @@ export default function Wages() {
                   <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem
-                  className="text-xs sm:text-sm"
                   onClick={() => {
                     setSelectedForex(forex);
                     setEditForexDialogOpen(true);
                   }}
                 >
-                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Edit Forex
+                  <Pencil className="mr-2 h-4 w-4" /> Edit
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleDelete(forex.year.toString())}
+                  onClick={() => handleDelete(forex.year, forex.month)}
+                  className="text-destructive"
                 >
-                  <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Delete
+                  <Trash className="mr-2 h-4 w-4" /> Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -584,10 +616,8 @@ export default function Wages() {
     },
   ];
 
-  // Filter wage description data based on search term
   const filteredWageDescription = wageDescriptionItems.filter((item) => {
-    if (!searchTerm) return true;
-
+    if (activeTab !== "wage-description" || !searchTerm) return true;
     return (
       item.WageCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.WageName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -595,37 +625,19 @@ export default function Wages() {
   });
 
   const filteredForex = forexData
-    .filter((forex) => {
-      // Filter by year
-      if (yearFilter !== "all" && forex.year.toString() !== yearFilter) {
-        return false;
-      }
+    .filter(
+      (forex) =>
+        (yearFilter === "all" || forex.year.toString() === yearFilter) &&
+        (monthFilter === "all" || forex.month.toString() === monthFilter)
+    )
+    .sort((a, b) => b.year - a.year || b.month - a.month);
 
-      // Filter by month
-      if (monthFilter !== "all" && forex.month.toString() !== monthFilter) {
-        return false;
-      }
-
-      return true;
-    })
-    // Maintain the sort order
-    .sort((a, b) => {
-      // Sort by year descending first
-      if (a.year !== b.year) {
-        return b.year - a.year;
-      }
-      // If same year, sort by month descending
-      return b.month - a.month;
-    });
-
-  const getUniqueYears = () => {
-    const years = new Set(forexData.map((item) => item.year));
-    return Array.from(years).sort((a, b) => b - a); // Sort descending
-  };
-
-  // Helper function to get month names
-  const getMonthName = (monthNum: number) => {
-    const monthNames = [
+  const getUniqueYears = () =>
+    Array.from(new Set(forexData.map((item) => item.year))).sort(
+      (a, b) => b - a
+    );
+  const getMonthName = (monthNum: number) =>
+    [
       "January",
       "February",
       "March",
@@ -638,75 +650,32 @@ export default function Wages() {
       "October",
       "November",
       "December",
-    ];
-    return monthNames[monthNum - 1] || "Unknown";
-  };
+    ][monthNum - 1] || "Unknown";
 
-  // Filter salary scale data based on search term and vessel type
-  const filteredSalaryScale = salaryScaleItems.filter((item) => {
-    // First filter by selected vessel type
-    if (
-      selectedVesselTypeId !== null &&
-      item.VesselTypeId !== selectedVesselTypeId
-    ) {
-      return false;
-    }
-
-    // Then filter by search term
-    if (!searchTerm) return true;
-
-    return (
-      (item.RankID &&
-        item.RankID.toString()
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())) ||
-      (item.WageID &&
-        item.WageID.toString()
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())) ||
-      (item.WageAmount &&
-        item.WageAmount.toString()
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())) ||
-      (item.Rank &&
-        item.Rank.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.Wage && item.Wage.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  });
-
-  const toggleColumnVisibility = (columnId: string) => {
-    setColumnVisibility((prev) => ({
-      ...prev,
-      [columnId]: !prev[columnId],
-    }));
-  };
+  const toggleColumnVisibility = (columnId: string) =>
+    setColumnVisibility((prev) => ({ ...prev, [columnId]: !prev[columnId] }));
 
   const visibleColumns = salaryScaleColumns.filter(
-    (column) => columnVisibility[column.id as string]
+    (col) => col.id && columnVisibility[col.id] !== false
   );
 
   return (
     <>
       <div className="h-full w-full p-3 pt-3 overflow-hidden">
+        {/* Styles remain the same */}
         <style jsx global>{`
-          /* Hide scrollbar for Chrome, Safari and Opera */
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
           }
-
-          /* Hide scrollbar for IE, Edge and Firefox */
           .scrollbar-hide {
-            -ms-overflow-style: none; /* IE and Edge */
-            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
           }
-
-          /* Hide scrollbar for all scrollable elements in the component */
           .overflow-y-auto::-webkit-scrollbar,
           .overflow-auto::-webkit-scrollbar,
           .overflow-scroll::-webkit-scrollbar {
             display: none;
           }
-
           .overflow-y-auto,
           .overflow-auto,
           .overflow-scroll {
@@ -716,11 +685,9 @@ export default function Wages() {
         `}</style>
         <div className="h-full overflow-hidden">
           <div className="p-3 pt-0 sm:p-4 flex flex-col space-y-4 sm:space-y-5 h-full">
-            {/* Header */}
             <div className="flex justify-between items-center">
               <h1 className="text-3xl font-semibold mb-0">Wages</h1>
             </div>
-
             <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
               <Tabs
                 defaultValue={activeTab}
@@ -731,30 +698,23 @@ export default function Wages() {
                 <div className="border-b">
                   <div className="px-4 pt-1">
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
-                      <TabsTrigger
-                        value="salary"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
-                        Salary Scale
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="wage-description"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
-                        Wage Description
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="forex"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
-                        Forex
-                      </TabsTrigger>
-                      {/* <TabsTrigger
-                        value="sea-port"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
-                        Sea Port
-                      </TabsTrigger> */}
+                      {["salary", "wage-description", "forex"].map(
+                        (tabValue) => (
+                          <TabsTrigger
+                            key={tabValue}
+                            value={tabValue}
+                            className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                          >
+                            {tabValue
+                              .split("-")
+                              .map(
+                                (word) =>
+                                  word.charAt(0).toUpperCase() + word.slice(1)
+                              )
+                              .join(" ")}
+                          </TabsTrigger>
+                        )
+                      )}
                     </TabsList>
                   </div>
                 </div>
@@ -764,93 +724,87 @@ export default function Wages() {
                   className="p-2 mt-0 overflow-y-auto flex-1"
                 >
                   <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
-                    {/* Search and Filters */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
                       <div className="relative w-full md:flex-1">
                         <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
                         <Input
-                          placeholder="Search salary scale by Rank ID, Wage ID, or amount..."
+                          placeholder="Search by Rank, Wage, Amount, Vessel Type..."
                           className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
                       </div>
-
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                         <Select
-                          value={
-                            selectedVesselTypeId !== null
-                              ? selectedVesselTypeId.toString()
-                              : ""
-                          }
-                          onValueChange={(value) =>
-                            setSelectedVesselTypeId(Number(value))
-                          }
+                          value={selectedVesselTypeId}
+                          onValueChange={setSelectedVesselTypeId}
                         >
-                          <SelectTrigger className="bg-white h-full sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[300px] sm:min-w-[320px] w-full sm:w-auto">
-                            <div className="flex items-center justify-between w-full -mx-4">
-                              <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md">
-                                <span className="text-muted-foreground text-base">
-                                  Select Vessel Type
+                          <SelectTrigger className="bg-white h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[280px] w-full sm:w-auto">
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md -ml-3 sm:-ml-4">
+                                <span className="text-muted-foreground text-sm sm:text-base whitespace-nowrap">
+                                  Vessel Type
                                 </span>
                               </div>
-                              <span className="text-foreground text-base px-4">
-                                {selectedVesselTypeId !== null
-                                  ? vesselTypes.find(
-                                      (v) => v.id === selectedVesselTypeId
-                                    )?.name || "Unknown"
-                                  : "Select..."}
-                              </span>
+                              <div className="flex-grow text-left px-2 truncate">
+                                <SelectValue
+                                  placeholder="All Types"
+                                  className="text-foreground text-sm sm:text-base"
+                                />
+                              </div>
                             </div>
                           </SelectTrigger>
                           <SelectContent>
-                            {vesselTypes.length > 0 ? (
-                              vesselTypes.map((vessel) => (
-                                <SelectItem
-                                  key={vessel.id}
-                                  value={vessel.id.toString()}
-                                >
-                                  {vessel.name}
-                                </SelectItem>
-                              ))
-                            ) : (
-                              <SelectItem value="0">
-                                No vessel types available
+                            <SelectItem value="all">
+                              All Vessel Types
+                            </SelectItem>
+                            {uniqueVesselTypes.map((vType) => (
+                              <SelectItem
+                                key={vType.id}
+                                value={vType.id.toString()}
+                              >
+                                {vType.name}
                               </SelectItem>
-                            )}
+                            ))}
                           </SelectContent>
                         </Select>
-
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="outline"
-                              className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[130px] sm:min-w-[140px] w-full sm:w-auto bg-[#FFFFFF]"
+                              className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[130px] sm:min-w-[140px] w-full sm:w-auto bg-[#FFFFFF]"
                             >
-                              Columns
-                              <ChevronDown className="h-4 w-4" />
+                              Columns <ChevronDown className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className="w-[150px] bg-[#FFFFFF]"
+                            className="w-[180px] bg-[#FFFFFF]"
                           >
-                            {salaryScaleColumns.map((column) => {
-                              const columnId = column.id;
-                              if (!columnId) return null;
+                            {salaryScaleColumns.map((col) => {
+                              if (!col.id) return null;
+                              let dName = col.id;
+                              if (col.id === "Rank") dName = "Rank";
+                              else if (col.id === "Wage") dName = "Wage Type";
+                              else if (col.id === "WageAmount")
+                                dName = "Amount";
+                              else if (col.id === "VesselTypeName")
+                                dName = "Vessel Type";
+                              else if (col.id === "action") dName = "Action";
                               return (
                                 <DropdownMenuItem
-                                  key={columnId}
-                                  className="capitalize"
+                                  key={col.id}
                                   onClick={() =>
-                                    toggleColumnVisibility(columnId)
+                                    col.id && toggleColumnVisibility(col.id)
                                   }
                                 >
                                   <div className="flex items-center w-full">
                                     <span className="text-primary w-4 mr-2">
-                                      {columnVisibility[columnId] ? "✓" : ""}
+                                      {columnVisibility[col.id] !== false
+                                        ? "✓"
+                                        : ""}
                                     </span>
-                                    <span>{columnId}</span>
+                                    <span>{dName}</span>
                                   </div>
                                 </DropdownMenuItem>
                               );
@@ -859,8 +813,6 @@ export default function Wages() {
                         </DropdownMenu>
                       </div>
                     </div>
-
-                    {/* Loading and error states */}
                     {isLoading && (
                       <div className="flex justify-center items-center h-40">
                         <p className="text-muted-foreground">
@@ -868,14 +820,11 @@ export default function Wages() {
                         </p>
                       </div>
                     )}
-
                     {error && (
                       <div className="flex justify-center items-center h-40">
                         <p className="text-red-500">{error}</p>
                       </div>
                     )}
-
-                    {/* DataTable with custom styling */}
                     {!isLoading && !error && (
                       <div className="bg-[#F9F9F9] rounded-md border mb-3">
                         <DataTable
@@ -887,24 +836,27 @@ export default function Wages() {
                     )}
                   </div>
                 </TabsContent>
-
+                {/* Other TabsContent (wage-description, forex) remain largely the same, ensure search term handling is correct for each tab */}
                 <TabsContent
                   value="wage-description"
                   className="p-2 mt-0 overflow-y-auto flex-1"
                 >
                   <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
-                    {/* Search and Filters */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
                       <div className="relative w-full md:flex-1">
                         <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
                         <Input
                           placeholder="Search by wage code or name..."
                           className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
+                          value={
+                            activeTab === "wage-description" ? searchTerm : ""
+                          }
+                          onChange={(e) =>
+                            activeTab === "wage-description" &&
+                            setSearchTerm(e.target.value)
+                          }
                         />
                       </div>
-
                       <Button
                         className="bg-primary text-white hover:bg-primary/90 h-9 sm:h-10 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2"
                         onClick={() => setAddWageDescriptionDialogOpen(true)}
@@ -913,8 +865,6 @@ export default function Wages() {
                         Add Wage Type
                       </Button>
                     </div>
-
-                    {/* Loading and error states */}
                     {isLoadingWageDescription && (
                       <div className="flex justify-center items-center h-40">
                         <p className="text-muted-foreground">
@@ -922,14 +872,11 @@ export default function Wages() {
                         </p>
                       </div>
                     )}
-
                     {wageDescriptionError && (
                       <div className="flex justify-center items-center h-40">
                         <p className="text-red-500">{wageDescriptionError}</p>
                       </div>
                     )}
-
-                    {/* DataTable with custom styling */}
                     {!isLoadingWageDescription && !wageDescriptionError && (
                       <div className="bg-[#F9F9F9] rounded-md border mb-3">
                         <DataTable
@@ -941,15 +888,12 @@ export default function Wages() {
                     )}
                   </div>
                 </TabsContent>
-
                 <TabsContent
                   value="forex"
                   className="p-2 mt-0 overflow-y-auto flex-1"
                 >
                   <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
-                    {/* Replace the search input in the forex tab with these two filters */}
                     <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 w-full">
-                      {/* Month Filter - Half width */}
                       <div className="w-full md:w-1/2 pr-0 md:pr-2">
                         <Select
                           value={monthFilter}
@@ -983,8 +927,6 @@ export default function Wages() {
                           </SelectContent>
                         </Select>
                       </div>
-
-                      {/* Year Filter - Half width */}
                       <div className="w-full md:w-1/2 pl-0 md:pl-2">
                         <Select
                           value={yearFilter}
@@ -1016,8 +958,6 @@ export default function Wages() {
                         </Select>
                       </div>
                     </div>
-
-                    {/* DataTable with custom styling */}
                     <div className="bg-[#F9F9F9] rounded-md border mb-3">
                       <DataTable
                         columns={forexColumns}
@@ -1033,21 +973,33 @@ export default function Wages() {
         </div>
       </div>
 
-      {selectedSalaryScale && (
-        <EditSalaryScaleDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          salaryScale={selectedSalaryScale}
-        />
-      )}
-      {selectedWageDescription && (
+      {selectedSalaryScale &&
+        editDialogOpen && ( // Ensure dialog only renders when data is available and it's meant to be open
+          <EditSalaryScaleDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            salaryScale={selectedSalaryScale}
+            ranks={uniqueRanksForDialog}
+            wageTypes={uniqueWageTypesForDialog}
+            onUpdateSuccess={handleSalaryScaleUpdateSuccess}
+          />
+        )}
+      {selectedWageDescription && editWageDescriptionDialogOpen && (
         <EditWageDescriptionDialog
           open={editWageDescriptionDialogOpen}
           onOpenChange={setEditWageDescriptionDialogOpen}
           wageDescription={selectedWageDescription}
+          onUpdateSuccess={(updatedItem) => {
+            setWageDescriptionItems((prev) =>
+              prev.map((item) =>
+                item.WageID === updatedItem.WageID ? updatedItem : item
+              )
+            );
+            setEditWageDescriptionDialogOpen(false);
+          }}
         />
       )}
-      {selectedForex && (
+      {selectedForex && editForexDialogOpen && (
         <EditForexDialog
           open={editForexDialogOpen}
           onOpenChange={setEditForexDialogOpen}
@@ -1058,8 +1010,8 @@ export default function Wages() {
         open={AddWageDescriptionDialogOpen}
         onOpenChange={setAddWageDescriptionDialogOpen}
         onSuccess={(newWageDescription) => {
-          // Add the new wage description to the list
           setWageDescriptionItems((prev) => [...prev, newWageDescription]);
+          // Optionally refetch wage descriptions or rely on local update if AddWageDescriptionDialog returns full item
         }}
       />
     </>

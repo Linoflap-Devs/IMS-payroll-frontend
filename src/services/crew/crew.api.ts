@@ -138,39 +138,92 @@ export const getCrewRankList = async (): Promise<CrewRankResponse> => {
 }
 
 
-export interface AddCrewPayload{
- CrewCode: string;
- rank: number;
- mobileNumber: string;
- emailAddress: string;
- landlineNumber: string;
- lastName: string;
+export interface AddCrewDataForm {
+  crewCode: string;
+  rank: string; // Backend's Zod schema: z.coerce.number()
+  vessel?: string; // Backend's Zod schema: z.optional(z.coerce.number())
+  mobileNumber: string;
+  landlineNumber?: string;
+  emailAddress: string;
+  lastName: string;
   firstName: string;
-  middleName: string;
-  sex: number;
-  dateOfBirth: string;
-  city: number;
-  province: number;
-  sssNumber: number;
-  hdmfNumber: number;
-  tinNumber: number;
-  philhealthNumber: number;
+  middleName?: string;
+  sex: string; // Backend's Zod schema: z.string().min(1).max(6) (e.g., "Male", "Female", or string "0", "1")
+  maritalStatus: string; // Backend's Zod schema: z.optional(z.coerce.number())
+  dateOfBirth: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  city: string; // Backend's Zod schema: z.string().min(2).max(50)
+  province: string; // Backend's Zod schema: z.string().min(2).max(50)
+  sssNumber: string;
+  tinNumber: string;
+  philhealthNumber: string;
+  hdmfNumber: string;
   passportNumber: string;
-  passportIssueDate: string;
-  passportExpiryDate: string;
+  passportIssueDate: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  passportExpiryDate: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
   seamanBookNumber: string;
-  seamanBookIssueDate: string;
-  seamanBookExpiryDate: string;
-  crewPhoto: string;
+  seamanBookIssueDate: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  seamanBookExpiryDate: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  crewPhoto?: File; // Optional file upload
+}
 
+export interface AddCrewSuccessData {
+  CrewID: number;
+  FirstName: string;
+  LastName: string;
+  EmailAddress: string;
 }
 
 export interface AddCrewResponse {
   success: boolean;
-  data: CrewItem;
-  message?: string;
+  message: string;
+  data?: AddCrewSuccessData | any[]; // any[] to accommodate `data: []` in error responses from controller
 }
-export const addCrew = async (payload: AddCrewPayload): Promise<AddCrewResponse> => {
-  const response = await axiosInstance.post<AddCrewResponse>(`/crew`, payload);
+
+export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewResponse> => {
+  const formData = new FormData();
+
+  // Helper to safely append to FormData, handling undefined values
+  const appendIfExists = (key: string, value: string | number | File | undefined | null) => {
+    if (value !== undefined && value !== null) {
+      if (value instanceof File) {
+        formData.append(key, value);
+      } else {
+        formData.append(key, String(value));
+      }
+    }
+  };
+
+  appendIfExists("crewCode", crewData.crewCode);
+  appendIfExists("rank", crewData.rank);
+  appendIfExists("vessel", crewData.vessel);
+  appendIfExists("mobileNumber", crewData.mobileNumber);
+  appendIfExists("landlineNumber", crewData.landlineNumber);
+  appendIfExists("emailAddress", crewData.emailAddress);
+  appendIfExists("lastName", crewData.lastName);
+  appendIfExists("firstName", crewData.firstName);
+  appendIfExists("middleName", crewData.middleName);
+  appendIfExists("sex", crewData.sex);
+  appendIfExists("maritalStatus", crewData.maritalStatus);
+  appendIfExists("dateOfBirth", crewData.dateOfBirth);
+  appendIfExists("city", crewData.city);
+  appendIfExists("province", crewData.province);
+  appendIfExists("sssNumber", crewData.sssNumber);
+  appendIfExists("tinNumber", crewData.tinNumber);
+  appendIfExists("philhealthNumber", crewData.philhealthNumber);
+  appendIfExists("hdmfNumber", crewData.hdmfNumber);
+  appendIfExists("passportNumber", crewData.passportNumber);
+  appendIfExists("passportIssueDate", crewData.passportIssueDate);
+  appendIfExists("passportExpiryDate", crewData.passportExpiryDate);
+  appendIfExists("seamanBookNumber", crewData.seamanBookNumber);
+  appendIfExists("seamanBookIssueDate", crewData.seamanBookIssueDate);
+  appendIfExists("seamanBookExpiryDate", crewData.seamanBookExpiryDate);
+  
+  if (crewData.crewPhoto) {
+    formData.append("crewPhoto", crewData.crewPhoto);
+  }
+
+  // The endpoint from Insomnia was /crew/
+  // Axios automatically sets 'Content-Type': 'multipart/form-data' when FormData is used.
+  const response = await axiosInstance.post<AddCrewResponse>("/crew/", formData);
   return response.data;
-}
+};

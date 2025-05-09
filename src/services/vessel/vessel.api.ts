@@ -84,9 +84,11 @@ export interface VesselInfoItem {
 }
 
 export interface CrewMember {
+  CrewCode: string;
   FirstName: string;
   MiddleName: string;
   LastName: string;
+  Rank: string;
   Status: number;
 }
 

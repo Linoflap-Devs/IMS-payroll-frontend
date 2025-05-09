@@ -84,9 +84,25 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
         crew.LastName
       }`,
       status: crew.Status === 1 ? "On board" : "Inactive",
+      rank: crew.Rank,
+      crewCode: crew.CrewCode,
     })) || [];
 
   const columns: ColumnDef<(typeof crewData)[number]>[] = [
+    {
+      accessorKey: "crewCode",
+      header: ({ column }) => (
+        <div
+          className="flex items-center cursor-pointer text-left"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Crew Code
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-left">{row.getValue("crewCode")}</div>
+      ),
+    },
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -99,6 +115,20 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       ),
       cell: ({ row }) => (
         <div className="text-left">{row.getValue("name")}</div>
+      ),
+    },
+    {
+      accessorKey: "rank",
+      header: ({ column }) => (
+        <div
+          className="flex items-center cursor-pointer text-left"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Rank
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-left">{row.getValue("rank")}</div>
       ),
     },
     {
