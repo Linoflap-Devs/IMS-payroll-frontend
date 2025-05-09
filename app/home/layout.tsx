@@ -307,6 +307,50 @@ export default function HomeLayout({
         </div>
       );
     }
+    if (pathname.startsWith("/home/deduction/deduction-entries")) {
+      return (
+        <div className="flex items-center">
+          <Link href="/home/deduction" className="hover:text-foreground">
+            Deduction
+          </Link>
+          <ChevronRightIcon className="h-3 w-3 mx-2" />
+          <span className="text-primary">Deduction Entries</span>
+        </div>
+      );
+    }
+    if (pathname.startsWith("/home/allotment/allotment_register")) {
+      return (
+        <div className="flex items-center">
+          <Link href="/home/allotment" className="hover:text-foreground">
+            Allotment Payroll
+          </Link>
+          <ChevronRightIcon className="h-3 w-3 mx-2" />
+          <span className="text-primary">Allotment Register</span>
+        </div>
+      );
+    }
+    if (pathname.startsWith("/home/allotment/deduction_register")) {
+      return (
+        <div className="flex items-center">
+          <Link href="/home/allotment" className="hover:text-foreground">
+            Allotment Payroll
+          </Link>
+          <ChevronRightIcon className="h-3 w-3 mx-2" />
+          <span className="text-primary">Deduction Register</span>
+        </div>
+      );
+    }
+    if (pathname.startsWith("/home/allotment/payslip")) {
+      return (
+        <div className="flex items-center">
+          <Link href="/home/allotment" className="hover:text-foreground">
+            Allotment Payroll
+          </Link>
+          <ChevronRightIcon className="h-3 w-3 mx-2" />
+          <span className="text-primary">Pay Slip</span>
+        </div>
+      );
+    }
 
     // Handle regular routes
     const currentRoute = routes.find((route) => route.href === pathname);

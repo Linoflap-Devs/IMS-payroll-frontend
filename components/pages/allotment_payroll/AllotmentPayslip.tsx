@@ -32,6 +32,7 @@ import { RepatriateCrewDialog } from "../../dialogs/RepatriateCrewDialog";
 import { SearchCrewDialog } from "../../dialogs/SearchCrewDialog";
 import { JoinCrewDialog } from "../../dialogs/JoinCrewDialog";
 import Swal from "sweetalert2";
+import { AiOutlinePrinter } from "react-icons/ai";
 
 // Sample crew data
 const crewData = [
@@ -301,12 +302,12 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       `}</style>
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <Link href="/home/vessel">
+          <Link href="/home/allotment">
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-semibold mb-0">Vessel Crew List</h1>
+          <h1 className="text-3xl font-semibold mb-0">Allotment Payslip</h1>
         </div>
       </div>
 
@@ -367,8 +368,8 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
               className="gap-2 h-11 px-5"
               onClick={() => setSearchCrewDialogOpen(true)}
             >
-              <Plus className="h-4 w-4" />
-              Join Crew
+              <AiOutlinePrinter className="h-4 w-4" />
+              Print Payslip
             </Button>
           </div>
         </div>

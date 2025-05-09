@@ -155,10 +155,12 @@ export default function Allotment() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/">Deduction</Link>
+                <Link href="/home/allotment/deduction_register">
+                  Deduction Register
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/">Payslip</Link>
+                <Link href="/home/allotment/payslip">Pay Slip</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -301,7 +301,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       `}</style>
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <Link href="/home/vessel">
+          <Link href="/home/allotment">
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
