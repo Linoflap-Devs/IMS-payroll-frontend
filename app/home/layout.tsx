@@ -435,8 +435,8 @@ export default function HomeLayout({
     {
       label: "Applications",
       icon: MdOutlinePendingActions,
-      href: "/home/applications",
-      active: pathname.startsWith("/home/applications"),
+      href: "/home/application_crew",
+      active: pathname.startsWith("/home/application_crew"),
     },
     {
       label: "Audit Log",

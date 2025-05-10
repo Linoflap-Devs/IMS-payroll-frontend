@@ -22,6 +22,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
 import { getPayrollList } from "@/src/services/payroll/payroll.api";
+import { TfiReload } from "react-icons/tfi";
+import { MdOutlineFileUpload } from "react-icons/md";
 
 type Payroll = {
   vesselName: string;
@@ -187,21 +189,11 @@ export default function Allotment() {
       <div className="h-full overflow-y-auto scrollbar-hide">
         <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-semibold mb-0">Allotment</h1>
+            <h1 className="text-3xl font-semibold mb-0">Allotment Payroll</h1>
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
-            <div className="relative w-full md:flex-1">
-              <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
-              <Input
-                placeholder="Search vessel by name..."
-                className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-5 items-start sm:items-center gap-3 sm:gap-4 w-full">
               <Select value={monthFilter} onValueChange={setMonthFilter}>
                 <SelectTrigger className="bg-white h-full sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[220px] w-full sm:w-auto">
                   <div className="flex items-center justify-between w-full -mx-4">
@@ -223,7 +215,6 @@ export default function Allotment() {
                   ))}
                 </SelectContent>
               </Select>
-
               <Select value={yearFilter} onValueChange={setYearFilter}>
                 <SelectTrigger className="bg-white h-full sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[220px] w-full sm:w-auto">
                   <div className="flex items-center justify-between w-full -mx-4">
@@ -246,9 +237,22 @@ export default function Allotment() {
                 </SelectContent>
               </Select>
 
+              <Button className="bg-gray-200 text-gray-700 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full">
+                <TfiReload className="w-4 h-4" />
+                Process Vessel
+              </Button>
+
+              <Button
+                variant="outline"
+                className="bg-blue-200 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
+              >
+                <MdOutlineFileUpload className="w-4 h-4" />
+                Post Process Payroll
+              </Button>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="whitespace-nowrap h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full sm:w-auto">
+                  <Button className="whitespace-nowrap h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full">
                     <AiOutlinePrinter className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
                     Print Summary
                   </Button>

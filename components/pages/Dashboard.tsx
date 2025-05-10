@@ -84,6 +84,14 @@ export default function Dashboard() {
     );
   }, [dashboardData?.PerVesselAllotmentUSD]);
 
+  const totalSalaryProcessed = React.useMemo(() => {
+    if (!dashboardData?.TotalSalaryProcessed) return 0;
+    return dashboardData.TotalSalaryProcessed.reduce(
+      (sum, item) => sum + item.Value,
+      0
+    );
+  }, [dashboardData?.TotalSalaryProcessed]);
+
   // Format salary data for the chart
   const formattedSalaryData = React.useMemo(() => {
     if (!dashboardData?.TotalSalaryProcessed) return [];
@@ -283,12 +291,17 @@ export default function Dashboard() {
           <CardContent className="p-0 px-4">
             <div className="flex justify-between items-center">
               <div className="flex flex-col gap-y-0">
-                <p className="text-2xl text-primary mt-0 mb-0">MARCH 2025</p>
+                <p className="text-2xl text-primary mt-0 mb-0">
+                  {new Date().toLocaleString("default", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
                 <p className="text-lg text-gray-600 mb-6">
                   Total Allotment Process
                 </p>
                 <h3 className="text-xl font-bold">
-                  $ {dashboardData?.MonthlyAllotmentPHP.toFixed(2) ?? 0}
+                  ₱ {dashboardData?.MonthlyAllotmentPHP.toFixed(2) ?? 0}
                 </h3>
               </div>
               <div className="text-blue-600">
@@ -303,10 +316,10 @@ export default function Dashboard() {
             <div className="flex justify-between items-center">
               <div className="flex flex-col gap-y-8">
                 <p className="text-lg text-gray-600 mb-6">
-                  Total Grosss Allotment
+                  Total Gross Allotment
                 </p>
                 <h3 className="text-xl font-bold">
-                  $ {totalPerVesselAllotmentPHP.toFixed(2).toLocaleString()}
+                  ₱ {totalSalaryProcessed.toFixed(2).toLocaleString()}
                 </h3>
               </div>
               <div className="text-blue-600">
