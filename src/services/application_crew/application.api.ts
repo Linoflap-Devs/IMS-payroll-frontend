@@ -40,8 +40,21 @@ interface ApplicationResponse {
     data: Application[];
 }
 
+export interface ProcessApplicationResponse {
+    success: boolean;
+    message?: string;
+    data?: any;
+}
+
 export const getApplications = async (): Promise<ApplicationResponse> => {
     const response = await axiosInstance.get<ApplicationResponse>('/application/');
+    return response.data;
+};
+
+export const processApplication = async (applicationRequestId: number, status: number): Promise<ProcessApplicationResponse> => {
+    const response = await axiosInstance.patch<ProcessApplicationResponse>(`/application/${applicationRequestId}/process`, {
+        status
+    });
     return response.data;
 };
 
