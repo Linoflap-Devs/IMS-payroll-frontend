@@ -29,8 +29,9 @@ import Swal from "sweetalert2";
 import { getApplications } from "@/src/services/application_crew/application.api";
 import { AddAllotteeReqDialog } from "@/components/dialogs/AddAllotteeReqDialog";
 import { DeleteAllotteeReqDialog } from "@/components/dialogs/DeleteAllotteeReqDialog";
+import { HDMFUpgradeReqDialog } from "@/components/dialogs/HDMFUpgradeReqDialog";
 
-interface RequestData {
+interface AllotteeRequestData {
   AllotteeRequestID: number;
   ApplicationRequestID: number;
   TargetID: number | null;
@@ -51,6 +52,14 @@ interface RequestData {
   Allotment: number;
 }
 
+interface HDMFUpgradeRequestData {
+  HDMFUpgradeRequestID: number;
+  ApplicationRequestID: number;
+  TargetID: number;
+  HDMFAmount: number;
+  DollarCurrency: number;
+}
+
 interface Application {
   ApplicationRequestID: number;
   CrewCode: string;
@@ -61,7 +70,7 @@ interface Application {
   ApplicationStatus: string;
   ApplicationType: string;
   ApplicationOperation: string;
-  RequestData: RequestData;
+  RequestData: AllotteeRequestData | HDMFUpgradeRequestData;
 }
 
 export default function CrewApplication() {
@@ -316,18 +325,36 @@ export default function CrewApplication() {
             <AddAllotteeReqDialog
               open={showDetailsDialog}
               onOpenChange={setShowDetailsDialog}
-              requestData={selectedApplication.RequestData}
+              requestData={
+                selectedApplication.RequestData as AllotteeRequestData
+              }
+              onSuccess={fetchApplications}
             />
           )}
           {selectedApplication.ApplicationOperation === "DELETE" && (
             <DeleteAllotteeReqDialog
               open={showDetailsDialog}
               onOpenChange={setShowDetailsDialog}
-              requestData={selectedApplication.RequestData}
+              requestData={
+                selectedApplication.RequestData as AllotteeRequestData
+              }
+              onSuccess={fetchApplications}
             />
           )}
         </>
       )}
+
+      {selectedApplication?.ApplicationType === "HDMF Upgrade" &&
+        selectedApplication.ApplicationOperation === "UPDATE" && (
+          <HDMFUpgradeReqDialog
+            open={showDetailsDialog}
+            onOpenChange={setShowDetailsDialog}
+            requestData={
+              selectedApplication.RequestData as HDMFUpgradeRequestData
+            }
+            onSuccess={fetchApplications}
+          />
+        )}
     </>
   );
 }

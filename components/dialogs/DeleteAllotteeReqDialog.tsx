@@ -2,6 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  processApplication,
+  ProcessApplicationResponse,
+} from "@/src/services/application_crew/application.api";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
 
 interface DeleteAllotteeReqDialogProps {
   open: boolean;
@@ -26,13 +32,59 @@ interface DeleteAllotteeReqDialogProps {
     AccountNumber: string;
     Allotment: number;
   };
+  onSuccess?: () => void;
 }
 
 export function DeleteAllotteeReqDialog({
   open,
   onOpenChange,
   requestData,
+  onSuccess,
 }: DeleteAllotteeReqDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleProcess = async (status: number) => {
+    setIsSubmitting(true);
+    try {
+      const response: ProcessApplicationResponse = await processApplication(
+        requestData.ApplicationRequestID,
+        status
+      );
+
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: `Delete request ${
+            status === 2 ? "approved" : "declined"
+          } successfully`,
+          variant: "default",
+        });
+        if (onSuccess) {
+          onSuccess();
+        }
+        onOpenChange(false);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to process delete request",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error processing delete request:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "An error occurred while processing the delete request",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="p-0 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
@@ -201,16 +253,20 @@ export function DeleteAllotteeReqDialog({
                 type="button"
                 variant="outline"
                 className="flex-1 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md"
+                onClick={() => handleProcess(3)}
+                disabled={isSubmitting}
               >
                 <XCircle className="mr-2 h-4 w-4" />
-                Decline
+                {isSubmitting ? "Processing..." : "Decline"}
               </Button>
               <Button
                 type="button"
-                className="flex-1 bg-red-700 text-white hover:bg-red-500 rounded-md"
+                className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md"
+                onClick={() => handleProcess(2)}
+                disabled={isSubmitting}
               >
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Approve Delete Request
+                {isSubmitting ? "Processing..." : "Approve Delete Request"}
               </Button>
             </div>
           </div>
