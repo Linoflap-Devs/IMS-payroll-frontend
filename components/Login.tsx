@@ -57,6 +57,8 @@ export default function Login() {
       console.log("Login response:", response);
 
       if (response.success) {
+        // Store the user's email in localStorage
+        localStorage.setItem("userEmail", response.data.email);
         // On success, the backend sets the auth cookie.
         // Redirect the user to the dashboard.
         router.push("/home/dashboard");

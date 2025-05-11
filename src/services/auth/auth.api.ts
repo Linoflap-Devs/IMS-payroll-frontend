@@ -23,5 +23,5 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
 
 
 export const logoutUser = async (): Promise<void> => {
-  await axiosInstance.post("/auth/logout");
+  await axiosInstance.delete("/auth/logout");
 };

@@ -32,6 +32,8 @@ import { TbCurrencyDollarOff } from "react-icons/tb";
 import { BiReceipt } from "react-icons/bi";
 import { MdOutlinePendingActions } from "react-icons/md";
 import { PiClockCounterClockwiseBold } from "react-icons/pi";
+import { logoutUser } from "@/src/services/auth/auth.api";
+import { useRouter } from "next/navigation";
 
 // Define the Sidebar component interface
 interface SidebarProps {
@@ -48,10 +50,18 @@ interface SidebarProps {
   }[];
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  userEmail?: string;
+  onLogout: () => void;
 }
 
 // Sidebar component
-function Sidebar({ routes, isCollapsed, onToggleCollapse }: SidebarProps) {
+function Sidebar({
+  routes,
+  isCollapsed,
+  onToggleCollapse,
+  userEmail,
+  onLogout,
+}: SidebarProps) {
   const [openDropdowns, setOpenDropdowns] = useState<{
     [key: string]: boolean;
   }>({
@@ -220,20 +230,22 @@ function Sidebar({ routes, isCollapsed, onToggleCollapse }: SidebarProps) {
             >
               <AvatarImage src="" />
               <AvatarFallback className="bg-primary text-primary-foreground text-base">
-                JD
+                {userEmail ? userEmail.substring(0, 2).toUpperCase() : ""}
               </AvatarFallback>
             </Avatar>
             {!isCollapsed && (
               <>
                 <div className="flex flex-col min-w-0 overflow-hidden">
-                  <p className="text-base font-medium truncate">John Doe</p>
+                  <p className="text-base font-medium truncate">
+                    {userEmail || "Guest"}
+                  </p>
                   <p className="text-sm text-sidebar-foreground truncate">
-                    johndoe@gmail.com
+                    {userEmail || "Not logged in"}
                   </p>
                 </div>
-                <Link href="/" className="ml-auto flex-shrink-0">
+                <button onClick={onLogout} className="ml-auto flex-shrink-0">
                   <LogOut className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
-                </Link>
+                </button>
               </>
             )}
           </div>
@@ -250,6 +262,20 @@ export default function HomeLayout({
 }) {
   const pathname = usePathname();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Fetch user email from localStorage or API
+    const email = localStorage.getItem("userEmail");
+    setUserEmail(email);
+  }, []);
+
+  const handleLogout = async () => {
+    await logoutUser();
+    localStorage.removeItem("userEmail");
+    router.push("/login");
+  };
 
   // Get breadcrumb for current path
   const getBreadcrumb = () => {
@@ -465,6 +491,8 @@ export default function HomeLayout({
             routes={routes}
             isCollapsed={false}
             onToggleCollapse={() => {}}
+            userEmail={userEmail || undefined}
+            onLogout={handleLogout}
           />
         </SheetContent>
       </Sheet>
@@ -481,6 +509,8 @@ export default function HomeLayout({
           routes={routes}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          userEmail={userEmail || undefined}
+          onLogout={handleLogout}
         />
       </div>
 
