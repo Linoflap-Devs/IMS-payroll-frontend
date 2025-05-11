@@ -1,99 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  Filter,
-  Ship,
-  Car,
-  Trash,
-  ChevronLeft,
-} from "lucide-react";
+import { Search, ChevronLeft, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "../../ui/card";
-import { TbShipOff } from "react-icons/tb";
-import { MdOutlineBadge } from "react-icons/md";
-import { PromoteCrewDialog } from "../../dialogs/PromoteCrewDialog";
-import { RepatriateCrewDialog } from "../../dialogs/RepatriateCrewDialog";
-import { SearchCrewDialog } from "../../dialogs/SearchCrewDialog";
-import { JoinCrewDialog } from "../../dialogs/JoinCrewDialog";
-import Swal from "sweetalert2";
-
-// Sample crew data
-const crewData = [
-  {
-    id: 1,
-    name: "Juan Dela Cruz",
-    rank: "Captain",
-    country: "Japan",
-    signOnDate: "10-23-25",
-  },
-  {
-    id: 2,
-    name: "Seki Chan",
-    rank: "Captain",
-    country: "Singapore",
-    signOnDate: "10-23-25",
-  },
-  {
-    id: 3,
-    name: "Azraelu Asta",
-    rank: "Captain",
-    country: "Singapore",
-    signOnDate: "10-23-25",
-  },
-  {
-    id: 4,
-    name: "Follie Rendel",
-    rank: "Captain",
-    country: "Japan",
-    signOnDate: "10-23-25",
-  },
-  {
-    id: 5,
-    name: "Axel Magniyo",
-    rank: "Captain",
-    country: "Japan",
-    signOnDate: "10-23-25",
-  },
-  {
-    id: 6,
-    name: "John Luffy",
-    rank: "Captain",
-    country: "Singapore",
-    signOnDate: "10-23-25",
-  },
-  {
-    id: 7,
-    name: "Clara Magpantay",
-    rank: "Captain",
-    country: "Singapore",
-    signOnDate: "10-23-25",
-  },
-  {
-    id: 8,
-    name: "Thomas Shelby",
-    rank: "Captain",
-    country: "Singapore",
-    signOnDate: "10-23-25",
-  },
-];
-
-type Crew = (typeof crewData)[number];
+import { AiOutlinePrinter } from "react-icons/ai";
+import { getVesselDeductionRegister } from "@/src/services/payroll/payroll.api";
+import type { DeductionRegister } from "@/src/services/payroll/payroll.api";
+import { Ship } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DeductionDistributionDialog } from "../../dialogs/DeductionDistributionDialog";
 
 interface VesselInfo {
   code: string;
@@ -102,173 +29,128 @@ interface VesselInfo {
   principalName: string;
 }
 
-interface VesselCrewListProps {
+export default function DeductionRegisterComponent({
+  vesselInfo,
+}: {
   vesselInfo?: VesselInfo;
-}
-
-export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
+}) {
+  const searchParams = useSearchParams();
+  const vesselId = searchParams.get("vesselId");
+  const month = searchParams.get("month");
+  const year = searchParams.get("year");
   const [searchTerm, setSearchTerm] = useState("");
-  const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
-  const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
-  const [searchCrewDialogOpen, setSearchCrewDialogOpen] = useState(false);
-  const [joinCrewDialogOpen, setJoinCrewDialogOpen] = useState(false);
-  const [selectedCrew, setSelectedCrew] = useState<Crew | null>(null);
-  const [selectedOffBoardCrew, setSelectedOffBoardCrew] = useState<any>(null);
+  const [allotmentData, setAllotmentData] = useState<DeductionRegister[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedCrew, setSelectedCrew] = useState<DeductionRegister | null>(
+    null
+  );
+  const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
 
-  const columns: ColumnDef<Crew>[] = [
-    {
-      accessorKey: "name",
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Crew Name
-          </div>
+  useEffect(() => {
+    const fetchAllotmentData = async () => {
+      if (!vesselId || !month || !year) return;
+
+      setIsLoading(true);
+      try {
+        const response = await getVesselDeductionRegister(
+          vesselId,
+          parseInt(month),
+          parseInt(year)
         );
-      },
+        if (response.success) {
+          setAllotmentData(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching allotment data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAllotmentData();
+  }, [vesselId, month, year]);
+
+  // Format numbers to two decimal places with null checking
+  const formatNumber = (value: string | number | null | undefined) => {
+    if (value === null || value === undefined) return "0.00";
+    const numValue = typeof value === "string" ? parseFloat(value) : value;
+    return isNaN(numValue) ? "0.00" : numValue.toFixed(2);
+  };
+
+  const columns: ColumnDef<DeductionRegister>[] = [
+    {
+      accessorKey: "CrewName",
+      header: "Crew Name",
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("CrewName")}</div>
+      ),
     },
     {
-      accessorKey: "rank",
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Rank
-          </div>
-        );
-      },
+      accessorKey: "Rank",
+      header: "Rank",
     },
     {
-      accessorKey: "country",
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Country
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        const country = row.getValue("country") as string;
-        const flag = country === "Japan" ? "🇯🇵" : "🇸🇬";
-        return (
-          <div className="flex items-center gap-2">
-            <span>{flag}</span>
-            <span>{country}</span>
-          </div>
-        );
-      },
+      accessorKey: "Salary",
+      header: "Salary",
+      cell: ({ row }) => (
+        <div className="text-right">{formatNumber(row.getValue("Salary"))}</div>
+      ),
     },
     {
-      accessorKey: "signOnDate",
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Sign on date
-          </div>
-        );
-      },
+      accessorKey: "Allotment",
+      header: "Allotment",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("Allotment"))}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "Gross",
+      header: "Gross",
+      cell: ({ row }) => (
+        <div className="text-right">{formatNumber(row.getValue("Gross"))}</div>
+      ),
+    },
+    {
+      accessorKey: "Deduction",
+      header: "Deduction",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("Deduction"))}
+        </div>
+      ),
     },
     {
       id: "actions",
-      header: "Action",
+      header: "Actions",
       cell: ({ row }) => {
         const crew = row.original;
-        // Function that displays SweetAlert2 confirmation when deleting a crew member
-        const handleDelete = (vesselCode: string) => {
-          const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-              confirmButton:
-                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-              cancelButton:
-                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            },
-            buttonsStyling: false,
-          });
-
-          swalWithBootstrapButtons
-            .fire({
-              title: "Are you sure?",
-              text: "Are you sure you want to delete this crew in the crew list? This action cannot be undone.",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "Yes, delete it!",
-              cancelButtonText: "No, cancel!",
-              reverseButtons: true,
-            })
-            .then((result) => {
-              if (result.isConfirmed) {
-                // Place your delete logic here, for example, API call or state update
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The crew member has been successfully deleted.",
-                  icon: "success",
-                });
-              } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
-                  title: "Cancelled",
-                  text: "Your crew member is safe :)",
-                  icon: "error",
-                });
-              }
-            });
-        };
         return (
-          <div className="text-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedCrew(crew);
-                    setRepatriateDialogOpen(true);
-                  }}
-                >
-                  <TbShipOff />
-                  Repatriate
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedCrew(crew);
-                    setPromoteDialogOpen(true);
-                  }}
-                >
-                  <MdOutlineBadge />
-                  For Promotion
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={() => handleDelete(crew.id.toString())}
-                >
-                  <Trash className="text-red-500" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedCrew(crew);
+                  setIsDeductionDialogOpen(true);
+                }}
+              >
+                View Deduction
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },
   ];
 
-  // Filter crew based on search term
-  const filteredCrew = crewData.filter((crew) =>
-    crew.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredData = allotmentData.filter((item) =>
+    item.CrewName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -306,7 +188,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-semibold mb-0">Vessel Crew List</h1>
+          <h1 className="text-3xl font-semibold mb-0">Deduction Register</h1>
         </div>
       </div>
 
@@ -316,11 +198,9 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <div className="text-xl text-gray-500 uppercase">
-                {vesselInfo?.code || "AMAK"}
+                {vesselInfo?.code}
               </div>
-              <h2 className="text-2xl font-semibold">
-                {vesselInfo?.name || "Amakus Island"}
-              </h2>
+              <h2 className="text-2xl font-semibold">{vesselInfo?.name}</h2>
               <Badge
                 variant="secondary"
                 className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]"
@@ -331,12 +211,12 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
             <div className="text-right">
               <div className="text-lg flex items-center gap-2">
                 <Ship className="h-4 w-4" />
-                {vesselInfo?.type || "Bulk Jap, Flag"}
+                {vesselInfo?.type}
               </div>
               <Card className="p-1 bg-[#FDFDFD] mt-2">
-                <div className="text-sm  text-center">
+                <div className="text-sm text-center">
                   <p className="flex items-center justify-center font-semibold">
-                    {vesselInfo?.principalName || "Iino Marine"}
+                    {vesselInfo?.principalName}
                   </p>
                   <div className="text-gray-500 text-xs flex items-center justify-center">
                     Principal Name
@@ -359,80 +239,25 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
             />
           </div>
           <div className="flex gap-4">
-            <Button variant="outline" className="gap-2 h-11 px-5">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-            <Button
-              className="gap-2 h-11 px-5"
-              onClick={() => setSearchCrewDialogOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-              Join Crew
+            <Button className="gap-2 h-11 px-5">
+              <AiOutlinePrinter className="h-4 w-4" />
+              Print Register
             </Button>
           </div>
         </div>
 
-        {/* Crew Table */}
+        {/* Allotment Table */}
         <div className="rounded-md border pb-3">
-          <DataTable columns={columns} data={filteredCrew} pageSize={6} />
+          <DataTable columns={columns} data={filteredData} pageSize={6} />
         </div>
       </div>
 
-      <PromoteCrewDialog
-        open={promoteDialogOpen}
-        onOpenChange={setPromoteDialogOpen}
-        crewMember={
-          selectedCrew
-            ? {
-                name: selectedCrew.name,
-                rank: selectedCrew.rank,
-                signOnDate: selectedCrew.signOnDate,
-                currentVessel: vesselInfo?.name || "Atlas Island",
-              }
-            : {
-                name: "",
-                rank: "",
-                signOnDate: "",
-                currentVessel: vesselInfo?.name || "Atlas Island",
-              }
-        }
-      />
-
-      <RepatriateCrewDialog
-        open={repatriateDialogOpen}
-        onOpenChange={setRepatriateDialogOpen}
-        crewMember={
-          selectedCrew
-            ? {
-                name: selectedCrew.name,
-                rank: selectedCrew.rank,
-                signOnDate: selectedCrew.signOnDate,
-                currentVessel: vesselInfo?.name || "Atlas Island",
-              }
-            : {
-                name: "",
-                rank: "",
-                signOnDate: "",
-                currentVessel: vesselInfo?.name || "Atlas Island",
-              }
-        }
-      />
-
-      <SearchCrewDialog
-        open={searchCrewDialogOpen}
-        onOpenChange={setSearchCrewDialogOpen}
-        onCrewSelect={(crew) => {
-          setSelectedOffBoardCrew(crew);
-          setJoinCrewDialogOpen(true);
-        }}
-      />
-
-      {selectedOffBoardCrew && (
-        <JoinCrewDialog
-          open={joinCrewDialogOpen}
-          onOpenChange={setJoinCrewDialogOpen}
-          crewMember={selectedOffBoardCrew}
+      {selectedCrew && (
+        <DeductionDistributionDialog
+          open={isDeductionDialogOpen}
+          onOpenChange={setIsDeductionDialogOpen}
+          deductions={selectedCrew.Deductions}
+          crewName={selectedCrew.CrewName}
         />
       )}
     </div>

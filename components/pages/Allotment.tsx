@@ -26,6 +26,7 @@ import { TfiReload } from "react-icons/tfi";
 import { MdOutlineFileUpload } from "react-icons/md";
 
 type Payroll = {
+  vesselId: number;
   vesselName: string;
   onBoardCrew: number;
   grossAllotment: number;
@@ -70,6 +71,7 @@ export default function Allotment() {
       .then((res) => {
         if (res.success) {
           const mapped: Payroll[] = res.data.map((item) => ({
+            vesselId: item.VesselId,
             vesselName: item.VesselName,
             onBoardCrew: item.OnBoardCrew,
             grossAllotment: item.GrossAllotment,
@@ -152,12 +154,20 @@ export default function Allotment() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
               <DropdownMenuItem asChild>
-                <Link href="/home/allotment/allotment_register">
+                <Link
+                  href={`/home/allotment/allotment_register?vesselId=${row.original.vesselId}`}
+                >
                   Allotment Register
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/home/allotment/deduction_register">
+                <Link
+                  href={`/home/allotment/deduction_register?vesselId=${
+                    row.original.vesselId
+                  }&month=${parseInt(monthFilter)}&year=${parseInt(
+                    yearFilter
+                  )}`}
+                >
                   Deduction Register
                 </Link>
               </DropdownMenuItem>

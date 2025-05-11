@@ -274,7 +274,7 @@ export default function HomeLayout({
   const handleLogout = async () => {
     await logoutUser();
     localStorage.removeItem("userEmail");
-    router.push("/login");
+    router.push("/");
   };
 
   // Get breadcrumb for current path
