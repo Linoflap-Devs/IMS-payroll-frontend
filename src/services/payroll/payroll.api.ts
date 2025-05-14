@@ -80,3 +80,74 @@ export const getVesselDeductionRegister = async (vesselId: string | number, mont
   const response = await axiosInstance.get<DeductionRegisterResponse>(`/payroll/${vesselId}/deduction?month=${month}&year=${year}`);
   return response.data;
 }
+
+export interface PayslipPeriod {
+  month: number;
+  year: number;
+  startDate: string;
+  endDate: string;
+  formattedPeriod: string;
+}
+
+export interface PayrollSummary {
+  crewCount: number;
+  totalBasicWage: number;
+  totalFOT: number;
+  totalGOT: number;
+  totalDollarGross: number;
+  totalPesoGross: number;
+  totalDeductions: number;
+  totalNetAllotment: number;
+}
+
+export interface PayrollDetails {
+  basicWage: number;
+  fixedOT: number;
+  guaranteedOT: number;
+  dollarGross: number;
+  pesoGross: number;
+  totalDeduction: number;
+  netWage: number;
+}
+
+export interface AllotmentDeduction {
+  name: string;
+  currency: string;
+  amount: number;
+  forex: number;
+  dollar: number;
+}
+
+export interface AllotteeDistribution {
+  name: string;
+  amount: number;
+  currency: string | number;
+}
+
+export interface CrewPayroll {
+  crewId: number;
+  crewCode: string;
+  crewName: string;
+  rank: string;
+  payrollDetails: PayrollDetails;
+  allotmentDeductions: AllotmentDeduction[];
+  allotteeDistribution: AllotteeDistribution[];
+}
+
+export interface PayslipData {
+  vesselName: string;
+  period: PayslipPeriod;
+  summary: PayrollSummary;
+  payrolls: CrewPayroll[];
+}
+
+export interface PayslipResponse {
+  success: boolean;
+  message: string;
+  data: PayslipData;
+}
+
+export const getVesselPayslip = async (vesselId: string | number, month: number, year: number): Promise<PayslipResponse> => {
+  const response = await axiosInstance.get<PayslipResponse>(`/payroll/${vesselId}/payslip?month=${month}&year=${year}`);
+  return response.data;
+}
