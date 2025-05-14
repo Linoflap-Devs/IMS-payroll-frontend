@@ -30,7 +30,15 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
           </h2>
 
           <div className="flex items-center gap-3 mb-3 flex-wrap justify-center">
-            <div className="text-sm px-2 py-0.5 bg-green-100 text-green-800 rounded-full border-green-300 flex items-center gap-1 flex-shrink-0">
+            <div
+              className={`text-sm px-2 py-0.5 rounded-full border flex items-center gap-1 flex-shrink-0 ${
+                crew.status === "On board"
+                  ? "bg-[#EBF5E4] text-green-800 border-green-300"
+                  : crew.status === "Off board"
+                  ? "bg-[#F5ECE4] text-orange-800 border-orange-300"
+                  : "bg-gray-100 text-gray-800 border-gray-300" // Default styling if status is neither
+              }`}
+            >
               {crew.status}
             </div>
           </div>
@@ -56,7 +64,9 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
               <Ship className="h-4 w-4 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-gray-500">Current Vessel</div>
-                <div className="text-sm font-medium truncate">{crew.vessel}</div>
+                <div className="text-sm font-medium truncate">
+                  {crew.vessel}
+                </div>
               </div>
             </div>
 
@@ -82,7 +92,9 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
                 <Phone className="h-4 w-4 text-primary flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm text-gray-500">Mobile Number</div>
-                  <div className="text-sm font-medium truncate">{crew.phone}</div>
+                  <div className="text-sm font-medium truncate">
+                    {crew.phone}
+                  </div>
                 </div>
               </div>
 
@@ -90,7 +102,9 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
                 <PhoneCall className="h-4 w-4 text-primary flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm text-gray-500">Landline Number</div>
-                  <div className="text-sm font-medium truncate">{crew.landline}</div>
+                  <div className="text-sm font-medium truncate">
+                    {crew.landline}
+                  </div>
                 </div>
               </div>
 
@@ -98,7 +112,9 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
                 <Mail className="h-4 w-4 text-primary flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm text-gray-500">Email Address</div>
-                  <div className="text-sm font-medium truncate">{crew.email}</div>
+                  <div className="text-sm font-medium truncate">
+                    {crew.email}
+                  </div>
                 </div>
               </div>
             </div>

@@ -63,7 +63,7 @@ export interface CrewBasic{
   CrewCode: string;
   Birthday: string;
   MobileNo: string;
-  LandlineNo: string;
+  LandLineNo: string;
   EmailAddress: string;
 }
 

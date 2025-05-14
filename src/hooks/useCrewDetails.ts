@@ -36,10 +36,10 @@ export function useCrewDetails(crewId: string | null) {
       const mappedCrew = {
         id: crewBasic.CrewCode, 
         rank: crewBasic.Rank,   
-        status: crewBasic.CrewStatusID === 1 ? "Active" : "Inactive",
+        status: crewBasic.CrewStatusID === 1 ? "On board" : "Off board",
         email: crewBasic.EmailAddress,
         phone: crewBasic.MobileNo,
-        landline: crewBasic.LandlineNo,
+        landline: crewBasic.LandLineNo, // Fixed casing from LandlineNo to LandLineNo
         firstName: crewDetails.FirstName,
         lastName: crewDetails.LastName,
         middleName: crewDetails.MiddleName,
@@ -50,6 +50,7 @@ export function useCrewDetails(crewId: string | null) {
         city: crewDetails.City,
         province: crewDetails.Province,
         sssNumber: crewDetails.SSSNumber,
+        philhealthNumber: "", // Temporarily set to empty string until backend adds the field
         hdmfNumber: crewDetails.HDMFNumber,
         passportNumber: crewDetails.PassportNumber,
         passportIssueDate: crewDetails.PassPortIssueDate,
