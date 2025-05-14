@@ -84,37 +84,7 @@ export function HDMFUpgradeReqDialog({
           </div>
 
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-              <div className="space-y-2">
-                <label
-                  htmlFor="hdmfRequestId"
-                  className="block text-sm font-medium text-gray-500"
-                >
-                  HDMF Request ID
-                </label>
-                <Input
-                  id="hdmfRequestId"
-                  value={requestData.HDMFUpgradeRequestID}
-                  className="w-full bg-gray-50"
-                  disabled
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="targetId"
-                  className="block text-sm font-medium text-gray-500"
-                >
-                  Target ID
-                </label>
-                <Input
-                  id="targetId"
-                  value={requestData.TargetID}
-                  className="w-full bg-gray-50"
-                  disabled
-                />
-              </div>
-
+            <div className=" gap-x-6 gap-y-4">
               <div className="space-y-2">
                 <label
                   htmlFor="hdmfAmount"
@@ -125,21 +95,6 @@ export function HDMFUpgradeReqDialog({
                 <Input
                   id="hdmfAmount"
                   value={requestData.HDMFAmount}
-                  className="w-full bg-gray-50"
-                  disabled
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="dollarCurrency"
-                  className="block text-sm font-medium text-gray-500"
-                >
-                  Dollar Currency
-                </label>
-                <Input
-                  id="dollarCurrency"
-                  value={requestData.DollarCurrency}
                   className="w-full bg-gray-50"
                   disabled
                 />
