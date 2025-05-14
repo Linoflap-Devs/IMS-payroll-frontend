@@ -22,6 +22,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
 import { getPayrollList } from "@/src/services/payroll/payroll.api";
+import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
 import { TfiReload } from "react-icons/tfi";
 import { MdOutlineFileUpload } from "react-icons/md";
 
@@ -37,6 +38,7 @@ type Payroll = {
 export default function Allotment() {
   const [searchTerm, setSearchTerm] = useState("");
   const [payrollData, setPayrollData] = useState<Payroll[]>([]);
+  const [forexRate, setForexRate] = useState<number>(0); // State for Forex rate
   const [monthFilter, setMonthFilter] = useState(
     (new Date().getMonth() + 1).toString()
   );
@@ -67,6 +69,24 @@ export default function Allotment() {
   );
 
   useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const dashboardResponse = await getDashboardList();
+        if (dashboardResponse.success && dashboardResponse.data) {
+          setForexRate(dashboardResponse.data.ForexRate);
+        } else {
+          console.error(
+            "Failed to fetch dashboard data:",
+            dashboardResponse.message
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchDashboardData();
+
     getPayrollList()
       .then((res) => {
         if (res.success) {
@@ -172,7 +192,15 @@ export default function Allotment() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/home/allotment/payslip">Pay Slip</Link>
+                <Link
+                  href={`/home/allotment/payslip?vesselId=${
+                    row.original.vesselId
+                  }&month=${parseInt(monthFilter)}&year=${parseInt(
+                    yearFilter
+                  )}`}
+                >
+                  Pay Slip
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -286,7 +314,9 @@ export default function Allotment() {
             <Card className="bg-blue-800 text-white py-3">
               <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
                 <p className="text-xl pt-0">Exchange rate of USD</p>
-                <h3 className="text-3xl font-bold self-end mt-4">123.00</h3>
+                <h3 className="text-3xl font-bold self-end mt-4">
+                  {formatNumber(forexRate)}
+                </h3>
               </CardContent>
             </Card>
             <Card className="bg-blue-800 text-white py-3">

@@ -97,7 +97,8 @@ const columns: ColumnDef<CrewItem>[] = [
     header: "Status",
     cell: ({ row }) => {
       // Here, convert the CrewStatusID or map to a proper status label if needed.
-      const status = row.getValue("CrewStatusID") === 1 ? "Active" : "Inactive";
+      const status =
+        row.getValue("CrewStatusID") === 1 ? "On Board" : "Off board";
       return (
         <div className="text-center">
           <Badge
