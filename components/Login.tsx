@@ -31,8 +31,8 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters.",
+  password: z.string().min(1, {
+    message: "Password must be at least 1 character.",
   }),
 });
 
@@ -101,12 +101,21 @@ export default function Login() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm">Email Address</FormLabel>
+                      <FormLabel
+                        className={`text-sm ${
+                          errorMessage ? "text-red-600" : ""
+                        }`}>
+                        Email Address
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter email address"
                           {...field}
-                          className="h-10 text-sm"
+                          className={`h-10 text-sm  ${
+                            errorMessage
+                              ? "border-red-500 ring-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
+                              : ""
+                          }`}
                         />
                       </FormControl>
                       <div className="flex items-center gap-1">
@@ -123,13 +132,22 @@ export default function Login() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm">Password</FormLabel>
+                      <FormLabel
+                        className={`text-sm ${
+                          errorMessage ? "text-red-600" : ""
+                        }`}>
+                        Password
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="password"
                           placeholder="Enter password"
                           {...field}
-                          className="h-10 text-sm"
+                          className={`h-10 text-sm  ${
+                            errorMessage
+                              ? "border-red-500 ring-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
+                              : ""
+                          }`}
                         />
                       </FormControl>
                       <div className="flex items-center gap-1">
