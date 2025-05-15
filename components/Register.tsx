@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { PiWarningCircleLight } from "react-icons/pi";
 import {
   Card,
   CardContent,
@@ -23,11 +24,16 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
+import Link from "next/link";
 
 const formSchema = z
   .object({
-    role: z.enum(["admin", "sample1", "sample2"]),
+    lastName: z.string().min(1, {
+      message: "Last name is required.",
+    }),
+    firstName: z.string().min(1, {
+      message: "First name is required.",
+    }),
     email: z.string().email({
       message: "Please enter a valid email address.",
     }),
@@ -50,7 +56,8 @@ export default function Register() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      role: "admin",
+      lastName: "",
+      firstName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -60,7 +67,7 @@ export default function Register() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     // Simulate API call
-    console.log(values);
+    console.log(`button clicked: ${values}`);
     setTimeout(() => {
       setIsLoading(false);
       // Redirect to dashboard after successful registration
@@ -78,50 +85,55 @@ export default function Register() {
         </div>
         <div className="space-y-0">
           <div className="mb-4">
-            <p className="text-center text-gray-500 mb-4">Select a role</p>
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-0"
-              >
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Tabs
-                          defaultValue="admin"
-                          className="w-full mb-6"
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger
-                              value="admin"
-                              className="data-[state=active]:bg-[#1e2f8d] data-[state=active]:text-white"
-                            >
-                              Admin
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="sample1"
-                              className="data-[state=active]:bg-[#1e2f8d] data-[state=active]:text-white"
-                            >
-                              Sample
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="sample2"
-                              className="data-[state=active]:bg-[#1e2f8d] data-[state=active]:text-white"
-                            >
-                              Sample
-                            </TabsTrigger>
-                          </TabsList>
-                        </Tabs>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                className="space-y-0">
                 <div className="mb-10 space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">Last Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter last name"
+                            {...field}
+                            className="h-10 text-sm"
+                          />
+                        </FormControl>
+                        <div className="flex items-center gap-1">
+                          {form.formState.errors.lastName && (
+                            <PiWarningCircleLight color="red" size={20} />
+                          )}
+                          <FormMessage className="text-base" />
+                        </div>{" "}
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">First Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter first name"
+                            {...field}
+                            className="h-10 text-sm"
+                          />
+                        </FormControl>
+                        <div className="flex items-center gap-1">
+                          {form.formState.errors.firstName && (
+                            <PiWarningCircleLight color="red" size={20} />
+                          )}
+                          <FormMessage className="text-base" />
+                        </div>{" "}
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     control={form.control}
                     name="email"
@@ -135,7 +147,12 @@ export default function Register() {
                             className="h-10 text-sm"
                           />
                         </FormControl>
-                        <FormMessage className="text-base" />
+                        <div className="flex items-center gap-1">
+                          {form.formState.errors.email && (
+                            <PiWarningCircleLight color="red" size={20} />
+                          )}
+                          <FormMessage className="text-base" />
+                        </div>{" "}
                       </FormItem>
                     )}
                   />
@@ -153,7 +170,12 @@ export default function Register() {
                             className="h-10 text-sm"
                           />
                         </FormControl>
-                        <FormMessage className="text-base" />
+                        <div className="flex items-center gap-1">
+                          {form.formState.errors.password && (
+                            <PiWarningCircleLight color="red" size={20} />
+                          )}
+                          <FormMessage className="text-base" />
+                        </div>{" "}
                       </FormItem>
                     )}
                   />
@@ -173,7 +195,12 @@ export default function Register() {
                             className="h-10 text-sm"
                           />
                         </FormControl>
-                        <FormMessage className="text-base" />
+                        <div className="flex items-center gap-1">
+                          {form.formState.errors.confirmPassword && (
+                            <PiWarningCircleLight color="red" size={20} />
+                          )}
+                          <FormMessage className="text-base" />
+                        </div>{" "}
                       </FormItem>
                     )}
                   />
@@ -181,9 +208,8 @@ export default function Register() {
 
                 <Button
                   type="submit"
-                  className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 mt-4"
-                  disabled={isLoading}
-                >
+                  className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 mt-2"
+                  disabled={isLoading}>
                   {isLoading ? "Registering..." : "Register"}
                 </Button>
               </form>
@@ -192,9 +218,9 @@ export default function Register() {
 
           <p className="text-base text-center text-gray-600 mb-5">
             Already have an account?{" "}
-            <a href="/" className="text-[#1e2f8d] hover:underline">
+            <Link href="/" className="text-[#1e2f8d] hover:underline">
               Log in here
-            </a>
+            </Link>
           </p>
         </div>
       </Card>

@@ -25,6 +25,7 @@ import {
 import { Input } from "./ui/input";
 import { loginUser, LoginResponse } from "../src/services/auth/auth.api";
 import Link from "next/link";
+import { PiWarningCircleLight } from "react-icons/pi";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -108,7 +109,12 @@ export default function Login() {
                           className="h-10 text-sm"
                         />
                       </FormControl>
-                      <FormMessage className="text-base" />
+                      <div className="flex items-center gap-1">
+                        {form.formState.errors.email && (
+                          <PiWarningCircleLight color="red" size={20} />
+                        )}
+                        <FormMessage className="text-base" />
+                      </div>{" "}
                     </FormItem>
                   )}
                 />
@@ -126,7 +132,12 @@ export default function Login() {
                           className="h-10 text-sm"
                         />
                       </FormControl>
-                      <FormMessage className="text-base" />
+                      <div className="flex items-center gap-1">
+                        {form.formState.errors.password && (
+                          <PiWarningCircleLight color="red" size={20} />
+                        )}
+                        <FormMessage className="text-base" />
+                      </div>{" "}
                     </FormItem>
                   )}
                 />
@@ -141,7 +152,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 mt-4"
+                className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90"
                 disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Log in"}
               </Button>
@@ -157,9 +168,9 @@ export default function Login() {
 
             <p className="text-base text-center text-gray-600">
               Don't have an account yet?{" "}
-              <a href="/register" className="text-[#1e2f8d] hover:underline">
+              <Link href="/register" className="text-[#1e2f8d] hover:underline">
                 Register here
-              </a>
+              </Link>
             </p>
           </div>
         </div>
