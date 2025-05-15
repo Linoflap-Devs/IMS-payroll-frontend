@@ -197,7 +197,7 @@ export default function Login() {
                 <DialogHeader className="gap-3">
                   {/* <DialogTitle></DialogTitle> */}
                   <Image
-                    src="/mail-logo.png"
+                    src="/mail-logo-main.png"
                     alt="Forgot Password"
                     width={100}
                     height={100}
