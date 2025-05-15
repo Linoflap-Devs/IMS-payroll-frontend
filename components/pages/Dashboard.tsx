@@ -181,8 +181,7 @@ export default function Dashboard() {
               />
               <span
                 className="text-xs truncate max-w-[130px]"
-                title={entry.value}
-              >
+                title={entry.value}>
                 {entry.value}
               </span>
             </div>
@@ -301,7 +300,11 @@ export default function Dashboard() {
                   Total Allotment Process
                 </p>
                 <h3 className="text-xl font-bold">
-                  ₱ {dashboardData?.MonthlyAllotmentPHP.toFixed(2) ?? 0}
+                  ₱{" "}
+                  {new Intl.NumberFormat(undefined, {
+                    maximumFractionDigits: 2,
+                    minimumFractionDigits: 2,
+                  }).format(dashboardData?.MonthlyAllotmentPHP ?? 0)}
                 </h3>
               </div>
               <div className="text-blue-600">
@@ -319,7 +322,12 @@ export default function Dashboard() {
                   Total Gross Allotment
                 </p>
                 <h3 className="text-xl font-bold">
-                  ₱ {totalSalaryProcessed.toFixed(2).toLocaleString()}
+                  {/* ₱ {totalSalaryProcessed.toFixed(2).toLocaleString()}P{" "} */}
+                  ₱{" "}
+                  {new Intl.NumberFormat(undefined, {
+                    maximumFractionDigits: 2,
+                    minimumFractionDigits: 2,
+                  }).format(totalSalaryProcessed)}
                 </h3>
               </div>
               <div className="text-blue-600">
@@ -352,8 +360,7 @@ export default function Dashboard() {
                     nameKey="name"
                     innerRadius={100}
                     outerRadius={140}
-                    strokeWidth={4}
-                  >
+                    strokeWidth={4}>
                     {vesselData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
@@ -365,13 +372,11 @@ export default function Dashboard() {
                               x={viewBox.cx}
                               y={viewBox.cy}
                               textAnchor="middle"
-                              dominantBaseline="middle"
-                            >
+                              dominantBaseline="middle">
                               <tspan
                                 x={viewBox.cx}
                                 y={viewBox.cy}
-                                className="fill-foreground text-2xl font-bold"
-                              >
+                                className="fill-foreground text-2xl font-bold">
                                 {totalVesselAllotment.toLocaleString()}
                               </tspan>
                             </text>
@@ -396,7 +401,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="pb-1 p-3">
             <CardTitle className="text-base">
-              Total Salary Processed ($)
+              Total Salary Processed (₱)
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
@@ -410,16 +415,14 @@ export default function Dashboard() {
                     right: 12,
                     top: 10,
                     bottom: 0,
-                  }}
-                >
+                  }}>
                   <defs>
                     <linearGradient
                       id="colorDesktop"
                       x1="0"
                       y1="0"
                       x2="0"
-                      y2="1"
-                    >
+                      y2="1">
                       <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.8} />
                       <stop
                         offset="95%"
@@ -440,7 +443,7 @@ export default function Dashboard() {
                     axisLine={false}
                     tickLine={false}
                     tickMargin={4}
-                    tickFormatter={(value) => `$${value.toLocaleString()}`}
+                    tickFormatter={(value) => `₱${value.toLocaleString()}`}
                     style={{ fontSize: "12px" }}
                   />
                   <ChartTooltip
