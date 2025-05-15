@@ -27,6 +27,17 @@ import { loginUser, LoginResponse } from "../src/services/auth/auth.api";
 import Link from "next/link";
 import { PiWarningCircleLight } from "react-icons/pi";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { DialogClose } from "@radix-ui/react-dialog";
+import Image from "next/image";
+
 const formSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
@@ -178,11 +189,34 @@ export default function Login() {
           </Form>
 
           <div className="flex items-center justify-center mt-4 flex-col gap-20">
-            <Link
-              className="text-base text-center text-[#1e2f8d] hover:underline"
-              href="/forgot-password">
-              Forgot password?
-            </Link>
+            <Dialog>
+              <DialogTrigger className="text-base text-center text-[#1e2f8d] hover:underline">
+                Forgot password?
+              </DialogTrigger>
+              <DialogContent className="p-13 [&>button:last-child]:hidden">
+                <DialogHeader className="gap-3">
+                  {/* <DialogTitle>Are you absolutely sure?</DialogTitle> */}
+                  <Image
+                    src="/mail-logo.png"
+                    alt="Forgot Password"
+                    width={100}
+                    height={100}
+                    className="mx-auto"
+                  />
+                  <DialogDescription className="text-md text-center text-[#1e2f8d]">
+                    To reset your password, please send a request to the
+                    administrator at admin@gmail.com.
+                  </DialogDescription>
+                  <DialogClose>
+                    <Button
+                      variant="outline"
+                      className="py-5 px-18 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white">
+                      Okay
+                    </Button>
+                  </DialogClose>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
 
             <p className="text-base text-center text-gray-600">
               Don't have an account yet?{" "}
