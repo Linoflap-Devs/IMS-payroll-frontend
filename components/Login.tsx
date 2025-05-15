@@ -193,9 +193,9 @@ export default function Login() {
               <DialogTrigger className="text-base text-center text-[#1e2f8d] hover:underline">
                 Forgot password?
               </DialogTrigger>
-              <DialogContent className="p-13 [&>button:last-child]:hidden">
+              <DialogContent className="p-12 [&>button:last-child]:hidden">
                 <DialogHeader className="gap-3">
-                  {/* <DialogTitle>Are you absolutely sure?</DialogTitle> */}
+                  {/* <DialogTitle></DialogTitle> */}
                   <Image
                     src="/mail-logo.png"
                     alt="Forgot Password"
@@ -203,18 +203,20 @@ export default function Login() {
                     height={100}
                     className="mx-auto"
                   />
-                  <DialogDescription className="text-md text-center text-[#1e2f8d]">
+                  <DialogTitle className="text-md text-center text-[#1e2f8d]/90">
                     To reset your password, please send a request to the
                     administrator at admin@gmail.com.
-                  </DialogDescription>
-                  <DialogClose>
+                  </DialogTitle>
+                </DialogHeader>
+                <DialogClose asChild>
+                  <div className="flex items-center justify-center">
                     <Button
                       variant="outline"
-                      className="py-5 px-18 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white">
+                      className="py-5 px-20 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white">
                       Okay
                     </Button>
-                  </DialogClose>
-                </DialogHeader>
+                  </div>
+                </DialogClose>
               </DialogContent>
             </Dialog>
 
