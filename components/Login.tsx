@@ -24,6 +24,7 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { loginUser, LoginResponse } from "../src/services/auth/auth.api";
+import Link from "next/link";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -85,7 +86,7 @@ export default function Login() {
   return (
     <div className="w-[550px] px-6">
       <Card className="w-full p-14 bg-[#FDFDFD] shadow-[2px_2px_25%_#C1BAD840] rounded-xl border-0">
-        <div className="mb-4 mt-12">
+        <div className="mb-4">
           <h2 className="flex justify-center text-4xl font-semibold text-[#1F279C] mb-2">
             Log in
           </h2>
@@ -93,7 +94,7 @@ export default function Login() {
         <div className="space-y-5">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              <div className="mb-28 space-y-5">
+              <div className="mb-22 space-y-5">
                 <FormField
                   control={form.control}
                   name="email"
@@ -141,18 +142,26 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 mt-4"
-                disabled={isLoading}
-              >
+                disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Log in"}
               </Button>
             </form>
           </Form>
-          <p className="text-base text-center text-gray-600 mb-20">
-            Don't have an account yet?{" "}
-            <a href="/register" className="text-[#1e2f8d] hover:underline">
-              Register here
-            </a>
-          </p>
+
+          <div className="flex items-center justify-center mt-4 flex-col gap-20">
+            <Link
+              className="text-base text-center text-[#1e2f8d] hover:underline"
+              href="/forgot-password">
+              Forgot password?
+            </Link>
+
+            <p className="text-base text-center text-gray-600">
+              Don't have an account yet?{" "}
+              <a href="/register" className="text-[#1e2f8d] hover:underline">
+                Register here
+              </a>
+            </p>
+          </div>
         </div>
       </Card>
     </div>
