@@ -267,7 +267,7 @@ export default function DeductionEntries() {
               vessel: crewVessel || "",
               crewCode: decodedCrewCode,
               mobileNo: data.MobileNo,
-              landlineNo: data.LandlineNo,
+              landlineNo: data.LandLineNo,
               emailAddress: data.EmailAddress,
               birthday: data.Birthday,
             });
