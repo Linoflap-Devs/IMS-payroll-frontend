@@ -62,7 +62,6 @@ export default function AddCrew() {
 
   // Add form state
   const [formData, setFormData] = useState({
-    crewName: "",
     rank: "",
     status: "",
     crewCode: "",
@@ -442,8 +441,7 @@ export default function AddCrew() {
                   onClick={
                     activeTab === "details" ? handleCancel : handlePrevious
                   }
-                  className="px-4"
-                >
+                  className="px-4">
                   {activeTab === "details" ? (
                     <>
                       <X className="w-4 h-4 mr-2" />
@@ -548,8 +546,7 @@ export default function AddCrew() {
                           value={formData.rank}
                           onValueChange={(value) =>
                             handleInputChange("rank", value)
-                          }
-                        >
+                          }>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select a rank" />
                           </SelectTrigger>
@@ -566,8 +563,7 @@ export default function AddCrew() {
                               filteredRanks.map((rank) => (
                                 <SelectItem
                                   key={rank.RankID}
-                                  value={rank.RankID.toString()}
-                                >
+                                  value={rank.RankID.toString()}>
                                   {rank.RankName}
                                 </SelectItem>
                               ))
@@ -663,15 +659,13 @@ export default function AddCrew() {
                   defaultValue={activeTab}
                   value={activeTab}
                   onValueChange={handleTabChange}
-                  className="w-full flex flex-col h-full"
-                >
+                  className="w-full flex flex-col h-full">
                   <div className="border-b">
                     <div className="px-4">
                       <TabsList className="bg-transparent p-0 h-11 w-full flex justify-between space-x-0">
                         <TabsTrigger
                           value="details"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
-                        >
+                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none">
                           {completedTabs.includes("details") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
                               <Check className="h-5 w-5 text-primary" />
@@ -681,8 +675,7 @@ export default function AddCrew() {
                         </TabsTrigger>
                         <TabsTrigger
                           value="movement"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
-                        >
+                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none">
                           {completedTabs.includes("movement") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
                               <Check className="h-5 w-5 text-primary" />
@@ -692,8 +685,7 @@ export default function AddCrew() {
                         </TabsTrigger>
                         <TabsTrigger
                           value="travel"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
-                        >
+                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none">
                           {completedTabs.includes("travel") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
                               <Check className="h-5 w-5 text-primary" />
@@ -703,8 +695,7 @@ export default function AddCrew() {
                         </TabsTrigger>
                         <TabsTrigger
                           value="summary"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
-                        >
+                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none">
                           {completedTabs.includes("summary") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
                               <Check className="h-5 w-5 text-primary" />
@@ -725,8 +716,7 @@ export default function AddCrew() {
 
                   <TabsContent
                     value="details"
-                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
-                  >
+                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
                     <div className="space-y-8">
                       {/* Personal Information Section */}
                       <div>
@@ -778,8 +768,7 @@ export default function AddCrew() {
                               value={formData.maritalStatus}
                               onValueChange={(value) =>
                                 handleInputChange("maritalStatus", value)
-                              }
-                            >
+                              }>
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
@@ -797,8 +786,7 @@ export default function AddCrew() {
                               value={formData.sex}
                               onValueChange={(value) =>
                                 handleInputChange("sex", value)
-                              }
-                            >
+                              }>
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
@@ -831,8 +819,7 @@ export default function AddCrew() {
                               value={formData.province}
                               onValueChange={(value) =>
                                 handleInputChange("province", value)
-                              }
-                            >
+                              }>
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select a province" />
                               </SelectTrigger>
@@ -855,8 +842,7 @@ export default function AddCrew() {
                                   filteredProvinces.map((province) => (
                                     <SelectItem
                                       key={province.ProvinceID}
-                                      value={province.ProvinceID.toString()}
-                                    >
+                                      value={province.ProvinceID.toString()}>
                                       {province.ProvinceName}
                                     </SelectItem>
                                   ))
@@ -876,8 +862,7 @@ export default function AddCrew() {
                               value={formData.city}
                               onValueChange={(value) =>
                                 handleInputChange("city", value)
-                              }
-                            >
+                              }>
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select a city" />
                               </SelectTrigger>
@@ -900,8 +885,7 @@ export default function AddCrew() {
                                   filteredCities.map((city) => (
                                     <SelectItem
                                       key={city.CityID}
-                                      value={city.CityID.toString()}
-                                    >
+                                      value={city.CityID.toString()}>
                                       {city.CityName}
                                     </SelectItem>
                                   ))
@@ -923,8 +907,7 @@ export default function AddCrew() {
 
                   <TabsContent
                     value="movement"
-                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
-                  >
+                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
                     <div className="space-y-8">
                       {/* Government IDs Section */}
                       <div>
@@ -990,8 +973,7 @@ export default function AddCrew() {
 
                   <TabsContent
                     value="travel"
-                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
-                  >
+                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
                     <div className="space-y-8">
                       {/* Travel Documents Section */}
                       <div>
@@ -1106,8 +1088,7 @@ export default function AddCrew() {
                   {/* Add Summary Tab Content */}
                   <TabsContent
                     value="summary"
-                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
-                  >
+                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
                     <div className="space-y-8">
                       {/* Personal Information Summary */}
                       <div>

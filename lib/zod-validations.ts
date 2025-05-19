@@ -4,6 +4,7 @@ export const addCrewSchema = z.object({
     crewCode: z.string().min(1),
     rank: z.coerce.number(),
     vessel: z.optional(z.coerce.number()),
+    status: z.coerce.number(),
     mobileNumber: z.string().min(10).max(11),
     landlineNumber: z.string().min(7).max(11).optional().or(z.literal('')),
     emailAddress: z.string().email(),
