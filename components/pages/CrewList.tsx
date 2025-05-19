@@ -105,8 +105,7 @@ const columns: ColumnDef<CrewItem>[] = [
             variant="outline"
             className={`mx-auto justify-center text-xs sm:text-sm font-medium px-2 sm:px-2.5 py-0.5 flex items-center gap-1.5 sm:gap-2 w-24 sm:w-28 ${getStatusBgColor(
               status
-            )}`}
-          >
+            )}`}>
             {status}
           </Badge>
         </div>
@@ -126,8 +125,7 @@ const columns: ColumnDef<CrewItem>[] = [
             variant="outline"
             className={`mx-auto justify-center text-xs sm:text-sm font-medium px-2 sm:px-2.5 py-0.5 flex items-center gap-1.5 sm:gap-2 w-24 sm:w-28 ${getStatusBgColor(
               validation
-            )}`}
-          >
+            )}`}>
             {validation}
           </Badge>
         </div>
@@ -197,24 +195,21 @@ const columns: ColumnDef<CrewItem>[] = [
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="text-xs sm:text-sm">
                 <Link
-                  href={`/home/crew/details?id=${crew.CrewCode}&tab=movement`}
-                >
+                  href={`/home/crew/details?id=${crew.CrewCode}&tab=movement`}>
                   <FolderClock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   View Crew Movement
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="text-xs sm:text-sm">
                 <Link
-                  href={`/home/crew/details?id=${crew.CrewCode}&tab=allottee`}
-                >
+                  href={`/home/crew/details?id=${crew.CrewCode}&tab=allottee`}>
                   <Users className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   View Allottee
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="text-xs sm:text-sm">
                 <Link
-                  href={`/home/crew/details?id=${crew.CrewCode}&tab=validation`}
-                >
+                  href={`/home/crew/details?id=${crew.CrewCode}&tab=validation`}>
                   <Users className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   View Account Validation
                 </Link>
@@ -222,8 +217,7 @@ const columns: ColumnDef<CrewItem>[] = [
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => handleDelete(crew.CrewCode)}
-                className="text-destructive text-xs sm:text-sm cursor-pointer"
-              >
+                className="text-destructive text-xs sm:text-sm cursor-pointer">
                 <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 Delete
               </DropdownMenuItem>
@@ -253,7 +247,9 @@ export default function CrewList() {
     const matchesSearch =
       crew.FirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crew.LastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      crew.CrewCode.toLowerCase().includes(searchTerm.toLowerCase());
+      crew.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      crew.Rank.toLowerCase().includes(searchTerm.toLowerCase());
+
 
     const matchesStatus =
       statusFilter === "all" ||
@@ -335,8 +331,7 @@ export default function CrewList() {
               </Select>
               <Select
                 value={validationFilter}
-                onValueChange={setValidationFilter}
-              >
+                onValueChange={setValidationFilter}>
                 <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                   <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
                   <SelectValue placeholder="Filter by validation" />
@@ -351,8 +346,7 @@ export default function CrewList() {
               <Link href="/home/crew/add-crew">
                 <Button
                   className="whitespace-nowrap h-9 sm:h-10 px-5 sm:px-7 text-xs sm:text-sm w-full sm:w-auto"
-                  size="default"
-                >
+                  size="default">
                   <Plus className="mr-3 sm:mr-5 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                   <p className="mr-4">Add Crew</p>
                 </Button>
