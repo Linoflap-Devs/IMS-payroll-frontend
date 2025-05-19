@@ -80,8 +80,7 @@ export function DataTable<TData, TValue>({
                     return (
                       <TableHead
                         key={header.id}
-                        className="font-semibold text-xs sm:text-sm py-3 sm:py-4 text-center whitespace-nowrap"
-                      >
+                        className="font-semibold text-xs sm:text-sm py-3 sm:py-4 text-center whitespace-nowrap">
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -101,13 +100,11 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="h-12 sm:h-14 hover:bg-muted/20"
-                >
+                  className="h-12 sm:h-14 hover:bg-muted/20">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="py-2 sm:py-3 text-center"
-                    >
+                      className="py-2 sm:py-3 text-center">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -120,8 +117,7 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-20 sm:h-24 text-center text-xs sm:text-sm"
-                >
+                  className="h-20 sm:h-24 text-center text-xs sm:text-sm">
                   No results found.
                 </TableCell>
               </TableRow>

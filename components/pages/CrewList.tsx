@@ -28,6 +28,7 @@ import {
   IdCard,
   FolderClock,
   Users,
+  ArrowUpDown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -61,7 +62,16 @@ const getStatusBgColor = (status: string) => {
 const columns: ColumnDef<CrewItem>[] = [
   {
     accessorKey: "CrewCode",
-    header: "Crew Code",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Crew Code
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="font-medium text-xs sm:text-sm text-center">
         {(row.getValue("CrewCode") as string).trim()}
@@ -70,7 +80,16 @@ const columns: ColumnDef<CrewItem>[] = [
   },
   {
     accessorKey: "FirstName",
-    header: "Crew Name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Crew Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const firstName = row.original.FirstName || "";
       const middleName = row.original.MiddleName || "";
@@ -85,7 +104,16 @@ const columns: ColumnDef<CrewItem>[] = [
   },
   {
     accessorKey: "RankID",
-    header: "Rank",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Rank
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="text-xs sm:text-sm text-center">
         {row.original.Rank || row.getValue("RankID")}
@@ -249,7 +277,6 @@ export default function CrewList() {
       crew.LastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crew.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crew.Rank.toLowerCase().includes(searchTerm.toLowerCase());
-
 
     const matchesStatus =
       statusFilter === "all" ||
