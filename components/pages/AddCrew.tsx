@@ -63,7 +63,6 @@ export default function AddCrew() {
   // Add form state
   const [formData, setFormData] = useState({
     rank: "",
-    status: "",
     crewCode: "",
     currentVessel: "",
     mobileNumber: "",
