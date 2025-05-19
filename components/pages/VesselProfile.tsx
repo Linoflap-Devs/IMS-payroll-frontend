@@ -393,6 +393,25 @@ export default function VesselProfile() {
         <div className="text-justify">{row.getValue("principalName")}</div>
       ),
     },
+    {
+      accessorKey: "status",
+      header: ({ column }) => <div className="text-justify">Status</div>,
+      cell: ({ row }) => {
+        const statusRow = row.getValue("status");
+        return (
+          <div className="text-justify">
+            <Badge
+              className={`text-xs sm:text-sm w-full rounded-full bg-[#E7F0F9] text-[#1F279C]/90 ${
+                statusRow === "Active"
+                  ? "bg-[#E7F0F9] text-[#1F279C]/90"
+                  : "bg-red-500/20 text-red-800"
+              }`}>
+              {statusRow}
+            </Badge>
+          </div>
+        );
+      },
+    },
 
     {
       id: "actions",
@@ -461,8 +480,7 @@ export default function VesselProfile() {
                 onClick={() => {
                   setSelectedVessel(vessel);
                   setEditVesselDialogOpen(true);
-                }}
-              >
+                }}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit Vessel
               </DropdownMenuItem>
@@ -474,8 +492,7 @@ export default function VesselProfile() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive"
-                onClick={() => handleDelete(vessel)}
-              >
+                onClick={() => handleDelete(vessel)}>
                 <Trash className="mr-2 h-4 w-4" /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -523,16 +540,14 @@ export default function VesselProfile() {
                   onClick={() => {
                     setSelectedVesselType(vesselType);
                     setEditVesselTypeDialogOpen(true);
-                  }}
-                >
+                  }}>
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit Vessel Type
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleVesselTypeDelete(vesselType)}
-                >
+                  onClick={() => handleVesselTypeDelete(vesselType)}>
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
                 </DropdownMenuItem>
@@ -586,16 +601,14 @@ export default function VesselProfile() {
                   onClick={() => {
                     setSelectedVesselPrincipal(vesselPrincipal);
                     setEditVesselPrincipalDialogOpen(true);
-                  }}
-                >
+                  }}>
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit Vessel Principal
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleVesselPrincipalDelete(vesselPrincipal)}
-                >
+                  onClick={() => handleVesselPrincipalDelete(vesselPrincipal)}>
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
                 </DropdownMenuItem>
@@ -681,27 +694,23 @@ export default function VesselProfile() {
               defaultValue={activeTab}
               value={activeTab}
               onValueChange={handleTabChange}
-              className="w-full flex flex-col h-full"
-            >
+              className="w-full flex flex-col h-full">
               <div className="border-b">
                 <div className="px-4 pt-1">
                   <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
                     <TabsTrigger
                       value="vessel"
-                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                    >
+                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                       Vessel
                     </TabsTrigger>
                     <TabsTrigger
                       value="vessel-type"
-                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                    >
+                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                       Vessel Type
                     </TabsTrigger>
                     <TabsTrigger
                       value="vessel-principal"
-                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                    >
+                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                       Vessel Principal
                     </TabsTrigger>
                     {/* <TabsTrigger
@@ -716,8 +725,7 @@ export default function VesselProfile() {
 
               <TabsContent
                 value="vessel"
-                className="p-2 mt-0 overflow-y-auto flex-1"
-              >
+                className="p-2 mt-0 overflow-y-auto flex-1">
                 <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                   {/* Search and Filters */}
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
@@ -734,8 +742,7 @@ export default function VesselProfile() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                       <Select
                         value={statusFilter}
-                        onValueChange={setStatusFilter}
-                      >
+                        onValueChange={setStatusFilter}>
                         <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                           <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
                           <SelectValue placeholder="Filter by status" />
@@ -750,8 +757,7 @@ export default function VesselProfile() {
                       <Button
                         className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
                         size="default"
-                        onClick={() => setAddVesselDialogOpen(true)}
-                      >
+                        onClick={() => setAddVesselDialogOpen(true)}>
                         <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                         Add Vessel
                       </Button>
@@ -770,8 +776,7 @@ export default function VesselProfile() {
 
               <TabsContent
                 value="vessel-type"
-                className="p-2 mt-0 overflow-y-auto flex-1"
-              >
+                className="p-2 mt-0 overflow-y-auto flex-1">
                 <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                   {/* Search and Filters */}
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
@@ -789,8 +794,7 @@ export default function VesselProfile() {
                       <Button
                         className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
                         size="default"
-                        onClick={() => setAddVesselTypeDialogOpen(true)}
-                      >
+                        onClick={() => setAddVesselTypeDialogOpen(true)}>
                         <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                         Add Vessel Type
                       </Button>
@@ -809,8 +813,7 @@ export default function VesselProfile() {
 
               <TabsContent
                 value="vessel-principal"
-                className="p-2 mt-0 overflow-y-auto flex-1"
-              >
+                className="p-2 mt-0 overflow-y-auto flex-1">
                 <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                   {/* Search and Filters */}
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
@@ -828,8 +831,7 @@ export default function VesselProfile() {
                       <Button
                         className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
                         size="default"
-                        onClick={() => setAddVesselPrincipalDialogOpen(true)}
-                      >
+                        onClick={() => setAddVesselPrincipalDialogOpen(true)}>
                         <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                         Add Vessel Principal
                       </Button>
