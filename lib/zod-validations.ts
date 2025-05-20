@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 export const addCrewSchema = z.object({
+    
     crewCode: z.string().min(1),
     rank: z.coerce.number(),
     vessel: z.optional(z.coerce.number()),

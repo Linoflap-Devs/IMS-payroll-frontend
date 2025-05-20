@@ -397,7 +397,7 @@ export default function VesselProfile() {
       accessorKey: "status",
       header: ({ column }) => <div className="text-justify">Status</div>,
       cell: ({ row }) => {
-        const statusRow = row.getValue("status");
+        const statusRow = row.getValue("status") as string;
         return (
           <div className="text-justify">
             <Badge
