@@ -166,6 +166,34 @@ export interface AddCrewDataForm {
   crewPhoto?: File; // Optional file upload
 }
 
+export interface UpdateCrewDataForm {
+  crewCode?: string;
+  rank?: string; // Backend's Zod schema: z.coerce.number()
+  vessel?: string; // Backend's Zod schema: z.optional(z.coerce.number())
+  mobileNumber?: string;
+  landlineNumber?: string;
+  emailAddress?: string;
+  lastName?: string;
+  firstName?: string;
+  middleName?: string;
+  sex?: string; // Backend's Zod schema: z.string().min(1).max(6) (e.g., "Male", "Female", or string "0", "1")
+  maritalStatus?: string; // Backend's Zod schema: z.optional(z.coerce.number())
+  dateOfBirth?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  city?: string; // Backend's Zod schema: z.string().min(2).max(50)
+  province?: string; // Backend's Zod schema: z.string().min(2).max(50)
+  sssNumber?: string;
+  tinNumber?: string;
+  philhealthNumber?: string;
+  hdmfNumber?: string;
+  passportNumber?: string;
+  passportIssueDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  passportExpiryDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  seamanBookNumber?: string;
+  seamanBookIssueDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  seamanBookExpiryDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  crewPhoto?: File; // Optional file upload
+}
+
 export interface AddCrewSuccessData {
   CrewID: number;
   FirstName: string;
@@ -179,9 +207,8 @@ export interface AddCrewResponse {
   data?: AddCrewSuccessData | any[]; // any[] to accommodate `data: []` in error responses from controller
 }
 
-export interface DeleteCrewResponse extends AddCrewResponse {
 
-}
+
 
 export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewResponse> => {
   const formData = new FormData();
@@ -232,7 +259,12 @@ export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewRespons
   return response.data;
 };
 
-export const deleteCrew = async (crewCode: string): Promise<DeleteCrewResponse> => {
-  const response = await axiosInstance.delete<DeleteCrewResponse>(`/crew/${crewCode}`);
+export const deleteCrew = async (crewCode: string): Promise<AddCrewResponse> => {
+  const response = await axiosInstance.delete<AddCrewResponse>(`/crew/${crewCode}`);
+  return response.data;
+}
+
+export const updateCrew = async (crewCode: string, crewData: UpdateCrewDataForm): Promise<AddCrewResponse> => {
+  const response = await axiosInstance.patch<AddCrewResponse>(`/crew/${crewCode}`, crewData);
   return response.data;
 }
