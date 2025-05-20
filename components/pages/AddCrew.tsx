@@ -610,17 +610,18 @@ export default function AddCrew() {
                           onChange={(e) =>
                             handleInputChange("currentVessel", e.target.value)
                           }
-                          className={`h-8 mt-1 text-sm ${
-                            submitted && formData.currentVessel.length == 0
-                              ? "border-red-500 focus:!ring-red-500/50"
-                              : ""
-                          }`}
+                          className="h-8 text-sm"
+                          // className={`h-8 mt-1 text-sm ${
+                          //   submitted && formData.currentVessel.length == 0
+                          //     ? "border-red-500 focus:!ring-red-500/50"
+                          //     : ""
+                          // }`}
                         />
-                        {submitted && formData.currentVessel.length == 0 && (
+                        {/* {submitted && formData.currentVessel.length == 0 && (
                           <p className="text-red-500 text-sm">
                             Please enter a vessel.
                           </p>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </div>
