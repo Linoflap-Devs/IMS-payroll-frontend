@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";
-import { CrewItem } from "../../src/services/crew/crew.api";
+import { CrewItem, deleteCrew } from "../../src/services/crew/crew.api";
 
 // Function to convert status or account validation value to a badge style
 const getStatusBgColor = (status: string) => {
@@ -166,7 +166,7 @@ const columns: ColumnDef<CrewItem>[] = [
     cell: ({ row }) => {
       const crew = row.original;
 
-      const handleDelete = (crewId: string) => {
+      const handleDelete = async (crewId: string) => {
         const swalWithBootstrapButtons = Swal.mixin({
           customClass: {
             confirmButton:
@@ -187,14 +187,31 @@ const columns: ColumnDef<CrewItem>[] = [
             cancelButtonText: "No, cancel!",
             reverseButtons: true,
           })
-          .then((result) => {
+          .then(async (result) => {
             if (result.isConfirmed) {
               // Place your delete logic here, e.g. API call or state update
-              swalWithBootstrapButtons.fire({
-                title: "Deleted!",
-                text: "The crew has been successfully deleted.",
-                icon: "success",
-              });
+
+              try {
+                // Delete the crew member
+                await deleteCrew(crewId);
+
+                // Refresh the crew list after successful deletion
+
+                useCrewStore.getState().fetchCrews();
+
+                swalWithBootstrapButtons.fire({
+                  title: "Deleted!",
+                  text: "The crew has been successfully deleted.",
+                  icon: "success",
+                });
+              } catch (error) {
+                console.error("Error deleting crew:", error);
+                swalWithBootstrapButtons.fire({
+                  title: "Error!",
+                  text: "There was an error deleting the crew member.",
+                  icon: "error",
+                });
+              }
             } else if (result.dismiss === Swal.DismissReason.cancel) {
               swalWithBootstrapButtons.fire({
                 title: "Cancelled",

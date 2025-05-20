@@ -6,9 +6,9 @@ export interface CrewItem {
   FirstName: string;
   MiddleName: string;
   RankID: number;
-  Rank: string;  
+  Rank: string;
   CrewStatusID: number;
-  AccountValidation: string | null;  
+  AccountValidation: string | null;
   IsActive: number;
 }
 
@@ -40,7 +40,7 @@ export interface CrewDetails {
   SRIBNumber: string;
   SRIBIssueDate: string;
   SRIBExpiredDate: string;
-  
+
 }
 
 export interface CrewDetailsResponse {
@@ -54,7 +54,7 @@ export const getCrewDetails = async (crewCode: string): Promise<CrewDetailsRespo
   return response.data;
 };
 
-export interface CrewBasic{
+export interface CrewBasic {
   FirstName: string;
   MiddleName: string;
   LastName: string;
@@ -121,7 +121,7 @@ export const getCrewAllottee = async (crewCode: string): Promise<CrewAllotteeRes
 }
 
 
-export interface CrewRankItem{
+export interface CrewRankItem {
   RankID: number;
   RankCode: string;
   RankName: string;
@@ -179,6 +179,10 @@ export interface AddCrewResponse {
   data?: AddCrewSuccessData | any[]; // any[] to accommodate `data: []` in error responses from controller
 }
 
+export interface DeleteCrewResponse extends AddCrewResponse {
+
+}
+
 export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewResponse> => {
   const formData = new FormData();
 
@@ -217,7 +221,7 @@ export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewRespons
   appendIfExists("seamanBookNumber", crewData.seamanBookNumber);
   appendIfExists("seamanBookIssueDate", crewData.seamanBookIssueDate);
   appendIfExists("seamanBookExpiryDate", crewData.seamanBookExpiryDate);
-  
+
   if (crewData.crewPhoto) {
     formData.append("crewPhoto", crewData.crewPhoto);
   }
@@ -227,3 +231,8 @@ export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewRespons
   const response = await axiosInstance.post<AddCrewResponse>("/crew/", formData);
   return response.data;
 };
+
+export const deleteCrew = async (crewCode: string): Promise<DeleteCrewResponse> => {
+  const response = await axiosInstance.delete<DeleteCrewResponse>(`/crew/${crewCode}`);
+  return response.data;
+}
