@@ -60,6 +60,9 @@ export default function AddCrew() {
     }
   };
 
+  const [fieldsError, setFieldsError] = useState<boolean>(false);
+  const [submitted, setSubmitted] = useState<boolean>(false);
+
   // Add form state
   const [formData, setFormData] = useState({
     rank: "",
@@ -148,6 +151,7 @@ export default function AddCrew() {
   // Handle form submission
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setSubmitted(true);
 
     // ** Client-side validation (Basic example - enhance as needed) **
     const requiredFields: (keyof typeof formData)[] = [
@@ -520,33 +524,48 @@ export default function AddCrew() {
                       accept="image/*,.jpeg,.jpg,.png" // Specify accepted image types
                       onChange={handleFileChange}
                     />
+                    {/* <p className="text-red-400 text-sm">image is optional</p> */}
                   </div>
 
-                  <div className="w-full space-y-3 text-left min-w-0">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-gray-500">
-                          Enter CrewCode
-                        </div>
-                        <Input
-                          value={formData.crewCode}
-                          onChange={(e) =>
-                            handleInputChange("crewCode", e.target.value)
-                          }
-                          className="h-8 mt-1 text-sm"
-                        />
-                      </div>
+                  <div className="w-full space-y-2 text-left min-w-0">
+                    <div className="flex flex-col items-start">
+                      <label
+                        htmlFor="crewCode"
+                        className="text-sm text-gray-500">
+                        Enter CrewCode
+                      </label>
+                      <Input
+                        value={formData.crewCode}
+                        onChange={(e) =>
+                          handleInputChange("crewCode", e.target.value)
+                        }
+                        className={`h-8 mt-1 text-sm ${
+                          submitted && formData.crewCode.length == 0
+                            ? "border-red-500 focus:!ring-red-500/50"
+                            : ""
+                        }`}
+                      />
+                      {submitted && formData.crewCode.length == 0 && (
+                        <p className="text-red-500 text-sm">
+                          Please enter a valid crew code.
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-gray-500">Rank</div>
+                      <div className="flex flex-col items-start flex-1 min-w-0">
+                        <label className="text-sm text-gray-500">Rank</label>
                         <Select
                           value={formData.rank}
                           onValueChange={(value) =>
                             handleInputChange("rank", value)
                           }>
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger
+                            className={`w-full ${
+                              submitted && formData.rank.length == 0
+                                ? "border-red-500 focus:!ring-red-500/60"
+                                : ""
+                            }`}>
                             <SelectValue placeholder="Select a rank" />
                           </SelectTrigger>
                           <SelectContent className="max-h-80">
@@ -573,21 +592,35 @@ export default function AddCrew() {
                             )}
                           </SelectContent>
                         </Select>
+                        {submitted && formData.rank.length == 0 && (
+                          <p className="text-red-500 text-sm">
+                            Please enter a rank.
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-gray-500">
+                      <div className="flex flex-col items-start flex-1 min-w-0">
+                        <label className="text-sm text-gray-500">
                           Current Vessel
-                        </div>
+                        </label>
                         <Input
                           value={formData.currentVessel}
                           onChange={(e) =>
                             handleInputChange("currentVessel", e.target.value)
                           }
-                          className="h-8 mt-1 text-sm"
+                          className={`h-8 mt-1 text-sm ${
+                            submitted && formData.currentVessel.length == 0
+                              ? "border-red-500 focus:!ring-red-500/50"
+                              : ""
+                          }`}
                         />
+                        {submitted && formData.currentVessel.length == 0 && (
+                          <p className="text-red-500 text-sm">
+                            Please enter a vessel.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -598,52 +631,69 @@ export default function AddCrew() {
                     </h3>
 
                     <div className="space-y-3 text-left">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-gray-500">
-                            Mobile Number
-                          </div>
-                          <Input
-                            value={formData.mobileNumber}
-                            onChange={(e) =>
-                              handleInputChange("mobileNumber", e.target.value)
-                            }
-                            className="h-8 mt-1 text-sm"
-                          />
+                      <div className="flex flex-col items-start">
+                        <div className="text-sm text-gray-500">
+                          Mobile Number
                         </div>
+                        <Input
+                          value={formData.mobileNumber}
+                          onChange={(e) =>
+                            handleInputChange("mobileNumber", e.target.value)
+                          }
+                          className={`h-8 text-sm ${
+                            submitted && formData.mobileNumber.length == 0
+                              ? "border-red-500 focus:!ring-red-500/50"
+                              : ""
+                          }`}
+                        />
+                        {submitted && formData.mobileNumber.length == 0 && (
+                          <p className="text-red-500 text-sm">
+                            Please enter a valid mobile number.
+                          </p>
+                        )}
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-gray-500">
-                            Landline Number
-                          </div>
-                          <Input
-                            value={formData.landlineNumber}
-                            onChange={(e) =>
-                              handleInputChange(
-                                "landlineNumber",
-                                e.target.value
-                              )
-                            }
-                            className="h-8 mt-1 text-sm"
-                          />
-                        </div>
+                      <div className="flex flex-col items-start">
+                        <label className="text-sm text-gray-500">
+                          Landline Number
+                        </label>
+                        <Input
+                          value={formData.landlineNumber}
+                          onChange={(e) =>
+                            handleInputChange("landlineNumber", e.target.value)
+                          }
+                          // className={`h-8 text-sm ${
+                          //   !fieldsError ? "border-red-500" : ""
+                          // }`}
+                          className={`h-8 text-sm`}
+                        />
+                        {/* {!fieldsError && (
+                          <p className="text-red-500 text-sm">
+                            Please enter a valid CrewCode.
+                          </p>
+                        )} */}
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-gray-500">
-                            Email Address
-                          </div>
-                          <Input
-                            value={formData.emailAddress}
-                            onChange={(e) =>
-                              handleInputChange("emailAddress", e.target.value)
-                            }
-                            className="h-8 mt-1 text-sm"
-                          />
-                        </div>
+                      <div className="flex flex-col items-start">
+                        <label className="text-sm text-gray-500">
+                          Email Address
+                        </label>
+                        <Input
+                          value={formData.emailAddress}
+                          onChange={(e) =>
+                            handleInputChange("emailAddress", e.target.value)
+                          }
+                          className={`h-8 text-sm ${
+                            submitted && formData.emailAddress.length == 0
+                              ? "border-red-500 focus:!ring-red-500/50"
+                              : ""
+                          }`}
+                        />
+                        {submitted && formData.emailAddress.length == 0 && (
+                          <p className="text-red-500 text-sm">
+                            Please enter a valid email address.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -734,6 +784,11 @@ export default function AddCrew() {
                                 handleInputChange("lastName", e.target.value)
                               }
                             />
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -746,6 +801,11 @@ export default function AddCrew() {
                                 handleInputChange("firstName", e.target.value)
                               }
                             />
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -758,6 +818,11 @@ export default function AddCrew() {
                                 handleInputChange("middleName", e.target.value)
                               }
                             />
+                            {/* {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )} */}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -776,6 +841,11 @@ export default function AddCrew() {
                                 <SelectItem value="2">Married</SelectItem>
                               </SelectContent>
                             </Select>
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -794,6 +864,11 @@ export default function AddCrew() {
                                 <SelectItem value="2">Female</SelectItem>
                               </SelectContent>
                             </Select>
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -808,6 +883,11 @@ export default function AddCrew() {
                                   handleInputChange("birthdate", e.target.value)
                                 }
                               />
+                              {!fieldsError && (
+                                <p className="text-red-500 text-sm">
+                                  Please enter a valid CrewCode.
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div className="md:col-span-2">
@@ -852,6 +932,11 @@ export default function AddCrew() {
                                 )}
                               </SelectContent>
                             </Select>
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                           <div className="md:col-span-2">
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -898,6 +983,11 @@ export default function AddCrew() {
                                 )}
                               </SelectContent>
                             </Select>
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -925,6 +1015,11 @@ export default function AddCrew() {
                                 handleInputChange("sssNumber", e.target.value)
                               }
                             />
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -937,6 +1032,11 @@ export default function AddCrew() {
                                 handleInputChange("taxIdNumber", e.target.value)
                               }
                             />
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -952,6 +1052,11 @@ export default function AddCrew() {
                                 )
                               }
                             />
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -964,6 +1069,11 @@ export default function AddCrew() {
                                 handleInputChange("hdmfNumber", e.target.value)
                               }
                             />
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -994,6 +1104,11 @@ export default function AddCrew() {
                                 )
                               }
                             />
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -1011,6 +1126,11 @@ export default function AddCrew() {
                                   )
                                 }
                               />
+                              {!fieldsError && (
+                                <p className="text-red-500 text-sm">
+                                  Please enter a valid CrewCode.
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div>
@@ -1029,6 +1149,11 @@ export default function AddCrew() {
                                   )
                                 }
                               />
+                              {!fieldsError && (
+                                <p className="text-red-500 text-sm">
+                                  Please enter a valid CrewCode.
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div className="md:col-span-2">
@@ -1042,6 +1167,11 @@ export default function AddCrew() {
                                 handleInputChange("seamansBook", e.target.value)
                               }
                             />
+                            {!fieldsError && (
+                              <p className="text-red-500 text-sm">
+                                Please enter a valid CrewCode.
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -1059,6 +1189,11 @@ export default function AddCrew() {
                                   )
                                 }
                               />
+                              {!fieldsError && (
+                                <p className="text-red-500 text-sm">
+                                  Please enter a valid CrewCode.
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div>
@@ -1077,6 +1212,11 @@ export default function AddCrew() {
                                   )
                                 }
                               />
+                              {!fieldsError && (
+                                <p className="text-red-500 text-sm">
+                                  Please enter a valid CrewCode.
+                                </p>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1303,6 +1443,9 @@ export default function AddCrew() {
                     </div>
                   </TabsContent>
                 </Tabs>
+                <Button onClick={() => setFieldsError(!fieldsError)}>
+                  TOGGLE ERROR
+                </Button>
               </Card>
             </div>
           </div>
