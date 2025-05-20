@@ -783,10 +783,15 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("lastName", e.target.value)
                               }
+                              className={`${
+                                submitted && formData.lastName.length == 0
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                              }`}
                             />
-                            {!fieldsError && (
+                            {submitted && formData.lastName.length == 0 && (
                               <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
+                                Last name must be at least 2 characters.
                               </p>
                             )}
                           </div>
@@ -800,10 +805,15 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("firstName", e.target.value)
                               }
+                              className={`${
+                                submitted && formData.firstName.length == 0
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                              }`}
                             />
-                            {!fieldsError && (
+                            {submitted && formData.firstName.length == 0 && (
                               <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
+                                First name must be at least 2 characters.
                               </p>
                             )}
                           </div>
@@ -833,7 +843,13 @@ export default function AddCrew() {
                               onValueChange={(value) =>
                                 handleInputChange("maritalStatus", value)
                               }>
-                              <SelectTrigger className="w-full">
+                              <SelectTrigger
+                                className={`w-full ${
+                                  submitted &&
+                                  formData.maritalStatus.length == 0
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : ""
+                                }`}>
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
                               <SelectContent>
@@ -841,11 +857,12 @@ export default function AddCrew() {
                                 <SelectItem value="2">Married</SelectItem>
                               </SelectContent>
                             </Select>
-                            {!fieldsError && (
-                              <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
-                              </p>
-                            )}
+                            {submitted &&
+                              formData.maritalStatus.length == 0 && (
+                                <p className="text-red-500 text-sm">
+                                  Please enter a status.
+                                </p>
+                              )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -856,7 +873,12 @@ export default function AddCrew() {
                               onValueChange={(value) =>
                                 handleInputChange("sex", value)
                               }>
-                              <SelectTrigger className="w-full">
+                              <SelectTrigger
+                                className={`w-full ${
+                                  submitted && formData.sex.length == 0
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : ""
+                                }`}>
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
                               <SelectContent>
@@ -864,9 +886,9 @@ export default function AddCrew() {
                                 <SelectItem value="2">Female</SelectItem>
                               </SelectContent>
                             </Select>
-                            {!fieldsError && (
+                            {submitted && formData.sex.length == 0 && (
                               <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
+                                Please enter a valid sex.
                               </p>
                             )}
                           </div>
@@ -882,10 +904,15 @@ export default function AddCrew() {
                                 onChange={(e) =>
                                   handleInputChange("birthdate", e.target.value)
                                 }
+                                className={`${
+                                  submitted && formData.birthdate.length == 0
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : ""
+                                }`}
                               />
-                              {!fieldsError && (
+                              {submitted && formData.birthdate.length == 0 && (
                                 <p className="text-red-500 text-sm">
-                                  Please enter a valid CrewCode.
+                                  Please enter a valid birthdate.
                                 </p>
                               )}
                             </div>
@@ -899,7 +926,12 @@ export default function AddCrew() {
                               onValueChange={(value) =>
                                 handleInputChange("province", value)
                               }>
-                              <SelectTrigger className="w-full">
+                              <SelectTrigger
+                                className={`w-full ${
+                                  submitted && formData.province.length == 0
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : ""
+                                }`}>
                                 <SelectValue placeholder="Select a province" />
                               </SelectTrigger>
                               <SelectContent className="max-h-80">
@@ -932,9 +964,9 @@ export default function AddCrew() {
                                 )}
                               </SelectContent>
                             </Select>
-                            {!fieldsError && (
+                            {submitted && formData.province.length == 0 && (
                               <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
+                                Please enter a province.
                               </p>
                             )}
                           </div>
@@ -947,7 +979,13 @@ export default function AddCrew() {
                               onValueChange={(value) =>
                                 handleInputChange("city", value)
                               }>
-                              <SelectTrigger className="w-full">
+                              <SelectTrigger
+                                className={`w-full ${
+                                  submitted && formData.city.length == 0
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : ""
+                                }`}
+                                disabled={!formData.province}>
                                 <SelectValue placeholder="Select a city" />
                               </SelectTrigger>
                               <SelectContent className="max-h-80">
@@ -983,9 +1021,9 @@ export default function AddCrew() {
                                 )}
                               </SelectContent>
                             </Select>
-                            {!fieldsError && (
+                            {submitted && formData.city.length == 0 && (
                               <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
+                                Please enter a city.
                               </p>
                             )}
                           </div>
@@ -1014,10 +1052,15 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("sssNumber", e.target.value)
                               }
+                              className={`${
+                                submitted && formData.sssNumber.length !== 10
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                              }`}
                             />
-                            {!fieldsError && (
+                            {submitted && formData.sssNumber.length !== 10 && (
                               <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
+                                Please enter a valid SSS number.
                               </p>
                             )}
                           </div>
@@ -1031,10 +1074,18 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("taxIdNumber", e.target.value)
                               }
+                              className={`${
+                                (submitted &&
+                                  formData.taxIdNumber.length <= 8) ||
+                                formData.taxIdNumber.length >= 13
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                              }`}
                             />
-                            {!fieldsError && (
+                            {((submitted && formData.taxIdNumber.length <= 8) ||
+                              formData.taxIdNumber.length >= 13) && (
                               <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
+                                Please enter a valid Tax ID number.
                               </p>
                             )}
                           </div>
@@ -1051,12 +1102,19 @@ export default function AddCrew() {
                                   e.target.value
                                 )
                               }
+                              className={`${
+                                submitted &&
+                                formData.philhealthNumber.length !== 12
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                              }`}
                             />
-                            {!fieldsError && (
-                              <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
-                              </p>
-                            )}
+                            {submitted &&
+                              formData.philhealthNumber.length !== 12 && (
+                                <p className="text-red-500 text-sm">
+                                  Please enter a valid Philhealth number.
+                                </p>
+                              )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -1068,8 +1126,13 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("hdmfNumber", e.target.value)
                               }
+                              className={`${
+                                submitted && formData.hdmfNumber.length !== 12
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                              }`}
                             />
-                            {!fieldsError && (
+                            {submitted && formData.hdmfNumber.length !== 12 && (
                               <p className="text-red-500 text-sm">
                                 Please enter a valid CrewCode.
                               </p>
@@ -1103,12 +1166,21 @@ export default function AddCrew() {
                                   e.target.value
                                 )
                               }
+                              className={`${
+                                (submitted &&
+                                  formData.passportNumber.length <= 6) ||
+                                formData.passportNumber.length >= 10
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                              }`}
                             />
-                            {!fieldsError && (
-                              <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
-                              </p>
-                            )}
+                            {submitted &&
+                              (formData.passportNumber.length <= 6 ||
+                                formData.passportNumber.length >= 10) && (
+                                <p className="text-red-500 text-sm">
+                                  Please enter a valid Passport number.
+                                </p>
+                              )}
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
@@ -1125,10 +1197,15 @@ export default function AddCrew() {
                                     e.target.value
                                   )
                                 }
+                                className={`${
+                                  submitted && !formData.passportIssueDate
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : ""
+                                }`}
                               />
-                              {!fieldsError && (
+                              {submitted && !formData.passportIssueDate && (
                                 <p className="text-red-500 text-sm">
-                                  Please enter a valid CrewCode.
+                                  Please enter a valid Passport Issue Date.
                                 </p>
                               )}
                             </div>
@@ -1148,10 +1225,15 @@ export default function AddCrew() {
                                     e.target.value
                                   )
                                 }
+                                className={`${
+                                  submitted && !formData.passportExpiryDate
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : ""
+                                }`}
                               />
-                              {!fieldsError && (
+                              {submitted && !formData.passportExpiryDate && (
                                 <p className="text-red-500 text-sm">
-                                  Please enter a valid CrewCode.
+                                  Please enter a valid Passport Expiration Date.
                                 </p>
                               )}
                             </div>
@@ -1166,8 +1248,16 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("seamansBook", e.target.value)
                               }
+                              className={`${
+                                (submitted &&
+                                  formData.seamansBook.length <= 6) ||
+                                formData.seamansBook.length >= 10
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                              }`}
                             />
-                            {!fieldsError && (
+                            {((submitted && formData.seamansBook.length <= 6) ||
+                              formData.seamansBook.length >= 10) && (
                               <p className="text-red-500 text-sm">
                                 Please enter a valid CrewCode.
                               </p>
@@ -1188,10 +1278,15 @@ export default function AddCrew() {
                                     e.target.value
                                   )
                                 }
+                                className={`${
+                                  submitted && !formData.seamansBookIssueDate
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : ""
+                                }`}
                               />
-                              {!fieldsError && (
+                              {submitted && !formData.seamansBookIssueDate && (
                                 <p className="text-red-500 text-sm">
-                                  Please enter a valid CrewCode.
+                                  Please enter a valid Seamans Book Issue Date.
                                 </p>
                               )}
                             </div>
@@ -1211,10 +1306,16 @@ export default function AddCrew() {
                                     e.target.value
                                   )
                                 }
+                                className={`${
+                                  submitted && !formData.seamansBookExpiryDate
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : ""
+                                }`}
                               />
-                              {!fieldsError && (
+                              {submitted && !formData.seamansBookExpiryDate && (
                                 <p className="text-red-500 text-sm">
-                                  Please enter a valid CrewCode.
+                                  Please enter a valid Seamans Book Expiration
+                                  Date.
                                 </p>
                               )}
                             </div>
@@ -1443,9 +1544,6 @@ export default function AddCrew() {
                     </div>
                   </TabsContent>
                 </Tabs>
-                <Button onClick={() => setFieldsError(!fieldsError)}>
-                  TOGGLE ERROR
-                </Button>
               </Card>
             </div>
           </div>
