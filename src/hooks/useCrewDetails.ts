@@ -82,6 +82,7 @@ export function useCrewDetails(crewId: string | null) {
       name: `${editedCrew.firstName} ${editedCrew.lastName}`,
     };
 
+    // CREW update DTO
     const crewToBeUpdated = {
       status: updatedCrew.status,
       email: updatedCrew.email,
@@ -96,7 +97,7 @@ export function useCrewDetails(crewId: string | null) {
       city: updatedCrew.city,
       province: updatedCrew.province,
       sssNumber: updatedCrew.sssNumber,
-      // philhealthNumber: "", // Temporarily set to empty string until backend adds the field
+      philhealthNumber: updatedCrew.philhealthNumber,
       hdmfNumber: updatedCrew.hdmfNumber,
       passportNumber: updatedCrew.passportNumber,
       passportIssueDate: updatedCrew.passportIssueDate,
@@ -110,20 +111,33 @@ export function useCrewDetails(crewId: string | null) {
     setEditedCrew(updatedCrew);
     setIsEditing(false);
 
-    console.log("Crew details saved:", crew);
     console.log("Crew to be updated:", crewToBeUpdated);
 
-    const response = await updateCrew(editedCrew.id, crewToBeUpdated);
-    if (response.success) {
+    try {
+      const response = await updateCrew(editedCrew.id, crewToBeUpdated);
+      if (response.success) {
+        toast({
+          title: "Success",
+          // description: response.message || "Crew details updated successfully.",
+          description: "Crew details updated successfully.",
+          variant: "success",
+        });
+      }
+      if (!response.success) {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to update crew details.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.log("Error updating crew details:", error);
       toast({
-        title: "Success",
-        // description: response.message || "Crew details updated successfully.",
-        description: "Crew details updated successfully.",
-        variant: "success",
+        title: "Error",
+        description: "Failed to update crew details.",
+        variant: "destructive",
       });
     }
-
-    console.log("Response from updateCrew:", response);
   };
 
   const handleInputChange = (field: keyof Crew, value: string) => {
