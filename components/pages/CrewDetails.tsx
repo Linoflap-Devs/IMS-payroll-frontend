@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -59,7 +59,7 @@ export default function CrewDetails() {
     setIsEditing,
     handleInputChange,
     saveChanges,
-    toggleEditMode
+    toggleEditMode,
   } = useCrewDetails(crewId);
 
   const openModal = (src: string): void => {
@@ -71,14 +71,31 @@ export default function CrewDetails() {
     setModalImage(null);
   };
 
-  const zoomIn = () => setZoom(prev => Math.min(prev + 0.2, 3));
-  const zoomOut = () => setZoom(prev => Math.max(prev - 0.2, 0.5));
+  const zoomIn = () => setZoom((prev) => Math.min(prev + 0.2, 3));
+  const zoomOut = () => setZoom((prev) => Math.max(prev - 0.2, 0.5));
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (
+      tab &&
+      ["details", "movement", "allottee", "validation"].includes(tab.toString())
+    ) {
+      setActiveTab(tab.toString());
+    }
+
+    console.log("Query params:", tab);
+  }, [searchParams]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     if (value === "movement" || value === "allottee") {
       setIsEditing(false);
     }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", value);
+
+    window.history.pushState({}, "", url.toString());
   };
 
   const toggleAllotteeEdit = () => {
@@ -123,28 +140,31 @@ export default function CrewDetails() {
       });
   };
 
-  if (isLoading) return (
-    <div className="h-full w-full p-4 flex items-center justify-center">
-      <p>Loading crew details...</p>
-    </div>
-  );
+  if (isLoading)
+    return (
+      <div className="h-full w-full p-4 flex items-center justify-center">
+        <p>Loading crew details...</p>
+      </div>
+    );
 
-  if (error) return (
-    <div className="h-full w-full p-4 flex items-center justify-center">
-      <p>Error loading crew: {error}</p>
-    </div>
-  );
+  if (error)
+    return (
+      <div className="h-full w-full p-4 flex items-center justify-center">
+        <p>Error loading crew: {error}</p>
+      </div>
+    );
 
-  if (!crew) return (
-    <div className="h-full w-full p-4 flex items-center justify-center">
-      <p>Crew member not found.</p>
-    </div>
-  );
+  if (!crew)
+    return (
+      <div className="h-full w-full p-4 flex items-center justify-center">
+        <p>Crew member not found.</p>
+      </div>
+    );
 
   return (
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
-        <CrewHeader 
+        <CrewHeader
           isEditing={isEditing}
           activeTab={activeTab}
           toggleEditMode={toggleEditMode}
@@ -155,8 +175,8 @@ export default function CrewDetails() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <CrewSidebar 
-            crew={crew} 
+          <CrewSidebar
+            crew={crew}
             isEditing={isEditing}
             editedCrew={editedCrew}
           />
@@ -167,33 +187,28 @@ export default function CrewDetails() {
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full flex flex-col h-full"
-              >
+                className="w-full flex flex-col h-full">
                 <div className="border-b">
                   <div className="px-4 pt-1">
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-between space-x-0">
                       <TabsTrigger
                         value="details"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         Crew Details
                       </TabsTrigger>
                       <TabsTrigger
                         value="movement"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         Crew Movement
                       </TabsTrigger>
                       <TabsTrigger
                         value="allottee"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         View Allottee
                       </TabsTrigger>
                       <TabsTrigger
                         value="validation"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         Account Validation
                       </TabsTrigger>
                     </TabsList>
@@ -202,8 +217,7 @@ export default function CrewDetails() {
 
                 <TabsContent
                   value="details"
-                  className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
-                >
+                  className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
                   <div className="space-y-8">
                     {/* Personal Information Section */}
                     <div>
@@ -217,8 +231,14 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter last name"
-                            value={isEditing ? editedCrew?.lastName || "" : crew.lastName || ""}
-                            onChange={(e) => handleInputChange("lastName", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.lastName || ""
+                                : crew.lastName || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("lastName", e.target.value)
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -229,8 +249,14 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter first name"
-                            value={isEditing ? editedCrew?.firstName || "" : crew.firstName || ""}
-                            onChange={(e) => handleInputChange("firstName", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.firstName || ""
+                                : crew.firstName || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("firstName", e.target.value)
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -241,8 +267,14 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter middle name"
-                            value={isEditing ? editedCrew?.middleName || "" : crew.middleName || ""}
-                            onChange={(e) => handleInputChange("middleName", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.middleName || ""
+                                : crew.middleName || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("middleName", e.target.value)
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -252,11 +284,17 @@ export default function CrewDetails() {
                             Marital Status
                           </label>
                           <Select
-                            value={isEditing ? editedCrew?.maritalStatus || "" : crew.maritalStatus || ""}
-                            onValueChange={(value) => handleInputChange("maritalStatus", value)}
-                            disabled={!isEditing}
-                          >
-                            <SelectTrigger className={isEditing ? "border-primary" : ""}>
+                            value={
+                              isEditing
+                                ? editedCrew?.maritalStatus || ""
+                                : crew.maritalStatus || ""
+                            }
+                            onValueChange={(value) =>
+                              handleInputChange("maritalStatus", value)
+                            }
+                            disabled={!isEditing}>
+                            <SelectTrigger
+                              className={isEditing ? "border-primary" : ""}>
                               <SelectValue placeholder="Select an option" />
                             </SelectTrigger>
                             <SelectContent>
@@ -272,11 +310,15 @@ export default function CrewDetails() {
                             Sex
                           </label>
                           <Select
-                            value={isEditing ? editedCrew?.sex || "" : crew.sex || ""}
-                            onValueChange={(value) => handleInputChange("sex", value)}
-                            disabled={!isEditing}
-                          >
-                            <SelectTrigger className={isEditing ? "border-primary" : ""}>
+                            value={
+                              isEditing ? editedCrew?.sex || "" : crew.sex || ""
+                            }
+                            onValueChange={(value) =>
+                              handleInputChange("sex", value)
+                            }
+                            disabled={!isEditing}>
+                            <SelectTrigger
+                              className={isEditing ? "border-primary" : ""}>
                               <SelectValue placeholder="Select an option" />
                             </SelectTrigger>
                             <SelectContent>
@@ -293,8 +335,14 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             placeholder="Date of Birth"
-                            value={isEditing ? editedCrew?.dateOfBirth || "" : formatDate(crew.dateOfBirth) || ""}
-                            onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.dateOfBirth || ""
+                                : formatDate(crew.dateOfBirth) || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("dateOfBirth", e.target.value)
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -305,8 +353,14 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter city"
-                            value={isEditing ? editedCrew?.city || "" : crew.city || ""}
-                            onChange={(e) => handleInputChange("city", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.city || ""
+                                : crew.city || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("city", e.target.value)
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -317,8 +371,14 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter province"
-                            value={isEditing ? editedCrew?.province || "" : crew.province || ""}
-                            onChange={(e) => handleInputChange("province", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.province || ""
+                                : crew.province || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("province", e.target.value)
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -338,8 +398,14 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter SSS number"
-                            value={isEditing ? editedCrew?.sssNumber || "" : crew.sssNumber || ""}
-                            onChange={(e) => handleInputChange("sssNumber", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.sssNumber || ""
+                                : crew.sssNumber || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("sssNumber", e.target.value)
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -350,8 +416,14 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter Tax ID number"
-                            value={isEditing ? editedCrew?.taxIdNumber || "" : crew.taxIdNumber || ""}
-                            onChange={(e) => handleInputChange("taxIdNumber", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.taxIdNumber || ""
+                                : crew.taxIdNumber || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("taxIdNumber", e.target.value)
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -362,8 +434,17 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter Philhealth number"
-                            value={isEditing ? editedCrew?.philhealthNumber || "" : crew.philhealthNumber || ""}
-                            onChange={(e) => handleInputChange("philhealthNumber", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.philhealthNumber || ""
+                                : crew.philhealthNumber || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange(
+                                "philhealthNumber",
+                                e.target.value
+                              )
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -374,8 +455,14 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter HDMF number"
-                            value={isEditing ? editedCrew?.hdmfNumber || "" : crew.hdmfNumber || ""}
-                            onChange={(e) => handleInputChange("hdmfNumber", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.hdmfNumber || ""
+                                : crew.hdmfNumber || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("hdmfNumber", e.target.value)
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -395,8 +482,17 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter passport number"
-                            value={isEditing ? editedCrew?.passportNumber || "" : crew.passportNumber || ""}
-                            onChange={(e) => handleInputChange("passportNumber", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.passportNumber || ""
+                                : crew.passportNumber || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange(
+                                "passportNumber",
+                                e.target.value
+                              )
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -408,8 +504,17 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             placeholder="Passport Issue Date"
-                            value={isEditing ? editedCrew?.passportIssueDate || "" : formatDate(crew.passportIssueDate) || ""}
-                            onChange={(e) => handleInputChange("passportIssueDate", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.passportIssueDate || ""
+                                : formatDate(crew.passportIssueDate) || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange(
+                                "passportIssueDate",
+                                e.target.value
+                              )
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -421,8 +526,17 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             placeholder="Passport Expiry Date"
-                            value={isEditing ? editedCrew?.passportExpiryDate || "" : formatDate(crew.passportExpiryDate) || ""}
-                            onChange={(e) => handleInputChange("passportExpiryDate", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.passportExpiryDate || ""
+                                : formatDate(crew.passportExpiryDate) || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange(
+                                "passportExpiryDate",
+                                e.target.value
+                              )
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -433,8 +547,17 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter seamans book number"
-                            value={isEditing ? editedCrew?.seamansBookNumber || "" : crew.seamansBookNumber || ""}
-                            onChange={(e) => handleInputChange("seamansBookNumber", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.seamansBookNumber || ""
+                                : crew.seamansBookNumber || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange(
+                                "seamansBookNumber",
+                                e.target.value
+                              )
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -446,8 +569,17 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             placeholder="Seamans Book Issue Date"
-                            value={isEditing ? editedCrew?.seamansBookIssueDate || "" : formatDate(crew.seamansBookIssueDate) || ""}
-                            onChange={(e) => handleInputChange("seamansBookIssueDate", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.seamansBookIssueDate || ""
+                                : formatDate(crew.seamansBookIssueDate) || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange(
+                                "seamansBookIssueDate",
+                                e.target.value
+                              )
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -459,8 +591,17 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             placeholder="Seamans Book Expiry Date"
-                            value={isEditing ? editedCrew?.seamansBookExpiryDate || "" : formatDate(crew.seamansBookExpiryDate) || ""}
-                            onChange={(e) => handleInputChange("seamansBookExpiryDate", e.target.value)}
+                            value={
+                              isEditing
+                                ? editedCrew?.seamansBookExpiryDate || ""
+                                : formatDate(crew.seamansBookExpiryDate) || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange(
+                                "seamansBookExpiryDate",
+                                e.target.value
+                              )
+                            }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
@@ -472,22 +613,19 @@ export default function CrewDetails() {
 
                 <TabsContent
                   value="movement"
-                  className="p-4 mt-0 overflow-y-auto scrollbar-hide flex-1"
-                >
+                  className="p-4 mt-0 overflow-y-auto scrollbar-hide flex-1">
                   <CrewMovement />
                 </TabsContent>
 
                 <TabsContent
                   value="allottee"
-                  className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1"
-                >
+                  className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1">
                   <CrewAllottee />
                 </TabsContent>
 
                 <TabsContent
                   value="validation"
-                  className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
-                >
+                  className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
                   <div className="space-y-8">
                     <div>
                       <div className="flex items-center justify-start gap-x-5">
@@ -658,8 +796,7 @@ export default function CrewDetails() {
                             </h4>
                             <div
                               className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
-                              onClick={() => openModal("/placeholder.png")}
-                            >
+                              onClick={() => openModal("/placeholder.png")}>
                               <img
                                 src="/placeholder.png"
                                 alt="ID Attachment"
@@ -682,8 +819,7 @@ export default function CrewDetails() {
                             </h4>
                             <div
                               className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
-                              onClick={() => openModal("/placeholder.png")}
-                            >
+                              onClick={() => openModal("/placeholder.png")}>
                               <img
                                 src="/placeholder.png"
                                 alt="Selfie with ID Attachment"
@@ -705,7 +841,7 @@ export default function CrewDetails() {
         </div>
       </div>
 
-      <ImageModal 
+      <ImageModal
         modalImage={modalImage}
         zoom={zoom}
         closeModal={closeModal}
