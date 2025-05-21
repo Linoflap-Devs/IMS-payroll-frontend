@@ -63,6 +63,7 @@ export function AddVesselTypeDialog({
         toast({
           title: "Success",
           description: response.message || "Vessel type added successfully.",
+          variant: "success",
         });
 
         // Call success callback with the new vessel type if provided
@@ -134,15 +135,13 @@ export function AddVesselTypeDialog({
               variant="outline"
               className="flex-1 h-10"
               onClick={() => handleOpenChange(false)}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               Cancel
             </Button>
             <Button
               className="flex-1 h-10"
               onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               {isSubmitting ? "Adding..." : "Add Vessel Type"}
             </Button>
           </div>
