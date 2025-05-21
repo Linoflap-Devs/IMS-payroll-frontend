@@ -119,6 +119,7 @@ export function AddVesselDialog({
         toast({
           title: "Success",
           description: response.message || "Vessel added successfully.",
+          variant: "success",
         });
         // Call the onSuccess callback if provided
         if (onSuccess && response.data) {
@@ -197,8 +198,7 @@ export function AddVesselDialog({
               <Select
                 name="vesselType"
                 value={vesselType}
-                onValueChange={setVesselType}
-              >
+                onValueChange={setVesselType}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select vessel type" />
                 </SelectTrigger>
@@ -206,8 +206,7 @@ export function AddVesselDialog({
                   {vesselTypes.map((type) => (
                     <SelectItem
                       key={type.VesselTypeID}
-                      value={type.VesselTypeID.toString()}
-                    >
+                      value={type.VesselTypeID.toString()}>
                       {type.VesselTypeName}
                     </SelectItem>
                   ))}
@@ -218,15 +217,13 @@ export function AddVesselDialog({
             <div className="space-y-2 col-span-2">
               <label
                 htmlFor="principalName"
-                className="block text-sm font-medium"
-              >
+                className="block text-sm font-medium">
                 Principal Name
               </label>
               <Select
                 name="principalName"
                 value={principalName}
-                onValueChange={setPrincipalName}
-              >
+                onValueChange={setPrincipalName}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select principal name" />
                 </SelectTrigger>
@@ -234,8 +231,7 @@ export function AddVesselDialog({
                   {principals.map((principal) => (
                     <SelectItem
                       key={principal.PrincipalID}
-                      value={principal.PrincipalID.toString()}
-                    >
+                      value={principal.PrincipalID.toString()}>
                       {principal.PrincipalName}
                     </SelectItem>
                   ))}
@@ -249,8 +245,7 @@ export function AddVesselDialog({
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 border-gray-300 rounded-md text-black hover:bg-gray-100 hover:text-black"
-              >
+                className="flex-1 border-gray-300 rounded-md text-black hover:bg-gray-100 hover:text-black">
                 Cancel
               </Button>
             </DialogClose>
@@ -258,8 +253,7 @@ export function AddVesselDialog({
               type="submit"
               className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md"
               onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               <Plus className="mr-2 h-4 w-4" /> Add Vessel
             </Button>
           </DialogFooter>

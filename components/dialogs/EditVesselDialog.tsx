@@ -52,8 +52,8 @@ export function EditVesselDialog({
   const [formData, setFormData] = useState({
     vesselCode: vesselData.vesselCode,
     vesselName: vesselData.vesselName,
-    vesselType: vesselData.vesselType,
-    principalID: vesselData.principalID,
+    vesselType: Number(vesselData.vesselType), // explicitly convert to number
+    principalID: Number(vesselData.principalID), // explicitly convert to number
     status: vesselData.status,
   });
 
@@ -94,8 +94,8 @@ export function EditVesselDialog({
     setFormData({
       vesselCode: vesselData.vesselCode,
       vesselName: vesselData.vesselName,
-      vesselType: vesselData.vesselType,
-      principalID: vesselData.principalID,
+      vesselType: Number(vesselData.vesselType),
+      principalID: Number(vesselData.principalID),
       status: vesselData.status,
     });
   }, [vesselData]);
@@ -112,6 +112,7 @@ export function EditVesselDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
     try {
       const response = await updateVessel({
         vesselID: vesselData.vesselId,
@@ -129,7 +130,7 @@ export function EditVesselDialog({
         toast({
           title: "Success",
           description: "Vessel updated successfully",
-          variant: "default",
+          variant: "success",
         });
 
         if (onSuccess) {
@@ -184,8 +185,7 @@ export function EditVesselDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="vesselCode"
-                  className="block text-sm font-medium"
-                >
+                  className="block text-sm font-medium">
                   Vessel Code
                 </label>
                 <Input
@@ -202,8 +202,7 @@ export function EditVesselDialog({
               <div className="space-y-2 col-span-2">
                 <label
                   htmlFor="vesselName"
-                  className="block text-sm font-medium"
-                >
+                  className="block text-sm font-medium">
                   Vessel Name
                 </label>
                 <Input
@@ -220,8 +219,7 @@ export function EditVesselDialog({
               <div className="space-y-2 col-span-2">
                 <label
                   htmlFor="vesselType"
-                  className="block text-sm font-medium"
-                >
+                  className="block text-sm font-medium">
                   Vessel Type
                 </label>
                 <Select
@@ -229,8 +227,7 @@ export function EditVesselDialog({
                   value={formData.vesselType.toString()}
                   onValueChange={(value) =>
                     handleSelectChange("vesselType", value)
-                  }
-                >
+                  }>
                   <SelectTrigger className="w-full">
                     <SelectValue>
                       {vesselTypes.find(
@@ -242,8 +239,7 @@ export function EditVesselDialog({
                     {vesselTypes.map((type) => (
                       <SelectItem
                         key={type.VesselTypeID}
-                        value={type.VesselTypeID.toString()}
-                      >
+                        value={type.VesselTypeID.toString()}>
                         {type.VesselTypeName}
                       </SelectItem>
                     ))}
@@ -254,8 +250,7 @@ export function EditVesselDialog({
               <div className="space-y-2 col-span-2">
                 <label
                   htmlFor="principalID"
-                  className="block text-sm font-medium"
-                >
+                  className="block text-sm font-medium">
                   Principal Name
                 </label>
                 <Select
@@ -263,8 +258,7 @@ export function EditVesselDialog({
                   value={formData.principalID.toString()}
                   onValueChange={(value) =>
                     handleSelectChange("principalID", value)
-                  }
-                >
+                  }>
                   <SelectTrigger className="w-full">
                     <SelectValue>
                       {principals.find(
@@ -277,8 +271,7 @@ export function EditVesselDialog({
                     {principals.map((principal) => (
                       <SelectItem
                         key={principal.PrincipalID}
-                        value={principal.PrincipalID.toString()}
-                      >
+                        value={principal.PrincipalID.toString()}>
                         {principal.PrincipalName}
                       </SelectItem>
                     ))}
@@ -293,16 +286,14 @@ export function EditVesselDialog({
                   type="button"
                   variant="outline"
                   className="flex-1 border-gray-300 rounded-md text-black hover:bg-gray-100 hover:text-black"
-                  disabled={isSubmitting}
-                >
+                  disabled={isSubmitting}>
                   Cancel
                 </Button>
               </DialogClose>
               <Button
                 type="submit"
                 className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md"
-                disabled={isSubmitting}
-              >
+                disabled={isSubmitting}>
                 <Pencil className="mr-2 h-4 w-4" />
                 {isSubmitting ? "Updating..." : "Update Vessel"}
               </Button>
