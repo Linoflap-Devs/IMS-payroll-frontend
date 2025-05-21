@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { updateVesselType } from "@/src/services/vessel/vesselType.api"; // Import the new API function
 import { VesselTypeItem } from "@/src/services/vessel/vesselType.api";
-import { useState } from "react";
+import { set } from "date-fns";
+import { useEffect, useState } from "react";
 
 interface EditVesselTypeDialogProps {
   open: boolean;
@@ -37,6 +38,13 @@ export function EditVesselTypeDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (vesselTypeData) {
+      setVesselTypeCode(vesselTypeData.vesselTypeCode);
+      setVesselTypeName(vesselTypeData.vesselTypeName);
+    }
+  }, [vesselTypeData]);
+
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setVesselTypeCode(vesselTypeData.vesselTypeCode);
@@ -44,6 +52,7 @@ export function EditVesselTypeDialog({
       setIsSubmitting(false);
     }
     onOpenChange(open);
+    console.log(vesselTypeData);
   };
 
   const handleSubmit = async () => {
@@ -68,7 +77,7 @@ export function EditVesselTypeDialog({
         toast({
           title: "Success",
           description: "Vessel Type updated successfully.",
-          variant: "default",
+          variant: "success",
         });
         if (onSuccess && response.data) {
           onSuccess(response.data as VesselTypeItem);
@@ -103,11 +112,26 @@ export function EditVesselTypeDialog({
             <label className="text-sm text-gray-600">Vessel Code</label>
             <Input
               placeholder="Enter vessel code"
-              className="h-10"
+              className={`h-10 ${
+                vesselTypeCode.length == 0 || vesselTypeCode.length > 10
+                  ? "border-red-500 focus:!ring-red-500/50"
+                  : ""
+              }`}
               value={vesselTypeCode}
               onChange={(e) => setVesselTypeCode(e.target.value)}
               disabled={isSubmitting}
             />
+            {vesselTypeCode.length == 0 || vesselTypeCode.length > 10 ? (
+              <>
+                <p className="text-red-500 text-xs">
+                  Vessel Code is required and should be 10 or less characters.
+                </p>
+              </>
+            ) : (
+              <p className="text-gray-500/70 text-xs">
+                Vessel Code should be less than 10 characters.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -126,15 +150,17 @@ export function EditVesselTypeDialog({
               variant="outline"
               className="flex-1 h-10"
               onClick={() => onOpenChange(false)}
-              disabled={isSubmitting} // Disable button while submitting
-            >
+              disabled={isSubmitting}>
               Cancel
             </Button>
             <Button
               className="flex-1 h-10"
               onClick={handleSubmit}
-              disabled={isSubmitting} // Disable button while submitting
-            >
+              disabled={
+                isSubmitting ||
+                vesselTypeCode.length > 10 ||
+                vesselTypeName.length == 0
+              }>
               {isSubmitting ? "Updating..." : "Update Vessel Type"}
             </Button>
           </div>
