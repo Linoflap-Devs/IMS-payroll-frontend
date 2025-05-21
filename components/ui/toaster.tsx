@@ -20,7 +20,7 @@ export function Toaster() {
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-row gap-2">
               <div className="flex items-center justify-center rounded-md">
                 <CircleAlert />
               </div>
