@@ -633,9 +633,13 @@ export default function VesselProfile() {
   });
 
   const filteredVesselType = vesselTypeData.filter((vesselType) => {
-    const matchesSearch = vesselType.vesselTypeName
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      vesselType.vesselTypeName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      vesselType.vesselTypeCode
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
     return matchesSearch;
   });
