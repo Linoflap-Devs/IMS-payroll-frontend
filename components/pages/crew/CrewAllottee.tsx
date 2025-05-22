@@ -29,6 +29,8 @@ type Allottee = {
   active: boolean;
   priorityAmount: boolean;
   dollarAllotment: boolean;
+  isDollar: number;
+  allotmentType: number;
 };
 
 export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
@@ -54,6 +56,8 @@ export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
     };
   }, [crewId, fetchCrewAllottees, resetAllottees]);
 
+  console.log("Allottee data:", allottees);
+
   // Map API data to UI model whenever allottees change
   useEffect(() => {
     const mapped = storeAllottees.map((a) => ({
@@ -70,6 +74,8 @@ export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
       active: true,
       priorityAmount: false,
       dollarAllotment: false,
+      isDollar: a.IsDollar,
+      allotmentType: a.AllotmentType,
     }));
     setAllottees(mapped);
     if (mapped.length > 0) setSelectedIndex("0");
@@ -104,8 +110,7 @@ export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
                   <div className="flex-1 w-full flex items-center">
                     <Select
                       value={selectedIndex}
-                      onValueChange={setSelectedIndex}
-                    >
+                      onValueChange={setSelectedIndex}>
                       <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                         <SelectValue placeholder="Select Allottee" />
                       </SelectTrigger>
@@ -144,8 +149,7 @@ export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
             {onAdd && (
               <Button
                 onClick={onAdd}
-                className="h-11 px-5 bg-primary text-white rounded-lg shadow-sm hover:bg-primary/90"
-              >
+                className="h-11 px-5 bg-primary text-white rounded-lg shadow-sm hover:bg-primary/90">
                 <PlusCircle className="h-5 w-5 mr-2" />
                 <span className="font-medium">Add Allottee</span>
               </Button>

@@ -108,6 +108,8 @@ export interface CrewAllottee {
   BankBranch: string;
   AccountNumber: string;
   Allotment: number;
+  IsDollar: number;
+  AllotmentType: number;
 }
 
 export interface CrewAllotteeResponse {
