@@ -223,8 +223,7 @@ export default function Deduction() {
                   <Link
                     href={`/home/deduction/deduction-entries?&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
-                    )}`}
-                  >
+                    )}`}>
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View Deduction Entries
                   </Link>
@@ -233,8 +232,7 @@ export default function Deduction() {
                   <Link
                     href={`/home/deduction/deduction-entries?tab=hdmf-upgrade&&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
-                    )}`}
-                  >
+                    )}`}>
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View HDMF Upgrade Contributions
                   </Link>
@@ -350,16 +348,14 @@ export default function Deduction() {
                     setSelectedDeduction(deduction);
                     setEditDialogOpen(true);
                   }}
-                  className="text-xs sm:text-sm"
-                >
+                  className="text-xs sm:text-sm">
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleDelete(deduction.deductionCode)}
-                >
+                  onClick={() => handleDelete(deduction.deductionCode)}>
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
                 </DropdownMenuItem>
@@ -371,8 +367,10 @@ export default function Deduction() {
     },
   ];
 
-  const filteredCrewDeduction = crewDeductionData.filter((item) =>
-    item.CrewCode.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCrewDeduction = crewDeductionData.filter(
+    (item) =>
+      item.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.crewName.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const filteredDeductionDescription = deductionDescriptionData.filter((item) =>
     item.deductionName.toLowerCase().includes(searchTerm.toLowerCase())
