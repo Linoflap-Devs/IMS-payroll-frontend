@@ -33,7 +33,12 @@ type Allottee = {
   allotmentType: number;
 };
 
-export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
+interface ICrewAllotteeProps {
+  onAdd?: () => void;
+  isEditing?: boolean;
+}
+
+export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<Allottee[]>([]);
