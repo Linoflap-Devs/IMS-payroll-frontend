@@ -37,15 +37,13 @@ export function CrewHeader({
           <Button
             variant="outline"
             onClick={toggleEditMode}
-            className="border-gray-300 w-40"
-          >
+            className="border-gray-300 w-40">
             <X className="h-4 w-4 mr-2" />
             Cancel
           </Button>
           <Button
             className="bg-primary hover:bg-primary/90 w-40"
-            onClick={saveChanges}
-          >
+            onClick={saveChanges}>
             <Save className="h-4 w-4 mr-2" />
             Save Changes
           </Button>
@@ -54,8 +52,7 @@ export function CrewHeader({
         activeTab === "details" && (
           <Button
             className="bg-primary hover:bg-primary/90 w-40"
-            onClick={toggleEditMode}
-          >
+            onClick={toggleEditMode}>
             <Pencil className="h-4 w-4 mr-2" />
             Edit Crew
           </Button>
@@ -63,10 +60,7 @@ export function CrewHeader({
       )}
       {activeTab === "allottee" && (
         <div className="px-4 pt-0 flex justify-end gap-3">
-          <Button
-            variant="destructive"
-            className="px-6 bg-[#B63C3C] w-40"
-          >
+          <Button variant="destructive" className="px-6 bg-[#B63C3C] w-40">
             <CircleMinus />
             Remove
           </Button>
@@ -75,15 +69,13 @@ export function CrewHeader({
               <Button
                 variant="outline"
                 onClick={toggleAllotteeEdit}
-                className="border-gray-300 w-40"
-              >
+                className="border-gray-300 w-40">
                 <X className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
               <Button
                 className="bg-primary hover:bg-primary/90 w-40"
-                onClick={toggleAllotteeEdit}
-              >
+                onClick={toggleAllotteeEdit}>
                 <Save className="h-4 w-4 mr-2" />
                 Save
               </Button>
@@ -92,8 +84,7 @@ export function CrewHeader({
             <>
               <Button
                 onClick={toggleAllotteeEdit}
-                className="bg-[#2BA148] hover:bg-green-700 px-6 w-40"
-              >
+                className="bg-[#2BA148] hover:bg-green-700 px-6 w-40">
                 <Pencil />
                 Edit
               </Button>

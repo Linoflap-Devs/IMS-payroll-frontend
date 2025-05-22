@@ -98,7 +98,7 @@ export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
       ) : (
         <>
           {/* Allottee selection */}
-          <div className="flex gap-4">
+          <div className="flex gap-4 w-1/2">
             <div className="flex-1">
               <div className="relative rounded-lg border shadow-sm overflow-hidden">
                 <div className="flex h-11 w-full">
@@ -126,7 +126,7 @@ export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
                 </div>
               </div>
             </div>
-            <div className="relative rounded-lg border shadow-sm overflow-hidden">
+            {/* <div className="relative rounded-lg border shadow-sm overflow-hidden">
               <div className="flex h-11 w-full">
                 <div className="flex items-center px-4 bg-gray-50 border-r">
                   <span className="text-gray-700 font-medium whitespace-nowrap">
@@ -145,7 +145,7 @@ export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
                   </Select>
                 </div>
               </div>
-            </div>
+            </div> */}
             {onAdd && (
               <Button
                 onClick={onAdd}
@@ -190,7 +190,7 @@ export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      checked={current.dollarAllotment}
+                      checked={current.isDollar === 1}
                       readOnly
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
@@ -301,7 +301,10 @@ export function CrewAllottee({ onAdd }: { onAdd?: () => void }) {
                   </div>
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
-                      Allottment
+                      {current.allotmentType === 1
+                        ? "Allotment Amount in" +
+                          (current.isDollar === 1 ? " (Dollar)" : " (Peso)")
+                        : "Allotment Percentage"}
                     </label>
                     <Input
                       readOnly
