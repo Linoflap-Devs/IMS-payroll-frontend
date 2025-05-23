@@ -49,6 +49,7 @@ export default function CrewDetails() {
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [isEditingAllottee, setIsEditingAllottee] = useState(false);
+  const [isAddingAllottee, setIsAddingAllottee] = useState(false);
 
   const {
     crew,
@@ -100,6 +101,10 @@ export default function CrewDetails() {
 
   const toggleAllotteeEdit = () => {
     setIsEditingAllottee(!isEditingAllottee);
+  };
+
+  const toggleAllotteeAdd = () => {
+    setIsAddingAllottee(!isAddingAllottee);
   };
 
   const handleDelete = (selectedAllottee: string) => {
@@ -172,6 +177,8 @@ export default function CrewDetails() {
           isEditingAllottee={isEditingAllottee}
           toggleAllotteeEdit={toggleAllotteeEdit}
           handleDelete={handleDelete}
+          toggleAllotteeAdd={toggleAllotteeAdd}
+          isAddingAllottee={isAddingAllottee}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

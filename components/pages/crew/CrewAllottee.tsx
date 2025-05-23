@@ -43,6 +43,8 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<Allottee[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<string>("0");
+  const [allotteeToBeUpdated, setAllotteeToBeUpdated] =
+    useState<Allottee | null>(null);
 
   const {
     allottees: storeAllottees,
@@ -61,7 +63,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
     };
   }, [crewId, fetchCrewAllottees, resetAllottees]);
 
-  console.log("Allottee data:", allottees);
+  // console.log("Allottee data:", allottees);
 
   // Map API data to UI model whenever allottees change
   useEffect(() => {
@@ -82,6 +84,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
       isDollar: a.IsDollar,
       allotmentType: a.AllotmentType,
     }));
+
     setAllottees(mapped);
     if (mapped.length > 0) setSelectedIndex("0");
   }, [storeAllottees]);
@@ -95,6 +98,8 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
   // Only single list, no filtering
   const displayList = allottees;
   const current = displayList[parseInt(selectedIndex, 10)];
+
+  console.log("Selected Allottee:", storeAllottees);
 
   return (
     <div className="space-y-6">

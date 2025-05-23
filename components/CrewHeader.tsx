@@ -11,6 +11,8 @@ interface CrewHeaderProps {
   isEditingAllottee: boolean;
   toggleAllotteeEdit: () => void;
   handleDelete: (selectedAllottee: string) => void;
+  isAddingAllottee: boolean;
+  toggleAllotteeAdd: () => void;
 }
 
 export function CrewHeader({
@@ -20,6 +22,8 @@ export function CrewHeader({
   saveChanges,
   isEditingAllottee,
   toggleAllotteeEdit,
+  isAddingAllottee,
+  toggleAllotteeAdd,
 }: CrewHeaderProps) {
   return (
     <div className="flex items-center justify-between">
@@ -64,21 +68,43 @@ export function CrewHeader({
             <CircleMinus />
             Remove
           </Button>
-          {isEditingAllottee ? (
+          {isEditingAllottee || isAddingAllottee ? (
             <>
-              <Button
-                variant="outline"
-                onClick={toggleAllotteeEdit}
-                className="border-gray-300 w-40">
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-              <Button
-                className="bg-primary hover:bg-primary/90 w-40"
-                onClick={toggleAllotteeEdit}>
-                <Save className="h-4 w-4 mr-2" />
-                Save
-              </Button>
+              {isAddingAllottee ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={toggleAllotteeAdd}
+                    className="border-gray-300 w-40">
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={toggleAllotteeEdit}
+                    className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white">
+                    <X className="h-4 w-4 mr-2" />
+                    Add Allottee
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={toggleAllotteeEdit}
+                    className="border-gray-300 w-40">
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+
+                  <Button
+                    className="bg-primary hover:bg-primary/90 w-40"
+                    onClick={toggleAllotteeEdit}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </Button>
+                </>
+              )}
             </>
           ) : (
             <>
@@ -88,7 +114,9 @@ export function CrewHeader({
                 <Pencil />
                 Edit
               </Button>
-              <Button className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40">
+              <Button
+                className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40"
+                onClick={toggleAllotteeAdd}>
                 <Plus />
                 Add Allottee
               </Button>
