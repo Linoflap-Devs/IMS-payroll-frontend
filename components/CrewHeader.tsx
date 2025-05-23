@@ -75,13 +75,13 @@ export function CrewHeader({
                   <Button
                     variant="outline"
                     onClick={toggleAllotteeAdd}
-                    className="border-gray-300 w-40">
+                    className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500">
                     <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={toggleAllotteeEdit}
+                    onClick={toggleAllotteeAdd}
                     className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white">
                     <Plus />
                     Save Allottee
@@ -92,11 +92,10 @@ export function CrewHeader({
                   <Button
                     variant="outline"
                     onClick={toggleAllotteeEdit}
-                    className="border-gray-300 w-40">
+                    className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500">
                     <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
-
                   <Button
                     className="bg-primary hover:bg-primary/90 w-40"
                     onClick={toggleAllotteeEdit}>
