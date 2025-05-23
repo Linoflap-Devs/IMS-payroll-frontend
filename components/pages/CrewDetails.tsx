@@ -627,7 +627,10 @@ export default function CrewDetails() {
                 <TabsContent
                   value="allottee"
                   className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1">
-                  <CrewAllottee isEditing={isEditing} />
+                  <CrewAllottee
+                    isEditingAllottee={isEditingAllottee}
+                    isAdding={isAddingAllottee}
+                  />
                 </TabsContent>
 
                 <TabsContent

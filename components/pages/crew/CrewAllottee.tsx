@@ -16,7 +16,7 @@ import { PlusCircle } from "lucide-react";
 
 // UI model for allottee data
 type Allottee = {
-  id: number;
+  id: string;
   name: string;
   relationship: string;
   contactNumber: string;
@@ -32,14 +32,20 @@ type Allottee = {
   dollarAllotment: boolean;
   isDollar: number;
   allotmentType: number;
+  allotteeDetailID: string;
 };
 
 interface ICrewAllotteeProps {
   onAdd?: () => void;
-  isEditing?: boolean;
+  isEditingAllottee?: boolean;
+  isAdding?: boolean;
 }
 
-export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
+export function CrewAllottee({
+  onAdd,
+  isEditingAllottee,
+  isAdding,
+}: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<Allottee[]>([]);
@@ -69,7 +75,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
   // Map API data to UI model whenever allottees change
   useEffect(() => {
     const mapped = storeAllottees.map((a) => ({
-      id: a.AllotteeId,
+      id: a.AllotteeDetailID,
       name: a.AllotteeName,
       relationship: a.RelationName,
       contactNumber: a.ContactNumber,
@@ -85,6 +91,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
       dollarAllotment: false,
       isDollar: a.IsDollar,
       allotmentType: a.AllotmentType,
+      allotteeDetailID: a.AllotteeDetailID,
     }));
 
     setAllottees(mapped);
@@ -101,7 +108,8 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
   const displayList = allottees;
   const current = displayList[parseInt(selectedIndex, 10)];
 
-  console.log("Selected Allottee:", storeAllottees);
+  console.log("StoreAllottee: ", storeAllottees);
+  console.log("Allottee: ", allottees);
 
   return (
     <div className="space-y-6">
@@ -221,6 +229,10 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                     readOnly
                     value={current.name}
                     className="w-full h-10 bg-gray-50"
+                    disabled={!isEditingAllottee && !isAdding}
+                    onChange={(e) => {
+                      current.name = e.target.value;
+                    }}
                   />
                 </div>
                 <div>
@@ -231,6 +243,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                     readOnly
                     value={current.relationship}
                     className="w-full h-10 bg-gray-50"
+                    disabled={!isEditingAllottee && !isAdding}
                   />
                 </div>
                 <div>
@@ -241,6 +254,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                     readOnly
                     value={current.contactNumber}
                     className="w-full h-10 bg-gray-50"
+                    disabled={!isEditingAllottee && !isAdding}
                   />
                 </div>
                 <div>
@@ -251,6 +265,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                     readOnly
                     value={current.address}
                     className="w-full h-10 bg-gray-50"
+                    disabled={!isEditingAllottee && !isAdding}
                   />
                 </div>
                 <div>
@@ -260,6 +275,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                   <Input
                     readOnly
                     value={current.city}
+                    disabled={!isEditingAllottee && !isAdding}
                     className="w-full h-10 bg-gray-50"
                   />
                 </div>
@@ -271,6 +287,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                     readOnly
                     value={current.province}
                     className="w-full h-10 bg-gray-50"
+                    disabled={!isEditingAllottee && !isAdding}
                   />
                 </div>
               </div>
@@ -285,7 +302,9 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                     <label className="text-sm text-gray-500 mb-1 block">
                       Bank
                     </label>
-                    <Select value={current.bankName}>
+                    <Select
+                      value={current.bankName}
+                      disabled={!isEditingAllottee && !isAdding}>
                       <SelectTrigger className="w-full h-10 bg-gray-50">
                         <SelectValue placeholder={current.bankName} />
                       </SelectTrigger>
@@ -300,7 +319,9 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                     <label className="text-sm text-gray-500 mb-1 block">
                       Branch
                     </label>
-                    <Select value={current.bankBranch}>
+                    <Select
+                      value={current.bankBranch}
+                      disabled={!isEditingAllottee && !isAdding}>
                       <SelectTrigger className="w-full h-10 bg-gray-50">
                         <SelectValue placeholder={current.bankBranch} />
                       </SelectTrigger>
@@ -319,6 +340,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                       readOnly
                       value={current.accountNumber}
                       className="w-full h-10 bg-gray-50"
+                      disabled={!isEditingAllottee && !isAdding}
                     />
                   </div>
                   <div>
@@ -332,6 +354,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                       readOnly
                       value={current.allotment.toString()}
                       className="w-full h-10 bg-gray-50"
+                      disabled={!isEditingAllottee && !isAdding}
                     />
                   </div>
                 </div>

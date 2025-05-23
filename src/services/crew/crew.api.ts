@@ -110,6 +110,7 @@ export interface CrewAllottee {
   Allotment: number;
   IsDollar: number;
   AllotmentType: number;
+  AllotteeDetailID: string;
 }
 
 export interface CrewAllotteeResponse {
