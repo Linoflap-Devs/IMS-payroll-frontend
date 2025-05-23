@@ -23,6 +23,7 @@ type Allottee = {
   address: string;
   city: string;
   bankName: string;
+  province: string;
   bankBranch: string;
   accountNumber: string;
   allotment: number;
@@ -72,7 +73,8 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
       name: a.AllotteeName,
       relationship: a.RelationName,
       contactNumber: a.ContactNumber,
-      address: `${a.Address}, ${a.CityName}, ${a.ProvinceName}`,
+      address: a.Address,
+      province: a.ProvinceName,
       city: a.CityName,
       bankName: a.BankName,
       bankBranch: a.BankBranch,
@@ -258,6 +260,16 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                   <Input
                     readOnly
                     value={current.city}
+                    className="w-full h-10 bg-gray-50"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500 mb-1 block">
+                    City
+                  </label>
+                  <Input
+                    readOnly
+                    value={current.province}
                     className="w-full h-10 bg-gray-50"
                   />
                 </div>
