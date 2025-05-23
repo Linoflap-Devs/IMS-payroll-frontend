@@ -265,7 +265,7 @@ export function CrewAllottee({ onAdd, isEditing }: ICrewAllotteeProps) {
                 </div>
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
-                    City
+                    Province
                   </label>
                   <Input
                     readOnly
