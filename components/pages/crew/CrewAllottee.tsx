@@ -50,8 +50,7 @@ export function CrewAllottee({
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<Allottee[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<string>("0");
-  const [allotteeToBeUpdated, setAllotteeToBeUpdated] =
-    useState<Allottee | null>(null);
+  const [currentAllottee, setCurrentAllottee] = useState<Allottee | null>(null);
 
   const {
     allottees: storeAllottees,
@@ -118,35 +117,38 @@ export function CrewAllottee({
       ) : (
         <>
           {/* Allottee selection */}
-          <div className="flex gap-4 w-1/2">
-            <div className="flex-1">
-              <div className="relative rounded-lg border shadow-sm overflow-hidden">
-                <div className="flex h-11 w-full">
-                  <div className="flex items-center px-4 bg-gray-50 border-r">
-                    <span className="text-gray-700 font-medium whitespace-nowrap">
-                      Select Allottee
-                    </span>
-                  </div>
-                  <div className="flex-1 w-full flex items-center">
-                    <Select
-                      value={selectedIndex}
-                      onValueChange={setSelectedIndex}>
-                      <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                        <SelectValue placeholder="Select Allottee" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {displayList.map((a, idx) => (
-                          <SelectItem key={idx} value={idx.toString()}>
-                            {a.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+          {!isEditingAllottee && !isAdding && (
+            <>
+              <div className="flex gap-4 w-1/2">
+                <div className="flex-1">
+                  <div className="relative rounded-lg border shadow-sm overflow-hidden">
+                    <div className="flex h-11 w-full">
+                      <div className="flex items-center px-4 bg-gray-50 border-r">
+                        <span className="text-gray-700 font-medium whitespace-nowrap">
+                          Select Allottee
+                        </span>
+                      </div>
+                      <div className="flex-1 w-full flex items-center">
+                        <Select
+                          value={selectedIndex}
+                          onValueChange={setSelectedIndex}>
+                          <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                            <SelectValue placeholder="Select Allottee" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {displayList.map((a, idx) => (
+                              <SelectItem key={idx} value={idx.toString()}>
+                                {a.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            {/* <div className="relative rounded-lg border shadow-sm overflow-hidden">
+                {/* <div className="relative rounded-lg border shadow-sm overflow-hidden">
               <div className="flex h-11 w-full">
                 <div className="flex items-center px-4 bg-gray-50 border-r">
                   <span className="text-gray-700 font-medium whitespace-nowrap">
@@ -166,15 +168,17 @@ export function CrewAllottee({
                 </div>
               </div>
             </div> */}
-            {onAdd && (
-              <Button
-                onClick={onAdd}
-                className="h-11 px-5 bg-primary text-white rounded-lg shadow-sm hover:bg-primary/90">
-                <PlusCircle className="h-5 w-5 mr-2" />
-                <span className="font-medium">Add Allottee</span>
-              </Button>
-            )}
-          </div>
+                {onAdd && (
+                  <Button
+                    onClick={onAdd}
+                    className="h-11 px-5 bg-primary text-white rounded-lg shadow-sm hover:bg-primary/90">
+                    <PlusCircle className="h-5 w-5 mr-2" />
+                    <span className="font-medium">Add Allottee</span>
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Details display */}
           {current ? (
