@@ -83,8 +83,8 @@ export function CrewHeader({
                     variant="outline"
                     onClick={toggleAllotteeEdit}
                     className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white">
-                    <X className="h-4 w-4 mr-2" />
-                    Add Allottee
+                    <Plus />
+                    Save Allottee
                   </Button>
                 </>
               ) : (
