@@ -57,6 +57,7 @@ interface CrewStore {
   resetMovements: () => void;
   resetAllottees: () => void;
   resetRanks: () => void;
+  
 }
 
 export const useCrewStore = create<CrewStore>((set) => ({
