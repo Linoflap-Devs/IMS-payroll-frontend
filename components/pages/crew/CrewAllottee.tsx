@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCrewStore } from "@/src/store/useCrewStore";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Save, X } from "lucide-react";
+import { useLocationStore } from "@/src/store/useLocationStore";
 
 // UI model for allottee data
 type Allottee = {
@@ -21,9 +22,11 @@ type Allottee = {
   relationship: string;
   contactNumber: string;
   address: string;
-  city: string;
+  city: string; // String name for display
+  cityId: string; // ID for saving
+  province: string; // String name for display
+  provinceId: string; // ID for saving
   bankName: string;
-  province: string;
   bankBranch: string;
   accountNumber: string;
   allotment: number;
@@ -39,6 +42,8 @@ interface ICrewAllotteeProps {
   onAdd?: () => void;
   isEditingAllottee?: boolean;
   isAdding?: boolean;
+  onSave?: (allottee: Allottee) => void;
+  onCancel?: () => void;
 }
 
 const emptyAllottee: Allottee = {
@@ -48,8 +53,10 @@ const emptyAllottee: Allottee = {
   contactNumber: "",
   address: "",
   city: "",
-  bankName: "",
+  cityId: "",
   province: "",
+  provinceId: "",
+  bankName: "",
   bankBranch: "",
   accountNumber: "",
   allotment: 0,
@@ -63,14 +70,20 @@ const emptyAllottee: Allottee = {
 
 export function CrewAllottee({
   onAdd,
-  isEditingAllottee,
-  isAdding,
+  isEditingAllottee = false,
+  isAdding = false,
+  onSave,
+  onCancel,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<Allottee[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<string>("0");
   const [currentAllottee, setCurrentAllottee] = useState<Allottee | null>(null);
+  const [editingAllottee, setEditingAllottee] = useState<Allottee | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchCity, setSearchCity] = useState("");
+  const [searchProvince, setSearchProvince] = useState("");
 
   const {
     allottees: storeAllottees,
@@ -79,6 +92,8 @@ export function CrewAllottee({
     fetchCrewAllottees,
     resetAllottees,
   } = useCrewStore();
+
+  const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
 
   // Fetch allottee data on mount
   useEffect(() => {
@@ -98,7 +113,9 @@ export function CrewAllottee({
       contactNumber: a.ContactNumber,
       address: a.Address,
       province: a.ProvinceName,
+      provinceId: a.ProvinceID?.toString() || "",
       city: a.CityName,
+      cityId: a.CityID?.toString() || "",
       bankName: a.BankName,
       bankBranch: a.BankBranch,
       accountNumber: a.AccountNumber,
@@ -115,24 +132,135 @@ export function CrewAllottee({
     if (mapped.length > 0) setSelectedIndex("0");
   }, [storeAllottees]);
 
+  // Set current allottee based on selection or adding mode
   useEffect(() => {
     if (isAdding) {
       setCurrentAllottee(emptyAllottee);
+      setEditingAllottee(emptyAllottee);
     } else if (allottees.length > 0) {
       const index = parseInt(selectedIndex, 10);
       setCurrentAllottee({ ...allottees[index] });
+
+      // Initialize editing state when entering edit mode
+      if (isEditingAllottee) {
+        setEditingAllottee({ ...allottees[index] });
+      }
     } else {
       setCurrentAllottee(null);
+      setEditingAllottee(null);
     }
-  }, [selectedIndex, allottees, isAdding]);
+  }, [selectedIndex, allottees, isAdding, isEditingAllottee]);
 
+  useEffect(() => {
+    fetchCities();
+    fetchProvinces();
+  }, [fetchCities, fetchProvinces]);
+
+  // Filter cities based on selected province
+  const filteredCities = useMemo(() => {
+    // If editing allottee is null or no province is selected, return empty array
+    if (!editingAllottee || !editingAllottee.provinceId) {
+      return [];
+    }
+
+    const provinceId = parseInt(editingAllottee.provinceId);
+    const citiesInProvince = cities.filter(
+      (city) => city.ProvinceID === provinceId
+    );
+
+    if (!searchCity.trim()) {
+      return citiesInProvince.slice(0, 50); // Only show first 50 cities initially
+    }
+
+    return citiesInProvince
+      .filter((city) =>
+        city.CityName.toLowerCase().includes(searchCity.toLowerCase())
+      )
+      .slice(0, 100); // Limit to 100 results maximum for performance
+  }, [cities, searchCity, editingAllottee]);
+
+  // Filter provinces for search
+  const filteredProvinces = useMemo(() => {
+    if (!searchProvince.trim()) {
+      return provinces; // Usually provinces are fewer, so we can show all
+    }
+    return provinces.filter((province) =>
+      province.ProvinceName.toLowerCase().includes(searchProvince.toLowerCase())
+    );
+  }, [provinces, searchProvince]);
+
+  // Handle input changes for editing state
   const handleInputChange = (field: keyof Allottee, value: any) => {
-    if (!currentAllottee) return;
+    if (!editingAllottee) return;
 
-    setCurrentAllottee({
-      ...currentAllottee,
+    setEditingAllottee({
+      ...editingAllottee,
       [field]: value,
     });
+  };
+
+  // Handle city selection (update both city name and ID)
+  const handleCityChange = (cityId: string) => {
+    if (!editingAllottee) return;
+
+    const selectedCity = cities.find((c) => c.CityID.toString() === cityId);
+
+    setEditingAllottee({
+      ...editingAllottee,
+      cityId: cityId,
+      city: selectedCity?.CityName || "",
+    });
+  };
+
+  // Handle province selection (update both province name and ID)
+  const handleProvinceChange = (provinceId: string) => {
+    if (!editingAllottee) return;
+
+    const selectedProvince = provinces.find(
+      (p) => p.ProvinceID.toString() === provinceId
+    );
+
+    setEditingAllottee({
+      ...editingAllottee,
+      provinceId: provinceId,
+      province: selectedProvince?.ProvinceName || "",
+      // Clear city when province changes
+      cityId: "",
+      city: "",
+    });
+  };
+
+  // Handle save action
+  const handleSave = () => {
+    if (!editingAllottee) return;
+
+    // Update the current allottee with edited values
+    setCurrentAllottee({ ...editingAllottee });
+
+    // Update the allottees array
+    const updatedAllottees = [...allottees];
+    updatedAllottees[parseInt(selectedIndex, 10)] = { ...editingAllottee };
+    setAllottees(updatedAllottees);
+
+    // Call parent save handler if provided
+    console.log("Saving allottee:", editingAllottee);
+
+    if (onSave) {
+      onSave(editingAllottee);
+    }
+  };
+
+  // Handle cancel action
+  const handleCancel = () => {
+    // Reset editing state to current display state
+    if (currentAllottee) {
+      setEditingAllottee({ ...currentAllottee });
+    }
+
+    // Call parent cancel handler if provided
+    if (onCancel) {
+      onCancel();
+    }
   };
 
   if (allotteesError) {
@@ -141,16 +269,9 @@ export function CrewAllottee({
     );
   }
 
-  // Only single list, no filtering
-  // const displayList = allottees;
-  // const current = displayList[parseInt(selectedIndex, 10)];
-
-  // console.log("StoreAllottee: ", storeAllottees);
-  // console.log("Allottee: ", allottees);
-
-  const handleClick = () => {
-    console.log("Current Allottee: ", currentAllottee);
-  };
+  // Determine which allottee object to use for display/edit
+  const displayAllottee =
+    isEditingAllottee || isAdding ? editingAllottee : currentAllottee;
 
   return (
     <div className="space-y-6">
@@ -159,7 +280,6 @@ export function CrewAllottee({
       ) : (
         <>
           {/* Allottee selection */}
-
           {!isEditingAllottee && !isAdding && (
             <>
               <div className="flex gap-4 w-1/2">
@@ -190,153 +310,112 @@ export function CrewAllottee({
                     </div>
                   </div>
                 </div>
-                {/* <div className="relative rounded-lg border shadow-sm overflow-hidden">
-                <div className="flex h-11 w-full">
-                  <div className="flex items-center px-4 bg-gray-50 border-r">
-                    <span className="text-gray-700 font-medium whitespace-nowrap">
-                      Select Allotment Type
-                    </span>
-                  </div>
-                  <div className="flex-1 w-full flex items-center">
-                    <Select value="Amount">
-                      <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                        <SelectValue placeholder="Amount" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Amount">Amount</SelectItem>
-                        <SelectItem value="Percentage">Percentage</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>  
-              </div> */}
-                {isAdding && (
+                {/* {!isAdding && (
                   <Button
                     onClick={onAdd}
                     className="h-11 px-5 bg-primary text-white rounded-lg shadow-sm hover:bg-primary/90">
                     <PlusCircle className="h-5 w-5 mr-2" />
                     <span className="font-medium">Add Allottee</span>
                   </Button>
-                )}
+                )} */}
               </div>
             </>
           )}
 
           {/* Details display */}
-          {currentAllottee ? (
-            <div className="p-4 space-y-6 ">
+          {displayAllottee ? (
+            <div className="p-4 space-y-6">
               {/* Personal Info */}
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-semibold text-primary">
                   Allottee Personal Information
                 </h3>
+
+                {/* Action buttons for edit mode */}
                 {(isEditingAllottee || isAdding) && (
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={currentAllottee.active}
-                        onChange={(e) =>
-                          handleInputChange("active", e.target.checked)
-                        }
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <label className="text-sm font-medium text-gray-900">
-                        Active
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={currentAllottee.priorityAmount}
-                        onChange={(e) =>
-                          handleInputChange("priorityAmount", e.target.checked)
-                        }
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <label className="text-sm font-medium text-gray-900">
-                        Priority for Amount Type
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={currentAllottee.isDollar === 1}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "isDollar",
-                            e.target.checked ? 1 : 0
-                          )
-                        }
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <label className="text-sm font-medium text-gray-900">
-                        Dollar Allotment
-                      </label>
-                    </div>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      onClick={handleSave}
+                      className="h-9 px-4 bg-green-600 text-white rounded-lg shadow-sm hover:bg-green-700">
+                      <Save className="h-4 w-4 mr-2" />
+                      <span className="font-medium">Save</span>
+                    </Button>
+                    <Button
+                      onClick={handleCancel}
+                      className="h-9 px-4 bg-gray-200 text-gray-800 rounded-lg shadow-sm hover:bg-gray-300">
+                      <X className="h-4 w-4 mr-2" />
+                      <span className="font-medium">Cancel</span>
+                    </Button>
                   </div>
                 )}
 
-                {!isEditingAllottee && !isAdding && (
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={currentAllottee.active}
-                        readOnly
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <label className="text-sm font-medium text-gray-900">
-                        Active
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={currentAllottee.priorityAmount}
-                        readOnly
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <label className="text-sm font-medium text-gray-900">
-                        Priority for Amount Type
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={currentAllottee.isDollar === 1}
-                        readOnly
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <label className="text-sm font-medium text-gray-900">
-                        Dollar Allottment
-                      </label>
-                    </div>
+                {/* Checkboxes */}
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={displayAllottee.active}
+                      onChange={(e) =>
+                        isEditingAllottee || isAdding
+                          ? handleInputChange("active", e.target.checked)
+                          : null
+                      }
+                      disabled={!isEditingAllottee && !isAdding}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <label className="text-sm font-medium text-gray-900">
+                      Active
+                    </label>
                   </div>
-                )}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={displayAllottee.priorityAmount}
+                      onChange={(e) =>
+                        isEditingAllottee || isAdding
+                          ? handleInputChange(
+                              "priorityAmount",
+                              e.target.checked
+                            )
+                          : null
+                      }
+                      disabled={!isEditingAllottee && !isAdding}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <label className="text-sm font-medium text-gray-900">
+                      Priority for Amount Type
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={displayAllottee.isDollar === 1}
+                      onChange={(e) =>
+                        isEditingAllottee || isAdding
+                          ? handleInputChange(
+                              "isDollar",
+                              e.target.checked ? 1 : 0
+                            )
+                          : null
+                      }
+                      disabled={!isEditingAllottee && !isAdding}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <label className="text-sm font-medium text-gray-900">
+                      Dollar Allotment
+                    </label>
+                  </div>
+                </div>
               </div>
+
+              {/* Personal Info Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
                     Name
                   </label>
                   <Input
-                    value={currentAllottee.name}
-                    readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${
-                      !isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
-                    }`}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500 mb-1 block">
-                    Relationship
-                  </label>
-                  <Input
-                    value={currentAllottee.relationship}
+                    value={displayAllottee.name}
                     readOnly={!isEditingAllottee && !isAdding}
                     className={`w-full h-10 ${
                       !isEditingAllottee && !isAdding
@@ -344,6 +423,25 @@ export function CrewAllottee({
                         : "bg-white"
                     }`}
                     onChange={(e) =>
+                      (isEditingAllottee || isAdding) &&
+                      handleInputChange("name", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500 mb-1 block">
+                    Relationship
+                  </label>
+                  <Input
+                    value={displayAllottee.relationship}
+                    readOnly={!isEditingAllottee && !isAdding}
+                    className={`w-full h-10 ${
+                      !isEditingAllottee && !isAdding
+                        ? "bg-gray-50"
+                        : "bg-white"
+                    }`}
+                    onChange={(e) =>
+                      (isEditingAllottee || isAdding) &&
                       handleInputChange("relationship", e.target.value)
                     }
                   />
@@ -353,7 +451,7 @@ export function CrewAllottee({
                     Contact Number
                   </label>
                   <Input
-                    value={currentAllottee.contactNumber}
+                    value={displayAllottee.contactNumber}
                     readOnly={!isEditingAllottee && !isAdding}
                     className={`w-full h-10 ${
                       !isEditingAllottee && !isAdding
@@ -361,6 +459,7 @@ export function CrewAllottee({
                         : "bg-white"
                     }`}
                     onChange={(e) =>
+                      (isEditingAllottee || isAdding) &&
                       handleInputChange("contactNumber", e.target.value)
                     }
                   />
@@ -370,7 +469,7 @@ export function CrewAllottee({
                     Address
                   </label>
                   <Input
-                    value={currentAllottee.address}
+                    value={displayAllottee.address}
                     readOnly={!isEditingAllottee && !isAdding}
                     className={`w-full h-10 ${
                       !isEditingAllottee && !isAdding
@@ -378,41 +477,123 @@ export function CrewAllottee({
                         : "bg-white"
                     }`}
                     onChange={(e) =>
+                      (isEditingAllottee || isAdding) &&
                       handleInputChange("address", e.target.value)
                     }
                   />
                 </div>
+
+                {/* City Field */}
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
                     City
                   </label>
-                  <Input
-                    value={currentAllottee.city}
-                    readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${
-                      !isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
-                    }`}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
-                  />
+                  {isEditingAllottee || isAdding ? (
+                    <>
+                      <Select
+                        value={displayAllottee.cityId}
+                        onValueChange={handleCityChange}
+                        disabled={!displayAllottee.provinceId}>
+                        <SelectTrigger className="w-full h-10">
+                          <SelectValue placeholder="Select a city" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-80">
+                          <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                            <Input
+                              placeholder="Search cities..."
+                              value={searchCity}
+                              onChange={(e) => setSearchCity(e.target.value)}
+                              className="h-8"
+                            />
+                          </div>
+                          {isLoading ? (
+                            <SelectItem value="loading">Loading...</SelectItem>
+                          ) : filteredCities.length > 0 ? (
+                            filteredCities.map((city) => (
+                              <SelectItem
+                                key={city.CityID}
+                                value={city.CityID.toString()}>
+                                {city.CityName}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <div className="px-2 py-2 text-sm text-gray-500">
+                              {displayAllottee.provinceId
+                                ? "No cities found"
+                                : "Select a province first"}
+                            </div>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {/* {!displayAllottee.cityId && (
+                        <p className="text-red-500 text-sm mt-1">
+                          Please select a city.
+                        </p>
+                      )} */}
+                    </>
+                  ) : (
+                    <Input
+                      value={displayAllottee.city}
+                      readOnly
+                      className="w-full h-10 bg-gray-50"
+                    />
+                  )}
                 </div>
+
+                {/* Province Field */}
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
                     Province
                   </label>
-                  <Input
-                    value={currentAllottee.province}
-                    readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${
-                      !isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
-                    }`}
-                    onChange={(e) =>
-                      handleInputChange("province", e.target.value)
-                    }
-                  />
+                  {isEditingAllottee || isAdding ? (
+                    <>
+                      <Select
+                        value={displayAllottee.provinceId}
+                        onValueChange={handleProvinceChange}>
+                        <SelectTrigger className="w-full h-10">
+                          <SelectValue placeholder="Select a province" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-80">
+                          <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                            <Input
+                              placeholder="Search provinces..."
+                              value={searchProvince}
+                              onChange={(e) =>
+                                setSearchProvince(e.target.value)
+                              }
+                              className="h-8"
+                            />
+                          </div>
+                          {isLoading ? (
+                            <SelectItem value="loading">Loading...</SelectItem>
+                          ) : filteredProvinces.length > 0 ? (
+                            filteredProvinces.map((province) => (
+                              <SelectItem
+                                key={province.ProvinceID}
+                                value={province.ProvinceID.toString()}>
+                                {province.ProvinceName}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <div className="px-2 py-2 text-sm text-gray-500">
+                              No provinces found
+                            </div>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {/* {!displayAllottee.provinceId && (
+                        <p className="text-red-500 text-sm mt-1">
+                          Please select a province.
+                        </p>
+                      )} */}
+                    </>
+                  ) : (
+                    <Input
+                      value={displayAllottee.province}
+                      readOnly
+                      className="w-full h-10 bg-gray-50"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -426,58 +607,44 @@ export function CrewAllottee({
                     <label className="text-sm text-gray-500 mb-1 block">
                       Bank
                     </label>
-                    <Select
-                      value={currentAllottee.bankName}
-                      onValueChange={(value) =>
-                        handleInputChange("bankName", value)
+                    <Input
+                      value={displayAllottee.bankName}
+                      readOnly={!isEditingAllottee && !isAdding}
+                      className={`w-full h-10 ${
+                        !isEditingAllottee && !isAdding
+                          ? "bg-gray-50"
+                          : "bg-white"
+                      }`}
+                      onChange={(e) =>
+                        (isEditingAllottee || isAdding) &&
+                        handleInputChange("bankName", e.target.value)
                       }
-                      disabled={!isEditingAllottee && !isAdding}>
-                      <SelectTrigger
-                        className={`w-full h-10 ${
-                          !isEditingAllottee && !isAdding
-                            ? "bg-gray-50"
-                            : "bg-white"
-                        }`}>
-                        <SelectValue placeholder={currentAllottee.bankName} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={currentAllottee.bankName}>
-                          {currentAllottee.bankName || "Select Bank"}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
                       Branch
                     </label>
-                    <Select
-                      value={currentAllottee.bankBranch}
-                      onValueChange={(value) =>
-                        handleInputChange("bankBranch", value)
+                    <Input
+                      value={displayAllottee.bankBranch}
+                      readOnly={!isEditingAllottee && !isAdding}
+                      className={`w-full h-10 ${
+                        !isEditingAllottee && !isAdding
+                          ? "bg-gray-50"
+                          : "bg-white"
+                      }`}
+                      onChange={(e) =>
+                        (isEditingAllottee || isAdding) &&
+                        handleInputChange("bankBranch", e.target.value)
                       }
-                      disabled={!isEditingAllottee && !isAdding}>
-                      <SelectTrigger
-                        className={`w-full h-10 ${
-                          !isEditingAllottee && !isAdding
-                            ? "bg-gray-50"
-                            : "bg-white"
-                        }`}>
-                        <SelectValue placeholder={currentAllottee.bankBranch} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={currentAllottee.bankBranch}>
-                          {currentAllottee.bankBranch || "Select Branch"}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
                       Account Number
                     </label>
                     <Input
-                      value={currentAllottee.accountNumber}
+                      value={displayAllottee.accountNumber}
                       readOnly={!isEditingAllottee && !isAdding}
                       className={`w-full h-10 ${
                         !isEditingAllottee && !isAdding
@@ -485,22 +652,23 @@ export function CrewAllottee({
                           : "bg-white"
                       }`}
                       onChange={(e) =>
+                        (isEditingAllottee || isAdding) &&
                         handleInputChange("accountNumber", e.target.value)
                       }
                     />
                   </div>
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
-                      {currentAllottee.allotmentType === 1
+                      {displayAllottee.allotmentType === 1
                         ? "Allotment Amount in" +
-                          (currentAllottee.isDollar === 1
+                          (displayAllottee.isDollar === 1
                             ? " (Dollar)"
                             : " (Peso)")
                         : "Allotment Percentage"}
                     </label>
                     <Input
                       type="number"
-                      value={currentAllottee.allotment.toString()}
+                      value={displayAllottee.allotment.toString()}
                       readOnly={!isEditingAllottee && !isAdding}
                       className={`w-full h-10 ${
                         !isEditingAllottee && !isAdding
@@ -508,6 +676,7 @@ export function CrewAllottee({
                           : "bg-white"
                       }`}
                       onChange={(e) =>
+                        (isEditingAllottee || isAdding) &&
                         handleInputChange(
                           "allotment",
                           parseFloat(e.target.value) || 0
@@ -517,7 +686,6 @@ export function CrewAllottee({
                   </div>
                 </div>
               </div>
-              <Button onClick={handleClick}>Hello</Button>
             </div>
           ) : (
             <div className="p-4 text-center text-gray-500">
