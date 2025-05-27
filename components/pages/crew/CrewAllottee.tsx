@@ -313,57 +313,6 @@ export function CrewAllottee({
       ) : (
         <>
           {/* Allottee selection */}
-
-          {/* <div className="flex gap-4 w-1/2">
-                <div className="flex-1">
-                  <div className="relative rounded-lg border shadow-sm overflow-hidden">
-                    <div className="flex h-11 w-full">
-                      <div className="flex items-center px-4 bg-gray-50 border-r">
-                        <span className="text-gray-700 font-medium whitespace-nowrap">
-                          Select Allottee
-                        </span>
-                      </div>
-                      <div className="flex-1 w-full flex items-center">
-                        <Select
-                          value={selectedIndex}
-                          onValueChange={setSelectedIndex}>
-                          <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                            <SelectValue placeholder="Select Allottee" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {allottees.map((a, idx) => (
-                              <SelectItem key={idx} value={idx.toString()}>
-                                {a.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex h-11 w-full">
-                        <div className="flex items-center px-4 bg-gray-50 border-r">
-                          <span className="text-gray-700 font-medium whitespace-nowrap">
-                            Select Allotment Type
-                          </span>
-                        </div>
-                        <div className="flex-1 w-full flex items-center">
-                          <Select value="Amount">
-                            <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                              <SelectValue placeholder="Amount" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Amount">Amount</SelectItem>
-                              <SelectItem value="Percentage">
-                                Percentage
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div> */}
           {!isEditingAllottee && !isAdding ? (
             <>
               <div className="flex gap-4 w-1/2">
