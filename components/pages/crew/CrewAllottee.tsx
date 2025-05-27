@@ -14,7 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Save, X } from "lucide-react";
 import { useLocationStore } from "@/src/store/useLocationStore";
-import { getBankList } from "@/src/services/bank/bank.api";
+import { useBankStore } from "@/src/store/useBankStore";
+import { Label } from "@/components/ui/label";
 
 // UI model for allottee data
 type Allottee = {
@@ -94,6 +95,18 @@ export function CrewAllottee({
     resetAllottees,
   } = useCrewStore();
 
+  const {
+    isLoadingBanks,
+    error,
+    fetchBanks,
+    selectedBankId,
+    selectedBranchId,
+    setSelectedBankId,
+    setSelectedBranchId,
+    getUniqueBanks,
+    getBranchesForSelectedBank,
+  } = useBankStore();
+
   const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
 
   // Fetch allottee data on mount
@@ -104,6 +117,25 @@ export function CrewAllottee({
       resetAllottees(); // Clean up on unmount
     };
   }, [crewId, fetchCrewAllottees, resetAllottees]);
+
+  useEffect(() => {
+    fetchBanks();
+  }, [fetchBanks]);
+
+  const uniqueBanks = getUniqueBanks();
+  const branchesForSelectedBank = getBranchesForSelectedBank();
+
+  const handleBankChange = (value: string) => {
+    // Convert string to number if it's numeric
+    const bankId = /^\d+$/.test(value) ? Number(value) : value;
+    setSelectedBankId(bankId);
+  };
+
+  const handleBranchChange = (value: string) => {
+    // Convert string to number if it's numeric
+    const branchId = /^\d+$/.test(value) ? Number(value) : value;
+    setSelectedBranchId(branchId);
+  };
 
   // Map API data to UI model whenever allottees change
   useEffect(() => {
@@ -608,38 +640,92 @@ export function CrewAllottee({
                     <label className="text-sm text-gray-500 mb-1 block">
                       Bank
                     </label>
-                    <Input
-                      value={displayAllottee.bankName}
-                      readOnly={!isEditingAllottee && !isAdding}
-                      className={`w-full h-10 ${
-                        !isEditingAllottee && !isAdding
-                          ? "bg-gray-50"
-                          : "bg-white"
-                      }`}
-                      onChange={(e) =>
-                        (isEditingAllottee || isAdding) &&
-                        handleInputChange("bankName", e.target.value)
-                      }
-                    />
+                    {isEditingAllottee ? (
+                      <div>
+                        <Select
+                          value={selectedBankId?.toString()}
+                          onValueChange={handleBankChange}
+                          disabled={!isEditingAllottee}>
+                          <SelectTrigger id="bank" className="w-full">
+                            <SelectValue placeholder="Select a bank" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {uniqueBanks.map((bank) => (
+                              <SelectItem
+                                key={bank.BankID}
+                                value={bank.BankID.toString()}>
+                                {bank.BankName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <Input
+                        value={displayAllottee.bankBranch}
+                        readOnly={!isEditingAllottee && !isAdding}
+                        className={`w-full h-10 ${
+                          !isEditingAllottee && !isAdding
+                            ? "bg-gray-50"
+                            : "bg-white"
+                        }`}
+                        onChange={(e) =>
+                          (isEditingAllottee || isAdding) &&
+                          handleInputChange("bankBranch", e.target.value)
+                        }
+                      />
+                    )}
                   </div>
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
                       Branch
                     </label>
-                    <Input
-                      value={displayAllottee.bankBranch}
-                      readOnly={!isEditingAllottee && !isAdding}
-                      className={`w-full h-10 ${
-                        !isEditingAllottee && !isAdding
-                          ? "bg-gray-50"
-                          : "bg-white"
-                      }`}
-                      onChange={(e) =>
-                        (isEditingAllottee || isAdding) &&
-                        handleInputChange("bankBranch", e.target.value)
-                      }
-                    />
+
+                    {isEditingAllottee ? (
+                      <div>
+                        <Select
+                          value={selectedBranchId?.toString()}
+                          onValueChange={handleBranchChange}
+                          disabled={!selectedBankId || !isEditingAllottee}>
+                          <SelectTrigger id="branch" className="w-full">
+                            <SelectValue placeholder="Select a branch" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {branchesForSelectedBank.map((branch) => (
+                              <SelectItem
+                                key={branch.BankBranchID}
+                                value={branch.BankBranchID.toString()}>
+                                {branch.BankBranchName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {selectedBankId &&
+                          branchesForSelectedBank.length === 0 && (
+                            <p className="text-sm text-amber-600 mt-1">
+                              No branches found for this bank
+                            </p>
+                          )}
+                      </div>
+                    ) : (
+                      <div>
+                        <Input
+                          value={displayAllottee.bankBranch}
+                          readOnly={!isEditingAllottee && !isAdding}
+                          className={`w-full h-10 ${
+                            !isEditingAllottee && !isAdding
+                              ? "bg-gray-50"
+                              : "bg-white"
+                          }`}
+                          onChange={(e) =>
+                            (isEditingAllottee || isAdding) &&
+                            handleInputChange("bankBranch", e.target.value)
+                          }
+                        />
+                      </div>
+                    )}
                   </div>
+
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
                       Account Number
