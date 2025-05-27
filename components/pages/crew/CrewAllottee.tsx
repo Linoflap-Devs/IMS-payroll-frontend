@@ -313,7 +313,58 @@ export function CrewAllottee({
       ) : (
         <>
           {/* Allottee selection */}
-          {!isEditingAllottee && !isAdding && (
+
+          {/* <div className="flex gap-4 w-1/2">
+                <div className="flex-1">
+                  <div className="relative rounded-lg border shadow-sm overflow-hidden">
+                    <div className="flex h-11 w-full">
+                      <div className="flex items-center px-4 bg-gray-50 border-r">
+                        <span className="text-gray-700 font-medium whitespace-nowrap">
+                          Select Allottee
+                        </span>
+                      </div>
+                      <div className="flex-1 w-full flex items-center">
+                        <Select
+                          value={selectedIndex}
+                          onValueChange={setSelectedIndex}>
+                          <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                            <SelectValue placeholder="Select Allottee" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allottees.map((a, idx) => (
+                              <SelectItem key={idx} value={idx.toString()}>
+                                {a.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex h-11 w-full">
+                        <div className="flex items-center px-4 bg-gray-50 border-r">
+                          <span className="text-gray-700 font-medium whitespace-nowrap">
+                            Select Allotment Type
+                          </span>
+                        </div>
+                        <div className="flex-1 w-full flex items-center">
+                          <Select value="Amount">
+                            <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                              <SelectValue placeholder="Amount" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Amount">Amount</SelectItem>
+                              <SelectItem value="Percentage">
+                                Percentage
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div> */}
+          {!isEditingAllottee && !isAdding ? (
             <>
               <div className="flex gap-4 w-1/2">
                 <div className="flex-1">
@@ -343,16 +394,29 @@ export function CrewAllottee({
                     </div>
                   </div>
                 </div>
-                {/* {!isAdding && (
-                  <Button
-                    onClick={onAdd}
-                    className="h-11 px-5 bg-primary text-white rounded-lg shadow-sm hover:bg-primary/90">
-                    <PlusCircle className="h-5 w-5 mr-2" />
-                    <span className="font-medium">Add Allottee</span>
-                  </Button>
-                )} */}
               </div>
             </>
+          ) : (
+            <div className="relative rounded-lg border shadow-sm overflow-hidden w-1/2">
+              <div className="flex h-11 w-full">
+                <div className="flex items-center px-4 bg-gray-50 border-r">
+                  <span className="text-gray-700 font-medium whitespace-nowrap">
+                    Select Allotment Type
+                  </span>
+                </div>
+                <div className="flex-1 w-full flex items-center">
+                  <Select value="Amount">
+                    <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                      <SelectValue placeholder="Amount" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Amount">Amount</SelectItem>
+                      <SelectItem value="Percentage">Percentage</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Details display */}
@@ -527,7 +591,7 @@ export function CrewAllottee({
                         value={displayAllottee.cityId}
                         onValueChange={handleCityChange}
                         disabled={!displayAllottee.provinceId}>
-                        <SelectTrigger className="w-full h-10">
+                        <SelectTrigger className="w-full !h-10">
                           <SelectValue placeholder="Select a city" />
                         </SelectTrigger>
                         <SelectContent className="max-h-80">
@@ -583,7 +647,7 @@ export function CrewAllottee({
                       <Select
                         value={displayAllottee.provinceId}
                         onValueChange={handleProvinceChange}>
-                        <SelectTrigger className="w-full h-10">
+                        <SelectTrigger className="w-full !h-10">
                           <SelectValue placeholder="Select a province" />
                         </SelectTrigger>
                         <SelectContent className="max-h-80">
@@ -646,7 +710,7 @@ export function CrewAllottee({
                           value={selectedBankId?.toString()}
                           onValueChange={handleBankChange}
                           disabled={!isEditingAllottee}>
-                          <SelectTrigger id="bank" className="w-full">
+                          <SelectTrigger id="bank" className="w-full !h-10">
                             <SelectValue placeholder="Select a bank" />
                           </SelectTrigger>
                           <SelectContent>
@@ -687,7 +751,7 @@ export function CrewAllottee({
                           value={selectedBranchId?.toString()}
                           onValueChange={handleBranchChange}
                           disabled={!selectedBankId || !isEditingAllottee}>
-                          <SelectTrigger id="branch" className="w-full">
+                          <SelectTrigger id="branch" className="w-full !h-10">
                             <SelectValue placeholder="Select a branch" />
                           </SelectTrigger>
                           <SelectContent>
