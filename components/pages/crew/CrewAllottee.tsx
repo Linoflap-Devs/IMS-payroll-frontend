@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { PlusCircle, Save, X } from "lucide-react";
 import { useLocationStore } from "@/src/store/useLocationStore";
+import { getBankList } from "@/src/services/bank/bank.api";
 
 // UI model for allottee data
 type Allottee = {
