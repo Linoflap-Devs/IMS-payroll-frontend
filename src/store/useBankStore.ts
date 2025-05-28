@@ -67,9 +67,6 @@ export const useBankStore = create<BankState>((set, get) => ({
         const { allBankData, selectedBankId } = get();
         if (!selectedBankId) return [];
 
-        console.log('Getting branches for bank ID:', selectedBankId); // Debug log
-        console.log('All bank data:', allBankData); // Debug log
-
         // Important fix: Convert both to the same type for comparison
         const branchMap = new Map();
 
@@ -85,7 +82,6 @@ export const useBankStore = create<BankState>((set, get) => ({
             });
 
         const result = Array.from(branchMap.values());
-        console.log('Filtered branches:', result); // Debug log
         return result;
     }
 }));
