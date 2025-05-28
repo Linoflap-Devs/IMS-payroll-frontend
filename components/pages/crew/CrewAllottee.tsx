@@ -504,24 +504,6 @@ export function CrewAllottee({
                   Allottee Personal Information
                 </h3>
 
-                {/* Action buttons for edit mode */}
-                {(isEditingAllottee || isAdding) && (
-                  <div className="flex items-center gap-4">
-                    <Button
-                      onClick={handleSave1}
-                      className="h-9 px-4 bg-green-600 text-white rounded-lg shadow-sm hover:bg-green-700">
-                      <Save className="h-4 w-4 mr-2" />
-                      <span className="font-medium">Save</span>
-                    </Button>
-                    <Button
-                      onClick={handleCancel}
-                      className="h-9 px-4 bg-gray-200 text-gray-800 rounded-lg shadow-sm hover:bg-gray-300">
-                      <X className="h-4 w-4 mr-2" />
-                      <span className="font-medium">Cancel</span>
-                    </Button>
-                  </div>
-                )}
-
                 {/* Checkboxes */}
                 <div className="flex items-center gap-6">
                   <div className="flex items-center space-x-2">
