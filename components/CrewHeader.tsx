@@ -13,6 +13,7 @@ interface CrewHeaderProps {
   handleDelete: (selectedAllottee: string) => void;
   isAddingAllottee: boolean;
   toggleAllotteeAdd: () => void;
+  handleEditAllottee: (allottee: string) => void;
 }
 
 export function CrewHeader({
@@ -24,6 +25,7 @@ export function CrewHeader({
   toggleAllotteeEdit,
   isAddingAllottee,
   toggleAllotteeAdd,
+  handleEditAllottee,
 }: CrewHeaderProps) {
   return (
     <div className="flex items-center justify-between">

@@ -42,3 +42,9 @@ export interface AllotteeUiModel {
     allotmentType: number;
     allotteeDetailID: string;
 }
+
+export interface CrewAllotteeResponse {
+    success: boolean;
+    message: string;
+    data: AllotteeApiModel[];
+}
