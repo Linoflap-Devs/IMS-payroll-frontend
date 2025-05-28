@@ -20,7 +20,6 @@ export const useRelationshipStore = create<IRelationshipState>((set) => ({
             const response = await getRelationshipList();
             if (response.success) {
                 set({ allRelationshipData: response.data, isLoading: false });
-                console.log('Loaded relationship data:', response.data); // Debug log
             } else {
                 set({ error: response.message || 'Failed to fetch relationship data', isLoading: false })
             }

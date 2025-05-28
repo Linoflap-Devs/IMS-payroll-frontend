@@ -1,9 +1,9 @@
 import axiosInstance from "@/src/lib/axios"
 
 export interface IRelationship {
-    RelationshipID: string | number;
-    RelationshipCode: string;
-    RelationshipName: string;
+    RelationID: string | number;
+    RelationCode: string;
+    RelationName: string;
 }
 
 interface IRelationshipResponse {

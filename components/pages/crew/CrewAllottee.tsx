@@ -12,46 +12,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Save, X } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import { useBankStore } from "@/src/store/useBankStore";
-import { Label } from "@/components/ui/label";
+import { useRelationshipStore } from "@/src/store/useRelationshipStore";
+import { AllotteeUiModel, AllotteeApiModel } from "@/types/crewAllottee";
 
-// UI model for allottee data
-type Allottee = {
-  id: string;
-  name: string;
-  relationship: string;
-  contactNumber: string;
-  address: string;
-  city: string; // String name for display
-  cityId: string; // ID for saving
-  province: string; // String name for display
-  provinceId: string; // ID for saving
-  bankName: string;
-  bankBranch: string;
-  accountNumber: string;
-  allotment: number;
-  active: boolean;
-  priorityAmount: boolean;
-  dollarAllotment: boolean;
-  isDollar: number;
-  allotmentType: number;
-  allotteeDetailID: string;
-};
-
-interface ICrewAllotteeProps {
-  onAdd?: () => void;
-  isEditingAllottee?: boolean;
-  isAdding?: boolean;
-  onSave?: (allottee: Allottee) => void;
-  onCancel?: () => void;
-}
-
-const emptyAllottee: Allottee = {
+// Empty UI model for initialization
+const emptyAllottee: AllotteeUiModel = {
   id: "",
   name: "",
   relationship: "",
+  relationshipId: "",
   contactNumber: "",
   address: "",
   city: "",
@@ -59,7 +31,9 @@ const emptyAllottee: Allottee = {
   province: "",
   provinceId: "",
   bankName: "",
+  bankId: "",
   bankBranch: "",
+  branchId: "",
   accountNumber: "",
   allotment: 0,
   active: true,
@@ -70,19 +44,29 @@ const emptyAllottee: Allottee = {
   allotteeDetailID: "",
 };
 
+interface ICrewAllotteeProps {
+  onAdd?: () => void;
+  isEditingAllottee?: boolean;
+  isAdding?: boolean;
+  onSave?: (allottee: AllotteeApiModel) => void; // Changed to API model
+  onCancel?: () => void;
+}
+
 export function CrewAllottee({
-  onAdd,
+  // onAdd,
   isEditingAllottee = false,
   isAdding = false,
-  onSave,
+  // onSave,
   onCancel,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
-  const [allottees, setAllottees] = useState<Allottee[]>([]);
+  const [allottees, setAllottees] = useState<AllotteeUiModel[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<string>("0");
-  const [currentAllottee, setCurrentAllottee] = useState<Allottee | null>(null);
-  const [editingAllottee, setEditingAllottee] = useState<Allottee | null>(null);
+  const [currentAllottee, setCurrentAllottee] =
+    useState<AllotteeUiModel | null>(null);
+  const [editingAllottee, setEditingAllottee] =
+    useState<AllotteeUiModel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchCity, setSearchCity] = useState("");
   const [searchProvince, setSearchProvince] = useState("");
@@ -96,16 +80,14 @@ export function CrewAllottee({
   } = useCrewStore();
 
   const {
-    isLoadingBanks,
-    error,
     fetchBanks,
-    selectedBankId,
-    selectedBranchId,
     setSelectedBankId,
     setSelectedBranchId,
     getUniqueBanks,
     getBranchesForSelectedBank,
   } = useBankStore();
+
+  const { allRelationshipData, fetchRelationships } = useRelationshipStore();
 
   const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
 
@@ -119,6 +101,10 @@ export function CrewAllottee({
   }, [crewId, fetchCrewAllottees, resetAllottees]);
 
   useEffect(() => {
+    fetchRelationships();
+  }, [fetchRelationships]);
+
+  useEffect(() => {
     fetchBanks();
   }, [fetchBanks]);
 
@@ -126,15 +112,40 @@ export function CrewAllottee({
   const branchesForSelectedBank = getBranchesForSelectedBank();
 
   const handleBankChange = (value: string) => {
-    // Convert string to number if it's numeric
-    const bankId = /^\d+$/.test(value) ? Number(value) : value;
-    setSelectedBankId(bankId);
+    // Update both the bank ID and bank name in the editing state
+    if (!editingAllottee) return;
+
+    const selectedBank = uniqueBanks.find((b) => b.BankID.toString() === value);
+
+    setEditingAllottee({
+      ...editingAllottee,
+      bankId: value,
+      bankName: selectedBank?.BankName || "",
+      // Clear branch when bank changes
+      branchId: "",
+      bankBranch: "",
+    });
+
+    // Also update the bank store state
+    setSelectedBankId(Number(value));
   };
 
   const handleBranchChange = (value: string) => {
-    // Convert string to number if it's numeric
-    const branchId = /^\d+$/.test(value) ? Number(value) : value;
-    setSelectedBranchId(branchId);
+    // Update both the branch ID and branch name in the editing state
+    if (!editingAllottee) return;
+
+    const selectedBranch = branchesForSelectedBank.find(
+      (b) => b.BankBranchID.toString() === value
+    );
+
+    setEditingAllottee({
+      ...editingAllottee,
+      branchId: value,
+      bankBranch: selectedBranch?.BankBranchName || "",
+    });
+
+    // Also update the branch store state
+    setSelectedBranchId(Number(value));
   };
 
   // Map API data to UI model whenever allottees change
@@ -143,6 +154,7 @@ export function CrewAllottee({
       id: a.AllotteeDetailID,
       name: a.AllotteeName,
       relationship: a.RelationName,
+      relationshipId: a.RelationID?.toString() || "",
       contactNumber: a.ContactNumber,
       address: a.Address,
       province: a.ProvinceName,
@@ -150,12 +162,14 @@ export function CrewAllottee({
       city: a.CityName,
       cityId: a.CityID?.toString() || "",
       bankName: a.BankName,
+      bankId: a.BankID?.toString() || "",
       bankBranch: a.BankBranch,
+      branchId: a.BankBranchID?.toString() || "",
       accountNumber: a.AccountNumber,
       allotment: a.Allotment,
-      active: true,
-      priorityAmount: false,
-      dollarAllotment: false,
+      active: a.IsActive === 1,
+      priorityAmount: a.PriorityAmount === 1,
+      dollarAllotment: a.IsDollar === 1,
       isDollar: a.IsDollar,
       allotmentType: a.AllotmentType,
       allotteeDetailID: a.AllotteeDetailID,
@@ -177,12 +191,27 @@ export function CrewAllottee({
       // Initialize editing state when entering edit mode
       if (isEditingAllottee) {
         setEditingAllottee({ ...allottees[index] });
+
+        // Initialize bank and branch store state based on the selected allottee
+        if (allottees[index].bankId) {
+          setSelectedBankId(Number(allottees[index].bankId));
+        }
+        if (allottees[index].branchId) {
+          setSelectedBranchId(Number(allottees[index].branchId));
+        }
       }
     } else {
       setCurrentAllottee(null);
       setEditingAllottee(null);
     }
-  }, [selectedIndex, allottees, isAdding, isEditingAllottee]);
+  }, [
+    selectedIndex,
+    allottees,
+    isAdding,
+    isEditingAllottee,
+    setSelectedBankId,
+    setSelectedBranchId,
+  ]);
 
   useEffect(() => {
     fetchCities();
@@ -223,7 +252,7 @@ export function CrewAllottee({
   }, [provinces, searchProvince]);
 
   // Handle input changes for editing state
-  const handleInputChange = (field: keyof Allottee, value: any) => {
+  const handleInputChange = (field: keyof AllotteeUiModel, value: unknown) => {
     if (!editingAllottee) return;
 
     setEditingAllottee({
@@ -263,6 +292,44 @@ export function CrewAllottee({
     });
   };
 
+  // Handle relationship selection
+  const handleRelationshipChange = (relationId: string) => {
+    if (!editingAllottee) return;
+
+    const selectedRelation = allRelationshipData.find(
+      (r) => r.RelationID.toString() === relationId
+    );
+
+    setEditingAllottee({
+      ...editingAllottee,
+      relationshipId: relationId,
+      relationship: selectedRelation?.RelationName || "",
+    });
+  };
+
+  // Convert UI model to API model for saving
+  const convertToApiModel = (uiModel: AllotteeUiModel): AllotteeApiModel => {
+    return {
+      id: uiModel.id,
+      name: uiModel.name,
+      allotmentType: uiModel.allotmentType,
+      relation: uiModel.relationshipId ? parseInt(uiModel.relationshipId) : 0,
+      contactNumber: uiModel.contactNumber,
+      address: uiModel.address,
+      city: uiModel.cityId ? parseInt(uiModel.cityId) : 0,
+      province: uiModel.provinceId ? parseInt(uiModel.provinceId) : 0,
+      bank: uiModel.bankId ? parseInt(uiModel.bankId) : 0,
+      branch: uiModel.branchId ? parseInt(uiModel.branchId) : 0,
+      accountNumber: uiModel.accountNumber,
+      allotment: uiModel.allotment,
+      priority: uiModel.priorityAmount,
+      isActive: uiModel.active ? 1 : 0,
+      receivePayslip: 0, // Default value or add to UI model if needed
+      isDollar: uiModel.isDollar,
+      allotteeDetailID: uiModel.allotteeDetailID,
+    };
+  };
+
   // Handle save action
   const handleSave = () => {
     if (!editingAllottee) return;
@@ -275,12 +342,9 @@ export function CrewAllottee({
     updatedAllottees[parseInt(selectedIndex, 10)] = { ...editingAllottee };
     setAllottees(updatedAllottees);
 
-    // Call parent save handler if provided
-    console.log("Saving allottee:", editingAllottee);
-
-    if (onSave) {
-      onSave(editingAllottee);
-    }
+    // Convert to API model and call parent save handler
+    const apiModel = convertToApiModel(editingAllottee);
+    console.log("Saving allottee API model:", apiModel);
   };
 
   // Handle cancel action
@@ -354,13 +418,17 @@ export function CrewAllottee({
                   </span>
                 </div>
                 <div className="flex-1 w-full flex items-center">
-                  <Select value="Amount">
+                  <Select
+                    value={displayAllottee?.allotmentType.toString() || "1"}
+                    onValueChange={(value) =>
+                      handleInputChange("allotmentType", parseInt(value))
+                    }>
                     <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                       <SelectValue placeholder="Amount" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Amount">Amount</SelectItem>
-                      <SelectItem value="Percentage">Percentage</SelectItem>
+                      <SelectItem value="1">Amount</SelectItem>
+                      <SelectItem value="2">Percentage</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -474,24 +542,38 @@ export function CrewAllottee({
                     }
                   />
                 </div>
+
+                {/* Relationship field - use Select in edit mode */}
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
                     Relationship
                   </label>
-                  <Input
-                    value={displayAllottee.relationship}
-                    readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${
-                      !isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
-                    }`}
-                    onChange={(e) =>
-                      (isEditingAllottee || isAdding) &&
-                      handleInputChange("relationship", e.target.value)
-                    }
-                  />
+                  {isEditingAllottee || isAdding ? (
+                    <Select
+                      value={displayAllottee.relationshipId}
+                      onValueChange={handleRelationshipChange}>
+                      <SelectTrigger id="relationship" className="w-full !h-10">
+                        <SelectValue placeholder="Select a relationship" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allRelationshipData.map((relationship) => (
+                          <SelectItem
+                            key={relationship.RelationID}
+                            value={relationship.RelationID.toString()}>
+                            {relationship.RelationName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      value={displayAllottee.relationship}
+                      readOnly
+                      className="w-full h-10 bg-gray-50"
+                    />
+                  )}
                 </div>
+
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
                     Contact Number
@@ -571,11 +653,6 @@ export function CrewAllottee({
                           )}
                         </SelectContent>
                       </Select>
-                      {/* {!displayAllottee.cityId && (
-                        <p className="text-red-500 text-sm mt-1">
-                          Please select a city.
-                        </p>
-                      )} */}
                     </>
                   ) : (
                     <Input
@@ -627,11 +704,6 @@ export function CrewAllottee({
                           )}
                         </SelectContent>
                       </Select>
-                      {/* {!displayAllottee.provinceId && (
-                        <p className="text-red-500 text-sm mt-1">
-                          Please select a province.
-                        </p>
-                      )} */}
                     </>
                   ) : (
                     <Input
@@ -649,93 +721,74 @@ export function CrewAllottee({
                   Bank Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Bank field */}
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
                       Bank
                     </label>
-                    {isEditingAllottee ? (
-                      <div>
-                        <Select
-                          value={selectedBankId?.toString()}
-                          onValueChange={handleBankChange}
-                          disabled={!isEditingAllottee}>
-                          <SelectTrigger id="bank" className="w-full !h-10">
-                            <SelectValue placeholder="Select a bank" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {uniqueBanks.map((bank) => (
-                              <SelectItem
-                                key={bank.BankID}
-                                value={bank.BankID.toString()}>
-                                {bank.BankName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    {isEditingAllottee || isAdding ? (
+                      <Select
+                        value={displayAllottee.bankId}
+                        onValueChange={handleBankChange}>
+                        <SelectTrigger id="bank" className="w-full !h-10">
+                          <SelectValue placeholder="Select a bank" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {uniqueBanks.map((bank) => (
+                            <SelectItem
+                              key={bank.BankID}
+                              value={bank.BankID.toString()}>
+                              {bank.BankName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <Input
-                        value={displayAllottee.bankBranch}
-                        readOnly={!isEditingAllottee && !isAdding}
-                        className={`w-full h-10 ${
-                          !isEditingAllottee && !isAdding
-                            ? "bg-gray-50"
-                            : "bg-white"
-                        }`}
-                        onChange={(e) =>
-                          (isEditingAllottee || isAdding) &&
-                          handleInputChange("bankBranch", e.target.value)
-                        }
+                        value={displayAllottee.bankName}
+                        readOnly
+                        className="w-full h-10 bg-gray-50"
                       />
                     )}
                   </div>
+
+                  {/* Branch field */}
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
                       Branch
                     </label>
-
-                    {isEditingAllottee ? (
-                      <div>
-                        <Select
-                          value={selectedBranchId?.toString()}
-                          onValueChange={handleBranchChange}
-                          disabled={!selectedBankId || !isEditingAllottee}>
-                          <SelectTrigger id="branch" className="w-full !h-10">
-                            <SelectValue placeholder="Select a branch" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {branchesForSelectedBank.map((branch) => (
+                    {isEditingAllottee || isAdding ? (
+                      <Select
+                        value={displayAllottee.branchId}
+                        onValueChange={handleBranchChange}
+                        disabled={!displayAllottee.bankId}>
+                        <SelectTrigger id="branch" className="w-full !h-10">
+                          <SelectValue placeholder="Select a branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {branchesForSelectedBank.length > 0 ? (
+                            branchesForSelectedBank.map((branch) => (
                               <SelectItem
                                 key={branch.BankBranchID}
                                 value={branch.BankBranchID.toString()}>
                                 {branch.BankBranchName}
                               </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {selectedBankId &&
-                          branchesForSelectedBank.length === 0 && (
-                            <p className="text-sm text-amber-600 mt-1">
-                              No branches found for this bank
-                            </p>
+                            ))
+                          ) : (
+                            <SelectItem value="none" disabled>
+                              {displayAllottee.bankId
+                                ? "No branches found for this bank"
+                                : "Select a bank first"}
+                            </SelectItem>
                           )}
-                      </div>
+                        </SelectContent>
+                      </Select>
                     ) : (
-                      <div>
-                        <Input
-                          value={displayAllottee.bankBranch}
-                          readOnly={!isEditingAllottee && !isAdding}
-                          className={`w-full h-10 ${
-                            !isEditingAllottee && !isAdding
-                              ? "bg-gray-50"
-                              : "bg-white"
-                          }`}
-                          onChange={(e) =>
-                            (isEditingAllottee || isAdding) &&
-                            handleInputChange("bankBranch", e.target.value)
-                          }
-                        />
-                      </div>
+                      <Input
+                        value={displayAllottee.bankBranch}
+                        readOnly
+                        className="w-full h-10 bg-gray-50"
+                      />
                     )}
                   </div>
 

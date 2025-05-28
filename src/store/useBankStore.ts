@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getBankList, BankResponse, BankItem } from '@/src/services/bank/bank.api';
+import { getBankList, BankItem } from '@/src/services/bank/bank.api';
 
 interface BankState {
     isLoading: boolean;
@@ -29,7 +29,6 @@ export const useBankStore = create<BankState>((set, get) => ({
             const response = await getBankList();
             if (response.success) {
                 set({ allBankData: response.data, isLoading: false });
-                console.log('Loaded bank data:', response.data); // Debug log
             } else {
                 set({ error: response.message || 'Failed to fetch bank data', isLoading: false });
             }
@@ -40,7 +39,6 @@ export const useBankStore = create<BankState>((set, get) => ({
     },
 
     setSelectedBankId: (bankId) => {
-        console.log('Setting selected bank ID:', bankId); // Debug log
         set({
             selectedBankId: bankId,
             selectedBranchId: null
