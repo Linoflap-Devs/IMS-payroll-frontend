@@ -82,7 +82,7 @@ export default function Login() {
         );
         console.error("Error during login:", response.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       // Handle any unexpected errors. Customize the message as needed.
       const errorMsg =
         error.response?.data?.message ||

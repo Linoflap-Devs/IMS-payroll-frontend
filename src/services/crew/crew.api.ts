@@ -111,6 +111,13 @@ export interface CrewAllottee {
   IsDollar: number;
   AllotmentType: number;
   AllotteeDetailID: string;
+  IsActive?: number;
+  PriorityAmount?: number;
+  RelationID?: number;
+  ProvinceID?: number;
+  CityID?: number;
+  BankID?: number;
+  BankBranchID?: number;
 }
 
 export interface CrewAllotteeResponse {

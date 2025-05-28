@@ -96,7 +96,7 @@ export function CrewAllottee({
     if (!crewId) return;
     fetchCrewAllottees(crewId);
     return () => {
-      resetAllottees(); // Clean up on unmount
+      resetAllottees();
     };
   }, [crewId, fetchCrewAllottees, resetAllottees]);
 
@@ -154,12 +154,17 @@ export function CrewAllottee({
       id: a.AllotteeDetailID,
       name: a.AllotteeName,
       relationship: a.RelationName,
+      relationshipId: a.RelationID?.toString() || "",
       contactNumber: a.ContactNumber,
       address: a.Address,
       province: a.ProvinceName,
+      provinceId: a.ProvinceID?.toString() || "",
       city: a.CityName,
+      cityId: a.CityID?.toString() || "",
       bankName: a.BankName,
+      bankId: a.BankID?.toString() || "",
       bankBranch: a.BankBranch,
+      branchId: a.BankBranchID?.toString() || "",
       accountNumber: a.AccountNumber,
       allotment: a.Allotment,
       active: a.IsActive === 1,
@@ -213,9 +218,7 @@ export function CrewAllottee({
     fetchProvinces();
   }, [fetchCities, fetchProvinces]);
 
-  // Filter cities based on selected province
   const filteredCities = useMemo(() => {
-    // If editing allottee is null or no province is selected, return empty array
     if (!editingAllottee || !editingAllottee.provinceId) {
       return [];
     }
@@ -226,27 +229,25 @@ export function CrewAllottee({
     );
 
     if (!searchCity.trim()) {
-      return citiesInProvince.slice(0, 50); // Only show first 50 cities initially
+      return citiesInProvince.slice(0, 50);
     }
 
     return citiesInProvince
       .filter((city) =>
         city.CityName.toLowerCase().includes(searchCity.toLowerCase())
       )
-      .slice(0, 100); // Limit to 100 results maximum for performance
+      .slice(0, 100);
   }, [cities, searchCity, editingAllottee]);
 
-  // Filter provinces for search
   const filteredProvinces = useMemo(() => {
     if (!searchProvince.trim()) {
-      return provinces; // Usually provinces are fewer, so we can show all
+      return provinces;
     }
     return provinces.filter((province) =>
       province.ProvinceName.toLowerCase().includes(searchProvince.toLowerCase())
     );
   }, [provinces, searchProvince]);
 
-  // Handle input changes for editing state
   const handleInputChange = (field: keyof AllotteeUiModel, value: unknown) => {
     if (!editingAllottee) return;
 
@@ -256,7 +257,6 @@ export function CrewAllottee({
     });
   };
 
-  // Handle city selection (update both city name and ID)
   const handleCityChange = (cityId: string) => {
     if (!editingAllottee) return;
 
@@ -269,7 +269,6 @@ export function CrewAllottee({
     });
   };
 
-  // Handle province selection (update both province name and ID)
   const handleProvinceChange = (provinceId: string) => {
     if (!editingAllottee) return;
 
@@ -281,13 +280,11 @@ export function CrewAllottee({
       ...editingAllottee,
       provinceId: provinceId,
       province: selectedProvince?.ProvinceName || "",
-      // Clear city when province changes
       cityId: "",
       city: "",
     });
   };
 
-  // Handle relationship selection
   const handleRelationshipChange = (relationId: string) => {
     if (!editingAllottee) return;
 
@@ -302,7 +299,6 @@ export function CrewAllottee({
     });
   };
 
-  // Convert UI model to API model for saving
   const convertToApiModel = (uiModel: AllotteeUiModel): AllotteeApiModel => {
     return {
       id: uiModel.id,
@@ -319,14 +315,14 @@ export function CrewAllottee({
       allotment: uiModel.allotment,
       priority: uiModel.priorityAmount,
       isActive: uiModel.active ? 1 : 0,
-      receivePayslip: 0, // Default value or add to UI model if needed
+      receivePayslip: 0,
       isDollar: uiModel.isDollar,
       allotteeDetailID: uiModel.allotteeDetailID,
     };
   };
 
-  // Handle save action
   const handleSave = () => {
+    setIsLoading(true);
     if (!editingAllottee) return;
 
     // Update the current allottee with edited values
@@ -338,8 +334,15 @@ export function CrewAllottee({
     setAllottees(updatedAllottees);
 
     // Convert to API model and call parent save handler
-    const apiModel = convertToApiModel(editingAllottee);
-    console.log("Saving allottee API model:", apiModel);
+
+    try {
+      const apiModel = convertToApiModel(editingAllottee);
+      console.log("Saving allottee API model:", apiModel);
+    } catch (error) {
+      console.error("Error saving allottee:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handle cancel action
