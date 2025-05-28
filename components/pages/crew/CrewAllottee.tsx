@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Dispatch, SetStateAction } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCrewStore } from "@/src/store/useCrewStore";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,9 @@ interface ICrewAllotteeProps {
   onCancel?: () => void;
   handleSave: () => void;
   triggerSave: boolean;
+  allotteeLoading?: boolean;
+  setAllotteeLoading: Dispatch<SetStateAction<boolean>>;
+  setTriggerSave: Dispatch<SetStateAction<boolean>>;
 }
 
 export function CrewAllottee({
@@ -63,6 +66,9 @@ export function CrewAllottee({
   onCancel,
   handleSave, // Function to trigger save action
   triggerSave,
+  allotteeLoading,
+  setAllotteeLoading,
+  setTriggerSave,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
@@ -95,8 +101,6 @@ export function CrewAllottee({
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
 
   const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
-
-  const { id } = useParams();
 
   // Fetch allottee data on mount
   useEffect(() => {
@@ -352,24 +356,44 @@ export function CrewAllottee({
     }
   };
 
-  console.log("Current Crew" + crewId);
-
   useEffect(() => {
     if (triggerSave) {
+      setAllotteeLoading(true);
       console.log("Save triggered for allottee IN CREW ALLOTTEE");
 
-      if (!editingAllottee || !crewId) return;
+      if (!editingAllottee || !crewId) {
+        setAllotteeLoading(false);
+        return;
+      }
 
       try {
         console.log("Saving allottee with ID:", crewId);
         const apiModel = convertToApiModel(editingAllottee!);
-        const response = updateCrewAllottee(crewId.toString(), apiModel);
-        console.log("Allottee saved successfully:", response);
+        updateCrewAllottee(crewId.toString(), apiModel)
+          .then((response) => {
+            console.log("Allottee saved successfully:", response);
+            setTriggerSave(false);
+          })
+          .catch((error) => {
+            console.error("Error saving allottee:", error);
+          })
+          .finally(() => {
+            setAllotteeLoading(false);
+            setTriggerSave(false);
+          });
       } catch (error) {
         console.error("Error saving allottee:", error);
+        setAllotteeLoading(false);
+        setTriggerSave(false);
       }
     }
-  }, [triggerSave, crewId, editingAllottee]);
+  }, [
+    triggerSave,
+    crewId,
+    editingAllottee,
+    setAllotteeLoading,
+    setTriggerSave,
+  ]);
 
   // Handle cancel action
   const handleCancel = () => {

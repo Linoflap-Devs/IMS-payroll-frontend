@@ -1,6 +1,8 @@
 import { ChevronLeft, Pencil, Save, X, Plus, CircleMinus } from "lucide-react";
 import { TbUserCheck } from "react-icons/tb";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 
 interface CrewHeaderProps {
@@ -14,6 +16,7 @@ interface CrewHeaderProps {
   isAddingAllottee: boolean;
   toggleAllotteeAdd: () => void;
   handleSave: () => void;
+  allotteeLoading?: boolean;
 }
 
 export function CrewHeader({
@@ -26,6 +29,7 @@ export function CrewHeader({
   isAddingAllottee,
   toggleAllotteeAdd,
   handleSave,
+  allotteeLoading,
 }: CrewHeaderProps) {
   return (
     <div className="flex items-center justify-between">
@@ -102,9 +106,20 @@ export function CrewHeader({
                     className="bg-primary hover:bg-primary/90 w-40"
                     onClick={() => {
                       handleSave();
-                    }}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
+                    }}
+                    disabled={allotteeLoading}>
+                    {allotteeLoading ? (
+                      <>
+                        <Loader2 className="animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Allottee
+                      </>
+                    )}
+                    {/* Loader2 Save Changes */}
                   </Button>
                 </>
               )}
