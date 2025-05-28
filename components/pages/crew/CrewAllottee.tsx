@@ -18,6 +18,7 @@ import { useBankStore } from "@/src/store/useBankStore";
 import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 import { AllotteeUiModel, AllotteeApiModel } from "@/types/crewAllottee";
 import { updateCrewAllottee } from "@/src/services/crew/crewAllottee.api";
+import { toast } from "@/components/ui/use-toast";
 
 // Empty UI model for initialization
 const emptyAllottee: AllotteeUiModel = {
@@ -372,10 +373,20 @@ export function CrewAllottee({
         updateCrewAllottee(crewId.toString(), apiModel)
           .then((response) => {
             console.log("Allottee saved successfully:", response);
+            toast({
+              title: "Allottee saved successfully",
+              description: `Allottee ${editingAllottee?.name} has been updated.`,
+              variant: "success",
+            });
             setTriggerSave(false);
           })
           .catch((error) => {
             console.error("Error saving allottee:", error);
+            toast({
+              title: "Error saving allottee",
+              description: "There was an error saving the allottee.",
+              variant: "destructive",
+            });
           })
           .finally(() => {
             setAllotteeLoading(false);
