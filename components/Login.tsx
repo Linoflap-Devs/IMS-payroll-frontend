@@ -82,12 +82,10 @@ export default function Login() {
         );
         console.error("Error during login:", response.message);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Handle any unexpected errors. Customize the message as needed.
-      const errorMsg =
-        error.response?.data?.message ||
-        error.message ||
-        "An unexpected error occurred.";
+      const err = error as Error;
+      const errorMsg = err.message || "An unexpected error occurred.";
       setErrorMessage(errorMsg);
       console.error("Login failed:", errorMsg);
     } finally {

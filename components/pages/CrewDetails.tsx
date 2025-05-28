@@ -50,6 +50,7 @@ export default function CrewDetails() {
   const [zoom, setZoom] = useState(1);
   const [isEditingAllottee, setIsEditingAllottee] = useState(false);
   const [isAddingAllottee, setIsAddingAllottee] = useState(false);
+  const [triggerSave, setTriggerSave] = useState(false);
 
   const {
     crew,
@@ -62,6 +63,11 @@ export default function CrewDetails() {
     saveChanges,
     toggleEditMode,
   } = useCrewDetails(crewId);
+
+  const handleSave = () => {
+    setTriggerSave((prev) => !prev);
+    console.log("Save triggered for allottee");
+  };
 
   const openModal = (src: string): void => {
     setModalImage(src);
@@ -179,6 +185,7 @@ export default function CrewDetails() {
           handleDelete={handleDelete}
           toggleAllotteeAdd={toggleAllotteeAdd}
           isAddingAllottee={isAddingAllottee}
+          handleSave={handleSave}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -630,6 +637,8 @@ export default function CrewDetails() {
                   <CrewAllottee
                     isEditingAllottee={isEditingAllottee}
                     isAdding={isAddingAllottee}
+                    handleSave={handleSave}
+                    triggerSave={triggerSave}
                   />
                 </TabsContent>
 

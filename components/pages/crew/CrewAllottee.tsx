@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useCrewStore } from "@/src/store/useCrewStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import { useLocationStore } from "@/src/store/useLocationStore";
 import { useBankStore } from "@/src/store/useBankStore";
 import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 import { AllotteeUiModel, AllotteeApiModel } from "@/types/crewAllottee";
+import { updateCrewAllottee } from "@/src/services/crew/crewAllottee.api";
 
 // Empty UI model for initialization
 const emptyAllottee: AllotteeUiModel = {
@@ -50,6 +51,8 @@ interface ICrewAllotteeProps {
   isAdding?: boolean;
   onSave?: (allottee: AllotteeApiModel) => void; // Changed to API model
   onCancel?: () => void;
+  handleSave: () => void;
+  triggerSave: boolean;
 }
 
 export function CrewAllottee({
@@ -58,6 +61,8 @@ export function CrewAllottee({
   isAdding = false,
   // onSave,
   onCancel,
+  handleSave, // Function to trigger save action
+  triggerSave,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
@@ -90,6 +95,8 @@ export function CrewAllottee({
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
 
   const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
+
+  const { id } = useParams();
 
   // Fetch allottee data on mount
   useEffect(() => {
@@ -321,7 +328,7 @@ export function CrewAllottee({
     };
   };
 
-  const handleSave = () => {
+  const handleSave1 = () => {
     setIsLoading(true);
     if (!editingAllottee) return;
 
@@ -344,6 +351,25 @@ export function CrewAllottee({
       setIsLoading(false);
     }
   };
+
+  console.log("Current Crew" + crewId);
+
+  useEffect(() => {
+    if (triggerSave) {
+      console.log("Save triggered for allottee IN CREW ALLOTTEE");
+
+      if (!editingAllottee || !crewId) return;
+
+      try {
+        console.log("Saving allottee with ID:", crewId);
+        const apiModel = convertToApiModel(editingAllottee!);
+        const response = updateCrewAllottee(crewId.toString(), apiModel);
+        console.log("Allottee saved successfully:", response);
+      } catch (error) {
+        console.error("Error saving allottee:", error);
+      }
+    }
+  }, [triggerSave, crewId, editingAllottee]);
 
   // Handle cancel action
   const handleCancel = () => {
@@ -447,7 +473,7 @@ export function CrewAllottee({
                 {(isEditingAllottee || isAdding) && (
                   <div className="flex items-center gap-4">
                     <Button
-                      onClick={handleSave}
+                      onClick={handleSave1}
                       className="h-9 px-4 bg-green-600 text-white rounded-lg shadow-sm hover:bg-green-700">
                       <Save className="h-4 w-4 mr-2" />
                       <span className="font-medium">Save</span>
