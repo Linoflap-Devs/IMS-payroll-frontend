@@ -1,4 +1,12 @@
-import { ChevronLeft, Pencil, Save, X, Plus, CircleMinus } from "lucide-react";
+import {
+  ChevronLeft,
+  Pencil,
+  Save,
+  X,
+  Plus,
+  CircleMinus,
+  CircleAlert,
+} from "lucide-react";
 import { TbUserCheck } from "react-icons/tb";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
@@ -101,20 +109,27 @@ export function CrewHeader({
                     Remove
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you absolutely sure?
+                <AlertDialogContent className="bg-white p-10">
+                  <AlertDialogHeader className="flex items-center">
+                    <CircleAlert size={120} strokeWidth={1} color="orange" />
+                    <AlertDialogTitle className="text-3xl">
+                      Are you sure?
                     </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete
-                      your account and remove your data from our servers.
+                    <AlertDialogDescription className="text-center text-md">
+                      Are you sure you want to delete this allottee? This action
+                      cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction>Continue</AlertDialogAction>
-                  </AlertDialogFooter>
+                  <div className="flex items-center justify-center space-x-4 pl-8 pr-8">
+                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white">
+                      No, Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
+                      onClick={handleDeleteAllottee}>
+                      Yes, Delete it
+                    </AlertDialogAction>
+                  </div>
                 </AlertDialogContent>
               </AlertDialog>
             </div>
