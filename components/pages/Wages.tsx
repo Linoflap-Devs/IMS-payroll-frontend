@@ -58,7 +58,6 @@ import {
 } from "../../src/services/wages/wageDescription.api";
 import {
   getWageForexList,
-  WageForexItem,
 } from "@/src/services/wages/wageForex.api";
 
 // Type for data passed to dialog was previously SalaryScaleData, now managed by selectedSalaryScale (SalaryScaleItem)
@@ -390,8 +389,7 @@ export default function Wages() {
                   onClick={() => {
                     setSelectedSalaryScale(salaryScaleItem); // Set the full item
                     setEditDialogOpen(true);
-                  }}
-                >
+                  }}>
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit Salary Scale
                 </DropdownMenuItem>
@@ -400,8 +398,7 @@ export default function Wages() {
                   className="text-destructive text-xs sm:text-sm"
                   onClick={() =>
                     handleDelete(salaryScaleItem.SalaryScaleDetailID)
-                  }
-                >
+                  }>
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
                 </DropdownMenuItem>
@@ -451,8 +448,7 @@ export default function Wages() {
                 value
                   ? "bg-[#DCE8F2] text-[#1D1972]"
                   : "bg-[#E1D5D5] text-[#734545]"
-              )}
-            >
+              )}>
               {value ? "Yes" : "No"}
             </div>
           </div>
@@ -473,6 +469,7 @@ export default function Wages() {
             confirmButtonText: "Yes, delete it!",
             cancelButtonText: "No, cancel!",
           }).then((result) => {
+            console.log("Wage Code in handle Delete: " + wageCode);
             if (result.isConfirmed) {
               /* TODO: delete logic */ Swal.fire(
                 "Deleted!",
@@ -500,14 +497,12 @@ export default function Wages() {
                       payableOnBoard: Boolean(wageDescription.PayableOnBoard),
                     });
                     setEditWageDescriptionDialogOpen(true);
-                  }}
-                >
+                  }}>
                   <Pencil className="mr-2 h-4 w-4" /> Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleDelete(wageDescription.WageCode)}
-                  className="text-destructive"
-                >
+                  className="text-destructive">
                   <Trash className="mr-2 h-4 w-4" /> Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -576,6 +571,7 @@ export default function Wages() {
             confirmButtonText: "Yes, delete it!",
             cancelButtonText: "No, cancel!",
           }).then((result) => {
+            console.log("Year and Month in handle Delete: " + year, month);
             if (result.isConfirmed) {
               /* TODO: delete logic */ Swal.fire(
                 "Deleted!",
@@ -598,14 +594,12 @@ export default function Wages() {
                   onClick={() => {
                     setSelectedForex(forex);
                     setEditForexDialogOpen(true);
-                  }}
-                >
+                  }}>
                   <Pencil className="mr-2 h-4 w-4" /> Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleDelete(forex.year, forex.month)}
-                  className="text-destructive"
-                >
+                  className="text-destructive">
                   <Trash className="mr-2 h-4 w-4" /> Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -693,8 +687,7 @@ export default function Wages() {
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full flex flex-col h-full"
-              >
+                className="w-full flex flex-col h-full">
                 <div className="border-b">
                   <div className="px-4 pt-1">
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
@@ -703,8 +696,7 @@ export default function Wages() {
                           <TabsTrigger
                             key={tabValue}
                             value={tabValue}
-                            className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                          >
+                            className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                             {tabValue
                               .split("-")
                               .map(
@@ -721,8 +713,7 @@ export default function Wages() {
 
                 <TabsContent
                   value="salary"
-                  className="p-2 mt-0 overflow-y-auto flex-1"
-                >
+                  className="p-2 mt-0 overflow-y-auto flex-1">
                   <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
                       <div className="relative w-full md:flex-1">
@@ -737,8 +728,7 @@ export default function Wages() {
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                         <Select
                           value={selectedVesselTypeId}
-                          onValueChange={setSelectedVesselTypeId}
-                        >
+                          onValueChange={setSelectedVesselTypeId}>
                           <SelectTrigger className="bg-white h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[280px] w-full sm:w-auto">
                             <div className="flex items-center justify-between w-full">
                               <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md -ml-3 sm:-ml-4">
@@ -761,8 +751,7 @@ export default function Wages() {
                             {uniqueVesselTypes.map((vType) => (
                               <SelectItem
                                 key={vType.id}
-                                value={vType.id.toString()}
-                              >
+                                value={vType.id.toString()}>
                                 {vType.name}
                               </SelectItem>
                             ))}
@@ -772,15 +761,13 @@ export default function Wages() {
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="outline"
-                              className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[130px] sm:min-w-[140px] w-full sm:w-auto bg-[#FFFFFF]"
-                            >
+                              className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[130px] sm:min-w-[140px] w-full sm:w-auto bg-[#FFFFFF]">
                               Columns <ChevronDown className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className="w-[180px] bg-[#FFFFFF]"
-                          >
+                            className="w-[180px] bg-[#FFFFFF]">
                             {salaryScaleColumns.map((col) => {
                               if (!col.id) return null;
                               let dName = col.id;
@@ -796,8 +783,7 @@ export default function Wages() {
                                   key={col.id}
                                   onClick={() =>
                                     col.id && toggleColumnVisibility(col.id)
-                                  }
-                                >
+                                  }>
                                   <div className="flex items-center w-full">
                                     <span className="text-primary w-4 mr-2">
                                       {columnVisibility[col.id] !== false
@@ -839,8 +825,7 @@ export default function Wages() {
                 {/* Other TabsContent (wage-description, forex) remain largely the same, ensure search term handling is correct for each tab */}
                 <TabsContent
                   value="wage-description"
-                  className="p-2 mt-0 overflow-y-auto flex-1"
-                >
+                  className="p-2 mt-0 overflow-y-auto flex-1">
                   <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
                       <div className="relative w-full md:flex-1">
@@ -859,8 +844,7 @@ export default function Wages() {
                       </div>
                       <Button
                         className="bg-primary text-white hover:bg-primary/90 h-9 sm:h-10 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2"
-                        onClick={() => setAddWageDescriptionDialogOpen(true)}
-                      >
+                        onClick={() => setAddWageDescriptionDialogOpen(true)}>
                         <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                         Add Wage Type
                       </Button>
@@ -890,15 +874,13 @@ export default function Wages() {
                 </TabsContent>
                 <TabsContent
                   value="forex"
-                  className="p-2 mt-0 overflow-y-auto flex-1"
-                >
+                  className="p-2 mt-0 overflow-y-auto flex-1">
                   <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 w-full">
                       <div className="w-full md:w-1/2 pr-0 md:pr-2">
                         <Select
                           value={monthFilter}
-                          onValueChange={setMonthFilter}
-                        >
+                          onValueChange={setMonthFilter}>
                           <SelectTrigger className="h-16 w-full bg-white border rounded-md p-0 overflow-hidden">
                             <div className="flex items-center justify-between w-full h-full">
                               <div className="flex items-center justify-center h-full bg-[#F6F6F6] py-2.5 border-r w-[45%]">
@@ -919,8 +901,7 @@ export default function Wages() {
                             {[...Array(12)].map((_, i) => (
                               <SelectItem
                                 key={i + 1}
-                                value={(i + 1).toString()}
-                              >
+                                value={(i + 1).toString()}>
                                 {getMonthName(i + 1)}
                               </SelectItem>
                             ))}
@@ -930,8 +911,7 @@ export default function Wages() {
                       <div className="w-full md:w-1/2 pl-0 md:pl-2">
                         <Select
                           value={yearFilter}
-                          onValueChange={setYearFilter}
-                        >
+                          onValueChange={setYearFilter}>
                           <SelectTrigger className="h-16 w-full bg-white border rounded-md p-0 overflow-hidden">
                             <div className="flex items-center justify-between w-full h-full">
                               <div className="flex items-center justify-center h-full bg-[#F6F6F6] py-2.5 border-r w-[45%]">
