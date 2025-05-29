@@ -62,6 +62,7 @@ interface ICrewAllotteeProps {
   allotteeLoading?: boolean;
   setAllotteeLoading: Dispatch<SetStateAction<boolean>>;
   setTriggerSave: Dispatch<SetStateAction<boolean>>;
+  setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>; // Function to set editing state
 }
 
 export function CrewAllottee({
@@ -75,6 +76,7 @@ export function CrewAllottee({
   // allotteeLoading,
   setAllotteeLoading,
   setTriggerSave,
+  setIsEditingAllottee = () => {}, // Function to set editing state
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
@@ -426,6 +428,7 @@ export function CrewAllottee({
               variant: "success",
             });
             setTriggerSave(false);
+            fetchCrewAllottees(crewId.toString());
           })
           .catch((error) => {
             console.error("Error saving allottee:", error);
@@ -438,6 +441,7 @@ export function CrewAllottee({
           .finally(() => {
             setAllotteeLoading(false);
             setTriggerSave(false);
+            setIsEditingAllottee(false);
           });
       } catch (error) {
         console.error("Error saving allottee:", error);
@@ -451,6 +455,8 @@ export function CrewAllottee({
     editingAllottee,
     setAllotteeLoading,
     setTriggerSave,
+    fetchCrewAllottees,
+    setIsEditingAllottee,
   ]);
 
   if (allotteesError) {

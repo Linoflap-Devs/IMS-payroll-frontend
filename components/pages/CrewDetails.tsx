@@ -624,6 +624,7 @@ export default function CrewDetails() {
                     allotteeLoading={allotteeLoading}
                     setAllotteeLoading={setAllotteeLoading}
                     setTriggerSave={setTriggerSave}
+                    setIsEditingAllottee={setIsEditingAllottee}
                   />
                 </TabsContent>
 
