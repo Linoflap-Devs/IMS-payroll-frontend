@@ -55,14 +55,14 @@ interface ICrewAllotteeProps {
   onAdd?: () => void;
   isEditingAllottee?: boolean;
   isAdding?: boolean;
-  onSave?: (allottee: AllotteeApiModel) => void; // Changed to API model
+  onSave?: (allottee: AllotteeApiModel) => void;
   onCancel?: () => void;
   handleSave: () => void;
   triggerSave: boolean;
   allotteeLoading?: boolean;
   setAllotteeLoading: Dispatch<SetStateAction<boolean>>;
   setTriggerSave: Dispatch<SetStateAction<boolean>>;
-  setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>; // Function to set editing state
+  setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>;
 }
 
 export function CrewAllottee({
@@ -76,7 +76,7 @@ export function CrewAllottee({
   // allotteeLoading,
   setAllotteeLoading,
   setTriggerSave,
-  setIsEditingAllottee = () => {}, // Function to set editing state
+  setIsEditingAllottee = () => {},
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
@@ -88,6 +88,7 @@ export function CrewAllottee({
     useState<AllotteeUiModel | null>(null);
   const [searchCity, setSearchCity] = useState("");
   const [searchProvince, setSearchProvince] = useState("");
+  const [previousAllotteeId, setPreviousAllotteeId] = useState<string>("");
 
   const {
     allottees: storeAllottees,
@@ -188,8 +189,29 @@ export function CrewAllottee({
     }));
 
     setAllottees(mapped);
-    if (mapped.length > 0) setSelectedIndex("0");
-  }, [storeAllottees]);
+
+    if (previousAllotteeId) {
+      const previousIndex = mapped.findIndex(
+        (a) => a.id === previousAllotteeId
+      );
+      if (previousIndex >= 0) {
+        setSelectedIndex(previousIndex.toString());
+      } else {
+        setSelectedIndex("0");
+      }
+    } else {
+      setSelectedIndex("0");
+    }
+  }, [storeAllottees, previousAllotteeId]);
+
+  useEffect(() => {
+    if (allottees.length > 0 && selectedIndex) {
+      const index = parseInt(selectedIndex, 10);
+      if (index < allottees.length) {
+        setPreviousAllotteeId(allottees[index].id);
+      }
+    }
+  }, [selectedIndex, allottees]);
 
   useEffect(() => {
     if (isAdding) {
@@ -339,7 +361,7 @@ export function CrewAllottee({
             setSelectedBranchId(matchingBranch.BankBranchID);
           }
         }
-      }, 300); // Small delay to ensure branches are loaded
+      }, 100); // Small delay to ensure branches are loaded
     }
   }, [
     isEditingAllottee,
