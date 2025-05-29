@@ -49,7 +49,7 @@ export interface Crew {
   verifyDate?: string;
   issuedDate?: string;
   expirationDate?: string;
-  movements?: any[];
+  movements?: [];
   allottees?: Allottee[];
 }
 
@@ -75,7 +75,12 @@ export const formatDate = (dateString: string | undefined) => {
   if (!dateString) return "";
   try {
     return format(new Date(dateString), "MM/dd/yyyy");
-  } catch (e) {
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Error formatting date:", error.message);
+    } else {
+      console.error("Unexpected error formatting date:", error);
+    }
     return "";
   }
 };
