@@ -298,6 +298,59 @@ export function CrewAllottee({
   ]);
 
   useEffect(() => {
+    if (
+      isEditingAllottee &&
+      editingAllottee &&
+      editingAllottee.bankId &&
+      !editingAllottee.branchId
+    ) {
+      // We have a bank ID but no branch ID, let's try to find it
+
+      console.log(
+        "Bank selected but branch is empty, trying to find matching branch..."
+      );
+      console.log("Current bank ID:", editingAllottee.bankId);
+      console.log("Bank branch name to find:", editingAllottee.bankBranch);
+
+      // Set the selected bank ID in the store
+      setSelectedBankId(Number(editingAllottee.bankId));
+
+      // Wait a bit for branches to load and then find the matching branch
+      setTimeout(() => {
+        const branches = getBranchesForSelectedBank();
+        console.log("Available branches:", branches);
+
+        // If we have a branch name but no ID, find it
+        if (editingAllottee.bankBranch && branches.length > 0) {
+          const matchingBranch = branches.find(
+            (b) => b.BankBranchName === editingAllottee.bankBranch
+          );
+
+          if (matchingBranch) {
+            console.log("Found matching branch:", matchingBranch);
+
+            // Update the allottee with the branch ID
+            setEditingAllottee({
+              ...editingAllottee,
+              branchId: matchingBranch.BankBranchID.toString(),
+            });
+
+            // Also update the branch in the store
+            setSelectedBranchId(matchingBranch.BankBranchID);
+          }
+        }
+      }, 300); // Small delay to ensure branches are loaded
+    }
+  }, [
+    isEditingAllottee,
+    editingAllottee?.bankId,
+    getBranchesForSelectedBank,
+    setSelectedBankId,
+    setSelectedBranchId,
+    editingAllottee,
+  ]);
+
+  useEffect(() => {
     if (!isEditingAllottee) {
       lastProcessedIndexRef.current = null;
     }
