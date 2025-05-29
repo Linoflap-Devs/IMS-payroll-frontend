@@ -2,16 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Mail,
-  Phone,
-  PhoneCall,
-  Ship,
-  User,
-  X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { Input } from "../ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
@@ -26,6 +17,7 @@ import { useLocationStore } from "@/src/store/useLocationStore";
 import { useCrewStore } from "@/src/store/useCrewStore";
 import { addCrew, AddCrewDataForm } from "@/src/services/crew/crew.api"; // Ensure this path is correct
 import { useRef } from "react";
+import Image from "next/image";
 
 export default function AddCrew() {
   const router = useRouter();
@@ -60,7 +52,6 @@ export default function AddCrew() {
     }
   };
 
-  const [fieldsError, setFieldsError] = useState<boolean>(false);
   const [submitted, setSubmitted] = useState<boolean>(false);
 
   // Add form state
@@ -143,7 +134,7 @@ export default function AddCrew() {
   };
 
   // Handle tab change
-  const handleTabChange = (value: string) => {
+  const handleTabChange = () => {
     // Prevent tab change when clicking on tabs
     return;
   };
@@ -255,98 +246,18 @@ export default function AddCrew() {
           icon: "error",
         });
       }
-    } catch (error: any) {
-      console.error("Full Submission Error Object:", error);
-
-      let detailedErrorMessage =
-        "An unexpected error occurred during submission."; // Default
-      let errorTitle = "Submission Error!"; // Default
-
-      if (error.isAxiosError && error.response) {
-        console.error(
-          ">>> IMPORTANT: Backend Error Response Data:",
-          error.response.data
-        );
-
-        const backendErrorData = error.response.data;
-        let errorsHtml = "";
-
-        if (backendErrorData && Array.isArray(backendErrorData.message)) {
-          // Handles the structure: [{fieldName: 'message'}, {fieldName: 'message'}, ...]
-          errorTitle = "Validation Errors"; // More specific title
-          errorsHtml =
-            "<p>Please correct the following issues:</p><ul style='text-align: left; margin-top: 10px; padding-left: 20px;'>";
-
-          backendErrorData.message.forEach((errorObj: any) => {
-            for (const fieldName in errorObj) {
-              if (Object.prototype.hasOwnProperty.call(errorObj, fieldName)) {
-                const errorMessageText = errorObj[fieldName];
-                // Simple capitalization and spacing for fieldName for display
-                const displayFieldName = fieldName
-                  .replace(/([A-Z])/g, " $1")
-                  .replace(/^./, (str) => str.toUpperCase());
-                errorsHtml += `<li style='margin-bottom: 5px;'><strong>${displayFieldName}</strong>: ${errorMessageText}</li>`;
-              }
-            }
-          });
-          errorsHtml += "</ul>";
-
-          // Optional: If backendErrorData.data has more info
-          if (
-            backendErrorData.data &&
-            Object.keys(backendErrorData.data).length > 0 &&
-            backendErrorData.data !== null
-          ) {
-            try {
-              errorsHtml +=
-                "<p style='margin-top:10px;'>Additional context: <pre style='text-align: left; white-space: pre-wrap;'>" +
-                JSON.stringify(backendErrorData.data, null, 2) +
-                "</pre></p>";
-            } catch (e) {
-              /* ignore stringify error */
-            }
-          }
-          detailedErrorMessage = errorsHtml;
-        } else if (
-          backendErrorData &&
-          typeof backendErrorData.message === "string"
-        ) {
-          detailedErrorMessage = `<p>${backendErrorData.message}</p>`;
-        } else if (typeof backendErrorData === "string") {
-          detailedErrorMessage = `<p>${backendErrorData}</p>`;
-        } else if (backendErrorData) {
-          try {
-            detailedErrorMessage =
-              "<p>An unexpected error structure was received:</p><pre style='text-align: left; white-space: pre-wrap;'>" +
-              JSON.stringify(backendErrorData, null, 2) +
-              "</pre>";
-          } catch (e) {
-            detailedErrorMessage = `<p>Server Error: ${error.response.status}. Response data could not be clearly displayed.</p>`;
-          }
-        } else {
-          detailedErrorMessage = `<p>Server Error: ${error.response.status}. No specific error message provided.</p>`;
-        }
-      } else if (error.isAxiosError && error.request) {
-        detailedErrorMessage =
-          "<p>No response from server. Please check your network connection and try again.</p>";
-      } else {
-        detailedErrorMessage = error.message
-          ? `<p>${error.message}</p>`
-          : "<p>Error in setting up the request.</p>";
-      }
+    } catch (error: unknown) {
+      const err = error as Error;
 
       Swal.fire({
-        title: errorTitle, // Use the potentially updated title
-        html: detailedErrorMessage, // Use the html property for formatted errors
+        title: err.message,
+        html: err.stack,
         icon: "error",
         width: "auto",
         customClass: {
           htmlContainer: "swal2-html-container-custom",
         },
       });
-      // If you use customClass, add CSS to your global styles or a <style jsx global> tag:
-      // .swal2-html-container-custom ul { list-style-type: disc; }
-      // .swal2-html-container-custom pre { white-space: pre-wrap; word-break: break-all; }
     } finally {
       setIsSubmitting(false);
     }
@@ -503,9 +414,11 @@ export default function AddCrew() {
                   `}</style>
                   <div className="flex flex-col items-center mb-3">
                     <div className="w-60 h-60 min-w-[160px] bg-white rounded-md flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0 relative">
-                      <img
+                      <Image
                         src={imagePreview || "/image.png"} // Use the state for preview
                         alt="Crew Photo"
+                        width={100}
+                        height={100}
                         className="w-full h-full object-contain p-1" // Ensure image fits well
                       />
                     </div>
