@@ -31,7 +31,8 @@ export const useLocationStore = create<LocationState>((set) => ({
     try {
       const res = await getCitiesList();
       set({ cities: res.data, loading: false });
-    } catch (e: any) {
+    } catch (error: unknown) {
+      const e = error as Error
       set({ error: e.message || "Failed to fetch cities", loading: false });
     }
   },
@@ -40,7 +41,8 @@ export const useLocationStore = create<LocationState>((set) => ({
     try {
       const res = await getProvincesList();
       set({ provinces: res.data, loading: false });
-    } catch (e: any) {
+    } catch (error: unknown) {
+      const e = error as Error
       set({ error: e.message || "Failed to fetch provinces", loading: false });
     }
   },
@@ -49,7 +51,8 @@ export const useLocationStore = create<LocationState>((set) => ({
     try {
       const res = await getCountriesList();
       set({ countries: res.data, loading: false });
-    } catch (e: any) {
+    } catch (error: unknown) {
+      const e = error as Error
       set({ error: e.message || "Failed to fetch countries", loading: false });
     }
   },
