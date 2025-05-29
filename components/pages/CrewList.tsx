@@ -31,7 +31,6 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";

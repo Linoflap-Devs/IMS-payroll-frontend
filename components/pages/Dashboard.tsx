@@ -6,13 +6,9 @@ import {
   PieChart,
   Pie,
   Cell,
-  ResponsiveContainer,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   Label,
   Legend,
   AreaChart,
@@ -66,23 +62,23 @@ export default function Dashboard() {
       .catch((err) => console.error("Error fetching dashboard data:", err));
   }, []);
 
-  const totalPerVesselAllotmentPHP = React.useMemo(() => {
-    if (!dashboardData?.PerVesselAllotmentPHP) return 0;
+  // const totalPerVesselAllotmentPHP = React.useMemo(() => {
+  //   if (!dashboardData?.PerVesselAllotmentPHP) return 0;
 
-    return Object.values(dashboardData.PerVesselAllotmentPHP).reduce(
-      (sum, current) => sum + current,
-      0
-    );
-  }, [dashboardData?.PerVesselAllotmentPHP]);
+  //   return Object.values(dashboardData.PerVesselAllotmentPHP).reduce(
+  //     (sum, current) => sum + current,
+  //     0
+  //   );
+  // }, [dashboardData?.PerVesselAllotmentPHP]);
 
-  const totalPerVesselAllotmentUSD = React.useMemo(() => {
-    if (!dashboardData?.PerVesselAllotmentUSD) return 0;
+  // const totalPerVesselAllotmentUSD = React.useMemo(() => {
+  //   if (!dashboardData?.PerVesselAllotmentUSD) return 0;
 
-    return Object.values(dashboardData.PerVesselAllotmentUSD).reduce(
-      (sum, current) => sum + current,
-      0
-    );
-  }, [dashboardData?.PerVesselAllotmentUSD]);
+  //   return Object.values(dashboardData.PerVesselAllotmentUSD).reduce(
+  //     (sum, current) => sum + current,
+  //     0
+  //   );
+  // }, [dashboardData?.PerVesselAllotmentUSD]);
 
   const totalSalaryProcessed = React.useMemo(() => {
     if (!dashboardData?.TotalSalaryProcessed) return 0;
@@ -167,13 +163,22 @@ export default function Dashboard() {
     },
   } satisfies ChartConfig;
 
-  const CustomLegend = ({ payload }: any) => {
+  interface LegendPayloadItem {
+    value: string;
+    payload: {
+      fill: string;
+      name: string;
+      value: number;
+    };
+  }
+
+  const CustomLegend = ({ payload }: { payload?: LegendPayloadItem[] }) => {
     if (!payload) return null;
 
     return (
       <ScrollArea className="h-[280px] w-full pr-4">
         <div className="grid grid-cols-2 gap-2">
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry: LegendPayloadItem, index: number) => (
             <div key={`legend-${index}`} className="flex items-center gap-2">
               <div
                 className="w-2 h-2 rounded-full"
@@ -455,7 +460,7 @@ export default function Dashboard() {
                         payload.length &&
                         payload[0]?.value !== undefined
                       ) {
-                        const value = payload[0].value as number;
+                        // const value = payload[0].value as number;
                         return (
                           <div className="rounded-lg border bg-background p-2 shadow-sm">
                             <div className="grid grid-cols-2 gap-2">
