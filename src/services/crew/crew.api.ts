@@ -214,7 +214,7 @@ export interface AddCrewSuccessData {
 export interface AddCrewResponse {
   success: boolean;
   message: string;
-  data?: AddCrewSuccessData | any[]; // any[] to accommodate `data: []` in error responses from controller
+  data?: AddCrewSuccessData | []; // any[] to accommodate `data: []` in error responses from controller
 }
 
 

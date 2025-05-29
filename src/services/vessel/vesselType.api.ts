@@ -1,5 +1,4 @@
 import axiosInstance from "@/src/lib/axios";
-import { is } from "date-fns/locale";
 
 export interface VesselTypeItem {
   VesselTypeID: number;
