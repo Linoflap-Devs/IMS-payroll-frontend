@@ -1,12 +1,9 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { AiFillCaretRight } from "react-icons/ai";
 import {
   Select,
   SelectContent,
@@ -15,24 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  ChevronLeft,
-  CircleMinus,
-  Pencil,
-  Save,
-  User,
-  Ship,
-  Calendar,
-  Phone,
-  PhoneCall,
-  Mail,
-  X,
-  Plus,
-  ZoomIn,
-  Minus,
-} from "lucide-react";
-import { RiShieldStarLine } from "react-icons/ri";
-import { TbUserCheck } from "react-icons/tb";
 import Swal from "sweetalert2";
 import { CrewMovement } from "./crew/CrewMovement";
 import { CrewAllottee } from "./crew/CrewAllottee";
@@ -114,6 +93,7 @@ export default function CrewDetails() {
   };
 
   const handleDelete = (selectedAllottee: string) => {
+    console.log("Deleting allottee:", selectedAllottee);
     const swalWithBootstrapButtons = Swal.mixin({
       customClass: {
         confirmButton:
