@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useCrewStore } from "@/src/store/useCrewStore";
-import { Crew, mapMaritalStatus, mapGender, formatDate } from "@/types/crew";
+import { Crew, mapMaritalStatus, mapGender } from "@/types/crew";
 import { updateCrew } from "../services/crew/crew.api";
 import { toast } from "@/components/ui/use-toast";
 

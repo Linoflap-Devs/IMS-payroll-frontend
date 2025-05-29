@@ -6,14 +6,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { PiWarningCircleLight } from "react-icons/pi";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import {
   Form,

@@ -5,14 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import {
   Form,
@@ -32,7 +25,6 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
@@ -217,7 +209,7 @@ export default function Login() {
             </Dialog>
 
             <p className="text-base text-center text-gray-600">
-              Don't have an account yet?{" "}
+              Don&apos;t have an account yet?{" "}
               <Link href="/register" className="text-[#1e2f8d] hover:underline">
                 Register here
               </Link>
