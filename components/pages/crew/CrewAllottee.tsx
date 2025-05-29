@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo, Dispatch, SetStateAction } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  Dispatch,
+  SetStateAction,
+  useRef,
+} from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCrewStore } from "@/src/store/useCrewStore";
 import { Button } from "@/components/ui/button";
@@ -103,7 +110,6 @@ export function CrewAllottee({
 
   const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
 
-  // Fetch allottee data on mount
   useEffect(() => {
     if (!crewId) return;
     fetchCrewAllottees(crewId);
@@ -124,7 +130,6 @@ export function CrewAllottee({
   const branchesForSelectedBank = getBranchesForSelectedBank();
 
   const handleBankChange = (value: string) => {
-    // Update both the bank ID and bank name in the editing state
     if (!editingAllottee) return;
 
     const selectedBank = uniqueBanks.find((b) => b.BankID.toString() === value);
@@ -133,17 +138,14 @@ export function CrewAllottee({
       ...editingAllottee,
       bankId: value,
       bankName: selectedBank?.BankName || "",
-      // Clear branch when bank changes
       branchId: "",
       bankBranch: "",
     });
 
-    // Also update the bank store state
     setSelectedBankId(Number(value));
   };
 
   const handleBranchChange = (value: string) => {
-    // Update both the branch ID and branch name in the editing state
     if (!editingAllottee) return;
 
     const selectedBranch = branchesForSelectedBank.find(
@@ -156,11 +158,9 @@ export function CrewAllottee({
       bankBranch: selectedBranch?.BankBranchName || "",
     });
 
-    // Also update the branch store state
     setSelectedBranchId(Number(value));
   };
 
-  // Map API data to UI model whenever allottees change
   useEffect(() => {
     const mapped = storeAllottees.map((a) => ({
       id: a.AllotteeDetailID,
@@ -191,7 +191,6 @@ export function CrewAllottee({
     if (mapped.length > 0) setSelectedIndex("0");
   }, [storeAllottees]);
 
-  // Set current allottee based on selection or adding mode
   useEffect(() => {
     if (isAdding) {
       setCurrentAllottee(emptyAllottee);
@@ -200,11 +199,9 @@ export function CrewAllottee({
       const index = parseInt(selectedIndex, 10);
       setCurrentAllottee({ ...allottees[index] });
 
-      // Initialize editing state when entering edit mode
       if (isEditingAllottee) {
         setEditingAllottee({ ...allottees[index] });
 
-        // Initialize bank and branch store state based on the selected allottee
         if (allottees[index].bankId) {
           setSelectedBankId(Number(allottees[index].bankId));
         }
@@ -229,6 +226,82 @@ export function CrewAllottee({
     fetchCities();
     fetchProvinces();
   }, [fetchCities, fetchProvinces]);
+
+  const lastProcessedIndexRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (
+      isEditingAllottee &&
+      allottees.length > 0 &&
+      selectedIndex !== lastProcessedIndexRef.current
+    ) {
+      const index = parseInt(selectedIndex, 10);
+      const allottee = { ...allottees[index] };
+      let needsUpdate = false;
+
+      if (allottee.relationship && !allottee.relationshipId) {
+        const relation = allRelationshipData.find(
+          (r) => r.RelationName === allottee.relationship
+        );
+        if (relation) {
+          allottee.relationshipId = relation.RelationID.toString();
+          needsUpdate = true;
+        }
+      }
+
+      if (allottee.province && !allottee.provinceId) {
+        const province = provinces.find(
+          (p) => p.ProvinceName === allottee.province
+        );
+        if (province) {
+          allottee.provinceId = province.ProvinceID.toString();
+          needsUpdate = true;
+        }
+      }
+
+      if (allottee.city && !allottee.cityId && allottee.provinceId) {
+        const city = cities.find(
+          (c) =>
+            c.CityName === allottee.city &&
+            c.ProvinceID === parseInt(allottee.provinceId)
+        );
+        if (city) {
+          allottee.cityId = city.CityID.toString();
+          needsUpdate = true;
+        }
+      }
+
+      if (allottee.bankName && !allottee.bankId) {
+        const bank = uniqueBanks.find((b) => b.BankName === allottee.bankName);
+        if (bank) {
+          allottee.bankId = bank.BankID.toString();
+          setSelectedBankId(bank.BankID);
+          needsUpdate = true;
+        }
+      }
+
+      if (needsUpdate) {
+        setEditingAllottee(allottee);
+      }
+
+      lastProcessedIndexRef.current = selectedIndex;
+    }
+  }, [
+    isEditingAllottee,
+    allottees,
+    selectedIndex,
+    allRelationshipData,
+    provinces,
+    cities,
+    uniqueBanks,
+    setSelectedBankId,
+  ]);
+
+  useEffect(() => {
+    if (!isEditingAllottee) {
+      lastProcessedIndexRef.current = null;
+    }
+  }, [isEditingAllottee]);
 
   const filteredCities = useMemo(() => {
     if (!editingAllottee || !editingAllottee.provinceId) {
