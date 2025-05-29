@@ -121,7 +121,7 @@ export function CrewHeader({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <div className="flex items-center justify-center space-x-4 pl-8 pr-8">
-                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white">
+                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white hover:text-white">
                       No, Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
