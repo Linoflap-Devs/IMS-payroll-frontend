@@ -8,9 +8,8 @@ import {
   SetStateAction,
   useRef,
 } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCrewStore } from "@/src/store/useCrewStore";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -19,7 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Save, X } from "lucide-react";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import { useBankStore } from "@/src/store/useBankStore";
 import { useRelationshipStore } from "@/src/store/useRelationshipStore";
@@ -71,10 +69,10 @@ export function CrewAllottee({
   isEditingAllottee = false,
   isAdding = false,
   // onSave,
-  onCancel,
-  handleSave, // Function to trigger save action
+  // onCancel,
+  // handleSave, // Function to trigger save action
   triggerSave,
-  allotteeLoading,
+  // allotteeLoading,
   setAllotteeLoading,
   setTriggerSave,
 }: ICrewAllotteeProps) {
@@ -86,7 +84,6 @@ export function CrewAllottee({
     useState<AllotteeUiModel | null>(null);
   const [editingAllottee, setEditingAllottee] =
     useState<AllotteeUiModel | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [searchCity, setSearchCity] = useState("");
   const [searchProvince, setSearchProvince] = useState("");
 
@@ -108,7 +105,8 @@ export function CrewAllottee({
 
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
 
-  const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
+  const { loading, cities, provinces, fetchCities, fetchProvinces } =
+    useLocationStore();
 
   useEffect(() => {
     if (!crewId) return;
@@ -406,30 +404,6 @@ export function CrewAllottee({
     };
   };
 
-  const handleSave1 = () => {
-    setIsLoading(true);
-    if (!editingAllottee) return;
-
-    // Update the current allottee with edited values
-    setCurrentAllottee({ ...editingAllottee });
-
-    // Update the allottees array
-    const updatedAllottees = [...allottees];
-    updatedAllottees[parseInt(selectedIndex, 10)] = { ...editingAllottee };
-    setAllottees(updatedAllottees);
-
-    // Convert to API model and call parent save handler
-
-    try {
-      const apiModel = convertToApiModel(editingAllottee);
-      console.log("Saving allottee API model:", apiModel);
-    } catch (error) {
-      console.error("Error saving allottee:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (triggerSave) {
       setAllotteeLoading(true);
@@ -479,26 +453,12 @@ export function CrewAllottee({
     setTriggerSave,
   ]);
 
-  // Handle cancel action
-  const handleCancel = () => {
-    // Reset editing state to current display state
-    if (currentAllottee) {
-      setEditingAllottee({ ...currentAllottee });
-    }
-
-    // Call parent cancel handler if provided
-    if (onCancel) {
-      onCancel();
-    }
-  };
-
   if (allotteesError) {
     return (
       <div className="text-center text-red-500">Error: {allotteesError}</div>
     );
   }
 
-  // Determine which allottee object to use for display/edit
   const displayAllottee =
     isEditingAllottee || isAdding ? editingAllottee : currentAllottee;
 
@@ -748,7 +708,7 @@ export function CrewAllottee({
                               className="h-8"
                             />
                           </div>
-                          {isLoading ? (
+                          {loading ? (
                             <SelectItem value="loading">Loading...</SelectItem>
                           ) : filteredCities.length > 0 ? (
                             filteredCities.map((city) => (
@@ -801,7 +761,7 @@ export function CrewAllottee({
                               className="h-8"
                             />
                           </div>
-                          {isLoading ? (
+                          {loading ? (
                             <SelectItem value="loading">Loading...</SelectItem>
                           ) : filteredProvinces.length > 0 ? (
                             filteredProvinces.map((province) => (
