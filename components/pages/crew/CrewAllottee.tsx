@@ -63,6 +63,8 @@ interface ICrewAllotteeProps {
   setAllotteeLoading: Dispatch<SetStateAction<boolean>>;
   setTriggerSave: Dispatch<SetStateAction<boolean>>;
   setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>;
+  handleDeleteAllottee?: () => void;
+  triggerDelete?: boolean;
 }
 
 export function CrewAllottee({
@@ -77,6 +79,8 @@ export function CrewAllottee({
   setAllotteeLoading,
   setTriggerSave,
   setIsEditingAllottee = () => {},
+  handleDeleteAllottee,
+  triggerDelete,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
@@ -318,6 +322,12 @@ export function CrewAllottee({
     uniqueBanks,
     setSelectedBankId,
   ]);
+
+  useEffect(() => {
+    if (triggerDelete) {
+      console.log("Delete triggered for allottee IN CREW ALLOTTEE");
+    }
+  }, [triggerDelete]);
 
   useEffect(() => {
     if (
