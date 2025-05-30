@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 import { useBankStore } from "@/src/store/useBankStore";
+import { useLocationStore } from "@/src/store/useLocationStore";
 
 // Dummy data for select fields
 const DUMMY_RELATIONSHIPS = [
@@ -93,6 +94,7 @@ export default function AllotteeForm() {
     getUniqueBanks,
     getBranchesForSelectedBank,
   } = useBankStore();
+  const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
 
   useEffect(() => {
     fetchRelationships();
@@ -102,8 +104,32 @@ export default function AllotteeForm() {
     fetchBanks();
   }, [fetchBanks]);
 
+  useEffect(() => {
+    fetchProvinces();
+    fetchCities();
+  }, [fetchProvinces, fetchCities]);
+
   const uniqueBanks = getUniqueBanks();
   const branchesForSelectedBank = getBranchesForSelectedBank();
+
+  const filteredCities = useMemo(() => {
+    const provinceId = parseInt(allottee.provinceId);
+    const citiesInProvince = cities.filter(
+      (city) => city.ProvinceID === provinceId
+    );
+
+    // if (!searchCity.trim()) {
+    //   return citiesInProvince.slice(0, 50);
+    // }
+
+    return (
+      citiesInProvince
+        //   .filter((city) =>
+        //     city.CityName.toLowerCase().includes(searchCity.toLowerCase())
+        //   )
+        .slice(0, 100)
+    );
+  }, [cities, allottee.provinceId]);
 
   // Handle input changes
   const handleInputChange = (field, value) => {
@@ -244,9 +270,16 @@ export default function AllotteeForm() {
                   <SelectValue placeholder="Select a province" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DUMMY_PROVINCES.map((province) => (
+                  {/* {DUMMY_PROVINCES.map((province) => (
                     <SelectItem key={province.id} value={province.id}>
                       {province.name}
+                    </SelectItem>
+                  ))} */}
+                  {provinces.map((province) => (
+                    <SelectItem
+                      key={province.ProvinceID}
+                      value={province.ProvinceID.toString()}>
+                      {province.ProvinceName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -264,10 +297,12 @@ export default function AllotteeForm() {
                   <SelectValue placeholder="Select a city" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableCities.length > 0 ? (
-                    availableCities.map((city) => (
-                      <SelectItem key={city.id} value={city.id}>
-                        {city.name}
+                  {filteredCities.length > 0 ? (
+                    filteredCities.map((city) => (
+                      <SelectItem
+                        key={city.CityID}
+                        value={city.CityID.toString()}>
+                        {city.CityName}
                       </SelectItem>
                     ))
                   ) : (
