@@ -40,22 +40,25 @@ export default function AllotteeForm({
   setIsAddingAllottee,
   setTriggerAdd,
 }: IAddCrewAllotteeProps) {
-  const defaultValues: IAddAllottee = {
-    name: "",
-    relation: 0,
-    address: "",
-    contactNumber: "",
-    accountNumber: "",
-    isActive: 1,
-    priority: false,
-    allotmentType: 0,
-    city: 0,
-    province: 0,
-    bank: 0,
-    branch: 0,
-    allotment: 0,
-    receivePayslip: 0,
-  };
+  const defaultValues: IAddAllottee = useMemo(
+    () => ({
+      name: "",
+      relation: 0,
+      address: "",
+      contactNumber: "",
+      accountNumber: "",
+      isActive: 1,
+      priority: false,
+      allotmentType: 0,
+      city: 0,
+      province: 0,
+      bank: 0,
+      branch: 0,
+      allotment: 0,
+      receivePayslip: 0,
+    }),
+    []
+  );
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
 
@@ -642,10 +645,7 @@ export default function AllotteeForm({
                 )}
               />
             </div>
-            <div className="mt-6 flex gap-4">
-              <Button type="submit" className="bg-primary">
-                Submit
-              </Button>
+            <div className="mt-8 flex gap-4 justify-end">
               <Button
                 type="button"
                 variant="outline"
