@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 
 // Dummy data for select fields
 const DUMMY_RELATIONSHIPS = [
@@ -84,6 +85,12 @@ export default function AllotteeForm() {
   const [allottee, setAllottee] = useState(initialAllottee);
   const [availableCities, setAvailableCities] = useState([]);
   const [availableBranches, setAvailableBranches] = useState([]);
+
+  const { allRelationshipData, fetchRelationships } = useRelationshipStore();
+
+  useEffect(() => {
+    fetchRelationships();
+  }, [fetchRelationships]);
 
   // Handle input changes
   const handleInputChange = (field, value) => {
@@ -172,9 +179,16 @@ export default function AllotteeForm() {
                   <SelectValue placeholder="Select a relationship" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DUMMY_RELATIONSHIPS.map((relationship) => (
+                  {/* {DUMMY_RELATIONSHIPS.map((relationship) => (
                     <SelectItem key={relationship.id} value={relationship.id}>
                       {relationship.name}
+                    </SelectItem>
+                  ))} */}
+                  {allRelationshipData.map((relationship) => (
+                    <SelectItem
+                      key={relationship.RelationID}
+                      value={relationship.RelationID.toString()}>
+                      {relationship.RelationName}
                     </SelectItem>
                   ))}
                 </SelectContent>
