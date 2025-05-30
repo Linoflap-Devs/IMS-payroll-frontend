@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 import { useBankStore } from "@/src/store/useBankStore";
 import { useLocationStore } from "@/src/store/useLocationStore";
-
+import { Button } from "@/components/ui/button";
 
 export default function AllotteeForm() {
   const initialAllottee = {
@@ -101,6 +101,10 @@ export default function AllotteeForm() {
 
     // Update available branches based on selected bank
     setSelectedBankId(Number(value));
+  };
+
+  const handleSubmit = () => {
+    console.log("Allottee Data:", allottee);
   };
 
   return (
@@ -362,6 +366,7 @@ export default function AllotteeForm() {
               />
             </div>
           </div>
+          <Button onClick={handleSubmit}>Submit</Button>
         </div>
       </div>
     </div>

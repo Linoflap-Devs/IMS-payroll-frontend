@@ -43,6 +43,23 @@ export interface AllotteeUiModel {
     allotteeDetailID: string;
 }
 
+export interface IAddAllottee {
+    name: string;
+    allotmentType: number;
+    relation: number;
+    contactNumber: string;
+    address: string;
+    city: number;
+    province: number;
+    bank: number;
+    branch: number;
+    accountNumber: string;
+    allotment: number;
+    // priority: boolean;
+    // isActive: number;
+    // receivePayslip: number;
+}
+
 export interface CrewAllotteeResponse {
     success: boolean;
     message: string;
