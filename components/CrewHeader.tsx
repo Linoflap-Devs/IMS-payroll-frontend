@@ -98,51 +98,13 @@ export function CrewHeader({
         )}
         {activeTab === "allottee" && (
           <div className="px-4 pt-0 flex justify-end gap-3">
-            {/* <Button
-              variant="destructive"
-              className="px-6 bg-[#B63C3C] w-40"
-              onClick={handleDeleteAllottee}>
-              <CircleMinus />
-              Remove
-            </Button> */}
-            <div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    className="px-6 bg-[#B63C3C] w-40"
-                    disabled={isDeletingAllottee}>
-                    {isDeletingAllottee ? (
-                      <>
-                        <Loader2 className="animate-spin" />
-                        Deleting...
-                      </>
-                    ) : (
-                      <>
-                        <CircleMinus className="h-4 w-4 ml-2" />
-                        Remove
-                      </>
-                    )}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-white p-10">
-                  <AlertDialogHeader className="flex items-center">
-                    <CircleAlert size={120} strokeWidth={1} color="orange" />
-                    <AlertDialogTitle className="text-3xl">
-                      Are you sure?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="text-center text-md">
-                      Are you sure you want to delete this allottee? This action
-                      cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <div className="flex items-center justify-center space-x-4 pl-8 pr-8">
-                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white hover:text-white">
-                      No, Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
-                      onClick={handleDeleteAllottee}
+            {!isEditingAllottee && !isAddingAllottee && (
+              <div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      className="px-6 bg-[#B63C3C] w-40"
                       disabled={isDeletingAllottee}>
                       {isDeletingAllottee ? (
                         <>
@@ -150,13 +112,46 @@ export function CrewHeader({
                           Deleting...
                         </>
                       ) : (
-                        "Yes, Delete it"
+                        <>
+                          <CircleMinus className="h-4 w-4 ml-2" />
+                          Remove
+                        </>
                       )}
-                    </AlertDialogAction>
-                  </div>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-white p-10">
+                    <AlertDialogHeader className="flex items-center">
+                      <CircleAlert size={120} strokeWidth={1} color="orange" />
+                      <AlertDialogTitle className="text-3xl">
+                        Are you sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="text-center text-md">
+                        Are you sure you want to delete this allottee? This
+                        action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="flex items-center justify-center space-x-4 pl-8 pr-8">
+                      <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white hover:text-white">
+                        No, Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
+                        onClick={handleDeleteAllottee}
+                        disabled={isDeletingAllottee}>
+                        {isDeletingAllottee ? (
+                          <>
+                            <Loader2 className="animate-spin" />
+                            Deleting...
+                          </>
+                        ) : (
+                          "Yes, Delete it"
+                        )}
+                      </AlertDialogAction>
+                    </div>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
             {isEditingAllottee || isAddingAllottee ? (
               <>
                 {isAddingAllottee ? (

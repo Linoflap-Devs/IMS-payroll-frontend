@@ -636,17 +636,6 @@ export default function CrewDetails() {
                 <TabsContent
                   value="allottee"
                   className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1">
-                  {/* <CrewAllottee
-                    isEditingAllottee={isEditingAllottee}
-                    isAdding={isAddingAllottee}
-                    handleSave={handleSave}
-                    triggerSave={triggerSave}
-                    allotteeLoading={allotteeLoading}
-                    setAllotteeLoading={setAllotteeLoading}
-                    setTriggerSave={setTriggerSave}
-                    setIsEditingAllottee={setIsEditingAllottee}
-                    triggerDelete={triggerDelete}
-                  /> */}
 
                   {!isAddingAllottee ? (
                     <>
