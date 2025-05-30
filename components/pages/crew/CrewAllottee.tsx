@@ -66,26 +66,21 @@ interface ICrewAllotteeProps {
   setAllotteeLoading: Dispatch<SetStateAction<boolean>>;
   setTriggerSave: Dispatch<SetStateAction<boolean>>;
   setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>;
-  // handleDeleteAllottee?: () => void;
   triggerDelete: boolean;
   setTriggerDelete: Dispatch<SetStateAction<boolean>>;
+  setIsDeletingAllottee: Dispatch<SetStateAction<boolean>>;
 }
 
 export function CrewAllottee({
-  // onAdd,
   isEditingAllottee = false,
   isAdding = false,
-  // onSave,
-  // onCancel,
-  // handleSave, // Function to trigger save action
   triggerSave,
-  // allotteeLoading,
   setAllotteeLoading,
   setTriggerSave,
   setIsEditingAllottee = () => {},
-  // handleDeleteAllottee,
   setTriggerDelete,
   triggerDelete,
+  setIsDeletingAllottee,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
@@ -493,6 +488,8 @@ export function CrewAllottee({
 
   useEffect(() => {
     if (triggerDelete) {
+      setIsDeletingAllottee(true);
+
       console.log("Delete triggered for allottee IN CREW ALLOTTEE");
       if (!crewId || !currentAllottee) return;
 
@@ -504,6 +501,7 @@ export function CrewAllottee({
             description: `Allottee ${currentAllottee.name} has been deleted.`,
             variant: "success",
           });
+          fetchCrewAllottees(crewId.toString());
         })
         .catch((error) => {
           console.log("Error deleting allottee:", error);
@@ -515,6 +513,7 @@ export function CrewAllottee({
         })
         .finally(() => {
           setTriggerDelete(false);
+          setIsDeletingAllottee(false);
         });
 
       return;
@@ -525,6 +524,8 @@ export function CrewAllottee({
     crewId,
     setTriggerDelete,
     currentAllottee,
+    setIsDeletingAllottee,
+    fetchCrewAllottees,
   ]);
 
   useEffect(() => {

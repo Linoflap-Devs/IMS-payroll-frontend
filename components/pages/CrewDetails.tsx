@@ -36,7 +36,7 @@ export default function CrewDetails() {
 
   // delete allottee
   const [triggerDelete, setTriggerDelete] = useState(false);
-  // const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeletingAllottee, setIsDeletingAllottee] = useState(false);
 
   const [triggerAdd, setTriggerAdd] = useState(false);
   const [isAddLoading, setIsAddLoading] = useState(false);
@@ -187,6 +187,7 @@ export default function CrewDetails() {
           handleDeleteAllottee={handleDeleteAllottee}
           handleTriggerAdd={handleTriggerAdd}
           isAddLoading={isAddLoading}
+          isDeletingAllottee={isDeletingAllottee}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -660,6 +661,7 @@ export default function CrewDetails() {
                         setIsEditingAllottee={setIsEditingAllottee}
                         triggerDelete={triggerDelete}
                         setTriggerDelete={setTriggerDelete}
+                        setIsDeletingAllottee={setIsDeletingAllottee}
                       />
                     </>
                   ) : (

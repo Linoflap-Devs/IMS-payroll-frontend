@@ -141,16 +141,10 @@ export default function AllotteeForm({
   useEffect(() => {
     if (triggerAdd) {
       setIsAddLoading(true);
-      console.log("Triggering form reset due to triggerAdd change");
       try {
-        // setIsAddingAllottee(false);
-
         if (!crewId) return;
-        // addCrewAllottee(crewId, form.getValues());
         addCrewAllottee(crewId, form.getValues())
           .then((response) => {
-            console.log("Allottee added successfully:", response);
-
             if (response.success) {
               toast({
                 title: "Success",
@@ -180,11 +174,6 @@ export default function AllotteeForm({
             setTriggerAdd(false);
             setIsAddLoading(false);
           });
-        //   .finally(() => {
-        //     setIsAddingAllottee(false);
-        //     setTriggerAdd(false);
-        //     form.reset(defaultValues);
-        //   });
       } catch (error) {
         const err = error as Error;
         console.error("Error resetting form:", err.message);

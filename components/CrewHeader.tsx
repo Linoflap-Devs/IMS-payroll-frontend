@@ -39,6 +39,7 @@ interface CrewHeaderProps {
   handleDeleteAllottee: () => void;
   handleTriggerAdd: () => void;
   isAddLoading: boolean;
+  isDeletingAllottee: boolean;
 }
 
 export function CrewHeader({
@@ -55,6 +56,7 @@ export function CrewHeader({
   handleDeleteAllottee,
   handleTriggerAdd,
   isAddLoading,
+  isDeletingAllottee,
 }: CrewHeaderProps) {
   return (
     <>
@@ -108,8 +110,19 @@ export function CrewHeader({
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="destructive"
-                    className="px-6 bg-[#B63C3C] w-40">
-                    Remove
+                    className="px-6 bg-[#B63C3C] w-40"
+                    disabled={isDeletingAllottee}>
+                    {isDeletingAllottee ? (
+                      <>
+                        <Loader2 className="animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <CircleMinus className="h-4 w-4 ml-2" />
+                        Remove
+                      </>
+                    )}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className="bg-white p-10">
@@ -129,8 +142,16 @@ export function CrewHeader({
                     </AlertDialogCancel>
                     <AlertDialogAction
                       className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
-                      onClick={handleDeleteAllottee}>
-                      Yes, Delete it
+                      onClick={handleDeleteAllottee}
+                      disabled={isDeletingAllottee}>
+                      {isDeletingAllottee ? (
+                        <>
+                          <Loader2 className="animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        "Yes, Delete it"
+                      )}
                     </AlertDialogAction>
                   </div>
                 </AlertDialogContent>
