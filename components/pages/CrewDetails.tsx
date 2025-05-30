@@ -21,6 +21,7 @@ import { CrewHeader } from "@/components/CrewHeader";
 import { ImageModal } from "@/components/ImageModal";
 import { formatDate } from "@/types/crew";
 import Image from "next/image";
+import AddCrewAllottee from "./crew/AddCrewAllottee";
 
 export default function CrewDetails() {
   const searchParams = useSearchParams();
@@ -624,7 +625,7 @@ export default function CrewDetails() {
                 <TabsContent
                   value="allottee"
                   className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1">
-                  <CrewAllottee
+                  {/* <CrewAllottee
                     isEditingAllottee={isEditingAllottee}
                     isAdding={isAddingAllottee}
                     handleSave={handleSave}
@@ -634,7 +635,27 @@ export default function CrewDetails() {
                     setTriggerSave={setTriggerSave}
                     setIsEditingAllottee={setIsEditingAllottee}
                     triggerDelete={triggerDelete}
-                  />
+                  /> */}
+
+                  {!isAddingAllottee ? (
+                    <>
+                      <CrewAllottee
+                        isEditingAllottee={isEditingAllottee}
+                        isAdding={isAddingAllottee}
+                        handleSave={handleSave}
+                        triggerSave={triggerSave}
+                        allotteeLoading={allotteeLoading}
+                        setAllotteeLoading={setAllotteeLoading}
+                        setTriggerSave={setTriggerSave}
+                        setIsEditingAllottee={setIsEditingAllottee}
+                        triggerDelete={triggerDelete}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <AddCrewAllottee />
+                    </>
+                  )}
                 </TabsContent>
 
                 <TabsContent
