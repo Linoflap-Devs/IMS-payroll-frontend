@@ -12,6 +12,6 @@ export const addCrewAllottee = async (crewCode: string, allottee: IAddAllottee):
 }
 
 export const deleteCrewAllottee = async (crewCode: string, allotteeId: string): Promise<CrewAllotteeResponse> => {
-    const response = await axiosInstance.patch<CrewAllotteeResponse>(`crew/${crewCode}/allottee/${allotteeId}/delete`);
+    const response = await axiosInstance.delete<CrewAllotteeResponse>(`crew/${crewCode}/allottee/${allotteeId}`);
     return response.data;
 }

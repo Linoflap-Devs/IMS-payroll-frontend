@@ -22,7 +22,10 @@ import { useLocationStore } from "@/src/store/useLocationStore";
 import { useBankStore } from "@/src/store/useBankStore";
 import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 import { AllotteeUiModel, AllotteeApiModel } from "@/types/crewAllottee";
-import { updateCrewAllottee } from "@/src/services/crew/crewAllottee.api";
+import {
+  deleteCrewAllottee,
+  updateCrewAllottee,
+} from "@/src/services/crew/crewAllottee.api";
 import { toast } from "@/components/ui/use-toast";
 
 // Empty UI model for initialization
@@ -64,7 +67,8 @@ interface ICrewAllotteeProps {
   setTriggerSave: Dispatch<SetStateAction<boolean>>;
   setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>;
   // handleDeleteAllottee?: () => void;
-  triggerDelete?: boolean;
+  triggerDelete: boolean;
+  setTriggerDelete: Dispatch<SetStateAction<boolean>>;
 }
 
 export function CrewAllottee({
@@ -80,6 +84,7 @@ export function CrewAllottee({
   setTriggerSave,
   setIsEditingAllottee = () => {},
   // handleDeleteAllottee,
+  setTriggerDelete,
   triggerDelete,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
@@ -324,12 +329,6 @@ export function CrewAllottee({
   ]);
 
   useEffect(() => {
-    if (triggerDelete) {
-      console.log("Delete triggered for allottee IN CREW ALLOTTEE");
-    }
-  }, [triggerDelete]);
-
-  useEffect(() => {
     if (
       isEditingAllottee &&
       editingAllottee &&
@@ -491,6 +490,42 @@ export function CrewAllottee({
       allotteeDetailID: uiModel.allotteeDetailID,
     };
   };
+
+  useEffect(() => {
+    if (triggerDelete) {
+      console.log("Delete triggered for allottee IN CREW ALLOTTEE");
+      if (!crewId || !currentAllottee) return;
+
+      deleteCrewAllottee(crewId.toString(), currentAllottee.id)
+        .then((response) => {
+          console.log("Allottee deleted successfully:", response);
+          toast({
+            title: "Allottee deleted successfully",
+            description: `Allottee ${currentAllottee.name} has been deleted.`,
+            variant: "success",
+          });
+        })
+        .catch((error) => {
+          console.log("Error deleting allottee:", error);
+          toast({
+            title: "Error deleting allottee",
+            description: "There was an error deleting the allottee.",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          setTriggerDelete(false);
+        });
+
+      return;
+    }
+  }, [
+    triggerDelete,
+    editingAllottee,
+    crewId,
+    setTriggerDelete,
+    currentAllottee,
+  ]);
 
   useEffect(() => {
     if (triggerSave) {

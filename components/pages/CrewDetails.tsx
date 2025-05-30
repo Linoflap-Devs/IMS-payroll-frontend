@@ -36,7 +36,7 @@ export default function CrewDetails() {
 
   // delete allottee
   const [triggerDelete, setTriggerDelete] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // const [isDeleting, setIsDeleting] = useState(false);
 
   const [triggerAdd, setTriggerAdd] = useState(false);
   const [isAddLoading, setIsAddLoading] = useState(false);
@@ -659,6 +659,7 @@ export default function CrewDetails() {
                         setTriggerSave={setTriggerSave}
                         setIsEditingAllottee={setIsEditingAllottee}
                         triggerDelete={triggerDelete}
+                        setTriggerDelete={setTriggerDelete}
                       />
                     </>
                   ) : (
