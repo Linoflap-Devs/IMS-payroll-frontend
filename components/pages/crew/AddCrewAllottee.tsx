@@ -197,6 +197,7 @@ export default function AllotteeForm({
     setIsAddingAllottee,
     defaultValues,
     setTriggerAdd,
+    setIsAddLoading,
   ]);
 
   return (
