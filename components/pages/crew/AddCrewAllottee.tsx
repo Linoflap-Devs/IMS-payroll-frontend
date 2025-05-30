@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import React, { Dispatch, useEffect, SetStateAction, useMemo } from "react";
+import { useForm } from "react-hook-form";
 import {
   Select,
   SelectContent,
@@ -7,13 +7,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSearchParams } from "next/navigation";
+
 import { Input } from "@/components/ui/input";
 import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 import { useBankStore } from "@/src/store/useBankStore";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import {
   Form,
   FormControl,
@@ -24,22 +25,37 @@ import {
 } from "@/components/ui/form";
 
 import { addCrewAllotteeSchema } from "@/lib/zod-validations";
+import { addCrewAllottee } from "@/src/services/crew/crewAllottee.api";
+import { IAddAllottee } from "@/types/crewAllottee";
+import { Checkbox } from "@/components/ui/checkbox";
 
-export default function AllotteeForm() {
-  const defaultValues = {
-    allotmentType: 1,
+interface IAddCrewAllotteeProps {
+  triggerAdd: boolean;
+  setIsAddingAllottee: Dispatch<SetStateAction<boolean>>;
+}
+
+export default function AllotteeForm({
+  triggerAdd,
+  setIsAddingAllottee,
+}: IAddCrewAllotteeProps) {
+  const defaultValues: IAddAllottee = {
     name: "",
-    relationshipId: "",
+    relation: 0,
     address: "",
     contactNumber: "",
-    cityId: "",
-    provinceId: "",
-    bankId: "",
-    branchId: "",
     accountNumber: "",
+    isActive: 1,
+    priority: false,
+    allotmentType: 0,
+    city: 0,
+    province: 0,
+    bank: 0,
+    branch: 0,
     allotment: 0,
-    isDollar: 0,
+    receivePayslip: 0,
   };
+  const searchParams = useSearchParams();
+  const crewId = searchParams.get("id");
 
   const form = useForm({
     resolver: zodResolver(addCrewAllotteeSchema),
@@ -50,12 +66,12 @@ export default function AllotteeForm() {
   const { control, watch, setValue, handleSubmit, formState } = form;
   const { errors } = formState;
 
-  const provinceId = watch("provinceId");
-  const bankId = watch("bankId");
+  // Get current values from the form
+  const province = watch("province");
+  const bank = watch("bank");
   const allotmentType = watch("allotmentType");
-  const isDollar = watch("isDollar");
+  //   const receivePayslip = watch("receivePayslip");
 
-  // Log errors to see if they're being generated
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
       console.log("Form errors:", errors);
@@ -80,37 +96,63 @@ export default function AllotteeForm() {
 
   useEffect(() => {
     // When bankId changes, update the selected bank in the store and reset branchId
-    if (bankId) {
-      setSelectedBankId(Number(bankId));
-      setValue("branchId", "");
+    if (bank) {
+      setSelectedBankId(Number(bank));
+      setValue("branch", 0);
     }
-  }, [bankId, setSelectedBankId, setValue]);
+  }, [setSelectedBankId, setValue, bank]);
 
   useEffect(() => {
-    // When provinceId changes, reset cityId
-    if (provinceId) {
-      setValue("cityId", "");
+    // When province changes, reset city
+    if (province) {
+      setValue("city", 0);
     }
-  }, [provinceId, setValue]);
+  }, [province, setValue]);
 
   const uniqueBanks = getUniqueBanks();
   const branchesForSelectedBank = getBranchesForSelectedBank();
 
   const filteredCities = useMemo(() => {
-    if (!provinceId) return [];
+    if (!province) return [];
 
-    const provinceIdNum = parseInt(provinceId);
+    const provinceIdNum = province;
     const citiesInProvince = cities.filter(
       (city) => city.ProvinceID === provinceIdNum
     );
 
     return citiesInProvince.slice(0, 100);
-  }, [cities, provinceId]);
+  }, [cities, province]);
 
-  const onSubmit = (data) => {
+  const onSubmit = (data: IAddAllottee) => {
     console.log("Allottee Data:", data);
     // Add your form submission logic here
   };
+
+  useEffect(() => {
+    if (triggerAdd) {
+      console.log("Triggering form reset due to triggerAdd change");
+      try {
+        // setIsAddingAllottee(false);
+
+        if (!crewId) return;
+        // addCrewAllottee(crewId, form.getValues());
+        console.log("Form values before reset:", form.getValues());
+
+        addCrewAllottee(crewId, form.getValues())
+          .then((response) => {
+            console.log("Allottee added successfully:", response);
+            // setIsAddingAllottee(false);
+            // form.reset(defaultValues);
+          })
+          .catch((error) => {
+            console.error("Error adding allottee:", error);
+          });
+      } catch (error) {
+        const err = error as Error;
+        console.error("Error resetting form:", err.message);
+      }
+    }
+  }, [triggerAdd, form, crewId, setIsAddingAllottee]);
 
   return (
     <Form {...form}>
@@ -131,10 +173,14 @@ export default function AllotteeForm() {
                   <FormItem className="w-full">
                     <FormControl>
                       <Select
-                        value={field.value.toString()}
-                        onValueChange={(value) =>
-                          field.onChange(parseInt(value))
-                        }>
+                        value={field.value === 0 ? "" : field.value.toString()}
+                        onValueChange={(value) => {
+                          if (value === "" || value === " ") {
+                            field.onChange(0);
+                          } else {
+                            field.onChange(parseInt(value));
+                          }
+                        }}>
                         <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                           <SelectValue placeholder="Amount" />
                         </SelectTrigger>
@@ -156,9 +202,75 @@ export default function AllotteeForm() {
         <div className="p-4 space-y-6">
           {/* Personal Info */}
           <div>
-            <h3 className="text-lg font-semibold mb-3 text-primary">
-              Allottee Personal Information
-            </h3>
+            <div className="flex items-center justify-between mb-4 w-full">
+              <h3 className="text-lg font-semibold mb-3 text-primary">
+                Allottee Personal Information
+              </h3>
+              <div className="flex justify-end gap-10 w-1/2">
+                <FormField
+                  control={control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center">
+                      <FormControl>
+                        <Checkbox
+                          {...field}
+                          checked={field.value === 1}
+                          onCheckedChange={(checked) =>
+                            field.onChange(checked ? 1 : 0)
+                          }
+                        />
+                      </FormControl>
+                      <FormLabel className="text-sm text-gray-500">
+                        Is Active
+                      </FormLabel>
+                      <FormMessage className="text-xs text-red-500" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value === true}
+                          onCheckedChange={(checked) => field.onChange(checked)}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-sm text-gray-500">
+                        Priority Allotment
+                      </FormLabel>
+                      <FormMessage className="text-xs text-red-500" />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="receivePayslip"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center">
+                      <FormControl>
+                        <Checkbox
+                          {...field}
+                          checked={field.value === 1}
+                          onCheckedChange={(checked) =>
+                            field.onChange(checked ? 1 : 0)
+                          }
+                        />
+                      </FormControl>
+                      <FormLabel className="text-sm text-gray-500">
+                        Dollar Allotment (receivePayslip)
+                      </FormLabel>
+                      <FormMessage className="text-xs text-red-500" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={control}
@@ -169,7 +281,11 @@ export default function AllotteeForm() {
                       Name
                     </FormLabel>
                     <FormControl>
-                      <Input {...field} className="w-full h-10 bg-white" />
+                      <Input
+                        {...field}
+                        className="w-full h-10 bg-white"
+                        placeholder="Enter name"
+                      />
                     </FormControl>
                     <FormMessage className="text-xs text-red-500" />
                   </FormItem>
@@ -178,7 +294,7 @@ export default function AllotteeForm() {
 
               <FormField
                 control={control}
-                name="relationshipId"
+                name="relation"
                 render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
@@ -186,8 +302,14 @@ export default function AllotteeForm() {
                     </FormLabel>
                     <FormControl>
                       <Select
-                        value={field.value}
-                        onValueChange={field.onChange}>
+                        value={field.value === 0 ? "" : field.value.toString()}
+                        onValueChange={(value) => {
+                          if (value === "" || value === " ") {
+                            field.onChange(0);
+                          } else {
+                            field.onChange(parseInt(value));
+                          }
+                        }}>
                         <SelectTrigger
                           id="relationship"
                           className={`w-full !h-10 ${
@@ -248,7 +370,7 @@ export default function AllotteeForm() {
               {/* Province Field */}
               <FormField
                 control={control}
-                name="provinceId"
+                name="province"
                 render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
@@ -256,8 +378,14 @@ export default function AllotteeForm() {
                     </FormLabel>
                     <FormControl>
                       <Select
-                        value={field.value}
-                        onValueChange={field.onChange}>
+                        value={field.value === 0 ? "" : field.value.toString()}
+                        onValueChange={(value) => {
+                          if (value === "" || value === " ") {
+                            field.onChange(0);
+                          } else {
+                            field.onChange(parseInt(value));
+                          }
+                        }}>
                         <SelectTrigger
                           className={`w-full !h-10 ${
                             fieldState.error
@@ -267,6 +395,9 @@ export default function AllotteeForm() {
                           <SelectValue placeholder="Select a province" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value=" " disabled>
+                            Select a province
+                          </SelectItem>
                           {provinces.map((province) => (
                             <SelectItem
                               key={province.ProvinceID}
@@ -285,7 +416,7 @@ export default function AllotteeForm() {
               {/* City Field */}
               <FormField
                 control={control}
-                name="cityId"
+                name="city"
                 render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
@@ -293,9 +424,15 @@ export default function AllotteeForm() {
                     </FormLabel>
                     <FormControl>
                       <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={!provinceId}>
+                        value={field.value === 0 ? "" : field.value.toString()}
+                        onValueChange={(value) => {
+                          if (value === "" || value === " ") {
+                            field.onChange(0);
+                          } else {
+                            field.onChange(parseInt(value));
+                          }
+                        }}
+                        disabled={!province}>
                         <SelectTrigger
                           className={`w-full !h-10 ${
                             fieldState.error
@@ -315,7 +452,7 @@ export default function AllotteeForm() {
                             ))
                           ) : (
                             <SelectItem value="none" disabled>
-                              {provinceId
+                              {province
                                 ? "No cities found for this province"
                                 : "Select a province first"}
                             </SelectItem>
@@ -339,7 +476,7 @@ export default function AllotteeForm() {
               {/* Bank field */}
               <FormField
                 control={control}
-                name="bankId"
+                name="bank"
                 render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
@@ -347,8 +484,14 @@ export default function AllotteeForm() {
                     </FormLabel>
                     <FormControl>
                       <Select
-                        value={field.value}
-                        onValueChange={field.onChange}>
+                        value={field.value === 0 ? "" : field.value.toString()}
+                        onValueChange={(value) => {
+                          if (value === "" || value === " ") {
+                            field.onChange(0);
+                          } else {
+                            field.onChange(parseInt(value));
+                          }
+                        }}>
                         <SelectTrigger
                           id="bank"
                           className={`w-full !h-10 ${
@@ -377,7 +520,7 @@ export default function AllotteeForm() {
               {/* Branch field */}
               <FormField
                 control={control}
-                name="branchId"
+                name="branch"
                 render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
@@ -385,9 +528,15 @@ export default function AllotteeForm() {
                     </FormLabel>
                     <FormControl>
                       <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={!bankId}>
+                        value={field.value === 0 ? "" : field.value.toString()}
+                        onValueChange={(value) => {
+                          if (value === "" || value === " ") {
+                            field.onChange(0);
+                          } else {
+                            field.onChange(parseInt(value));
+                          }
+                        }}
+                        disabled={!bank}>
                         <SelectTrigger
                           id="branch"
                           className={`w-full !h-10 ${
@@ -408,7 +557,7 @@ export default function AllotteeForm() {
                             ))
                           ) : (
                             <SelectItem value="none" disabled>
-                              {bankId
+                              {bank
                                 ? "No branches found for this bank"
                                 : "Select a bank first"}
                             </SelectItem>
@@ -443,9 +592,13 @@ export default function AllotteeForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
-                      {allotmentType === 1
+                      {/* {allotmentType === 1
                         ? "Allotment Amount in" +
                           (isDollar === 1 ? " (Dollar)" : " (Peso)")
+                        : "Allotment Percentage"} */}
+
+                      {allotmentType === 1
+                        ? "Allotment Amount"
                         : "Allotment Percentage"}
                     </FormLabel>
                     <FormControl>

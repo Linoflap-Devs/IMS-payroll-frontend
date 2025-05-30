@@ -5,15 +5,15 @@ interface BankState {
     isLoading: boolean;
     error: string | null;
     allBankData: BankItem[];
-    selectedBankId: string | number | null;
-    selectedBranchId: string | number | null;
+    selectedBankId: number | null;
+    selectedBranchId: number | null;
 
     fetchBanks: () => Promise<void>;
-    setSelectedBankId: (bankId: string | number | null) => void;
-    setSelectedBranchId: (branchId: string | number | null) => void;
+    setSelectedBankId: (bankId: number | null) => void;
+    setSelectedBranchId: (branchId: number | null) => void;
 
-    getUniqueBanks: () => { BankID: string | number; BankName: string }[];
-    getBranchesForSelectedBank: () => { BankBranchID: string | number; BankBranchName: string }[];
+    getUniqueBanks: () => { BankID: number; BankName: string }[];
+    getBranchesForSelectedBank: () => { BankBranchID: number; BankBranchName: string }[];
 }
 
 export const useBankStore = create<BankState>((set, get) => ({

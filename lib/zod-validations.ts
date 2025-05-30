@@ -31,16 +31,18 @@ export const addCrewSchema = z.object({
 export const addCrewAllotteeSchema = z.object({
     allotmentType: z.number().min(1).max(2),
     name: z.string().min(2, { message: "Name is required" }).max(50, { message: "Name must be less than 50 characters" }),
-    relationshipId: z.string().min(1, { message: "Relationship is required" }),
+    relation: z.number().min(1, { message: "Relationship is required" }),
     address: z.string().min(2, { message: "Address is required" }).max(100, { message: "Address must be less than 100 characters" }),
     contactNumber: z.string().min(9, { message: "Contact number is required" }).max(11, { message: "Contact number must be between 9 and 11 characters" }),
-    cityId: z.string().min(1, { message: "City is required" }),
-    provinceId: z.string().min(1, { message: "Province is required" }),
-    bankId: z.string().min(1, { message: "Bank is required" }),
-    branchId: z.string().min(1, { message: "Branch is required" }),
+    city: z.number().min(1, { message: "City is required" }),
+    province: z.number().min(1, { message: "Province is required" }),
+    bank: z.number().min(1, { message: "Bank is required" }),
+    branch: z.number().min(1, { message: "Branch is required" }),
     accountNumber: z.string().min(2, { message: "Account number is required" }).max(50, { message: "Account number must be less than 50 characters" }),
     allotment: z
         .number()
         .min(0.01, { message: "Allotment must be greater than 0" }),
-    isDollar: z.number().min(0).max(1),
+    receivePayslip: z.number().min(0).max(1),
+    isActive: z.number().min(0).max(1),
+    priority: z.boolean(),
 });

@@ -55,9 +55,9 @@ export interface IAddAllottee {
     branch: number;
     accountNumber: string;
     allotment: number;
-    // priority: boolean;
-    // isActive: number;
-    // receivePayslip: number;
+    priority: boolean;
+    isActive: number;
+    receivePayslip: number;
 }
 
 export interface CrewAllotteeResponse {

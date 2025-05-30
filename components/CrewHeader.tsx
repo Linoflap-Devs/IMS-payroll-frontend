@@ -17,7 +17,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
@@ -38,6 +37,7 @@ interface CrewHeaderProps {
   handleSave: () => void;
   allotteeLoading?: boolean;
   handleDeleteAllottee: () => void;
+  handleTriggerAdd: () => void;
 }
 
 export function CrewHeader({
@@ -52,6 +52,7 @@ export function CrewHeader({
   handleSave,
   allotteeLoading,
   handleDeleteAllottee,
+  handleTriggerAdd,
 }: CrewHeaderProps) {
   return (
     <>
@@ -146,7 +147,7 @@ export function CrewHeader({
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={toggleAllotteeAdd}
+                      onClick={handleTriggerAdd}
                       className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white">
                       <Plus />
                       Save Allottee

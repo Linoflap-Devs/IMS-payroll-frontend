@@ -34,8 +34,16 @@ export default function CrewDetails() {
   const [triggerSave, setTriggerSave] = useState(false);
   const [allotteeLoading, setAllotteeLoading] = useState(false);
 
+  // delete allottee
   const [triggerDelete, setTriggerDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [triggerAdd, setTriggerAdd] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const handleTriggerAdd = () => {
+    setTriggerAdd((prev) => !prev);
+  };
 
   const {
     crew,
@@ -177,6 +185,7 @@ export default function CrewDetails() {
           handleSave={handleSave}
           allotteeLoading={allotteeLoading}
           handleDeleteAllottee={handleDeleteAllottee}
+          handleTriggerAdd={handleTriggerAdd}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -653,7 +662,10 @@ export default function CrewDetails() {
                     </>
                   ) : (
                     <>
-                      <AddCrewAllottee />
+                      <AddCrewAllottee
+                        triggerAdd={triggerAdd}
+                        setIsAddingAllottee={setIsAddingAllottee}
+                      />
                     </>
                   )}
                 </TabsContent>
