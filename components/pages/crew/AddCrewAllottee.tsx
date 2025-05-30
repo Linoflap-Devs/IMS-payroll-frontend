@@ -79,16 +79,12 @@ export default function AllotteeForm() {
     setAllottee((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Handle province selection and update cities
   const handleProvinceChange = (value: string) => {
     setAllottee((prev) => ({
       ...prev,
       provinceId: value,
       cityId: "", // Reset city when province changes
     }));
-
-    // Update available cities based on selected province
-    // setAvailableCities(DUMMY_CITIES[value] || []);
   };
 
   // Handle bank selection and update branches
@@ -96,10 +92,9 @@ export default function AllotteeForm() {
     setAllottee((prev) => ({
       ...prev,
       bankId: value,
-      branchId: "", // Reset branch when bank changes
+      branchId: "",
     }));
 
-    // Update available branches based on selected bank
     setSelectedBankId(Number(value));
   };
 
@@ -217,11 +212,6 @@ export default function AllotteeForm() {
                   <SelectValue placeholder="Select a province" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* {DUMMY_PROVINCES.map((province) => (
-                    <SelectItem key={province.id} value={province.id}>
-                      {province.name}
-                    </SelectItem>
-                  ))} */}
                   {provinces.map((province) => (
                     <SelectItem
                       key={province.ProvinceID}
@@ -301,19 +291,6 @@ export default function AllotteeForm() {
                   <SelectValue placeholder="Select a branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* {availableBranches.length > 0 ? (
-                    availableBranches.map((branch) => (
-                      <SelectItem key={branch.id} value={branch.id}>
-                        {branch.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none" disabled>
-                      {allottee.bankId
-                        ? "No branches found for this bank"
-                        : "Select a bank first"}
-                    </SelectItem>
-                  )} */}
                   {branchesForSelectedBank.length > 0 ? (
                     branchesForSelectedBank.map((branch) => (
                       <SelectItem
