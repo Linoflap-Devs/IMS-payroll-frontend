@@ -11,66 +11,10 @@ import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 import { useBankStore } from "@/src/store/useBankStore";
 import { useLocationStore } from "@/src/store/useLocationStore";
 
-// Dummy data for select fields
-const DUMMY_RELATIONSHIPS = [
-  { id: "1", name: "Spouse" },
-  { id: "2", name: "Child" },
-  { id: "3", name: "Parent" },
-  { id: "4", name: "Sibling" },
-];
-
-const DUMMY_PROVINCES = [
-  { id: "1", name: "Metro Manila" },
-  { id: "2", name: "Cebu" },
-  { id: "3", name: "Davao" },
-  { id: "4", name: "Pampanga" },
-];
-
-const DUMMY_CITIES = {
-  "1": [
-    { id: "1", name: "Makati" },
-    { id: "2", name: "Quezon City" },
-    { id: "3", name: "Manila" },
-  ],
-  "2": [
-    { id: "4", name: "Cebu City" },
-    { id: "5", name: "Mandaue" },
-  ],
-  "3": [
-    { id: "6", name: "Davao City" },
-    { id: "7", name: "Tagum" },
-  ],
-  "4": [
-    { id: "8", name: "Angeles" },
-    { id: "9", name: "San Fernando" },
-  ],
-};
-
-const DUMMY_BANKS = [
-  { id: "1", name: "BDO" },
-  { id: "2", name: "BPI" },
-  { id: "3", name: "Metrobank" },
-];
-
-const DUMMY_BRANCHES = {
-  "1": [
-    { id: "1", name: "BDO Makati" },
-    { id: "2", name: "BDO Ortigas" },
-  ],
-  "2": [
-    { id: "3", name: "BPI Ayala" },
-    { id: "4", name: "BPI Paseo" },
-  ],
-  "3": [
-    { id: "5", name: "Metrobank BGC" },
-    { id: "6", name: "Metrobank Pasay" },
-  ],
-};
 
 export default function AllotteeForm() {
-  // Initial empty allottee data
   const initialAllottee = {
-    allotmentType: 1, // 1 for Amount, 2 for Percentage
+    allotmentType: 1,
     name: "",
     relationshipId: "",
     address: "",
@@ -85,7 +29,6 @@ export default function AllotteeForm() {
   };
 
   const [allottee, setAllottee] = useState(initialAllottee);
-  const [availableCities, setAvailableCities] = useState([]);
 
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
   const {
@@ -132,7 +75,7 @@ export default function AllotteeForm() {
   }, [cities, allottee.provinceId]);
 
   // Handle input changes
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setAllottee((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -141,11 +84,11 @@ export default function AllotteeForm() {
     setAllottee((prev) => ({
       ...prev,
       provinceId: value,
-      cityId: "", // Reset city when province changesS
+      cityId: "", // Reset city when province changes
     }));
 
     // Update available cities based on selected province
-    setAvailableCities(DUMMY_CITIES[value] || []);
+    // setAvailableCities(DUMMY_CITIES[value] || []);
   };
 
   // Handle bank selection and update branches
