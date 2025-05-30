@@ -32,11 +32,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 interface IAddCrewAllotteeProps {
   triggerAdd: boolean;
   setIsAddingAllottee: Dispatch<SetStateAction<boolean>>;
+  setTriggerAdd: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function AllotteeForm({
   triggerAdd,
   setIsAddingAllottee,
+  setTriggerAdd,
 }: IAddCrewAllotteeProps) {
   const defaultValues: IAddAllottee = {
     name: "",
@@ -142,17 +144,28 @@ export default function AllotteeForm({
           .then((response) => {
             console.log("Allottee added successfully:", response);
             // setIsAddingAllottee(false);
-            // form.reset(defaultValues);
           })
           .catch((error) => {
             console.error("Error adding allottee:", error);
+          })
+          .finally(() => {
+            setIsAddingAllottee(false);
+            setTriggerAdd(false);
+            form.reset(defaultValues);
           });
       } catch (error) {
         const err = error as Error;
         console.error("Error resetting form:", err.message);
       }
     }
-  }, [triggerAdd, form, crewId, setIsAddingAllottee]);
+  }, [
+    triggerAdd,
+    form,
+    crewId,
+    setIsAddingAllottee,
+    defaultValues,
+    setTriggerAdd,
+  ]);
 
   return (
     <Form {...form}>

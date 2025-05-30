@@ -665,6 +665,7 @@ export default function CrewDetails() {
                       <AddCrewAllottee
                         triggerAdd={triggerAdd}
                         setIsAddingAllottee={setIsAddingAllottee}
+                        setTriggerAdd={setTriggerAdd}
                       />
                     </>
                   )}
