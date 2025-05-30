@@ -10,3 +10,8 @@ export const addCrewAllottee = async (crewCode: string, allottee: IAddAllottee):
     const response = await axiosInstance.post<CrewAllotteeResponse>(`crew/${crewCode}/allottee`, allottee);
     return response.data;
 }
+
+export const deleteCrewAllottee = async (crewCode: string, allotteeId: string): Promise<CrewAllotteeResponse> => {
+    const response = await axiosInstance.patch<CrewAllotteeResponse>(`crew/${crewCode}/allottee/${allotteeId}/delete`);
+    return response.data;
+}

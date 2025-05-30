@@ -63,7 +63,7 @@ interface ICrewAllotteeProps {
   setAllotteeLoading: Dispatch<SetStateAction<boolean>>;
   setTriggerSave: Dispatch<SetStateAction<boolean>>;
   setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>;
-  handleDeleteAllottee?: () => void;
+  // handleDeleteAllottee?: () => void;
   triggerDelete?: boolean;
 }
 
@@ -79,7 +79,7 @@ export function CrewAllottee({
   setAllotteeLoading,
   setTriggerSave,
   setIsEditingAllottee = () => {},
-  handleDeleteAllottee,
+  // handleDeleteAllottee,
   triggerDelete,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
