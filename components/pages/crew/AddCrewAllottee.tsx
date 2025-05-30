@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useRelationshipStore } from "@/src/store/useRelationshipStore";
+import { useBankStore } from "@/src/store/useBankStore";
 
 // Dummy data for select fields
 const DUMMY_RELATIONSHIPS = [
@@ -84,13 +85,25 @@ export default function AllotteeForm() {
 
   const [allottee, setAllottee] = useState(initialAllottee);
   const [availableCities, setAvailableCities] = useState([]);
-  const [availableBranches, setAvailableBranches] = useState([]);
 
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
+  const {
+    fetchBanks,
+    setSelectedBankId,
+    getUniqueBanks,
+    getBranchesForSelectedBank,
+  } = useBankStore();
 
   useEffect(() => {
     fetchRelationships();
   }, [fetchRelationships]);
+
+  useEffect(() => {
+    fetchBanks();
+  }, [fetchBanks]);
+
+  const uniqueBanks = getUniqueBanks();
+  const branchesForSelectedBank = getBranchesForSelectedBank();
 
   // Handle input changes
   const handleInputChange = (field, value) => {
@@ -98,11 +111,11 @@ export default function AllotteeForm() {
   };
 
   // Handle province selection and update cities
-  const handleProvinceChange = (value) => {
+  const handleProvinceChange = (value: string) => {
     setAllottee((prev) => ({
       ...prev,
       provinceId: value,
-      cityId: "", // Reset city when province changes
+      cityId: "", // Reset city when province changesS
     }));
 
     // Update available cities based on selected province
@@ -110,7 +123,7 @@ export default function AllotteeForm() {
   };
 
   // Handle bank selection and update branches
-  const handleBankChange = (value) => {
+  const handleBankChange = (value: string) => {
     setAllottee((prev) => ({
       ...prev,
       bankId: value,
@@ -118,7 +131,7 @@ export default function AllotteeForm() {
     }));
 
     // Update available branches based on selected bank
-    setAvailableBranches(DUMMY_BRANCHES[value] || []);
+    setSelectedBankId(Number(value));
   };
 
   return (
@@ -284,9 +297,11 @@ export default function AllotteeForm() {
                   <SelectValue placeholder="Select a bank" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DUMMY_BANKS.map((bank) => (
-                    <SelectItem key={bank.id} value={bank.id}>
-                      {bank.name}
+                  {uniqueBanks.map((bank) => (
+                    <SelectItem
+                      key={bank.BankID}
+                      value={bank.BankID.toString()}>
+                      {bank.BankName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -304,10 +319,25 @@ export default function AllotteeForm() {
                   <SelectValue placeholder="Select a branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableBranches.length > 0 ? (
+                  {/* {availableBranches.length > 0 ? (
                     availableBranches.map((branch) => (
                       <SelectItem key={branch.id} value={branch.id}>
                         {branch.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      {allottee.bankId
+                        ? "No branches found for this bank"
+                        : "Select a bank first"}
+                    </SelectItem>
+                  )} */}
+                  {branchesForSelectedBank.length > 0 ? (
+                    branchesForSelectedBank.map((branch) => (
+                      <SelectItem
+                        key={branch.BankBranchID}
+                        value={branch.BankBranchID.toString()}>
+                        {branch.BankBranchName}
                       </SelectItem>
                     ))
                   ) : (
