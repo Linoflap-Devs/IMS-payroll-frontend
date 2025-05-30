@@ -344,7 +344,11 @@ export default function AllotteeForm({
                       Contact Number
                     </FormLabel>
                     <FormControl>
-                      <Input {...field} className="w-full h-10 bg-white" />
+                      <Input
+                        {...field}
+                        className="w-full h-10 bg-white"
+                        placeholder="Enter contact number"
+                      />
                     </FormControl>
                     <FormMessage className="text-xs text-red-500" />
                   </FormItem>
@@ -360,7 +364,11 @@ export default function AllotteeForm({
                       Address
                     </FormLabel>
                     <FormControl>
-                      <Input {...field} className="w-full h-10 bg-white" />
+                      <Input
+                        {...field}
+                        className="w-full h-10 bg-white"
+                        placeholder="Enter address"
+                      />
                     </FormControl>
                     <FormMessage className="text-xs text-red-500" />
                   </FormItem>
@@ -579,7 +587,11 @@ export default function AllotteeForm({
                       Account Number
                     </FormLabel>
                     <FormControl>
-                      <Input {...field} className="w-full h-10 bg-white" />
+                      <Input
+                        {...field}
+                        className="w-full h-10 bg-white"
+                        placeholder="Enter account number"
+                      />
                     </FormControl>
                     <FormMessage className="text-xs text-red-500" />
                   </FormItem>
