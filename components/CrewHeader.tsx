@@ -38,6 +38,7 @@ interface CrewHeaderProps {
   allotteeLoading?: boolean;
   handleDeleteAllottee: () => void;
   handleTriggerAdd: () => void;
+  isAddLoading: boolean;
 }
 
 export function CrewHeader({
@@ -53,6 +54,7 @@ export function CrewHeader({
   allotteeLoading,
   handleDeleteAllottee,
   handleTriggerAdd,
+  isAddLoading,
 }: CrewHeaderProps) {
   return (
     <>
@@ -148,9 +150,20 @@ export function CrewHeader({
                     <Button
                       variant="outline"
                       onClick={handleTriggerAdd}
+                      disabled={isAddLoading}
                       className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white">
-                      <Plus />
-                      Save Allottee
+                      {/* <Plus /> */}
+                      {isAddLoading ? (
+                        <>
+                          <Loader2 className="animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Allottee
+                        </>
+                      )}
                     </Button>
                   </>
                 ) : (

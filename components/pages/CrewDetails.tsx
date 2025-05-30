@@ -39,7 +39,7 @@ export default function CrewDetails() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const [triggerAdd, setTriggerAdd] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
+  const [isAddLoading, setIsAddLoading] = useState(false);
 
   const handleTriggerAdd = () => {
     setTriggerAdd((prev) => !prev);
@@ -186,6 +186,7 @@ export default function CrewDetails() {
           allotteeLoading={allotteeLoading}
           handleDeleteAllottee={handleDeleteAllottee}
           handleTriggerAdd={handleTriggerAdd}
+          isAddLoading={isAddLoading}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -666,6 +667,8 @@ export default function CrewDetails() {
                         triggerAdd={triggerAdd}
                         setIsAddingAllottee={setIsAddingAllottee}
                         setTriggerAdd={setTriggerAdd}
+                        // isAddLoading={isAddLoading}
+                        setIsAddLoading={setIsAddLoading}
                       />
                     </>
                   )}

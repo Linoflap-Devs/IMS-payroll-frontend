@@ -34,12 +34,16 @@ interface IAddCrewAllotteeProps {
   triggerAdd: boolean;
   setIsAddingAllottee: Dispatch<SetStateAction<boolean>>;
   setTriggerAdd: Dispatch<SetStateAction<boolean>>;
+  //   isAddLoading: boolean;
+  setIsAddLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function AllotteeForm({
   triggerAdd,
   setIsAddingAllottee,
   setTriggerAdd,
+  //   isAddLoading,
+  setIsAddLoading,
 }: IAddCrewAllotteeProps) {
   const defaultValues: IAddAllottee = useMemo(
     () => ({
@@ -136,6 +140,7 @@ export default function AllotteeForm({
 
   useEffect(() => {
     if (triggerAdd) {
+      setIsAddLoading(true);
       console.log("Triggering form reset due to triggerAdd change");
       try {
         // setIsAddingAllottee(false);
@@ -173,6 +178,7 @@ export default function AllotteeForm({
           })
           .finally(() => {
             setTriggerAdd(false);
+            setIsAddLoading(false);
           });
         //   .finally(() => {
         //     setIsAddingAllottee(false);
