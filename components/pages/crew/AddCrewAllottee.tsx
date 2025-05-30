@@ -28,6 +28,7 @@ import { addCrewAllotteeSchema } from "@/lib/zod-validations";
 import { addCrewAllottee } from "@/src/services/crew/crewAllottee.api";
 import { IAddAllottee } from "@/types/crewAllottee";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "@/components/ui/use-toast";
 
 interface IAddCrewAllotteeProps {
   triggerAdd: boolean;
@@ -141,21 +142,43 @@ export default function AllotteeForm({
 
         if (!crewId) return;
         // addCrewAllottee(crewId, form.getValues());
-        console.log("Form values before reset:", form.getValues());
-
         addCrewAllottee(crewId, form.getValues())
           .then((response) => {
             console.log("Allottee added successfully:", response);
-            // setIsAddingAllottee(false);
+
+            if (response.success) {
+              toast({
+                title: "Success",
+                description: "Allottee added successfully.",
+                variant: "success",
+              });
+              setIsAddingAllottee(false);
+              form.reset(defaultValues);
+            } else {
+              toast({
+                title: "Error",
+                description: response.message || "Failed to add allottee.",
+                variant: "destructive",
+              });
+            }
           })
           .catch((error) => {
-            console.error("Error adding allottee:", error);
+            const err = error as Error;
+            console.log("Error adding allottee:", err.message);
+            toast({
+              title: "Error",
+              description: "Failed to add allottee.",
+              variant: "destructive",
+            });
           })
           .finally(() => {
-            setIsAddingAllottee(false);
             setTriggerAdd(false);
-            form.reset(defaultValues);
           });
+        //   .finally(() => {
+        //     setIsAddingAllottee(false);
+        //     setTriggerAdd(false);
+        //     form.reset(defaultValues);
+        //   });
       } catch (error) {
         const err = error as Error;
         console.error("Error resetting form:", err.message);
