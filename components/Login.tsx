@@ -18,7 +18,7 @@ import {
 import { Input } from "./ui/input";
 import { loginUser, LoginResponse } from "../src/services/auth/auth.api";
 import Link from "next/link";
-import { PiWarningCircleLight } from "react-icons/pi";
+import { PiWarningCircleLight, PiEye, PiEyeSlash } from "react-icons/pi";
 
 import {
   Dialog,
@@ -42,6 +42,7 @@ const formSchema = z.object({
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -105,7 +106,8 @@ export default function Login() {
                       <FormLabel
                         className={`text-sm ${
                           errorMessage ? "text-red-600" : ""
-                        }`}>
+                        }`}
+                      >
                         Email Address
                       </FormLabel>
                       <FormControl>
@@ -124,7 +126,7 @@ export default function Login() {
                           <PiWarningCircleLight color="red" size={20} />
                         )}
                         <FormMessage className="text-base" />
-                      </div>{" "}
+                      </div>
                     </FormItem>
                   )}
                 />
@@ -136,27 +138,41 @@ export default function Login() {
                       <FormLabel
                         className={`text-sm ${
                           errorMessage ? "text-red-600" : ""
-                        }`}>
+                        }`}
+                      >
                         Password
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Enter password"
-                          {...field}
-                          className={`h-10 text-sm  ${
-                            errorMessage
-                              ? "border-red-500 ring-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
-                              : ""
-                          }`}
-                        />
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Enter password"
+                            {...field}
+                            className={`h-10 text-sm pr-12 ${
+                              errorMessage
+                                ? "border-red-500 ring-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
+                                : ""
+                            }`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                          >
+                            {showPassword ? (
+                              <PiEyeSlash size={20} />
+                            ) : (
+                              <PiEye size={20} />
+                            )}
+                          </button>
+                        </div>
                       </FormControl>
                       <div className="flex items-center gap-1">
                         {form.formState.errors.password && (
                           <PiWarningCircleLight color="red" size={20} />
                         )}
                         <FormMessage className="text-base" />
-                      </div>{" "}
+                      </div>
                     </FormItem>
                   )}
                 />
@@ -172,7 +188,8 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90"
-                disabled={isLoading}>
+                disabled={isLoading}
+              >
                 {isLoading ? "Logging in..." : "Log in"}
               </Button>
             </form>
@@ -200,7 +217,8 @@ export default function Login() {
                   <DialogClose>
                     <Button
                       variant="outline"
-                      className="py-5 px-18 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white">
+                      className="py-5 px-18 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white"
+                    >
                       Okay
                     </Button>
                   </DialogClose>
