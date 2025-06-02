@@ -47,140 +47,78 @@ import {
   CrewRemittanceDetailItem,
   CrewRemittanceItem,
   getCrewRemittanceList,
+  getAllottees,
+  deleteCrewRemittance,
+  type AllotteeOption,
 } from "@/src/services/remittance/crewRemittance.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 
+const REMITTANCE_STATUS_CONFIG = [
+  { value: 0, label: "Pending", color: "bg-yellow-100 text-yellow-800" },
+  { value: 1, label: "Completed", color: "bg-green-100 text-green-800" },
+  { value: 2, label: "Declined", color: "bg-red-100 text-red-800" },
+  { value: 3, label: "On Hold", color: "bg-gray-100 text-gray-800" },
+  { value: 4, label: "Adjusted", color: "bg-blue-100 text-blue-800" },
+] as const;
+
+const REMITTANCE_STATUS_LABELS = REMITTANCE_STATUS_CONFIG.map(
+  (status) => status.label
+);
+const REMITTANCE_STATUS_VALUES = REMITTANCE_STATUS_CONFIG.map(
+  (status) => status.value
+);
+
+type RemittanceStatusLabel = (typeof REMITTANCE_STATUS_LABELS)[number];
+
 type RemittanceEntry = {
+  remittanceId: number; // Add this field for delete functionality
   allottee: string;
   amount: number;
   remarks?: string;
-  status: "Completed" | "Pending" | "Adjusted" | "Failed" | "On Hold";
+  status: RemittanceStatusLabel;
 };
 
-const remittanceColumns: ColumnDef<RemittanceEntry>[] = [
-  {
-    accessorKey: "allottee",
-    header: "Allottee",
-  },
-  {
-    accessorKey: "amount",
-    header: "Amount",
-    cell: ({ row }) => {
-      return <div className="text-right">{row.original.amount.toFixed(2)}</div>;
-    },
-  },
-  {
-    accessorKey: "remarks",
-    header: "Remarks",
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.original.status;
-      const getStatusColor = (status: string) => {
-        switch (status) {
-          case "Completed":
-            return "bg-green-100 text-green-800";
-          case "Pending":
-            return "bg-yellow-100 text-yellow-800";
-          case "Adjusted":
-            return "bg-blue-100 text-blue-800";
-          case "Failed":
-            return "bg-red-100 text-red-800";
-          case "On Hold":
-            return "bg-gray-100 text-gray-800";
-          default:
-            return "bg-gray-100 text-gray-800";
-        }
-      };
+// Helper functions for status handling
+const getStatusByLabel = (label: string) => {
+  return REMITTANCE_STATUS_CONFIG.find(
+    (status) => status.label.toLowerCase() === label.toLowerCase()
+  );
+};
 
-      return (
-        <div className="flex justify-center">
-          <span
-            className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-              status
-            )}`}
-          >
-            {status}
-          </span>
-        </div>
+const getStatusByValue = (value: number) => {
+  return REMITTANCE_STATUS_CONFIG.find((status) => status.value === value);
+};
+
+const getStatusText = (statusInput: string | number): RemittanceStatusLabel => {
+  try {
+    if (typeof statusInput === "number") {
+      const foundStatus = getStatusByValue(statusInput);
+      return foundStatus?.label || "Pending";
+    } else {
+      const normalizedStatus = statusInput?.toString().toLowerCase().trim();
+      const foundStatus = REMITTANCE_STATUS_CONFIG.find(
+        (status) => status.label.toLowerCase() === normalizedStatus
       );
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const handleDelete = () => {
-        const swalWithBootstrapButtons = Swal.mixin({
-          customClass: {
-            confirmButton:
-              "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            cancelButton:
-              "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-          },
-          buttonsStyling: false,
-        });
+      return foundStatus?.label || "Pending";
+    }
+  } catch (error) {
+    return "Pending";
+  }
+};
 
-        swalWithBootstrapButtons
-          .fire({
-            title: "Are you sure?",
-            text: "Are you sure you want to delete this remittance? This action cannot be undone.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-            cancelButtonText: "No, cancel!",
-            reverseButtons: true,
-          })
-          .then((result) => {
-            if (result.isConfirmed) {
-              // Place your delete logic here, for example, API call or state update
-              swalWithBootstrapButtons.fire({
-                title: "Deleted!",
-                text: "The remittance has been successfully deleted.",
-                icon: "success",
-              });
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-              swalWithBootstrapButtons.fire({
-                title: "Cancelled",
-                text: "Your remittance is safe :)",
-                icon: "error",
-              });
-            }
-          });
-      };
-      return (
-        <div className="text-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => handleDelete()}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-  },
-];
+const getStatusColor = (statusLabel: string) => {
+  const foundStatus = getStatusByLabel(statusLabel);
+  return foundStatus?.color || "bg-gray-100 text-gray-800";
+};
 
-export default function DeductionEntries() {
+export default function RemittanceDetails() {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [isAddRemittanceOpen, setIsAddRemittanceOpen] = useState(false);
   const [isDollar, setIsDollar] = useState(false);
   const [remittanceData, setRemittanceData] = useState<RemittanceEntry[]>([]);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [allottees, setAllottees] = useState<AllotteeOption[]>([]);
   const [crewData, setCrewData] = useState({
     name: "",
     rank: "",
@@ -192,16 +130,151 @@ export default function DeductionEntries() {
     birthday: "",
   });
 
+  // Delete function
+  const handleDeleteRemittance = async (remittanceId: number) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "Are you sure you want to delete this remittance? This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        const response = await deleteCrewRemittance(
+          crewData.crewCode,
+          remittanceId
+        );
+
+        if (response.success) {
+          await Swal.fire({
+            title: "Deleted!",
+            text: "The remittance has been successfully deleted.",
+            icon: "success",
+            confirmButtonColor: "#22c55e",
+          });
+
+          // Refresh the data
+          fetchRemittanceData(crewData.crewCode);
+        } else {
+          await Swal.fire({
+            title: "Error!",
+            text: response.message || "Failed to delete remittance.",
+            icon: "error",
+            confirmButtonColor: "#ef4444",
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error("Delete error:", error);
+
+      let errorMsg = "An error occurred while deleting the remittance";
+      if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
+      await Swal.fire({
+        title: "Error!",
+        text: errorMsg,
+        icon: "error",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
+
+  // Updated columns definition with delete functionality
+  const remittanceColumns: ColumnDef<RemittanceEntry>[] = [
+    {
+      accessorKey: "allottee",
+      header: "Allottee",
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ row }) => {
+        const amount = row.original.amount;
+        return (
+          <div className="text-center">
+            ₱
+            {new Intl.NumberFormat("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(amount)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const statusText =
+          typeof status === "string" ? status : String(status || "Pending");
+
+        return (
+          <div className="flex justify-center">
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium min-w-[80px] text-center ${getStatusColor(
+                statusText
+              )}`}
+            >
+              {statusText}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const remittanceId = row.original.remittanceId;
+
+        return (
+          <div className="text-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+                <DropdownMenuItem
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => handleDeleteRemittance(remittanceId)}
+                >
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
+
   const fetchRemittanceData = async (crewCode: string) => {
     if (crewCode) {
       try {
         const response = await getCrewRemittanceDetails(crewCode);
-        if (response.success && response.data.length > 0) {
-          // Get unique years from the data
-          const years = [...new Set(response.data.map((item) => item.Year))];
-          setAvailableYears(years.sort((a, b) => b - a)); // Sort years in descending order
 
-          // Find the latest remittance date
+        if (response.success && response.data.length > 0) {
+          const years = [...new Set(response.data.map((item) => item.Year))];
+          setAvailableYears(years.sort((a, b) => b - a));
+
           const sortedData = [...response.data].sort((a, b) => {
             const dateA = new Date(a.Year, getMonthNumber(a.Month));
             const dateB = new Date(b.Year, getMonthNumber(b.Month));
@@ -210,111 +283,62 @@ export default function DeductionEntries() {
 
           const latestRemittance = sortedData[0];
 
-          // Set the latest month and year
           setSelectedMonth(latestRemittance.Month);
           setSelectedYear(latestRemittance.Year.toString());
 
-          // Filter and map the data for display
           const filteredData = sortedData
             .filter(
               (item) =>
                 item.Month === latestRemittance.Month &&
                 item.Year === latestRemittance.Year
             )
-            .map((item) => ({
-              allottee: item.AllotteeName || "",
-              amount: item.Amount,
-              remarks: item.Remarks || "",
-              status: item.IsActive
-                ? "Completed"
-                : ("Pending" as "Completed" | "Pending"),
-            }));
+            .map((item) => {
+              const mappedItem: RemittanceEntry = {
+                remittanceId: item.RemittanceHeaderID, // Include remittance ID for delete
+                allottee: String(item.AllotteeName || ""),
+                amount: Number(item.Amount) || 0,
+                remarks: String(item.Remarks || ""),
+                status: getStatusText(item.Status),
+              };
+              return mappedItem;
+            });
 
-          setRemittanceData(filteredData);
+          const validatedData = filteredData.filter((item) => {
+            const isValid =
+              typeof item.allottee === "string" &&
+              typeof item.amount === "number" &&
+              typeof item.status === "string" &&
+              typeof item.remittanceId === "number";
+            return isValid;
+          });
+
+          setRemittanceData(validatedData);
+        } else {
+          setRemittanceData([]);
         }
       } catch (error) {
         console.error("Error fetching remittance details:", error);
+        setRemittanceData([]);
       }
     }
   };
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const crewCodeParam = params.get("crewCode");
-
-    if (crewCodeParam) {
-      const decodedCrewCode = decodeURIComponent(crewCodeParam);
-
-      // Fetch both crew basic info and vessel info in parallel
-      Promise.all([getCrewBasic(decodedCrewCode), getCrewRemittanceList()])
-        .then(([basicResponse, remittanceResponse]) => {
-          if (basicResponse.success) {
-            const { data } = basicResponse;
-
-            // Find the crew's vessel from the remittance list
-            const crewVessel = remittanceResponse.success
-              ? remittanceResponse.data.find(
-                  (item: CrewRemittanceItem) =>
-                    item.CrewCode === decodedCrewCode
-                )?.Vessel
-              : "";
-
-            setCrewData({
-              name: `${data.FirstName} ${
-                data.MiddleName ? data.MiddleName.charAt(0) + ". " : ""
-              }${data.LastName}`,
-              rank: data.Rank,
-              vessel: crewVessel || "",
-              crewCode: decodedCrewCode,
-              mobileNo: data.MobileNo,
-              landlineNo: data.LandlineNo,
-              emailAddress: data.EmailAddress,
-              birthday: data.Birthday,
-            });
-
-            // After getting crew info, fetch remittance details
-            fetchRemittanceData(decodedCrewCode);
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching crew details:", error);
-        });
-    }
-  }, []);
-
-  // Update remittance data when month/year selection changes
-  useEffect(() => {
-    const updateRemittanceData = async () => {
-      if (crewData.crewCode && selectedMonth && selectedYear) {
-        try {
-          const response = await getCrewRemittanceDetails(crewData.crewCode);
-          if (response.success) {
-            const filteredData = response.data
-              .filter(
-                (item) =>
-                  item.Month === selectedMonth &&
-                  item.Year.toString() === selectedYear
-              )
-              .map((item) => ({
-                allottee: item.AllotteeName || "",
-                amount: item.Amount,
-                remarks: item.Remarks || "",
-                status: item.IsActive
-                  ? "Completed"
-                  : ("Pending" as "Completed" | "Pending"),
-              }));
-            setRemittanceData(filteredData);
-          }
-        } catch (error) {
-          console.error("Error updating remittance details:", error);
+  const fetchAllottees = async (crewCode: string) => {
+    if (crewCode) {
+      try {
+        const response = await getAllottees(crewCode);
+        if (response.success) {
+          setAllottees(response.data);
+        } else {
+          setAllottees([]);
         }
+      } catch (error) {
+        console.error("Error fetching allottees:", error);
+        setAllottees([]);
       }
-    };
+    }
+  };
 
-    updateRemittanceData();
-  }, [crewData.crewCode, selectedMonth, selectedYear]);
-
-  // Helper function to convert month name to number
   const getMonthNumber = (month: string): number => {
     const months = {
       January: 0,
@@ -333,10 +357,109 @@ export default function DeductionEntries() {
     return months[month as keyof typeof months] || 0;
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const crewCodeParam = params.get("crewCode");
+
+    if (crewCodeParam) {
+      const decodedCrewCode = decodeURIComponent(crewCodeParam);
+
+      Promise.all([getCrewBasic(decodedCrewCode), getCrewRemittanceList()])
+        .then(([basicResponse, remittanceResponse]) => {
+          if (basicResponse.success) {
+            const { data } = basicResponse;
+
+            const crewVessel = remittanceResponse.success
+              ? remittanceResponse.data.find(
+                  (item: CrewRemittanceItem) =>
+                    item.CrewCode === decodedCrewCode
+                )?.Vessel
+              : "";
+
+            setCrewData({
+              name: `${data.FirstName} ${
+                data.MiddleName ? data.MiddleName.charAt(0) + ". " : ""
+              }${data.LastName}`,
+              rank: data.Rank,
+              vessel: crewVessel || "",
+              crewCode: decodedCrewCode,
+              mobileNo: data.MobileNo,
+              landlineNo: data.LandLineNo,
+              emailAddress: data.EmailAddress,
+              birthday: data.Birthday,
+            });
+
+            fetchRemittanceData(decodedCrewCode);
+            fetchAllottees(decodedCrewCode);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching crew details:", error);
+        });
+    }
+  }, []);
+
+  useEffect(() => {
+    const updateRemittanceData = async () => {
+      if (crewData.crewCode && selectedMonth && selectedYear) {
+        try {
+          const response = await getCrewRemittanceDetails(crewData.crewCode);
+          if (response.success) {
+            const filteredData = response.data
+              .filter(
+                (item) =>
+                  item.Month === selectedMonth &&
+                  item.Year.toString() === selectedYear
+              )
+              .map((item) => {
+                const mappedItem: RemittanceEntry = {
+                  remittanceId: item.RemittanceHeaderID, // Include remittance ID
+                  allottee: String(item.AllotteeName || ""),
+                  amount: Number(item.Amount) || 0,
+                  remarks: String(item.Remarks || ""),
+                  status: getStatusText(item.Status),
+                };
+                return mappedItem;
+              });
+
+            const validatedData = filteredData.filter((item) => {
+              const isValid =
+                typeof item.allottee === "string" &&
+                typeof item.amount === "number" &&
+                typeof item.status === "string" &&
+                typeof item.remittanceId === "number";
+              return isValid;
+            });
+
+            setRemittanceData(validatedData);
+          } else {
+            setRemittanceData([]);
+          }
+        } catch (error) {
+          console.error("Error updating remittance details:", error);
+          setRemittanceData([]);
+        }
+      }
+    };
+
+    updateRemittanceData();
+  }, [crewData.crewCode, selectedMonth, selectedYear]);
+
+  const handleOpenDialog = () => {
+    setIsAddRemittanceOpen(true);
+  };
+
+  const handleRemittanceSuccess = () => {
+    if (crewData.crewCode) {
+      setTimeout(() => {
+        fetchRemittanceData(crewData.crewCode);
+      }, 500);
+    }
+  };
+
   return (
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
-        {/* Header section */}
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-2">
             <Link href="/home/remittance">
@@ -349,7 +472,7 @@ export default function DeductionEntries() {
 
           <Button
             className="bg-primary hover:bg-primary/90"
-            onClick={() => setIsAddRemittanceOpen(true)}
+            onClick={handleOpenDialog}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Remittance
@@ -357,16 +480,13 @@ export default function DeductionEntries() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Left sidebar */}
           <div className="md:col-span-1">
             <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
               <CardContent className="p-4 flex flex-col items-center text-center overflow-y-auto scrollbar-hide flex-1">
                 <style jsx global>{`
-                  /* Hide scrollbar for Chrome, Safari and Opera */
                   .scrollbar-hide::-webkit-scrollbar {
                     display: none;
                   }
-                  /* Hide scrollbar for IE, Edge and Firefox */
                   .scrollbar-hide {
                     -ms-overflow-style: none;
                     scrollbar-width: none;
@@ -476,12 +596,10 @@ export default function DeductionEntries() {
             </Card>
           </div>
 
-          {/* Right content area */}
           <div className="md:col-span-3">
             <Card className="h-[calc(100vh-180px)] flex flex-col">
               <CardContent>
                 <div className="space-y-6">
-                  {/* Month and Year filters */}
                   <div className="flex items-center justify-center gap-6 w-full">
                     <div className="w-1/2">
                       <Select
@@ -549,18 +667,26 @@ export default function DeductionEntries() {
                   </div>
 
                   <div className="flex justify-end">
-                    <div>
+                    <div className="flex items-center">
                       <Checkbox />
                       <span className="ml-2">Remit with payroll</span>
                     </div>
                   </div>
 
                   <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden">
-                    <DataTable
-                      columns={remittanceColumns}
-                      data={remittanceData}
-                      pageSize={7}
-                    />
+                    {remittanceData &&
+                    Array.isArray(remittanceData) &&
+                    remittanceData.length > 0 ? (
+                      <DataTable
+                        columns={remittanceColumns}
+                        data={remittanceData}
+                        pageSize={7}
+                      />
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        No data available
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -572,6 +698,9 @@ export default function DeductionEntries() {
       <AddRemittanceDialog
         open={isAddRemittanceOpen}
         onOpenChange={setIsAddRemittanceOpen}
+        crewCode={crewData.crewCode}
+        allottees={allottees}
+        onSuccess={handleRemittanceSuccess}
       />
     </div>
   );
