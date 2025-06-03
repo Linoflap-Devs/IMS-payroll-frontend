@@ -8,6 +8,7 @@ export function useCrewDetails(crewId: string | null) {
   const [crew, setCrew] = useState<Crew | null>(null);
   const [editedCrew, setEditedCrew] = useState<Crew | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditLoading, setIsEditLoading] = useState(false);
 
   const {
     crewDetails,
@@ -63,7 +64,6 @@ export function useCrewDetails(crewId: string | null) {
         seamansBookExpiryDate: crewDetails.SRIBExpiredDate,
       };
 
-      console.log("Mapped Crew:", mappedCrew);
       setCrew(mappedCrew);
       setEditedCrew(mappedCrew);
     }
@@ -78,6 +78,8 @@ export function useCrewDetails(crewId: string | null) {
 
   const saveChanges = async () => {
     if (!editedCrew || !editedCrew.id) return;
+
+    setIsEditLoading(true);
 
     const updatedCrew = {
       ...editedCrew,
@@ -114,8 +116,6 @@ export function useCrewDetails(crewId: string | null) {
     setEditedCrew(updatedCrew);
     setIsEditing(false);
 
-    console.log("Crew to be updated:", crewToBeUpdated);
-
     try {
       const response = await updateCrew(editedCrew.id, crewToBeUpdated);
       if (response.success) {
@@ -140,6 +140,8 @@ export function useCrewDetails(crewId: string | null) {
         description: "Failed to update crew details.",
         variant: "destructive",
       });
+    } finally {
+      setIsEditLoading(false);
     }
   };
 
@@ -160,6 +162,7 @@ export function useCrewDetails(crewId: string | null) {
     handleInputChange,
     saveChanges,
     toggleEditMode,
-    setEditedCrew
+    setEditedCrew,
+    isEditLoading
   };
 }

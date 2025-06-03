@@ -81,6 +81,7 @@ export const useCrewStore = create<CrewStore>((set) => ({
   isLoadingRanks: false,
   ranksError: null,
 
+
   // Actions
   fetchCrews: async () => {
     set({ isLoading: true, error: null });

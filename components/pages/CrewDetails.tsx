@@ -48,6 +48,8 @@ export default function CrewDetails() {
   const [displayProvinceCity, setDisplayProvinceCity] = useState({
     provinceName: "",
     cityName: "",
+    provinceId: "",
+    cityId: "",
   });
 
   const handleTriggerAdd = () => {
@@ -65,6 +67,7 @@ export default function CrewDetails() {
     saveChanges,
     toggleEditMode,
     setEditedCrew,
+    isEditLoading,
   } = useCrewDetails(crewId);
 
   const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
@@ -74,59 +77,120 @@ export default function CrewDetails() {
     fetchProvinces();
   }, [fetchCities, fetchProvinces]);
 
-  // Find province and city IDs based on crew data when editing starts
-  useEffect(() => {
-    if (crew && provinces.length > 0 && cities.length > 0 && isEditing) {
-      const matchedProvince = provinces.find(
-        (p) => p.ProvinceName === crew.province
-      );
-      const provinceId = matchedProvince
-        ? matchedProvince.ProvinceID.toString()
-        : "";
-
-      const matchedCity = cities.find((c) => c.CityName === crew.city);
-      const cityId = matchedCity ? matchedCity.CityID.toString() : "";
-
-      // Update the editedCrew with the numeric IDs
-      setEditedCrew((prev) => ({
-        ...prev,
-        province: provinceId,
-        city: cityId,
-      }));
-    }
-  }, [crew, provinces, cities, isEditing, setEditedCrew]);
-
-  // Update display names whenever crew or location data changes
+  // Store province and city names along with IDs when data is loaded
   useEffect(() => {
     if (crew && provinces.length > 0 && cities.length > 0) {
-
-      const isProvinceId = !isNaN(Number(crew.province));
+      let provinceId = "";
+      let cityId = "";
       let provinceName = crew.province || "";
       let cityName = crew.city || "";
 
+      // Check if province is already an ID
+      const isProvinceId = !isNaN(Number(crew.province));
       if (isProvinceId) {
+        // If it's an ID, find the name
         const foundProvince = provinces.find(
           (p) => p.ProvinceID.toString() === crew.province
         );
         if (foundProvince) {
           provinceName = foundProvince.ProvinceName;
+          provinceId = crew.province || "";
+        }
+      } else {
+        // If it's a name, find the ID
+        const foundProvince = provinces.find(
+          (p) => p.ProvinceName === crew.province
+        );
+        if (foundProvince) {
+          provinceId = foundProvince.ProvinceID.toString();
         }
       }
 
+      // Check if city is already an ID
       const isCityId = !isNaN(Number(crew.city));
       if (isCityId) {
+        // If it's an ID, find the name
         const foundCity = cities.find((c) => c.CityID.toString() === crew.city);
         if (foundCity) {
           cityName = foundCity.CityName;
+          cityId = crew.city || "";
+        }
+      } else {
+        // If it's a name, find the ID
+        const foundCity = cities.find((c) => c.CityName === crew.city);
+        if (foundCity) {
+          cityId = foundCity.CityID.toString();
         }
       }
 
+      // Update the display state with both names and IDs
       setDisplayProvinceCity({
         provinceName,
         cityName,
+        provinceId,
+        cityId,
       });
     }
   }, [crew, provinces, cities]);
+
+  // Update editedCrew with province and city IDs when editing starts
+  useEffect(() => {
+    if (
+      isEditing &&
+      displayProvinceCity.provinceId &&
+      displayProvinceCity.cityId
+    ) {
+      setEditedCrew((prev) => ({
+        ...prev,
+        province: displayProvinceCity.provinceId,
+        city: displayProvinceCity.cityId,
+      }));
+    }
+  }, [isEditing, displayProvinceCity, setEditedCrew]);
+
+  // Update province and city info when saving changes
+  const handleSave = () => {
+    setSubmitted(true);
+    if (isEditing && !validateForm()) {
+      Swal.fire({
+        title: "Validation Error",
+        text: "Please check the form for errors and try again.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
+    // Update display names for province and city before saving
+    if (editedCrew?.province) {
+      const foundProvince = provinces.find(
+        (p) => p.ProvinceID.toString() === editedCrew.province
+      );
+      if (foundProvince) {
+        setDisplayProvinceCity((prev) => ({
+          ...prev,
+          provinceName: foundProvince.ProvinceName,
+          provinceId: editedCrew.province || "",
+        }));
+      }
+    }
+
+    if (editedCrew?.city) {
+      const foundCity = cities.find(
+        (c) => c.CityID.toString() === editedCrew.city
+      );
+      if (foundCity) {
+        setDisplayProvinceCity((prev) => ({
+          ...prev,
+          cityName: foundCity.CityName,
+          cityId: editedCrew.city || "",
+        }));
+      }
+    }
+
+    setTriggerSave((prev) => !prev);
+    saveChanges();
+  };
 
   // Filter cities based on selected province
   const filteredCities = useMemo(() => {
@@ -138,7 +202,6 @@ export default function CrewDetails() {
 
   const filteredProvinces = useMemo(() => {
     if (!provinceSearch) return provinces;
-
     return provinces.filter((province) =>
       province.ProvinceName.toLowerCase().includes(provinceSearch.toLowerCase())
     );
@@ -181,48 +244,6 @@ export default function CrewDetails() {
     if (!editedCrew.seamansBookExpiryDate) return false;
 
     return true;
-  };
-
-  const handleSave = () => {
-    setSubmitted(true);
-    if (isEditing && !validateForm()) {
-      // Show error message
-      Swal.fire({
-        title: "Validation Error",
-        text: "Please check the form for errors and try again.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      return;
-    }
-
-    // Before saving, update display names for province and city
-    if (editedCrew?.province) {
-      const foundProvince = provinces.find(
-        (p) => p.ProvinceID.toString() === editedCrew.province
-      );
-      if (foundProvince) {
-        setDisplayProvinceCity((prev) => ({
-          ...prev,
-          provinceName: foundProvince.ProvinceName,
-        }));
-      }
-    }
-
-    if (editedCrew?.city) {
-      const foundCity = cities.find(
-        (c) => c.CityID.toString() === editedCrew.city
-      );
-      if (foundCity) {
-        setDisplayProvinceCity((prev) => ({
-          ...prev,
-          cityName: foundCity.CityName,
-        }));
-      }
-    }
-
-    setTriggerSave((prev) => !prev);
-    saveChanges();
   };
 
   const openModal = (src: string): void => {
@@ -335,6 +356,7 @@ export default function CrewDetails() {
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
         <CrewHeader
+          isEditLoading={isEditLoading}
           isEditing={isEditing}
           activeTab={activeTab}
           toggleEditMode={toggleEditMode}
@@ -654,11 +676,7 @@ export default function CrewDetails() {
                             </Select>
                           ) : (
                             <Input
-                              value={
-                                displayProvinceCity.provinceName ||
-                                crew.province ||
-                                ""
-                              }
+                              value={displayProvinceCity.provinceName || ""}
                               readOnly
                             />
                           )}
@@ -719,9 +737,7 @@ export default function CrewDetails() {
                             </Select>
                           ) : (
                             <Input
-                              value={
-                                displayProvinceCity.cityName || crew.city || ""
-                              }
+                              value={displayProvinceCity.cityName || ""}
                               readOnly
                             />
                           )}
@@ -1308,9 +1324,7 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter city"
-                            value={
-                              displayProvinceCity.cityName || crew.city || ""
-                            }
+                            value={displayProvinceCity.cityName || ""}
                             readOnly
                           />
                         </div>
@@ -1320,11 +1334,7 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter province"
-                            value={
-                              displayProvinceCity.provinceName ||
-                              crew.province ||
-                              ""
-                            }
+                            value={displayProvinceCity.provinceName || ""}
                             readOnly
                           />
                         </div>

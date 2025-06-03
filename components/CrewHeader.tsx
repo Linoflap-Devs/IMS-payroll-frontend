@@ -40,6 +40,7 @@ interface CrewHeaderProps {
   handleTriggerAdd: () => void;
   isAddLoading: boolean;
   isDeletingAllottee: boolean;
+  isEditLoading: boolean;
 }
 
 export function CrewHeader({
@@ -57,6 +58,7 @@ export function CrewHeader({
   handleTriggerAdd,
   isAddLoading,
   isDeletingAllottee,
+  isEditLoading,
 }: CrewHeaderProps) {
   return (
     <>
@@ -81,9 +83,19 @@ export function CrewHeader({
             </Button>
             <Button
               className="bg-primary hover:bg-primary/90 w-40"
-              onClick={saveChanges}>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
+              onClick={saveChanges}
+              disabled={isEditLoading}>
+              {isEditLoading ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </>
+              )}
             </Button>
           </div>
         ) : (
