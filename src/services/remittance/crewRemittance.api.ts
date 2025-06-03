@@ -24,6 +24,7 @@ export const getCrewRemittanceList = async (): Promise<CrewRemittanceResponse> =
 
 export interface CrewRemittanceDetailItem {
   RemittanceHeaderID: number;
+  RemittanceDetailID: number;
   RemittanceID: number;
   AllotteeID: number;
   AllotteeName: string;
@@ -77,21 +78,9 @@ export interface AllotteeResponse {
 
 export const getAllottees = async (crewCode: string): Promise<AllotteeResponse> => {
   try {
-    console.log("Fetching allottees for crew code:", crewCode);
-    
     const response = await axiosInstance.get<AllotteeResponse>(`/crew/${crewCode}/allottee`);
-    
-    console.log("Allottees response:", response.data);
-    
     return response.data;
   } catch (error: any) {
-    console.error("Error fetching allottees:", {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message,
-      url: error.config?.url
-    });
     throw error;
   }
 }
@@ -100,6 +89,61 @@ export interface AddCrewRemittanceResponse {
   success: boolean;
   message: string;
   data?: any;
+}
+
+export interface EditRemittanceStatusData {
+  Status: string;
+}
+
+export interface EditRemittanceStatusResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    Status: string;
+  };
+}
+
+export const editRemittanceStatus = async (
+  remittanceId: number,
+  statusData: EditRemittanceStatusData,
+  crewCode: string
+): Promise<EditRemittanceStatusResponse> => {
+  try {
+    const userID = 1;
+    
+    if (!remittanceId || remittanceId <= 0) {
+      throw new Error("Invalid remittance detail ID");
+    }
+    
+    if (!statusData.Status && statusData.Status !== "0") {
+      throw new Error("Status is required");
+    }
+    
+    if (!crewCode || crewCode.trim() === "") {
+      throw new Error("Crew code is required");
+    }
+    
+    const requestBody = {
+      userID: userID,
+      status: statusData.Status
+    };
+    
+    const endpoint = `/remittance/${crewCode}/${remittanceId}`;
+    
+    const response = await axiosInstance.patch<EditRemittanceStatusResponse>(
+      endpoint,
+      requestBody
+    );
+    
+    return response.data;
+    
+  } catch (error: any) {
+    if (error.response?.data?.success === true) {
+      return error.response.data as EditRemittanceStatusResponse;
+    }
+    
+    throw error;
+  }
 }
 
 export const addCrewRemittance = async (
@@ -121,7 +165,7 @@ export const addCrewRemittance = async (
       throw new Error("Remarks is required");
     }
     
-    if (remittanceData.status === null || remittanceData.status === undefined || 0) {
+    if (remittanceData.status === null || remittanceData.status === undefined) {
       throw new Error("Invalid status");
     }
     
@@ -134,23 +178,22 @@ export const addCrewRemittance = async (
       status: remittanceData.status
     };
     
-    
     const response = await axiosInstance.post<AddCrewRemittanceResponse>(
       `/remittance/${crewCode}`, 
       requestBody
     );
     
-    console.log("Response:", response.data);
     return response.data;
     
   } catch (error: any) {
-    console.error("API Error Details:", {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message,
-      url: error.config?.url
-    });
+    if (error.response?.status === 400 && error.response?.data?.success === true) {
+      return error.response.data as AddCrewRemittanceResponse;
+    }
+    
+    if (error.response?.data?.success === true) {
+      return error.response.data as AddCrewRemittanceResponse;
+    }
+    
     throw error;
   }
 }
@@ -163,36 +206,32 @@ export interface DeleteRemittanceResponse {
 
 export const deleteCrewRemittance = async (
   crewCode: string,
-  remittanceId: number
+  remittanceHeaderId: number
 ): Promise<DeleteRemittanceResponse> => {
   try {
     const userID = 1;
     
-    const validRemittanceId = Number(remittanceId);
+    const validRemittanceId = Number(remittanceHeaderId);
     
     if (isNaN(validRemittanceId) || validRemittanceId <= 0) {
-      console.error("Invalid remittance ID received:", remittanceId);
-      throw new Error(`Invalid remittance ID: ${remittanceId}. Must be a positive number.`);
+      throw new Error(`Invalid remittance ID: ${remittanceHeaderId}. Must be a positive number.`);
     }
+
+    const endpoint = `/remittance/${crewCode}/${validRemittanceId}?userID=${userID}`;
     
-    console.log("Delete Request URL:", `/remittance/${crewCode}/${validRemittanceId}`);
-    console.log("Delete Request Data:", { userID, crewCode, remittanceId: validRemittanceId });
+    const response = await axiosInstance.delete<DeleteRemittanceResponse>(endpoint);
     
-    const response = await axiosInstance.delete<DeleteRemittanceResponse>(
-      `/remittance/${crewCode}/${validRemittanceId}?userID=${userID}`
-    );
-    
-    console.log("Delete Response:", response.data);
     return response.data;
     
   } catch (error: any) {
-    console.error("Delete API Error Details:", {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message,
-      url: error.config?.url
-    });
+    if (error.response?.status === 400 && error.response?.data?.success === true) {
+      return error.response.data as DeleteRemittanceResponse;
+    }
+    
+    if (error.response?.data?.success === true) {
+      return error.response.data as DeleteRemittanceResponse;
+    }
+    
     throw error;
   }
 }

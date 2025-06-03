@@ -27,7 +27,7 @@ import {
 const REMITTANCE_STATUS_OPTIONS = [
   { value: "0", label: "Pending" },
   { value: "1", label: "Completed" },
-  { value: "2", label: "Failed" },
+  { value: "2", label: "Declined" },
   { value: "3", label: "On Hold" },
 ] as const;
 
@@ -55,7 +55,6 @@ export function AddRemittanceDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Reset form when dialog closes
   useEffect(() => {
     if (!open) {
       setFormData({
@@ -78,15 +77,6 @@ export function AddRemittanceDialog({
       const status = formData.status;
       const remarks = formData.remarks.trim();
 
-      console.log("Form data before validation:", { 
-        allotteeID: formData.allotteeID, 
-        amount: formData.amount, 
-        status: formData.status, 
-        remarks: formData.remarks 
-      });
-      console.log("Converted data:", { allotteeID, amount, status, remarks, crewCode });
-
-      // Validation
       if (!formData.allotteeID || isNaN(allotteeID) || allotteeID <= 0) {
         setErrorMessage("Please select an allottee");
         return;
@@ -114,16 +104,12 @@ export function AddRemittanceDialog({
         status: status,
       };
 
-      console.log("Final clean data being sent:", cleanData);
-
-      // Call API to add remittance
       const response = await addCrewRemittance(crewCode, cleanData);
 
       if (response && response.success) {
         onSuccess?.();
         onOpenChange(false);
         
-        // Reset form
         setFormData({
           allotteeID: "",
           amount: "",
@@ -135,16 +121,12 @@ export function AddRemittanceDialog({
         setErrorMessage(response?.message || "Failed to add remittance");
       }
     } catch (error: any) {
-      console.error("Submit error:", error);
-
       let errorMsg = "An error occurred while adding remittance";
 
       if (error.response?.data?.message) {
         const message = error.response.data.message;
-        console.log("Backend error message:", message);
         
         if (Array.isArray(message)) {
-          // Handle validation errors array
           const errors = message
             .map((err: any) => {
               if (typeof err === 'object' && err !== null) {
@@ -167,7 +149,6 @@ export function AddRemittanceDialog({
         errorMsg = error.message;
       }
 
-      console.error("Final error message:", errorMsg);
       setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
@@ -189,14 +170,12 @@ export function AddRemittanceDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="mt-6 space-y-6">
-          {/* Error message display */}
           {errorMessage && (
             <div className="text-sm text-red-500 text-center bg-red-50 p-3 rounded border border-red-200">
               {errorMessage}
             </div>
           )}
 
-          {/* Allottee selection */}
           <div className="space-y-2">
             <label className="text-sm text-gray-600 font-medium">
               Allottee <span className="text-red-500">*</span>
@@ -204,7 +183,6 @@ export function AddRemittanceDialog({
             <Select
               value={formData.allotteeID}
               onValueChange={(value) => {
-                console.log("Selected allottee ID:", value);
                 setFormData((prev) => ({
                   ...prev,
                   allotteeID: value,
@@ -246,7 +224,6 @@ export function AddRemittanceDialog({
             )}
           </div>
 
-          {/* Amount input */}
           <div className="space-y-2">
             <label className="text-sm text-gray-600 font-medium">
               Amount <span className="text-red-500">*</span>
@@ -268,7 +245,6 @@ export function AddRemittanceDialog({
             />
           </div>
 
-          {/* Remarks input */}
           <div className="space-y-2">
             <label className="text-sm text-gray-600 font-medium">
               Remarks <span className="text-red-500">*</span>
@@ -287,7 +263,6 @@ export function AddRemittanceDialog({
             />
           </div>
 
-          {/* Status selection */}
           <div className="space-y-2">
             <label className="text-sm text-gray-600 font-medium">
               Status <span className="text-red-500">*</span>
@@ -295,7 +270,6 @@ export function AddRemittanceDialog({
             <Select
               value={formData.status}
               onValueChange={(value) => {
-                console.log("Selected status:", value);
                 setFormData((prev) => ({
                   ...prev,
                   status: value,
@@ -319,7 +293,6 @@ export function AddRemittanceDialog({
             </Select>
           </div>
 
-          {/* Action buttons */}
           <div className="flex gap-3 pt-4">
             <Button
               variant="outline"
