@@ -49,7 +49,7 @@ export interface AddCrewRemittanceData {
   allotteeID: number;
   amount: number;
   remarks: string;
-  status: number;
+  status: string;
 }
 
 export interface AllotteeOption {
@@ -76,17 +76,27 @@ export interface AllotteeResponse {
 }
 
 export const getAllottees = async (crewCode: string): Promise<AllotteeResponse> => {
-  const response = await axiosInstance.get<AllotteeResponse>(`/crew/${crewCode}/allottee`);
-  return response.data;
+  try {
+    console.log("Fetching allottees for crew code:", crewCode);
+    
+    const response = await axiosInstance.get<AllotteeResponse>(`/crew/${crewCode}/allottee`);
+    
+    console.log("Allottees response:", response.data);
+    
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching allottees:", {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+      url: error.config?.url
+    });
+    throw error;
+  }
 }
 
 export interface AddCrewRemittanceResponse {
-  success: boolean;
-  message: string;
-  data?: any;
-}
-
-export interface DeleteRemittanceResponse {
   success: boolean;
   message: string;
   data?: any;
@@ -97,18 +107,36 @@ export const addCrewRemittance = async (
   remittanceData: AddCrewRemittanceData
 ): Promise<AddCrewRemittanceResponse> => {
   try {
-      const requestBody = {
-      allotteeID: Number(remittanceData.allotteeID),
-      amount: Number(remittanceData.amount),
-      remarks: String(remittanceData.remarks),
-      status: String(remittanceData.status)
+    const userID = 1; 
+    
+    if (!remittanceData.allotteeID || remittanceData.allotteeID <= 0) {
+      throw new Error("Invalid allotteeID");
+    }
+    
+    if (!remittanceData.amount || remittanceData.amount <= 0) {
+      throw new Error("Invalid amount");
+    }
+    
+    if (!remittanceData.remarks || remittanceData.remarks.trim() === '') {
+      throw new Error("Remarks is required");
+    }
+    
+    if (remittanceData.status === null || remittanceData.status === undefined || 0) {
+      throw new Error("Invalid status");
+    }
+    
+    const requestBody = {
+      userID: userID,
+      crewCode: crewCode,
+      allotteeID: remittanceData.allotteeID,
+      amount: remittanceData.amount,
+      remarks: remittanceData.remarks.trim(),
+      status: remittanceData.status
     };
     
-    console.log("Request URL:", `remittance/${crewCode}`);
-    console.log("Request Body:", JSON.stringify(requestBody, null, 2));
     
     const response = await axiosInstance.post<AddCrewRemittanceResponse>(
-      `remittance/${crewCode}`, 
+      `/remittance/${crewCode}`, 
       requestBody
     );
     
@@ -120,10 +148,17 @@ export const addCrewRemittance = async (
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
+      url: error.config?.url
     });
     throw error;
   }
+}
+
+export interface DeleteRemittanceResponse {
+  success: boolean;
+  message: string;
+  data?: any;
 }
 
 export const deleteCrewRemittance = async (
@@ -133,11 +168,18 @@ export const deleteCrewRemittance = async (
   try {
     const userID = 1;
     
-    console.log("Delete Request URL:", `/api/remittance/${crewCode}/${remittanceId}`);
-    console.log("Delete Request Data:", { userID, crewCode, remittanceId });
+    const validRemittanceId = Number(remittanceId);
+    
+    if (isNaN(validRemittanceId) || validRemittanceId <= 0) {
+      console.error("Invalid remittance ID received:", remittanceId);
+      throw new Error(`Invalid remittance ID: ${remittanceId}. Must be a positive number.`);
+    }
+    
+    console.log("Delete Request URL:", `/remittance/${crewCode}/${validRemittanceId}`);
+    console.log("Delete Request Data:", { userID, crewCode, remittanceId: validRemittanceId });
     
     const response = await axiosInstance.delete<DeleteRemittanceResponse>(
-      `/api/remittance/${crewCode}/${remittanceId}?userID=${userID}`
+      `/remittance/${crewCode}/${validRemittanceId}?userID=${userID}`
     );
     
     console.log("Delete Response:", response.data);
@@ -148,9 +190,9 @@ export const deleteCrewRemittance = async (
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
+      url: error.config?.url
     });
     throw error;
   }
 }
-

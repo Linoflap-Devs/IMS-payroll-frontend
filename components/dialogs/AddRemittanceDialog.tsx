@@ -25,10 +25,10 @@ import {
 } from "@/src/services/remittance/crewRemittance.api";
 
 const REMITTANCE_STATUS_OPTIONS = [
-  { value: 0, label: "Pending" },
-  { value: 1, label: "Completed" },
-  { value: 2, label: "Failed" },
-  { value: 3, label: "On Hold" },
+  { value: "0", label: "Pending" },
+  { value: "1", label: "Completed" },
+  { value: "2", label: "Failed" },
+  { value: "3", label: "On Hold" },
 ] as const;
 
 interface AddRemittanceDialogProps {
@@ -55,6 +55,7 @@ export function AddRemittanceDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Reset form when dialog closes
   useEffect(() => {
     if (!open) {
       setFormData({
@@ -74,9 +75,18 @@ export function AddRemittanceDialog({
 
       const allotteeID = parseInt(formData.allotteeID);
       const amount = parseFloat(formData.amount);
-      const status = parseInt(formData.status);
+      const status = formData.status;
       const remarks = formData.remarks.trim();
 
+      console.log("Form data before validation:", { 
+        allotteeID: formData.allotteeID, 
+        amount: formData.amount, 
+        status: formData.status, 
+        remarks: formData.remarks 
+      });
+      console.log("Converted data:", { allotteeID, amount, status, remarks, crewCode });
+
+      // Validation
       if (!formData.allotteeID || isNaN(allotteeID) || allotteeID <= 0) {
         setErrorMessage("Please select an allottee");
         return;
@@ -92,7 +102,7 @@ export function AddRemittanceDialog({
         return;
       }
 
-      if (isNaN(status)) {
+      if (!status) {
         setErrorMessage("Please select a valid status");
         return;
       }
@@ -104,11 +114,16 @@ export function AddRemittanceDialog({
         status: status,
       };
 
+      console.log("Final clean data being sent:", cleanData);
+
+      // Call API to add remittance
       const response = await addCrewRemittance(crewCode, cleanData);
 
       if (response && response.success) {
         onSuccess?.();
         onOpenChange(false);
+        
+        // Reset form
         setFormData({
           allotteeID: "",
           amount: "",
@@ -126,17 +141,25 @@ export function AddRemittanceDialog({
 
       if (error.response?.data?.message) {
         const message = error.response.data.message;
+        console.log("Backend error message:", message);
+        
         if (Array.isArray(message)) {
+          // Handle validation errors array
           const errors = message
             .map((err: any) => {
-              const key = Object.keys(err)[0];
-              const value = err[key];
-              return `${key}: ${value}`;
+              if (typeof err === 'object' && err !== null) {
+                const key = Object.keys(err)[0];
+                const value = err[key];
+                return `${key}: ${value}`;
+              }
+              return String(err);
             })
             .join(", ");
           errorMsg = `Validation errors: ${errors}`;
-        } else {
+        } else if (typeof message === 'string') {
           errorMsg = message;
+        } else {
+          errorMsg = JSON.stringify(message);
         }
       } else if (error.response?.data?.error?.message) {
         errorMsg = error.response.data.error.message;
@@ -144,6 +167,7 @@ export function AddRemittanceDialog({
         errorMsg = error.message;
       }
 
+      console.error("Final error message:", errorMsg);
       setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
@@ -165,24 +189,30 @@ export function AddRemittanceDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="mt-6 space-y-6">
+          {/* Error message display */}
           {errorMessage && (
-            <div className="text-sm text-red-500 text-center bg-red-50 p-2 rounded">
+            <div className="text-sm text-red-500 text-center bg-red-50 p-3 rounded border border-red-200">
               {errorMessage}
             </div>
           )}
 
+          {/* Allottee selection */}
           <div className="space-y-2">
-            <label className="text-sm text-gray-600">Allottee *</label>
+            <label className="text-sm text-gray-600 font-medium">
+              Allottee <span className="text-red-500">*</span>
+            </label>
             <Select
               value={formData.allotteeID}
               onValueChange={(value) => {
+                console.log("Selected allottee ID:", value);
                 setFormData((prev) => ({
                   ...prev,
                   allotteeID: value,
                 }));
+                setErrorMessage("");
               }}
             >
-              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
+              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-11">
                 <SelectValue placeholder="Select allottee" />
               </SelectTrigger>
               <SelectContent>
@@ -216,59 +246,71 @@ export function AddRemittanceDialog({
             )}
           </div>
 
+          {/* Amount input */}
           <div className="space-y-2">
-            <label className="text-sm text-gray-600">Amount *</label>
+            <label className="text-sm text-gray-600 font-medium">
+              Amount <span className="text-red-500">*</span>
+            </label>
             <Input
               type="number"
               step="0.01"
-              min="0"
+              min="0.01"
               placeholder="Enter amount"
-              className="border border-[#E0E0E0] rounded-md"
+              className="border border-[#E0E0E0] rounded-md h-11"
               value={formData.amount}
               onChange={(e) => {
-                const value = e.target.value;
                 setFormData((prev) => ({
                   ...prev,
-                  amount: value,
+                  amount: e.target.value,
                 }));
+                setErrorMessage("");
               }}
             />
           </div>
 
+          {/* Remarks input */}
           <div className="space-y-2">
-            <label className="text-sm text-gray-600">Remarks *</label>
+            <label className="text-sm text-gray-600 font-medium">
+              Remarks <span className="text-red-500">*</span>
+            </label>
             <Input
               placeholder="Enter remarks"
-              className="border border-[#E0E0E0] rounded-md"
+              className="border border-[#E0E0E0] rounded-md h-11"
               value={formData.remarks}
-              onChange={(e) =>
+              onChange={(e) => {
                 setFormData((prev) => ({
                   ...prev,
                   remarks: e.target.value,
-                }))
-              }
+                }));
+                setErrorMessage("");
+              }}
             />
           </div>
 
+          {/* Status selection */}
           <div className="space-y-2">
-            <label className="text-sm text-gray-600">Status *</label>
+            <label className="text-sm text-gray-600 font-medium">
+              Status <span className="text-red-500">*</span>
+            </label>
             <Select
               value={formData.status}
-              onValueChange={(value) =>
+              onValueChange={(value) => {
+                console.log("Selected status:", value);
                 setFormData((prev) => ({
                   ...prev,
                   status: value,
-                }))
-              }
+                }));
+                setErrorMessage("");
+              }}
             >
-              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
+              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-11">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
                 {REMITTANCE_STATUS_OPTIONS.map((statusOption) => (
                   <SelectItem
                     key={statusOption.value}
-                    value={statusOption.value.toString()}
+                    value={statusOption.value}
                   >
                     {statusOption.label}
                   </SelectItem>
@@ -277,11 +319,15 @@ export function AddRemittanceDialog({
             </Select>
           </div>
 
+          {/* Action buttons */}
           <div className="flex gap-3 pt-4">
             <Button
               variant="outline"
               className="flex-1 text-sm h-11"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                onOpenChange(false);
+                setErrorMessage("");
+              }}
               disabled={isLoading}
             >
               Cancel
@@ -296,7 +342,7 @@ export function AddRemittanceDialog({
               ) : (
                 <>
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Amount
+                  Add Remittance
                 </>
               )}
             </Button>
