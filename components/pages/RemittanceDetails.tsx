@@ -32,6 +32,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DataTable } from "@/components/ui/data-table";
@@ -39,148 +40,81 @@ import { ColumnDef } from "@tanstack/react-table";
 import { RiShieldStarLine } from "react-icons/ri";
 import { AddRemittanceDialog } from "@/components/dialogs/AddRemittanceDialog";
 import { Switch } from "@/components/ui/switch";
-import { CheckboxItem } from "@radix-ui/react-dropdown-menu";
-import { Checkbox } from "../ui/checkbox";
-import Swal from "sweetalert2";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   getCrewRemittanceDetails,
-  CrewRemittanceDetailItem,
-  CrewRemittanceItem,
   getCrewRemittanceList,
+  getAllottees,
+  editRemittanceStatus,
+  deleteCrewRemittance,
+  type CrewRemittanceItem,
+  type AllotteeOption,
 } from "@/src/services/remittance/crewRemittance.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
+import Swal from "sweetalert2";
 
 type RemittanceEntry = {
+  remittanceId: number;
+  remittanceHeaderId: number;
   allottee: string;
   amount: number;
   remarks?: string;
-  status: "Completed" | "Pending" | "Adjusted" | "Failed" | "On Hold";
+  status: "Completed" | "Pending" | "On Hold" | "Declined";
 };
 
-const remittanceColumns: ColumnDef<RemittanceEntry>[] = [
-  {
-    accessorKey: "allottee",
-    header: "Allottee",
-  },
-  {
-    accessorKey: "amount",
-    header: "Amount",
-    cell: ({ row }) => {
-      return <div className="text-right">{row.original.amount.toFixed(2)}</div>;
-    },
-  },
-  {
-    accessorKey: "remarks",
-    header: "Remarks",
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.original.status;
-      const getStatusColor = (status: string) => {
-        switch (status) {
-          case "Completed":
-            return "bg-green-100 text-green-800";
-          case "Pending":
-            return "bg-yellow-100 text-yellow-800";
-          case "Adjusted":
-            return "bg-blue-100 text-blue-800";
-          case "Failed":
-            return "bg-red-100 text-red-800";
-          case "On Hold":
-            return "bg-gray-100 text-gray-800";
+const mapStatusToDisplay = (
+  status: string | number
+): RemittanceEntry["status"] => {
+  if (typeof status === "number") {
+    switch (status) {
+      case 0:
+        return "Pending";
+      case 1:
+        return "Completed";
+      case 2:
+        return "Declined";
+      case 3:
+        return "On Hold";
+      default:
+        return "Pending";
+    }
+  } else {
+    const statusStr = status?.toString();
+
+    switch (statusStr) {
+      case "0":
+        return "Pending";
+      case "1":
+        return "Completed";
+      case "2":
+        return "Declined";
+      case "3":
+        return "On Hold";
+      default:
+        const normalizedStatus = statusStr?.toLowerCase().trim();
+        switch (normalizedStatus) {
+          case "completed":
+            return "Completed";
+          case "declined":
+            return "Declined";
+          case "on hold":
+            return "On Hold";
+          case "pending":
           default:
-            return "bg-gray-100 text-gray-800";
+            return "Pending";
         }
-      };
+    }
+  }
+};
 
-      return (
-        <div className="flex justify-center">
-          <span
-            className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-              status
-            )}`}
-          >
-            {status}
-          </span>
-        </div>
-      );
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const handleDelete = () => {
-        const swalWithBootstrapButtons = Swal.mixin({
-          customClass: {
-            confirmButton:
-              "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            cancelButton:
-              "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-          },
-          buttonsStyling: false,
-        });
-
-        swalWithBootstrapButtons
-          .fire({
-            title: "Are you sure?",
-            text: "Are you sure you want to delete this remittance? This action cannot be undone.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-            cancelButtonText: "No, cancel!",
-            reverseButtons: true,
-          })
-          .then((result) => {
-            if (result.isConfirmed) {
-              // Place your delete logic here, for example, API call or state update
-              swalWithBootstrapButtons.fire({
-                title: "Deleted!",
-                text: "The remittance has been successfully deleted.",
-                icon: "success",
-              });
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-              swalWithBootstrapButtons.fire({
-                title: "Cancelled",
-                text: "Your remittance is safe :)",
-                icon: "error",
-              });
-            }
-          });
-      };
-      return (
-        <div className="text-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => handleDelete()}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-  },
-];
-
-export default function DeductionEntries() {
+export default function RemittanceDetails() {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [isAddRemittanceOpen, setIsAddRemittanceOpen] = useState(false);
   const [isDollar, setIsDollar] = useState(false);
   const [remittanceData, setRemittanceData] = useState<RemittanceEntry[]>([]);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [allottees, setAllottees] = useState<AllotteeOption[]>([]);
   const [crewData, setCrewData] = useState({
     name: "",
     rank: "",
@@ -192,16 +126,340 @@ export default function DeductionEntries() {
     birthday: "",
   });
 
+  const getStatusLabel = (statusValue: string): string => {
+    switch (statusValue) {
+      case "0":
+        return "Pending";
+      case "1":
+        return "Completed";
+      case "2":
+        return "Declined";
+      case "3":
+        return "On Hold";
+      default:
+        return "Unknown";
+    }
+  };
+
+  const handleStatusChange = async (
+    remittanceDetailId: number,
+    newStatus: string
+  ) => {
+    try {
+      if (!crewData.crewCode || crewData.crewCode.trim() === "") {
+        await Swal.fire({
+          title: "Error!",
+          text: "Crew code is not available. Please refresh the page and try again.",
+          icon: "error",
+          confirmButtonColor: "#ef4444",
+        });
+        return;
+      }
+
+      const targetRemittance = remittanceData.find(
+        (item) => item.remittanceId === remittanceDetailId
+      );
+
+      const statusLabel = getStatusLabel(newStatus);
+
+      const result = await Swal.fire({
+        title: "Confirm Status Change",
+        text: `Change status for ${targetRemittance?.allottee} to: ${statusLabel}?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, change it!",
+        cancelButtonText: "Cancel",
+      });
+
+      if (result.isConfirmed) {
+        try {
+          const response = await editRemittanceStatus(
+            remittanceDetailId,
+            { Status: newStatus },
+            crewData.crewCode
+          );
+
+          if (response && response.success) {
+            await Swal.fire({
+              title: "Success!",
+              text: `Status for ${targetRemittance?.allottee} changed to ${statusLabel} successfully.`,
+              icon: "success",
+              confirmButtonColor: "#22c55e",
+            });
+
+            setRemittanceData((prevData) =>
+              prevData.map((item) =>
+                item.remittanceId === remittanceDetailId
+                  ? {
+                      ...item,
+                      status: statusLabel as RemittanceEntry["status"],
+                    }
+                  : item
+              )
+            );
+
+            setTimeout(async () => {
+              await fetchRemittanceData(crewData.crewCode);
+            }, 500);
+          } else {
+            await Swal.fire({
+              title: "Error!",
+              text: response?.message || "Failed to update status.",
+              icon: "error",
+              confirmButtonColor: "#ef4444",
+            });
+          }
+        } catch (error: any) {
+          let errorMsg = "An error occurred while updating status";
+
+          if (error.response?.status === 404) {
+            errorMsg =
+              "Status update endpoint not found. Please verify the crew code and remittance ID.";
+          } else if (error.response?.status === 403) {
+            errorMsg = "You don't have permission to update this status.";
+          } else if (error.response?.status === 500) {
+            errorMsg = "Server error occurred. Please try again later.";
+          } else if (error.response?.data?.message) {
+            const message = error.response.data.message;
+            if (Array.isArray(message)) {
+              const errors = message
+                .map((err: any) => {
+                  if (typeof err === "object" && err !== null) {
+                    const key = Object.keys(err)[0];
+                    const value = err[key];
+                    return `${key}: ${value}`;
+                  }
+                  return String(err);
+                })
+                .join(", ");
+              errorMsg = `Validation errors: ${errors}`;
+            } else if (typeof message === "string") {
+              errorMsg = message;
+            } else {
+              errorMsg = JSON.stringify(message);
+            }
+          } else if (error.message) {
+            errorMsg = error.message;
+          }
+
+          await Swal.fire({
+            title: "Error!",
+            text: errorMsg,
+            icon: "error",
+            confirmButtonColor: "#ef4444",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Status change confirmation error:", error);
+    }
+  };
+
+  const handleDeleteRemittance = async (remittanceHeaderId: number) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "Are you sure you want to delete this remittance? This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        const response = await deleteCrewRemittance(
+          crewData.crewCode,
+          remittanceHeaderId
+        );
+
+        if (response.success) {
+          await Swal.fire({
+            title: "Deleted!",
+            text: "The remittance has been successfully deleted.",
+            icon: "success",
+            confirmButtonColor: "#22c55e",
+          });
+
+          setRemittanceData((prevData) =>
+            prevData.filter(
+              (item) => item.remittanceHeaderId !== remittanceHeaderId
+            )
+          );
+
+          await fetchRemittanceData(crewData.crewCode);
+        } else {
+          await Swal.fire({
+            title: "Error!",
+            text: response.message || "Failed to delete remittance.",
+            icon: "error",
+            confirmButtonColor: "#ef4444",
+          });
+        }
+      }
+    } catch (error: any) {
+      let errorMsg = "An error occurred while deleting the remittance";
+      if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
+      await Swal.fire({
+        title: "Error!",
+        text: errorMsg,
+        icon: "error",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
+
+  const remittanceColumns: ColumnDef<RemittanceEntry>[] = [
+    {
+      accessorKey: "allottee",
+      header: "Allottee",
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ row }) => {
+        const amount = row.original.amount;
+        return (
+          <div className="text-center">
+            {new Intl.NumberFormat("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(amount)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const getStatusColor = (status: string) => {
+          switch (status) {
+            case "Completed":
+              return "bg-green-100 text-green-800";
+            case "Pending":
+              return "bg-yellow-100 text-yellow-800";
+            case "Adjusted":
+              return "bg-blue-100 text-blue-800";
+            case "Failed":
+            case "Declined":
+              return "bg-red-100 text-red-800";
+            case "On Hold":
+              return "bg-gray-100 text-gray-800";
+            default:
+              return "bg-gray-100 text-gray-800";
+          }
+        };
+
+        return (
+          <div className="flex justify-center">
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium min-w-[80px] text-center ${getStatusColor(
+                status
+              )}`}
+            >
+              {status}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const remittanceDetailId = row.original.remittanceId;
+        const remittanceHeaderId = row.original.remittanceHeaderId;
+        const currentStatus = row.original.status;
+
+        return (
+          <div className="text-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+                <DropdownMenuItem
+                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                  onClick={() => handleStatusChange(remittanceDetailId, "1")}
+                  disabled={currentStatus === "Completed"}
+                >
+                  Completed
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                  onClick={() => handleStatusChange(remittanceDetailId, "0")}
+                  disabled={currentStatus === "Pending"}
+                >
+                  Pending
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => handleStatusChange(remittanceDetailId, "2")}
+                  disabled={currentStatus === "Declined"}
+                >
+                  Declined
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                  onClick={() => handleStatusChange(remittanceDetailId, "3")}
+                  disabled={currentStatus === "On Hold"}
+                >
+                  On Hold
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => {
+                    if (remittanceHeaderId && !isNaN(remittanceHeaderId)) {
+                      handleDeleteRemittance(remittanceHeaderId);
+                    } else {
+                      Swal.fire({
+                        title: "Error!",
+                        text: "Invalid remittance header ID format",
+                        icon: "error",
+                        confirmButtonColor: "#ef4444",
+                      });
+                    }
+                  }}
+                >
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
+
   const fetchRemittanceData = async (crewCode: string) => {
     if (crewCode) {
       try {
         const response = await getCrewRemittanceDetails(crewCode);
         if (response.success && response.data.length > 0) {
-          // Get unique years from the data
           const years = [...new Set(response.data.map((item) => item.Year))];
-          setAvailableYears(years.sort((a, b) => b - a)); // Sort years in descending order
+          setAvailableYears(years.sort((a, b) => b - a));
 
-          // Find the latest remittance date
           const sortedData = [...response.data].sort((a, b) => {
             const dateA = new Date(a.Year, getMonthNumber(a.Month));
             const dateB = new Date(b.Year, getMonthNumber(b.Month));
@@ -210,30 +468,68 @@ export default function DeductionEntries() {
 
           const latestRemittance = sortedData[0];
 
-          // Set the latest month and year
           setSelectedMonth(latestRemittance.Month);
           setSelectedYear(latestRemittance.Year.toString());
 
-          // Filter and map the data for display
           const filteredData = sortedData
             .filter(
               (item) =>
                 item.Month === latestRemittance.Month &&
                 item.Year === latestRemittance.Year
             )
-            .map((item) => ({
-              allottee: item.AllotteeName || "",
-              amount: item.Amount,
-              remarks: item.Remarks || "",
-              status: item.IsActive
-                ? "Completed"
-                : ("Pending" as "Completed" | "Pending"),
-            }));
+            .sort((a, b) => b.RemittanceDetailID - a.RemittanceDetailID) // Sort by RemittanceDetailID descending (newest first)
+            .map((item) => {
+              const remittanceDetailId = item.RemittanceDetailID;
+              const remittanceHeaderId = item.RemittanceHeaderID;
 
-          setRemittanceData(filteredData);
+              const mappedItem: RemittanceEntry = {
+                remittanceId: Number(remittanceDetailId),
+                remittanceHeaderId: Number(remittanceHeaderId),
+                allottee: String(item.AllotteeName || ""),
+                amount: Number(item.Amount) || 0,
+                remarks: String(item.Remarks || ""),
+                status: mapStatusToDisplay(item.Status),
+              };
+
+              return mappedItem;
+            });
+
+          const validatedData = filteredData.filter((item) => {
+            const isValid =
+              typeof item.allottee === "string" &&
+              typeof item.amount === "number" &&
+              typeof item.status === "string" &&
+              typeof item.remittanceId === "number" &&
+              typeof item.remittanceHeaderId === "number" &&
+              !isNaN(item.remittanceId) &&
+              !isNaN(item.remittanceHeaderId) &&
+              item.remittanceId > 0 &&
+              item.remittanceHeaderId > 0;
+
+            return isValid;
+          });
+
+          setRemittanceData(validatedData);
+        } else {
+          setRemittanceData([]);
         }
       } catch (error) {
-        console.error("Error fetching remittance details:", error);
+        setRemittanceData([]);
+      }
+    }
+  };
+
+  const fetchAllottees = async (crewCode: string) => {
+    if (crewCode) {
+      try {
+        const response = await getAllottees(crewCode);
+        if (response.success) {
+          setAllottees(response.data);
+        } else {
+          setAllottees([]);
+        }
+      } catch (error) {
+        setAllottees([]);
       }
     }
   };
@@ -245,13 +541,10 @@ export default function DeductionEntries() {
     if (crewCodeParam) {
       const decodedCrewCode = decodeURIComponent(crewCodeParam);
 
-      // Fetch both crew basic info and vessel info in parallel
       Promise.all([getCrewBasic(decodedCrewCode), getCrewRemittanceList()])
         .then(([basicResponse, remittanceResponse]) => {
           if (basicResponse.success) {
             const { data } = basicResponse;
-
-            // Find the crew's vessel from the remittance list
             const crewVessel = remittanceResponse.success
               ? remittanceResponse.data.find(
                   (item: CrewRemittanceItem) =>
@@ -267,22 +560,21 @@ export default function DeductionEntries() {
               vessel: crewVessel || "",
               crewCode: decodedCrewCode,
               mobileNo: data.MobileNo,
-              landlineNo: data.LandlineNo,
+              landlineNo: data.LandLineNo,
               emailAddress: data.EmailAddress,
               birthday: data.Birthday,
             });
 
-            // After getting crew info, fetch remittance details
             fetchRemittanceData(decodedCrewCode);
+            fetchAllottees(decodedCrewCode);
           }
         })
         .catch((error) => {
-          console.error("Error fetching crew details:", error);
+          // Error handled silently
         });
     }
   }, []);
 
-  // Update remittance data when month/year selection changes
   useEffect(() => {
     const updateRemittanceData = async () => {
       if (crewData.crewCode && selectedMonth && selectedYear) {
@@ -295,18 +587,40 @@ export default function DeductionEntries() {
                   item.Month === selectedMonth &&
                   item.Year.toString() === selectedYear
               )
-              .map((item) => ({
-                allottee: item.AllotteeName || "",
-                amount: item.Amount,
-                remarks: item.Remarks || "",
-                status: item.IsActive
-                  ? "Completed"
-                  : ("Pending" as "Completed" | "Pending"),
-              }));
-            setRemittanceData(filteredData);
+              .sort((a, b) => b.RemittanceDetailID - a.RemittanceDetailID) // Sort by RemittanceDetailID descending (newest first)
+              .map((item) => {
+                const remittanceDetailId = item.RemittanceDetailID;
+                const remittanceHeaderId = item.RemittanceHeaderID;
+
+                const mappedItem: RemittanceEntry = {
+                  remittanceId: Number(remittanceDetailId),
+                  remittanceHeaderId: Number(remittanceHeaderId),
+                  allottee: String(item.AllotteeName || ""),
+                  amount: Number(item.Amount) || 0,
+                  remarks: String(item.Remarks || ""),
+                  status: mapStatusToDisplay(item.Status),
+                };
+                return mappedItem;
+              });
+
+            const validatedData = filteredData.filter((item) => {
+              const isValid =
+                typeof item.allottee === "string" &&
+                typeof item.amount === "number" &&
+                typeof item.status === "string" &&
+                typeof item.remittanceId === "number" &&
+                typeof item.remittanceHeaderId === "number" &&
+                !isNaN(item.remittanceId) &&
+                !isNaN(item.remittanceHeaderId) &&
+                item.remittanceId > 0 &&
+                item.remittanceHeaderId > 0;
+              return isValid;
+            });
+
+            setRemittanceData(validatedData);
           }
         } catch (error) {
-          console.error("Error updating remittance details:", error);
+          setRemittanceData([]);
         }
       }
     };
@@ -314,7 +628,6 @@ export default function DeductionEntries() {
     updateRemittanceData();
   }, [crewData.crewCode, selectedMonth, selectedYear]);
 
-  // Helper function to convert month name to number
   const getMonthNumber = (month: string): number => {
     const months = {
       January: 0,
@@ -333,10 +646,21 @@ export default function DeductionEntries() {
     return months[month as keyof typeof months] || 0;
   };
 
+  const handleOpenDialog = () => {
+    setIsAddRemittanceOpen(true);
+  };
+
+  const handleRemittanceSuccess = () => {
+    if (crewData.crewCode) {
+      setTimeout(() => {
+        fetchRemittanceData(crewData.crewCode);
+      }, 500);
+    }
+  };
+
   return (
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
-        {/* Header section */}
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-2">
             <Link href="/home/remittance">
@@ -349,7 +673,7 @@ export default function DeductionEntries() {
 
           <Button
             className="bg-primary hover:bg-primary/90"
-            onClick={() => setIsAddRemittanceOpen(true)}
+            onClick={handleOpenDialog}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Remittance
@@ -357,16 +681,13 @@ export default function DeductionEntries() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Left sidebar */}
           <div className="md:col-span-1">
             <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
               <CardContent className="p-4 flex flex-col items-center text-center overflow-y-auto scrollbar-hide flex-1">
                 <style jsx global>{`
-                  /* Hide scrollbar for Chrome, Safari and Opera */
                   .scrollbar-hide::-webkit-scrollbar {
                     display: none;
                   }
-                  /* Hide scrollbar for IE, Edge and Firefox */
                   .scrollbar-hide {
                     -ms-overflow-style: none;
                     scrollbar-width: none;
@@ -476,12 +797,10 @@ export default function DeductionEntries() {
             </Card>
           </div>
 
-          {/* Right content area */}
           <div className="md:col-span-3">
             <Card className="h-[calc(100vh-180px)] flex flex-col">
               <CardContent>
                 <div className="space-y-6">
-                  {/* Month and Year filters */}
                   <div className="flex items-center justify-center gap-6 w-full">
                     <div className="w-1/2">
                       <Select
@@ -549,18 +868,26 @@ export default function DeductionEntries() {
                   </div>
 
                   <div className="flex justify-end">
-                    <div>
+                    <div className="flex items-center">
                       <Checkbox />
                       <span className="ml-2">Remit with payroll</span>
                     </div>
                   </div>
 
                   <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden">
-                    <DataTable
-                      columns={remittanceColumns}
-                      data={remittanceData}
-                      pageSize={7}
-                    />
+                    {remittanceData &&
+                    Array.isArray(remittanceData) &&
+                    remittanceData.length > 0 ? (
+                      <DataTable
+                        columns={remittanceColumns}
+                        data={remittanceData}
+                        pageSize={7}
+                      />
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        No data available
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -572,6 +899,9 @@ export default function DeductionEntries() {
       <AddRemittanceDialog
         open={isAddRemittanceOpen}
         onOpenChange={setIsAddRemittanceOpen}
+        crewCode={crewData.crewCode}
+        allottees={allottees}
+        onSuccess={handleRemittanceSuccess}
       />
     </div>
   );
