@@ -1,4 +1,10 @@
-import React, { Dispatch, useEffect, SetStateAction, useMemo } from "react";
+import React, {
+  Dispatch,
+  useEffect,
+  SetStateAction,
+  useMemo,
+  useCallback,
+} from "react";
 import { useForm } from "react-hook-form";
 import {
   Select,
@@ -74,7 +80,7 @@ export default function AllotteeForm({
   });
 
   const { control, watch, setValue, handleSubmit, formState } = form;
-  const { errors } = formState;
+  const { errors, isLoading } = formState;
 
   // Get current values from the form
   const province = watch("province");
@@ -133,51 +139,71 @@ export default function AllotteeForm({
     return citiesInProvince.slice(0, 100);
   }, [cities, province]);
 
-  const onSubmit = (data: IAddAllottee) => {
-    console.log("Allottee Data:", data);
-    // Add your form submission logic here
-  };
+  const onSubmit = useCallback(
+    (data: IAddAllottee) => {
+      console.log("Allottee Data:", data);
+
+      if (!crewId) return;
+      setIsAddingAllottee(true);
+
+      addCrewAllottee(crewId, data)
+        .then((response) => {
+          if (response.success) {
+            toast({
+              title: "Success",
+              description: "Allottee added successfully.",
+              variant: "success",
+            });
+            setIsAddingAllottee(false);
+            form.reset(defaultValues);
+          } else {
+            toast({
+              title: "Error",
+              description: response.message || "Failed to add allottee.",
+              variant: "destructive",
+            });
+          }
+        })
+        .catch((error) => {
+          const err = error as Error;
+          console.log("Error adding allottee:", err.message);
+          toast({
+            title: "Error",
+            description: "Failed to add allottee.",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          setTriggerAdd(false);
+          setIsAddLoading(false);
+        });
+    },
+    [
+      crewId,
+      form,
+      defaultValues,
+      setIsAddingAllottee,
+      setTriggerAdd,
+      setIsAddLoading,
+    ]
+  );
 
   useEffect(() => {
     if (triggerAdd) {
-      setIsAddLoading(true);
-      try {
-        if (!crewId) return;
-        addCrewAllottee(crewId, form.getValues())
-          .then((response) => {
-            if (response.success) {
-              toast({
-                title: "Success",
-                description: "Allottee added successfully.",
-                variant: "success",
-              });
-              setIsAddingAllottee(false);
-              form.reset(defaultValues);
-            } else {
-              toast({
-                title: "Error",
-                description: response.message || "Failed to add allottee.",
-                variant: "destructive",
-              });
-            }
-          })
-          .catch((error) => {
-            const err = error as Error;
-            console.log("Error adding allottee:", err.message);
-            toast({
-              title: "Error",
-              description: "Failed to add allottee.",
-              variant: "destructive",
-            });
-          })
-          .finally(() => {
-            setTriggerAdd(false);
-            setIsAddLoading(false);
-          });
-      } catch (error) {
+      // setIsAddLoading(true); // <-- Set loading to true before submitting
+      handleSubmit(onSubmit)().catch((error) => {
         const err = error as Error;
-        console.error("Error resetting form:", err.message);
-      }
+        console.error("Error submitting form:", err.message);
+        toast({
+          title: "Error",
+          description: "Failed to submit form.",
+          variant: "destructive",
+        });
+      });
+      // .finally(() => {
+      //   setIsAddLoading(false)
+      //   setTriggerAdd(false)
+      // });
     }
   }, [
     triggerAdd,
@@ -187,6 +213,8 @@ export default function AllotteeForm({
     defaultValues,
     setTriggerAdd,
     setIsAddLoading,
+    onSubmit,
+    handleSubmit,
   ]);
 
   return (
