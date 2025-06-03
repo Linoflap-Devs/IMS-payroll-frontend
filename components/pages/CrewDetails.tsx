@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,6 +22,7 @@ import { ImageModal } from "@/components/ImageModal";
 import { formatDate } from "@/types/crew";
 import Image from "next/image";
 import AddCrewAllottee from "./crew/AddCrewAllottee";
+import { useLocationStore } from "@/src/store/useLocationStore";
 
 export default function CrewDetails() {
   const searchParams = useSearchParams();
@@ -42,6 +43,8 @@ export default function CrewDetails() {
   const [isAddLoading, setIsAddLoading] = useState(false);
 
   const [submitted, setSubmitted] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
+  const [provinceSearch, setProvinceSearch] = useState("");
 
   const handleTriggerAdd = () => {
     setTriggerAdd((prev) => !prev);
@@ -57,7 +60,68 @@ export default function CrewDetails() {
     handleInputChange,
     saveChanges,
     toggleEditMode,
+    setEditedCrew,
   } = useCrewDetails(crewId);
+
+  const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
+
+  useEffect(() => {
+    fetchCities();
+    fetchProvinces();
+  }, [fetchCities, fetchProvinces]);
+
+  // Find province and city IDs based on crew data when editing starts
+  useEffect(() => {
+    if (crew && provinces.length > 0 && cities.length > 0 && isEditing) {
+      // Find the province ID that matches the crew's province name
+      const matchedProvince = provinces.find(
+        (p) => p.ProvinceName === crew.province
+      );
+      const provinceId = matchedProvince
+        ? matchedProvince.ProvinceID.toString()
+        : "";
+
+      // Find the city ID that matches the crew's city name
+      const matchedCity = cities.find((c) => c.CityName === crew.city);
+      const cityId = matchedCity ? matchedCity.CityID.toString() : "";
+
+      // Update the editedCrew with the numeric IDs
+      setEditedCrew((prev) => ({
+        ...prev,
+        province: provinceId,
+        city: cityId,
+      }));
+    }
+  }, [crew, provinces, cities, isEditing, setEditedCrew]);
+
+  // Filter cities based on selected province
+  const filteredCities = useMemo(() => {
+    if (!editedCrew?.province) return [];
+
+    // Convert province ID to number
+    const provinceIdNum = parseInt(editedCrew.province);
+    // Filter cities by province ID
+    return cities.filter((city) => city.ProvinceID === provinceIdNum);
+  }, [cities, editedCrew?.province]);
+
+  // Filter provinces for search
+  const filteredProvinces = useMemo(() => {
+    if (!provinceSearch) return provinces;
+
+    return provinces.filter((province) =>
+      province.ProvinceName.toLowerCase().includes(provinceSearch.toLowerCase())
+    );
+  }, [provinces, provinceSearch]);
+
+  // Filter cities for search
+  const filteredSearchCities = useMemo(() => {
+    if (!filteredCities.length) return [];
+    if (!citySearch) return filteredCities;
+
+    return filteredCities.filter((city) =>
+      city.CityName.toLowerCase().includes(citySearch.toLowerCase())
+    );
+  }, [filteredCities, citySearch]);
 
   // Function to validate the form
   const validateForm = () => {
@@ -395,12 +459,12 @@ export default function CrewDetails() {
                             <SelectTrigger
                               className={
                                 isEditing
-                                  ? `${
+                                  ? `w-full ${
                                       submitted && !editedCrew?.maritalStatus
                                         ? "border-red-500 focus:!ring-red-500/50"
                                         : "border-primary"
                                     }`
-                                  : ""
+                                  : "w-full"
                               }>
                               <SelectValue placeholder="Select an option" />
                             </SelectTrigger>
@@ -434,12 +498,12 @@ export default function CrewDetails() {
                             <SelectTrigger
                               className={
                                 isEditing
-                                  ? `${
+                                  ? `w-full ${
                                       submitted && !editedCrew?.sex
                                         ? "border-red-500 focus:!ring-red-500/50"
                                         : "border-primary"
                                     }`
-                                  : ""
+                                  : "w-full"
                               }>
                               <SelectValue placeholder="Select an option" />
                             </SelectTrigger>
@@ -489,77 +553,119 @@ export default function CrewDetails() {
                               </p>
                             )}
                         </div>
-                        <div className="md:col-span-2">
-                          <label className="text-sm text-gray-500 mb-1 block">
-                            City
-                          </label>
-                          <Input
-                            placeholder="Enter city"
-                            value={
-                              isEditing
-                                ? editedCrew?.city || ""
-                                : crew.city || ""
-                            }
-                            onChange={(e) =>
-                              handleInputChange("city", e.target.value)
-                            }
-                            readOnly={!isEditing}
-                            className={
-                              isEditing
-                                ? `${
-                                    submitted &&
-                                    (!editedCrew?.city ||
-                                      editedCrew.city.length < 2)
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
-                                : ""
-                            }
-                          />
-                          {submitted &&
-                            isEditing &&
-                            (!editedCrew?.city ||
-                              editedCrew.city.length < 2) && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Please enter a valid city.
-                              </p>
-                            )}
-                        </div>
+
+                        {/* Province Select Component */}
                         <div className="md:col-span-2">
                           <label className="text-sm text-gray-500 mb-1 block">
                             Province
                           </label>
-                          <Input
-                            placeholder="Enter province"
-                            value={
-                              isEditing
-                                ? editedCrew?.province || ""
-                                : crew.province || ""
-                            }
-                            onChange={(e) =>
-                              handleInputChange("province", e.target.value)
-                            }
-                            readOnly={!isEditing}
-                            className={
-                              isEditing
-                                ? `${
-                                    submitted &&
-                                    (!editedCrew?.province ||
-                                      editedCrew.province.length < 2)
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
-                                : ""
-                            }
-                          />
-                          {submitted &&
-                            isEditing &&
-                            (!editedCrew?.province ||
-                              editedCrew.province.length < 2) && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Please enter a valid province.
-                              </p>
-                            )}
+                          {isEditing ? (
+                            <Select
+                              value={editedCrew?.province || ""}
+                              onValueChange={(value) =>
+                                handleInputChange("province", value)
+                              }
+                              disabled={!isEditing}>
+                              <SelectTrigger
+                                className={
+                                  submitted && !editedCrew?.province
+                                    ? "border-red-500 focus:!ring-red-500/50 w-full"
+                                    : "border-primary w-full"
+                                }>
+                                <SelectValue placeholder="Select a province" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-80">
+                                <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                                  <Input
+                                    placeholder="Search provinces..."
+                                    value={provinceSearch}
+                                    onChange={(e) =>
+                                      setProvinceSearch(e.target.value)
+                                    }
+                                    className="h-8"
+                                  />
+                                </div>
+                                {filteredProvinces.length > 0 ? (
+                                  filteredProvinces.map((province) => (
+                                    <SelectItem
+                                      key={province.ProvinceID}
+                                      value={province.ProvinceID.toString()}>
+                                      {province.ProvinceName}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <div className="px-2 py-2 text-sm text-gray-500">
+                                    No provinces found
+                                  </div>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input value={crew.province || ""} readOnly />
+                          )}
+                          {submitted && isEditing && !editedCrew?.province && (
+                            <p className="text-red-500 text-sm mt-1">
+                              Please select a province.
+                            </p>
+                          )}
+                        </div>
+
+                        {/* City Select Component */}
+                        <div className="md:col-span-2">
+                          <label className="text-sm text-gray-500 mb-1 block">
+                            City
+                          </label>
+                          {isEditing ? (
+                            <Select
+                              value={editedCrew?.city || ""}
+                              onValueChange={(value) =>
+                                handleInputChange("city", value)
+                              }
+                              disabled={!isEditing || !editedCrew?.province}>
+                              <SelectTrigger
+                                className={
+                                  submitted && !editedCrew?.city
+                                    ? "w-full border-red-500 focus:!ring-red-500/50"
+                                    : "border-primary w-full"
+                                }>
+                                <SelectValue placeholder="Select a city" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-80">
+                                <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                                  <Input
+                                    placeholder="Search cities..."
+                                    value={citySearch}
+                                    onChange={(e) =>
+                                      setCitySearch(e.target.value)
+                                    }
+                                    className="h-8"
+                                  />
+                                </div>
+                                {filteredSearchCities.length > 0 ? (
+                                  filteredSearchCities.map((city) => (
+                                    <SelectItem
+                                      key={city.CityID}
+                                      value={city.CityID.toString()}>
+                                      {city.CityName}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <div className="px-2 py-2 text-sm text-gray-500">
+                                    {!editedCrew?.province
+                                      ? "Please select a province first"
+                                      : "No cities found"}
+                                  </div>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input value={crew.city || ""} readOnly />
+                          )}
+                          {submitted && isEditing && !editedCrew?.city && (
+                            <p className="text-red-500 text-sm mt-1">
+                              Please select a city.
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>

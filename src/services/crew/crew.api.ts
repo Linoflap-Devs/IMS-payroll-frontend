@@ -27,8 +27,8 @@ export interface CrewDetails {
   FirstName: string;
   MiddleName: string;
   LastName: string;
-  MaritalStatus: number;
-  Gender: number;
+  MaritalStatus: string;
+  Gender: string;
   Birthday: string;
   City: string;
   Province: string;

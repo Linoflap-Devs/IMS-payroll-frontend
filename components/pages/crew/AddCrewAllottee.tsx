@@ -80,7 +80,7 @@ export default function AllotteeForm({
   });
 
   const { control, watch, setValue, handleSubmit, formState } = form;
-  const { errors, isLoading } = formState;
+  const { errors } = formState;
 
   // Get current values from the form
   const province = watch("province");

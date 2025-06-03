@@ -92,9 +92,9 @@ export function useCrewDetails(crewId: string | null) {
       landline: updatedCrew.landline,
       firstName: updatedCrew.firstName,
       lastName: updatedCrew.lastName,
-      middleName: updatedCrew.middleName,
-      maritalStatus: updatedCrew.maritalStatus,
-      sex: updatedCrew.sex,
+      middleName: updatedCrew.middleName ? updatedCrew.middleName : undefined,
+      maritalStatus: updatedCrew?.maritalStatus === 'single' ? "1" : updatedCrew?.maritalStatus === 'married' ? "2" : updatedCrew?.maritalStatus === 'divorced' ? "3" : updatedCrew?.maritalStatus === 'widowed' ? "4" : "0",
+      sex: updatedCrew?.sex === 'male' ? "1" : updatedCrew?.sex === 'female' ? "2" : updatedCrew?.sex === 'other' ? "3" : "0",
       dateOfBirth: updatedCrew.dateOfBirth,
       city: updatedCrew.city,
       province: updatedCrew.province,
@@ -160,5 +160,6 @@ export function useCrewDetails(crewId: string | null) {
     handleInputChange,
     saveChanges,
     toggleEditMode,
+    setEditedCrew
   };
 }

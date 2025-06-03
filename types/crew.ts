@@ -53,20 +53,20 @@ export interface Crew {
   allottees?: Allottee[];
 }
 
-export const mapMaritalStatus = (status: number): string => {
-  const statusMap: Record<number, string> = {
-    1: "single",
-    2: "married",
-    3: "divorced",
-    4: "widowed",
+export const mapMaritalStatus = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    "1": "single",
+    "2": "married",
+    "3": "divorced",
+    "4": "widowed",
   };
   return statusMap[status] || "";
 };
 
-export const mapGender = (status: number): string => {
-  const genderMap: Record<number, string> = {
-    1: "male",
-    2: "female",
+export const mapGender = (status: string): string => {
+  const genderMap: Record<string, string> = {
+    "1": "male",
+    "2": "female",
   };
   return genderMap[status] || "other";
 };
