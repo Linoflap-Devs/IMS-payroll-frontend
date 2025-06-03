@@ -63,6 +63,7 @@ export function AddVesselPrincipalDialog({
           title: "Success",
           description:
             response.message || "Vessel principal added successfully.",
+          variant: "success",
         });
         // Call the onSuccess callback if provided
         if (onSuccess && response.data) {
@@ -130,15 +131,13 @@ export function AddVesselPrincipalDialog({
               variant="outline"
               className="flex-1 h-10"
               onClick={() => handleOpenChange(false)}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               Cancel
             </Button>
             <Button
               className="flex-1 h-10"
               onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               {isSubmitting ? "Adding..." : "Add Principal"}
             </Button>
           </div>

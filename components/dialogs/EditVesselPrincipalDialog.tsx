@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { updateVesselPrincipal } from "@/src/services/vessel/vesselPrincipal.api"; // Import the new API function
 import { VesselPrincipalItem } from "@/src/services/vessel/vesselPrincipal.api";
-import { on } from "events";
 import { useState } from "react";
 
 interface EditVesselPrincipalDialogProps {
@@ -70,18 +69,18 @@ export function EditVesselPrincipalDialog({
         toast({
           title: "Success",
           description: "Vessel Principal updated successfully.",
-          variant: "default",
+          variant: "success",
         });
         if (onSuccess && response.data) {
           onSuccess(response.data as unknown as VesselPrincipalItem);
         }
         onOpenChange(false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
         title: "Error",
-        description:
-          error.response?.data?.message || "Failed to update vessel principal.",
+        description: err.message || "Failed to update vessel principal.",
         variant: "destructive",
       });
     } finally {
@@ -126,15 +125,13 @@ export function EditVesselPrincipalDialog({
             <Button
               variant="outline"
               className="flex-1 h-10"
-              onClick={() => onOpenChange(false)}
-            >
+              onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button
               className="flex-1 h-10"
               onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               {isSubmitting ? "Updating..." : "Update Principal"}
             </Button>
           </div>
