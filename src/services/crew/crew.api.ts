@@ -34,9 +34,11 @@ export interface CrewDetails {
   Province: string;
   SSSNumber: string;
   HDMFNumber: string;
+  TaxIDNumber: string;
   PassportNumber: string;
   PassPortIssueDate: string;
   PassPortExpiredDate: string;
+  PhilhealthNumber: string;
   SRIBNumber: string;
   SRIBIssueDate: string;
   SRIBExpiredDate: string;

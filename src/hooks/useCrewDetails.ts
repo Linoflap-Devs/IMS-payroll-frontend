@@ -52,7 +52,8 @@ export function useCrewDetails(crewId: string | null) {
         city: crewDetails.City,
         province: crewDetails.Province,
         sssNumber: crewDetails.SSSNumber,
-        philhealthNumber: "", // Temporarily set to empty string until backend adds the field
+        taxIdNumber: crewDetails.TaxIDNumber,
+        philhealthNumber: crewDetails.PhilhealthNumber,
         hdmfNumber: crewDetails.HDMFNumber,
         passportNumber: crewDetails.PassportNumber,
         passportIssueDate: crewDetails.PassPortIssueDate,
@@ -62,6 +63,7 @@ export function useCrewDetails(crewId: string | null) {
         seamansBookExpiryDate: crewDetails.SRIBExpiredDate,
       };
 
+      console.log("Mapped Crew:", mappedCrew);
       setCrew(mappedCrew);
       setEditedCrew(mappedCrew);
     }
@@ -98,6 +100,7 @@ export function useCrewDetails(crewId: string | null) {
       province: updatedCrew.province,
       sssNumber: updatedCrew.sssNumber,
       philhealthNumber: updatedCrew.philhealthNumber,
+      taxIdNumber: updatedCrew.taxIdNumber,
       hdmfNumber: updatedCrew.hdmfNumber,
       passportNumber: updatedCrew.passportNumber,
       passportIssueDate: updatedCrew.passportIssueDate,

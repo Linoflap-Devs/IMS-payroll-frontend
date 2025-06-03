@@ -169,6 +169,9 @@ export default function CrewDetails() {
       </div>
     );
 
+  console.log("Crew details loaded:", crew);
+  console.log("Crew to be updated", editedCrew);
+
   return (
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
@@ -636,7 +639,6 @@ export default function CrewDetails() {
                 <TabsContent
                   value="allottee"
                   className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1">
-
                   {!isAddingAllottee ? (
                     <>
                       <CrewAllottee

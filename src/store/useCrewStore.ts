@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import { 
-  getCrewList, 
+import {
+  getCrewList,
   getCrewDetails,
   getCrewBasic,
   getCrewMovement,
   getCrewAllottee,
   getCrewRankList,
-  CrewItem, 
+  CrewItem,
   CrewDetails,
   CrewBasic,
   CrewMovement,
@@ -19,7 +19,7 @@ interface CrewStore {
   crews: CrewItem[];
   isLoading: boolean;
   error: string | null;
-  
+
   // Crew details state
   crewDetails: CrewDetails | null;
   isLoadingDetails: boolean;
@@ -57,7 +57,7 @@ interface CrewStore {
   resetMovements: () => void;
   resetAllottees: () => void;
   resetRanks: () => void;
-  
+
 }
 
 export const useCrewStore = create<CrewStore>((set) => ({
@@ -92,9 +92,9 @@ export const useCrewStore = create<CrewStore>((set) => ({
         set({ error: response.message || 'Failed to fetch crews', isLoading: false });
       }
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'An error occurred while fetching crews', 
-        isLoading: false 
+      set({
+        error: error instanceof Error ? error.message : 'An error occurred while fetching crews',
+        isLoading: false
       });
     }
   },
@@ -106,15 +106,16 @@ export const useCrewStore = create<CrewStore>((set) => ({
       if (response.success) {
         set({ crewDetails: response.data, isLoadingDetails: false });
       } else {
-        set({ 
+        set({
           detailsError: response.message || 'Failed to fetch crew details',
-          isLoadingDetails: false 
+          isLoadingDetails: false
         });
       }
+      console.log('Crew Details:', response.data);
     } catch (error) {
-      set({ 
+      set({
         detailsError: error instanceof Error ? error.message : 'An error occurred while fetching crew details',
-        isLoadingDetails: false 
+        isLoadingDetails: false
       });
     }
   },
@@ -126,15 +127,15 @@ export const useCrewStore = create<CrewStore>((set) => ({
       if (response.success) {
         set({ crewBasic: response.data, isLoadingBasic: false });
       } else {
-        set({ 
+        set({
           basicError: response.message || 'Failed to fetch crew basic information',
-          isLoadingBasic: false 
+          isLoadingBasic: false
         });
       }
     } catch (error) {
-      set({ 
+      set({
         basicError: error instanceof Error ? error.message : 'An error occurred while fetching crew basic information',
-        isLoadingBasic: false 
+        isLoadingBasic: false
       });
     }
   },
@@ -146,15 +147,15 @@ export const useCrewStore = create<CrewStore>((set) => ({
       if (response.success) {
         set({ movements: response.data, isLoadingMovements: false });
       } else {
-        set({ 
+        set({
           movementsError: response.message || 'Failed to fetch crew movements',
-          isLoadingMovements: false 
+          isLoadingMovements: false
         });
       }
     } catch (error) {
-      set({ 
+      set({
         movementsError: error instanceof Error ? error.message : 'An error occurred while fetching crew movements',
-        isLoadingMovements: false 
+        isLoadingMovements: false
       });
     }
   },
@@ -166,15 +167,15 @@ export const useCrewStore = create<CrewStore>((set) => ({
       if (response.success) {
         set({ allottees: response.data, isLoadingAllottees: false });
       } else {
-        set({ 
+        set({
           allotteesError: response.message || 'Failed to fetch crew allottees',
-          isLoadingAllottees: false 
+          isLoadingAllottees: false
         });
       }
     } catch (error) {
-      set({ 
+      set({
         allotteesError: error instanceof Error ? error.message : 'An error occurred while fetching crew allottees',
-        isLoadingAllottees: false 
+        isLoadingAllottees: false
       });
     }
   },
@@ -186,15 +187,15 @@ export const useCrewStore = create<CrewStore>((set) => ({
       if (response.success) {
         set({ crewRanks: response.data, isLoadingRanks: false });
       } else {
-        set({ 
+        set({
           ranksError: response.message || 'Failed to fetch crew ranks',
-          isLoadingRanks: false 
+          isLoadingRanks: false
         });
       }
     } catch (error) {
-      set({ 
+      set({
         ranksError: error instanceof Error ? error.message : 'An error occurred while fetching crew ranks',
-        isLoadingRanks: false 
+        isLoadingRanks: false
       });
     }
   },
