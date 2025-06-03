@@ -35,7 +35,6 @@ export default function CrewDetails() {
   const [triggerSave, setTriggerSave] = useState(false);
   const [allotteeLoading, setAllotteeLoading] = useState(false);
 
-  // delete allottee
   const [triggerDelete, setTriggerDelete] = useState(false);
   const [isDeletingAllottee, setIsDeletingAllottee] = useState(false);
 
@@ -45,6 +44,11 @@ export default function CrewDetails() {
   const [submitted, setSubmitted] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [provinceSearch, setProvinceSearch] = useState("");
+
+  const [displayProvinceCity, setDisplayProvinceCity] = useState({
+    provinceName: "",
+    cityName: "",
+  });
 
   const handleTriggerAdd = () => {
     setTriggerAdd((prev) => !prev);
@@ -73,7 +77,6 @@ export default function CrewDetails() {
   // Find province and city IDs based on crew data when editing starts
   useEffect(() => {
     if (crew && provinces.length > 0 && cities.length > 0 && isEditing) {
-      // Find the province ID that matches the crew's province name
       const matchedProvince = provinces.find(
         (p) => p.ProvinceName === crew.province
       );
@@ -81,7 +84,6 @@ export default function CrewDetails() {
         ? matchedProvince.ProvinceID.toString()
         : "";
 
-      // Find the city ID that matches the crew's city name
       const matchedCity = cities.find((c) => c.CityName === crew.city);
       const cityId = matchedCity ? matchedCity.CityID.toString() : "";
 
@@ -94,17 +96,46 @@ export default function CrewDetails() {
     }
   }, [crew, provinces, cities, isEditing, setEditedCrew]);
 
+  // Update display names whenever crew or location data changes
+  useEffect(() => {
+    if (crew && provinces.length > 0 && cities.length > 0) {
+
+      const isProvinceId = !isNaN(Number(crew.province));
+      let provinceName = crew.province || "";
+      let cityName = crew.city || "";
+
+      if (isProvinceId) {
+        const foundProvince = provinces.find(
+          (p) => p.ProvinceID.toString() === crew.province
+        );
+        if (foundProvince) {
+          provinceName = foundProvince.ProvinceName;
+        }
+      }
+
+      const isCityId = !isNaN(Number(crew.city));
+      if (isCityId) {
+        const foundCity = cities.find((c) => c.CityID.toString() === crew.city);
+        if (foundCity) {
+          cityName = foundCity.CityName;
+        }
+      }
+
+      setDisplayProvinceCity({
+        provinceName,
+        cityName,
+      });
+    }
+  }, [crew, provinces, cities]);
+
   // Filter cities based on selected province
   const filteredCities = useMemo(() => {
     if (!editedCrew?.province) return [];
 
-    // Convert province ID to number
     const provinceIdNum = parseInt(editedCrew.province);
-    // Filter cities by province ID
     return cities.filter((city) => city.ProvinceID === provinceIdNum);
   }, [cities, editedCrew?.province]);
 
-  // Filter provinces for search
   const filteredProvinces = useMemo(() => {
     if (!provinceSearch) return provinces;
 
@@ -123,14 +154,12 @@ export default function CrewDetails() {
     );
   }, [filteredCities, citySearch]);
 
-  // Function to validate the form
   const validateForm = () => {
     setSubmitted(true);
 
     // Basic validation checks
     if (!editedCrew) return false;
 
-    // Personal Information
     if (!editedCrew.firstName || editedCrew.firstName.length < 2) return false;
     if (!editedCrew.lastName || editedCrew.lastName.length < 2) return false;
     if (!editedCrew.sex) return false;
@@ -139,13 +168,11 @@ export default function CrewDetails() {
     if (!editedCrew.province) return false;
     if (!editedCrew.city) return false;
 
-    // Government IDs validation
     if (!editedCrew.sssNumber) return false;
     if (!editedCrew.taxIdNumber) return false;
     if (!editedCrew.philhealthNumber) return false;
     if (!editedCrew.hdmfNumber) return false;
 
-    // Travel Documents validation
     if (!editedCrew.passportNumber) return false;
     if (!editedCrew.passportIssueDate) return false;
     if (!editedCrew.passportExpiryDate) return false;
@@ -167,6 +194,31 @@ export default function CrewDetails() {
         confirmButtonText: "OK",
       });
       return;
+    }
+
+    // Before saving, update display names for province and city
+    if (editedCrew?.province) {
+      const foundProvince = provinces.find(
+        (p) => p.ProvinceID.toString() === editedCrew.province
+      );
+      if (foundProvince) {
+        setDisplayProvinceCity((prev) => ({
+          ...prev,
+          provinceName: foundProvince.ProvinceName,
+        }));
+      }
+    }
+
+    if (editedCrew?.city) {
+      const foundCity = cities.find(
+        (c) => c.CityID.toString() === editedCrew.city
+      );
+      if (foundCity) {
+        setDisplayProvinceCity((prev) => ({
+          ...prev,
+          cityName: foundCity.CityName,
+        }));
+      }
     }
 
     setTriggerSave((prev) => !prev);
@@ -601,7 +653,14 @@ export default function CrewDetails() {
                               </SelectContent>
                             </Select>
                           ) : (
-                            <Input value={crew.province || ""} readOnly />
+                            <Input
+                              value={
+                                displayProvinceCity.provinceName ||
+                                crew.province ||
+                                ""
+                              }
+                              readOnly
+                            />
                           )}
                           {submitted && isEditing && !editedCrew?.province && (
                             <p className="text-red-500 text-sm mt-1">
@@ -659,7 +718,12 @@ export default function CrewDetails() {
                               </SelectContent>
                             </Select>
                           ) : (
-                            <Input value={crew.city || ""} readOnly />
+                            <Input
+                              value={
+                                displayProvinceCity.cityName || crew.city || ""
+                              }
+                              readOnly
+                            />
                           )}
                           {submitted && isEditing && !editedCrew?.city && (
                             <p className="text-red-500 text-sm mt-1">
@@ -1244,7 +1308,9 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter city"
-                            value={crew.city || ""}
+                            value={
+                              displayProvinceCity.cityName || crew.city || ""
+                            }
                             readOnly
                           />
                         </div>
@@ -1254,7 +1320,11 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter province"
-                            value={crew.province || ""}
+                            value={
+                              displayProvinceCity.provinceName ||
+                              crew.province ||
+                              ""
+                            }
                             readOnly
                           />
                         </div>
