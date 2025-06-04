@@ -68,6 +68,7 @@ export default function CrewDetails() {
     toggleEditMode,
     setEditedCrew,
     isEditLoading,
+    crewValidationDetails,
   } = useCrewDetails(crewId);
 
   const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
@@ -77,7 +78,8 @@ export default function CrewDetails() {
     fetchProvinces();
   }, [fetchCities, fetchProvinces]);
 
-  console.log("Crew Details:", crew);
+  console.log("Crew Validation Details:", crewValidationDetails);
+
   // Store province and city names along with IDs when data is loaded
   useEffect(() => {
     if (crew && provinces.length > 0 && cities.length > 0) {
@@ -1263,7 +1265,11 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             placeholder="Register Date"
-                            value={formatDate(crew.registerDate)}
+                            value={
+                              formatDate(
+                                crewValidationDetails?.RegisterDate.toString()
+                              ) || "Not Registered."
+                            }
                             readOnly
                           />
                         </div>
@@ -1274,7 +1280,11 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             placeholder="Verified Date"
-                            value={formatDate(crew.verifyDate)}
+                            value={
+                              formatDate(
+                                crewValidationDetails?.VerificationDate?.toString()
+                              ) || "Not Verified."
+                            }
                             readOnly
                           />
                         </div>
@@ -1304,7 +1314,7 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter middle name"
-                            value={crew.middleName || ""}
+                            value={crewValidationDetails?.MiddleName || ""}
                             readOnly
                           />
                         </div>
@@ -1314,7 +1324,7 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter a Number"
-                            value={crew.phone || ""}
+                            value={crewValidationDetails?.ContactNumber || ""}
                             readOnly
                           />
                         </div>
@@ -1356,7 +1366,9 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Select File"
-                            value={crew.selectedFile || ""}
+                            value={
+                              crewValidationDetails?.Documents.IDType || ""
+                            }
                             readOnly
                           />
                         </div>

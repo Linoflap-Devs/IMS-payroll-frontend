@@ -125,7 +125,6 @@ export const useCrewStore = create<CrewStore>((set) => ({
           isLoadingDetails: false
         });
       }
-      console.log('Crew Details:', response.data);
     } catch (error) {
       set({
         detailsError: error instanceof Error ? error.message : 'An error occurred while fetching crew details',

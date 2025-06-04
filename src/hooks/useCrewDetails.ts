@@ -21,19 +21,23 @@ export function useCrewDetails(crewId: string | null) {
     isLoadingBasic,
     basicError,
     fetchCrewBasic,
-    resetBasic
+    resetBasic,
+    crewValidationDetails,
+    isLoadingValidationDetails,
+    fetchCrewValidationDetails
   } = useCrewStore();
 
   useEffect(() => {
     if (crewId) {
       fetchCrewDetails(crewId);
       fetchCrewBasic(crewId);
+      fetchCrewValidationDetails(crewId);
     }
     return () => {
       resetDetails();
       resetBasic();
     };
-  }, [crewId, fetchCrewDetails, resetDetails, fetchCrewBasic, resetBasic]);
+  }, [crewId, fetchCrewDetails, resetDetails, fetchCrewBasic, resetBasic, fetchCrewValidationDetails]);
 
   useEffect(() => {
     if (crewDetails && crewBasic) {
@@ -165,6 +169,8 @@ export function useCrewDetails(crewId: string | null) {
     saveChanges,
     toggleEditMode,
     setEditedCrew,
-    isEditLoading
+    isEditLoading,
+    crewValidationDetails,
+    isLoadingValidationDetails,
   };
 }
