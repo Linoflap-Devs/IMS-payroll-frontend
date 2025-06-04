@@ -13,6 +13,9 @@ import {
   CrewAllottee,
   CrewRankItem,
 } from '../services/crew/crew.api';
+import { getCrewValidationDetails } from '../services/crew/crewValidation.api';
+import { ICrewValidationDetails } from "@/types/crewValidation";
+
 
 interface CrewStore {
   // Crew list state
@@ -39,6 +42,11 @@ interface CrewStore {
   allottees: CrewAllottee[];
   isLoadingAllottees: boolean;
   allotteesError: string | null;
+
+  // Crew validation state
+  crewValidationDetails: ICrewValidationDetails | null;
+  isLoadingValidationDetails: boolean;
+  crewValidationError: string | null;
 
   // Crew rank state
   crewRanks: CrewRankItem[];
@@ -78,6 +86,10 @@ export const useCrewStore = create<CrewStore>((set) => ({
   allottees: [],
   isLoadingAllottees: false,
   allotteesError: null,
+  crewValidationDetails: null,
+  isLoadingValidationDetails: false,
+  crewValidationError: null,
+
   crewRanks: [],
   isLoadingRanks: false,
   ranksError: null,
@@ -182,11 +194,28 @@ export const useCrewStore = create<CrewStore>((set) => ({
     }
   },
   fetchCrewValidationDetails: async (crewCode: string) => {
+    set({ isLoadingValidationDetails: true });
+    try {
 
-    //DUMMY
+      const response = await getCrewValidationDetails(crewCode);
+      if (response.success) {
+        set({ crewValidationDetails: response.data, isLoadingValidationDetails: false });
+      }
+      else {
+        set({
+          crewValidationError: response.message || 'Failed to fetch crew validation details',
+          isLoadingValidationDetails: false
+        });
+      }
+    } catch (error) {
+      const err = error as Error
+      set({
+        crewValidationError: err.message || 'An error occurred while fetching crew validation details',
+        isLoadingValidationDetails: false
+      });
+    }
 
-  }
-  ,
+  },
   fetchCrewRanks: async () => {
     set({ isLoadingRanks: true, ranksError: null });
     try {
