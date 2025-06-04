@@ -35,6 +35,7 @@ export default function AddCrew() {
   const [imagePreview, setImagePreview] = useState<string | null>("/image.png"); // For image preview
   const [isSubmitting, setIsSubmitting] = useState(false); // For loading state during submission
   const fileInputRef = useRef<HTMLInputElement>(null); // For triggering file input
+  const [duplicateError, setDuplicateError] = useState(false); // For duplicate crew code error
 
   const { fetchCrews: refreshCrewList } = useCrewStore.getState(); // To refresh list after adding
 
@@ -277,38 +278,52 @@ export default function AddCrew() {
         error.isAxiosError
       ) {
         const axiosError = error as AxiosError<ApiErrorResponse>;
+        const responseData = axiosError.response?.data;
 
-        // Get the error message from response.data.message if it exists
-        const errorMessage = axiosError.message;
-        let errorDetails = "";
+        if (
+          responseData?.message &&
+          typeof responseData.message === "string" &&
+          (responseData.message.includes("Unique constraint failed") ||
+            responseData.message.includes("dbo.CrewData"))
+        ) {
+          // Display a user-friendly message specifically for duplicate crew code
+          Swal.fire({
+            title: "Duplicate Crew Code",
+            text: "This Crew Code already exists in the system. Please use a different Crew Code.",
+            icon: "warning",
+          });
+          setDuplicateError(true);
+        } else {
+          const errorMessage = axiosError.message;
+          let errorDetails = "";
 
-        if (axiosError.response?.data) {
-          const responseData = axiosError.response.data;
+          if (axiosError.response?.data) {
+            const responseData = axiosError.response.data;
 
-          if (responseData.message && Array.isArray(responseData.message)) {
-            // Format all messages from the array
-            errorDetails = responseData.message
-              .map((msg: unknown) =>
-                typeof msg === "object"
-                  ? JSON.stringify(msg, null, 2)
-                  : String(msg)
-              )
-              .join("<br/>");
-          } else if (responseData.message) {
-            // Handle case where message might be a string
-            errorDetails = String(responseData.message);
+            if (responseData.message && Array.isArray(responseData.message)) {
+              errorDetails = responseData.message
+                .map((msg: unknown) =>
+                  typeof msg === "object"
+                    ? JSON.stringify(msg, null, 2)
+                    : String(msg)
+                )
+                .join("<br/>");
+            } else if (responseData.message) {
+              errorDetails = String(responseData.message);
+            }
           }
-        }
 
-        Swal.fire({
-          title: errorMessage,
-          html: errorDetails || axiosError.name,
-          icon: "error",
-          width: "auto",
-          customClass: {
-            htmlContainer: "swal2-html-container-custom",
-          },
-        });
+          // Rest of your error handling...
+          Swal.fire({
+            title: errorMessage,
+            html: errorDetails || axiosError.name,
+            icon: "error",
+            width: "auto",
+            customClass: {
+              htmlContainer: "swal2-html-container-custom",
+            },
+          });
+        }
       } else {
         // This is a regular error
         const err = error as Error;
@@ -519,7 +534,8 @@ export default function AddCrew() {
                           handleInputChange("crewCode", e.target.value)
                         }
                         className={`h-8 mt-1 text-sm ${
-                          submitted && formData.crewCode.length == 0
+                          (submitted && duplicateError) ||
+                          formData.crewCode.length == 0
                             ? "border-red-500 focus:!ring-red-500/50"
                             : ""
                         }`}
@@ -527,6 +543,11 @@ export default function AddCrew() {
                       {submitted && formData.crewCode.length == 0 && (
                         <p className="text-red-500 text-sm">
                           Please enter a valid crew code.
+                        </p>
+                      )}
+                      {duplicateError && (
+                        <p className="text-red-500 text-sm">
+                          This Crew Code already exists.
                         </p>
                       )}
                     </div>
