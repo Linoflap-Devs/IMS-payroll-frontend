@@ -18,6 +18,7 @@ import { useCrewStore } from "@/src/store/useCrewStore";
 import { addCrew, AddCrewDataForm } from "@/src/services/crew/crew.api"; // Ensure this path is correct
 import { useRef } from "react";
 import Image from "next/image";
+import { AxiosError } from "axios";
 
 export default function AddCrew() {
   const router = useRouter();
@@ -83,6 +84,18 @@ export default function AddCrew() {
     seamansBookIssueDate: "",
     seamansBookExpiryDate: "",
   });
+
+  const maritalStatuses = [
+    { value: "1", label: "Single" },
+    { value: "2", label: "Married" },
+    { value: "4", label: "Separated" },
+    { value: "3", label: "Widowed" },
+  ];
+
+  const sexOptions = [
+    { value: "1", label: "Male" },
+    { value: "2", label: "Female" },
+  ];
 
   useEffect(() => {
     fetchCities();
@@ -238,6 +251,7 @@ export default function AddCrew() {
           router.push("/home/crew");
         });
       } else {
+        console.error("API Error:", response);
         Swal.fire({
           title: "Error!",
           text:
@@ -247,17 +261,67 @@ export default function AddCrew() {
         });
       }
     } catch (error: unknown) {
-      const err = error as Error;
+      console.log(error);
 
-      Swal.fire({
-        title: err.message,
-        html: err.stack,
-        icon: "error",
-        width: "auto",
-        customClass: {
-          htmlContainer: "swal2-html-container-custom",
-        },
-      });
+      // Define interface for the error response structure
+      interface ApiErrorResponse {
+        message: string | unknown[];
+        // Add other properties if needed
+      }
+
+      // Check if error is an AxiosError
+      if (
+        error &&
+        typeof error === "object" &&
+        "isAxiosError" in error &&
+        error.isAxiosError
+      ) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+
+        // Get the error message from response.data.message if it exists
+        const errorMessage = axiosError.message;
+        let errorDetails = "";
+
+        if (axiosError.response?.data) {
+          const responseData = axiosError.response.data;
+
+          if (responseData.message && Array.isArray(responseData.message)) {
+            // Format all messages from the array
+            errorDetails = responseData.message
+              .map((msg: unknown) =>
+                typeof msg === "object"
+                  ? JSON.stringify(msg, null, 2)
+                  : String(msg)
+              )
+              .join("<br/>");
+          } else if (responseData.message) {
+            // Handle case where message might be a string
+            errorDetails = String(responseData.message);
+          }
+        }
+
+        Swal.fire({
+          title: errorMessage,
+          html: errorDetails || axiosError.name,
+          icon: "error",
+          width: "auto",
+          customClass: {
+            htmlContainer: "swal2-html-container-custom",
+          },
+        });
+      } else {
+        // This is a regular error
+        const err = error as Error;
+        Swal.fire({
+          title: err.message,
+          html: err.name,
+          icon: "error",
+          width: "auto",
+          customClass: {
+            htmlContainer: "swal2-html-container-custom",
+          },
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -333,6 +397,7 @@ export default function AddCrew() {
       });
   };
 
+  console.log("Form Data:", formData);
   return (
     <>
       <div className="h-full w-full p-4 pt-3">
@@ -355,6 +420,7 @@ export default function AddCrew() {
                   onClick={
                     activeTab === "details" ? handleCancel : handlePrevious
                   }
+                  disabled={isSubmitting} // Disable when submitting
                   className="px-4">
                   {activeTab === "details" ? (
                     <>
@@ -767,8 +833,13 @@ export default function AddCrew() {
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="1">Single</SelectItem>
-                                <SelectItem value="2">Married</SelectItem>
+                                {maritalStatuses.map((status) => (
+                                  <SelectItem
+                                    key={status.value}
+                                    value={status.value}>
+                                    {status.label}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                             {submitted &&
@@ -796,8 +867,13 @@ export default function AddCrew() {
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="1">Male</SelectItem>
-                                <SelectItem value="2">Female</SelectItem>
+                                {sexOptions.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                             {submitted && formData.sex.length == 0 && (
@@ -1284,20 +1360,40 @@ export default function AddCrew() {
                             <label className="text-sm text-gray-500 mb-1 block">
                               Marital Status
                             </label>
-                            <Select value={formData.maritalStatus} disabled>
+                            <Select
+                              value={formData.maritalStatus || ""}
+                              disabled>
                               <SelectTrigger className="w-full bg-gray-50">
                                 <SelectValue placeholder="Not specified" />
                               </SelectTrigger>
+                              <SelectContent>
+                                {maritalStatuses.map((status) => (
+                                  <SelectItem
+                                    key={status.value}
+                                    value={status.value.toString()}>
+                                    {status.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
                             </Select>
                           </div>
                           <div>
                             <label className="text-sm text-gray-500 mb-1 block">
                               Sex
                             </label>
-                            <Select value={formData.sex} disabled>
+                            <Select value={formData.sex || ""} disabled>
                               <SelectTrigger className="w-full bg-gray-50">
                                 <SelectValue placeholder="Not specified" />
                               </SelectTrigger>
+                              <SelectContent>
+                                {sexOptions.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
                             </Select>
                           </div>
                           <div>
@@ -1316,7 +1412,12 @@ export default function AddCrew() {
                               City
                             </label>
                             <Input
-                              value={formData.city}
+                              value={
+                                filteredCities.find(
+                                  (city) =>
+                                    city.CityID.toString() === formData.city
+                                )?.CityName
+                              }
                               disabled
                               className="bg-gray-50"
                             />
@@ -1326,7 +1427,13 @@ export default function AddCrew() {
                               Province
                             </label>
                             <Input
-                              value={formData.province}
+                              value={
+                                filteredProvinces.find(
+                                  (province) =>
+                                    province.ProvinceID.toString() ===
+                                    formData.province
+                                )?.ProvinceName
+                              }
                               disabled
                               className="bg-gray-50"
                             />

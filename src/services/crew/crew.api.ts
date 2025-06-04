@@ -272,7 +272,11 @@ export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewRespons
 
   // The endpoint from Insomnia was /crew/
   // Axios automatically sets 'Content-Type': 'multipart/form-data' when FormData is used.
-  const response = await axiosInstance.post<AddCrewResponse>("/crew/", formData);
+  const response = await axiosInstance.post<AddCrewResponse>("/crew/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
   return response.data;
 };
 
