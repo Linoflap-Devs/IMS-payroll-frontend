@@ -506,7 +506,6 @@ export default function CrewDetails() {
                             Middle Name
                           </label>
                           <Input
-                            placeholder="Enter middle name"
                             value={
                               isEditing
                                 ? editedCrew?.middleName || ""
@@ -1281,7 +1280,7 @@ export default function CrewDetails() {
                             placeholder="Register Date"
                             value={
                               formatDate(
-                                crewValidationDetails?.RegisterDate.toString()
+                                crewValidationDetails?.RegisterDate?.toString()
                               ) || "Not Registered."
                             }
                             readOnly
@@ -1327,7 +1326,6 @@ export default function CrewDetails() {
                             Middle Name
                           </label>
                           <Input
-                            placeholder="Enter middle name"
                             value={crewValidationDetails?.MiddleName || ""}
                             readOnly
                           />
@@ -1337,7 +1335,6 @@ export default function CrewDetails() {
                             Contact Number
                           </label>
                           <Input
-                            placeholder="Enter a Number"
                             value={crewValidationDetails?.ContactNumber || ""}
                             readOnly
                           />
@@ -1376,25 +1373,20 @@ export default function CrewDetails() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="md:col-span-2">
                           <label className="text-sm text-gray-500 mb-1 block">
-                            Selected File
+                            ID Type
                           </label>
                           <Input
-                            placeholder="Select File"
                             value={
-                              crewValidationDetails?.Documents.IDType || ""
+                              crewValidationDetails?.Documents?.IDType || ""
                             }
                             readOnly
                           />
                         </div>
                         <div className="md:col-span-2">
                           <label className="text-sm text-gray-500 mb-1 block">
-                            Number
+                            ID Number
                           </label>
-                          <Input
-                            placeholder="Enter File Number"
-                            value={crew.fileNumber || ""}
-                            readOnly
-                          />
+                          <Input value={crew.fileNumber || ""} readOnly />
                         </div>
 
                         <div>
