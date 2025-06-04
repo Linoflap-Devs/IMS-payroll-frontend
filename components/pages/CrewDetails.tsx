@@ -22,6 +22,7 @@ import { ImageModal } from "@/components/ImageModal";
 import { formatDate } from "@/types/crew";
 import AddCrewAllottee from "./crew/AddCrewAllottee";
 import { useLocationStore } from "@/src/store/useLocationStore";
+import Image from "next/image";
 
 export default function CrewDetails() {
   const searchParams = useSearchParams();
@@ -1413,10 +1414,12 @@ export default function CrewDetails() {
                             <div
                               className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
                               onClick={() => openModal("/placeholder.png")}>
-                              <img
+                              <Image
                                 src="/placeholder.png"
                                 alt="ID Attachment"
                                 className="object-cover w-full h-full transition-transform hover:scale-105"
+                                width={256}
+                                height={160}
                               />
                             </div>
                             <p className="flex justify-end text-xs text-gray-500 text-center mt-2">
@@ -1436,7 +1439,9 @@ export default function CrewDetails() {
                             <div
                               className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
                               onClick={() => openModal("/placeholder.png")}>
-                              <img
+                              <Image
+                                width={256}
+                                height={160}
                                 src="/placeholder.png"
                                 alt="Selfie with ID Attachment"
                                 className="object-cover w-full h-full transition-transform hover:scale-105"

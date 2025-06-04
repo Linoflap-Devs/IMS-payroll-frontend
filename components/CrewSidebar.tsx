@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Crew } from "@/types/crew";
 import { calculateAge } from "@/types/crew";
 import Base64Image from "./Base64Image";
+import Image from "next/image";
 
 interface CrewSidebarProps {
   crew: Crew;
@@ -18,20 +19,24 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
       <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
         <CardContent className="p-4 flex flex-col items-center text-center overflow-y-auto scrollbar-hide flex-1">
           <div className="w-60 h-60 min-w-[160px] bg-white rounded-md mb-3 flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
-            {/* <img
-              src="/image.png"
-              alt="Profile Logo"
-              className="w-full h-full object-contain p-1"
-            /> */}
-
-            <Base64Image
-              imageType={crew.profileImage?.ContentType}
-              alt="Crew Profile Image"
-              base64String={crew.profileImage?.FileContent}
-              width={60}
-              height={60}
-              className="object-cover w-full h-full"
-            />
+            {crew.profileImage ? (
+              <Base64Image
+                imageType={crew.profileImage.ContentType}
+                alt="Crew Profile Image"
+                base64String={crew.profileImage.FileContent}
+                width={60}
+                height={60}
+                className="object-contain w-full h-full"
+              />
+            ) : (
+              <Image
+                width={256}
+                height={160}
+                src="/image.png"
+                alt="Selfie with ID Attachment"
+                className="object-cover w-full h-full"
+              />
+            )}
           </div>
 
           <h2 className="text-lg font-bold mb-1 w-full">
