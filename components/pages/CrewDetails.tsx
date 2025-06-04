@@ -1414,7 +1414,7 @@ export default function CrewDetails() {
                             <div
                               className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
                               onClick={() => openModal("/placeholder.png")}>
-                              <Image
+                              <img
                                 src="/placeholder.png"
                                 alt="ID Attachment"
                                 className="object-cover w-full h-full transition-transform hover:scale-105"
@@ -1437,7 +1437,7 @@ export default function CrewDetails() {
                             <div
                               className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
                               onClick={() => openModal("/placeholder.png")}>
-                              <Image
+                              <img
                                 src="/placeholder.png"
                                 alt="Selfie with ID Attachment"
                                 className="object-cover w-full h-full transition-transform hover:scale-105"
