@@ -77,6 +77,7 @@ export default function CrewDetails() {
     fetchProvinces();
   }, [fetchCities, fetchProvinces]);
 
+  console.log("Crew Details:", crew);
   // Store province and city names along with IDs when data is loaded
   useEffect(() => {
     if (crew && provinces.length > 0 && cities.length > 0) {

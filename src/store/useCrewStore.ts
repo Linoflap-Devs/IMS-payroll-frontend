@@ -51,6 +51,7 @@ interface CrewStore {
   fetchCrewBasic: (crewCode: string) => Promise<void>;
   fetchCrewMovements: (crewCode: string) => Promise<void>;
   fetchCrewAllottees: (crewCode: string) => Promise<void>;
+  fetchCrewValidationDetails: (crewCode: string) => Promise<void>;
   fetchCrewRanks: () => Promise<void>;
   resetDetails: () => void;
   resetBasic: () => void;
@@ -180,7 +181,12 @@ export const useCrewStore = create<CrewStore>((set) => ({
       });
     }
   },
+  fetchCrewValidationDetails: async (crewCode: string) => {
 
+    //DUMMY
+
+  }
+  ,
   fetchCrewRanks: async () => {
     set({ isLoadingRanks: true, ranksError: null });
     try {

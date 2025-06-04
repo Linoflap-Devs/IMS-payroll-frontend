@@ -3,12 +3,15 @@ import { useCrewStore } from "@/src/store/useCrewStore";
 import { Crew, mapMaritalStatus, mapGender } from "@/types/crew";
 import { updateCrew } from "../services/crew/crew.api";
 import { toast } from "@/components/ui/use-toast";
+import { ICrewValidationDetails } from "@/types/crewValidation";
+
 
 export function useCrewDetails(crewId: string | null) {
   const [crew, setCrew] = useState<Crew | null>(null);
   const [editedCrew, setEditedCrew] = useState<Crew | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditLoading, setIsEditLoading] = useState(false);
+  const [crewValidationDetails, setCrewValidationDetails] = useState<ICrewValidationDetails | null>(null);
 
   const {
     crewDetails,
