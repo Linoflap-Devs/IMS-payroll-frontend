@@ -15,36 +15,24 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
-  Plus,
   MoreHorizontal,
   Trash,
   Filter,
-  IdCard,
-  FolderClock,
-  Users,
   Pencil,
-  ChevronDown,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-
-import { Card } from "../ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PiUserListFill } from "react-icons/pi";
 import { AddDeductionTypeDialog } from "@/components/dialogs/AddDeductionTypeDialog";
 import { EditDeductionTypeDialog } from "@/components/dialogs/EditDeductionTypeDialog";
 import Swal from "sweetalert2";
 import {
   getCrewDeductionList,
-  CrewDeductionItem,
 } from "@/src/services/deduction/crewDeduction.api";
 
 const deductionDescriptionData = [
@@ -177,28 +165,28 @@ export default function Deduction() {
   const crewDeductionColumns: ColumnDef<CrewDeduction>[] = [
     {
       accessorKey: "CrewCode",
-      header: ({ column }) => <div className="text-justify">Crew Code</div>,
+      header: () => <div className="text-justify">Crew Code</div>,
       cell: ({ row }) => (
         <div className="text-justify">{row.getValue("CrewCode")}</div>
       ),
     },
     {
       accessorKey: "crewName",
-      header: ({ column }) => <div className="text-justify">Name</div>,
+      header: () => <div className="text-justify">Name</div>,
       cell: ({ row }) => (
         <div className="text-justify">{row.getValue("crewName")}</div>
       ),
     },
     {
       accessorKey: "VesselName",
-      header: ({ column }) => <div className="text-center">Vessel</div>,
+      header: () => <div className="text-center">Vessel</div>,
       cell: ({ row }) => (
         <div className="text-center">{row.getValue("VesselName")}</div>
       ),
     },
     {
       accessorKey: "Rank",
-      header: ({ column }) => <div className="text-center">Rank</div>,
+      header: () => <div className="text-center">Rank</div>,
       cell: ({ row }) => (
         <div className="text-center">{row.getValue("Rank")}</div>
       ),
@@ -206,9 +194,9 @@ export default function Deduction() {
 
     {
       accessorKey: "actions",
-      header: ({ column }) => <div className="text-center">Actions</div>,
+      header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
-        const vessel = row.original;
+        // const vessel = row.original;
         return (
           <div className="text-center">
             <DropdownMenu>

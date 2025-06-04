@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -76,7 +75,7 @@ interface Application {
 export default function CrewApplication() {
   const [activeTab, setActiveTab] = useState("pending");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  // const [statusFilter, setStatusFilter] = useState("all");
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] =
@@ -145,8 +144,7 @@ export default function CrewApplication() {
             className={cn(
               "font-medium",
               statusClasses[status as keyof typeof statusClasses]
-            )}
-          >
+            )}>
             {row.original.ApplicationStatus}
           </Badge>
         );
@@ -234,27 +232,23 @@ export default function CrewApplication() {
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full flex flex-col h-full"
-              >
+                className="w-full flex flex-col h-full">
                 <div className="border-b">
                   <div className="px-4 pt-1">
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
                       <TabsTrigger
                         value="pending"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
+                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         Pending
                       </TabsTrigger>
                       <TabsTrigger
                         value="approved"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
+                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         Approved
                       </TabsTrigger>
                       <TabsTrigger
                         value="declined"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
+                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         Declined
                       </TabsTrigger>
                     </TabsList>
@@ -265,8 +259,7 @@ export default function CrewApplication() {
                   <TabsContent
                     key={tabValue}
                     value={tabValue}
-                    className="p-2 mt-0 overflow-y-auto flex-1"
-                  >
+                    className="p-2 mt-0 overflow-y-auto flex-1">
                     <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                       {/* Search and Filters */}
                       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
