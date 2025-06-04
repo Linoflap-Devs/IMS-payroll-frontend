@@ -38,7 +38,6 @@ import {
   CrewRemittanceItem,
 } from "@/src/services/remittance/crewRemittance.api";
 
-// Define the columns for the DataTable
 type Crew = {
   id: number;
   crewCode: string;
@@ -62,7 +61,6 @@ export default function Remittance() {
         if (res.success) {
           const mapped: (Crew & { crewName: string })[] = res.data.map(
             (item) => {
-              // Format middle name as initial if it exists
               const middleInitial = item.MiddleName
                 ? ` ${item.MiddleName.charAt(0)}.`
                 : "";
@@ -76,7 +74,7 @@ export default function Remittance() {
                 rankId: item.RankID,
                 rank: item.Rank,
                 vessel: item.Vessel,
-                // Format: FirstName M. LastName
+
                 crewName: `${item.FirstName}${middleInitial} ${item.LastName}`,
               };
             }
@@ -164,7 +162,6 @@ export default function Remittance() {
     },
   ];
 
-  // Filter crew based on search term and status filter
   const filteredCrew = crewData.filter((crew) => {
     const matchesSearch =
       crew.crewName.toLowerCase().includes(searchTerm.toLowerCase()) ||
