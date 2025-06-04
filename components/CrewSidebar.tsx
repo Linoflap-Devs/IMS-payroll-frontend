@@ -3,6 +3,7 @@ import { RiShieldStarLine } from "react-icons/ri";
 import { Card, CardContent } from "@/components/ui/card";
 import { Crew } from "@/types/crew";
 import { calculateAge } from "@/types/crew";
+import Base64Image from "./Base64Image";
 
 interface CrewSidebarProps {
   crew: Crew;
@@ -11,15 +12,25 @@ interface CrewSidebarProps {
 }
 
 export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
+  console.log("CrewSidebar rendered with crew:", crew.profileImage);
   return (
     <div className="md:col-span-1">
       <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
         <CardContent className="p-4 flex flex-col items-center text-center overflow-y-auto scrollbar-hide flex-1">
           <div className="w-60 h-60 min-w-[160px] bg-white rounded-md mb-3 flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
-            <img
+            {/* <img
               src="/image.png"
               alt="Profile Logo"
               className="w-full h-full object-contain p-1"
+            /> */}
+
+            <Base64Image
+              imageType={crew.profileImage?.ContentType}
+              alt="Crew Profile Image"
+              base64String={crew.profileImage?.FileContent}
+              width={60}
+              height={60}
+              className="object-cover w-full h-full"
             />
           </div>
 
@@ -37,8 +48,7 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
                   : crew.status === "Off board"
                   ? "bg-[#F5ECE4] text-orange-800 border-orange-300"
                   : "bg-gray-100 text-gray-800 border-gray-300" // Default styling if status is neither
-              }`}
-            >
+              }`}>
               {crew.status}
             </div>
           </div>

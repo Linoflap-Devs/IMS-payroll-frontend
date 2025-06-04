@@ -50,6 +50,11 @@ export interface Crew {
   issuedDate?: string;
   expirationDate?: string;
   movements?: [];
+  profileImage?: {
+    FileContent: string;
+    FileExtension: string;
+    ContentType: string;
+  }
   allottees?: Allottee[];
 }
 

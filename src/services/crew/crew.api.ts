@@ -42,6 +42,11 @@ export interface CrewDetails {
   SRIBNumber: string;
   SRIBIssueDate: string;
   SRIBExpiredDate: string;
+  ProfileImage?: {
+    FileContent: string;
+    FileExtension: string;
+    ContentType: string;
+  }
 
 }
 

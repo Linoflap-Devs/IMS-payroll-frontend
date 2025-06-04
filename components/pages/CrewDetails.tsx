@@ -20,7 +20,6 @@ import { CrewSidebar } from "@/components/CrewSidebar";
 import { CrewHeader } from "@/components/CrewHeader";
 import { ImageModal } from "@/components/ImageModal";
 import { formatDate } from "@/types/crew";
-import Image from "next/image";
 import AddCrewAllottee from "./crew/AddCrewAllottee";
 import { useLocationStore } from "@/src/store/useLocationStore";
 

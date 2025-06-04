@@ -1,8 +1,8 @@
-import Image from "next/image";
+import Image, { ImageProps } from "next/image";
 
-interface Base64ImageProps {
-  imageType: string;
-  base64String: string;
+interface Base64ImageProps extends Omit<ImageProps, "src"> {
+  imageType?: string;
+  base64String?: string;
   alt: string;
   width: number;
   height: number;
@@ -14,6 +14,7 @@ const Base64Image = ({
   alt,
   width,
   height,
+  ...props
 }: Base64ImageProps) => {
   return (
     <div>
@@ -23,6 +24,7 @@ const Base64Image = ({
         width={width}
         height={height}
         unoptimized={true}
+        {...props}
       />
     </div>
   );

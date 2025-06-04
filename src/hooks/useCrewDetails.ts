@@ -62,6 +62,7 @@ export function useCrewDetails(crewId: string | null) {
         seamansBookNumber: crewDetails.SRIBNumber,
         seamansBookIssueDate: crewDetails.SRIBIssueDate,
         seamansBookExpiryDate: crewDetails.SRIBExpiredDate,
+        profileImage: crewDetails.ProfileImage
       };
 
       setCrew(mappedCrew);
