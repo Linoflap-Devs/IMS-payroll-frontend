@@ -48,12 +48,21 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
             <div
               className={`text-sm px-2 py-0.5 rounded-full border flex items-center gap-1 flex-shrink-0 ${
                 crew.status === "On board"
-                  ? "bg-[#EBF5E4] text-green-800 border-green-300"
+                  ? "bg-green-100 text-green-800 border-green-300"
                   : crew.status === "Off board"
                   ? "bg-[#F5ECE4] text-orange-800 border-orange-300"
                   : "bg-gray-100 text-gray-800 border-gray-300" // Default styling if status is neither
               }`}>
-              {crew.status}
+              <p
+                className={`p-0.5 px-2 ${
+                  crew.status === "On board"
+                    ? "text-green-800"
+                    : crew.status === "Off board"
+                    ? "text-orange-800"
+                    : "text-gray-800"
+                }`}>
+                {crew.status}
+              </p>
             </div>
           </div>
 

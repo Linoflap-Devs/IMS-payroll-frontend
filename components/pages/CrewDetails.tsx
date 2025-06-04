@@ -1252,8 +1252,22 @@ export default function CrewDetails() {
                         <h3 className="text-lg font-semibold mb-4 text-primary">
                           Crew Sign up Details
                         </h3>
-                        <div className="text-sm px-5 mb-4 py-1 bg-gray-100 text-gray-800 rounded-full border border-gray-200 flex items-center gap-1 flex-shrink-0">
-                          <p className="pt-0">pending</p>
+                        <div
+                          className={`text-sm px-5 mb-4 py-1 ${
+                            crewValidationDetails?.IsVerified
+                              ? "bg-green-100 text-green-800 border-green-600"
+                              : "bg-yellow-100 text-yellow-800 border-yellow-600"
+                          } rounded-full border  flex items-center gap-1 flex-shrink-0`}>
+                          <p
+                            className={`${
+                              crewValidationDetails?.IsVerified
+                                ? "text-green-800"
+                                : "text-yellow-800"
+                            }`}>
+                            {crewValidationDetails?.IsVerified
+                              ? "Verified"
+                              : "Pending"}
+                          </p>
                         </div>
                       </div>
 
