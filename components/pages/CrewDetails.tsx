@@ -22,8 +22,8 @@ import { ImageModal } from "@/components/ImageModal";
 import { formatDate, formatDayMonthYear } from "@/types/crew";
 import AddCrewAllottee from "./crew/AddCrewAllottee";
 import { useLocationStore } from "@/src/store/useLocationStore";
-import Image from "next/image";
 import Base64Image from "../Base64Image";
+import Image from "next/image";
 
 export default function CrewDetails() {
   const searchParams = useSearchParams();
@@ -357,7 +357,7 @@ export default function CrewDetails() {
       </div>
     );
 
-  console.log("Crew Details:", crewValidationDetails?.Documents[0]?.IDImages);
+  // console.log("Crew Details:", crewValidationDetails?.Documents[0]?.IDImages);
 
   return (
     <div className="h-full w-full p-4 pt-3">
@@ -1421,12 +1421,12 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${
-                              crewValidationDetails?.Documents[0]?.IDType
+                              crewValidationDetails?.Documents?.[0]?.IDType
                                 ? ""
                                 : "text-gray-400"
                             }`}
                             value={
-                              crewValidationDetails?.Documents[0]?.IDType ||
+                              crewValidationDetails?.Documents?.[0]?.IDType ||
                               "Not Registered"
                             }
                             readOnly
@@ -1438,12 +1438,12 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${
-                              crewValidationDetails?.Documents[0]?.IDNumber
+                              crewValidationDetails?.Documents?.[0]?.IDNumber
                                 ? ""
                                 : "text-gray-400"
                             }`}
                             value={
-                              crewValidationDetails?.Documents[0]?.IDNumber ||
+                              crewValidationDetails?.Documents?.[0]?.IDNumber ||
                               "Not Registered"
                             }
                             readOnly
@@ -1457,14 +1457,14 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             className={`${
-                              crewValidationDetails?.Documents[0]?.IDIssueDate
+                              crewValidationDetails?.Documents?.[0]?.IDIssueDate
                                 ? ""
                                 : "text-gray-400"
                             }`}
                             value={
-                              crewValidationDetails?.Documents[0]?.IDIssueDate
+                              crewValidationDetails?.Documents?.[0]?.IDIssueDate
                                 ? formatDate(
-                                    crewValidationDetails.Documents[0].IDIssueDate.toString()
+                                    crewValidationDetails.Documents?.[0].IDIssueDate?.toString()
                                   )
                                 : "Not Registered"
                             }
@@ -1479,14 +1479,16 @@ export default function CrewDetails() {
                             type="text"
                             placeholder="Expiration Date"
                             className={`${
-                              crewValidationDetails?.Documents[0]?.IDExpiryDate
+                              crewValidationDetails?.Documents?.[0]
+                                ?.IDExpiryDate
                                 ? ""
                                 : "text-gray-400"
                             }`}
                             value={
-                              crewValidationDetails?.Documents[0]?.IDExpiryDate
+                              crewValidationDetails?.Documents?.[0]
+                                ?.IDExpiryDate
                                 ? formatDate(
-                                    crewValidationDetails.Documents[0].IDExpiryDate.toString()
+                                    crewValidationDetails.Documents?.[0].IDExpiryDate?.toString()
                                   )
                                 : "Not Registered"
                             }
@@ -1510,15 +1512,15 @@ export default function CrewDetails() {
                           </label>
                           <div className="border border-gray-200 rounded-lg p-4">
                             <h4 className="text-sm font-medium text-gray-800 mb-2">
-                              {crewValidationDetails?.Documents[0]?.IDImages[0]
-                                ?.Filename || "Not Uploaded"}
+                              {crewValidationDetails?.Documents?.[0]
+                                ?.IDImages?.[0]?.Filename || "Not Uploaded"}
                             </h4>
                             <div
                               className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
                               onClick={() => {
                                 const imageData =
-                                  crewValidationDetails?.Documents[0]
-                                    ?.IDImages[0];
+                                  crewValidationDetails?.Documents?.[0]
+                                    ?.IDImages?.[0];
                                 if (
                                   imageData?.FileContent &&
                                   imageData?.ContentType
@@ -1527,26 +1529,46 @@ export default function CrewDetails() {
                                   openModal(fullDataUrl);
                                 }
                               }}>
-                              <Base64Image
-                                width={256}
-                                height={160}
-                                imageType={
-                                  crewValidationDetails?.Documents[0]
-                                    ?.IDImages[0]?.ContentType
-                                }
-                                alt="ID Attachment"
-                                base64String={
-                                  crewValidationDetails?.Documents[0]
-                                    ?.IDImages[0]?.FileContent
-                                }
-                                className="object-cover w-full h-full"
-                              />
+                              {crewValidationDetails?.Documents?.[0]
+                                ?.IDImages?.[0]?.FileContent ? (
+                                <Base64Image
+                                  width={256}
+                                  height={160}
+                                  imageType={
+                                    crewValidationDetails?.Documents?.[0]
+                                      ?.IDImages?.[0]?.ContentType
+                                  }
+                                  alt="ID Attachment"
+                                  base64String={
+                                    crewValidationDetails?.Documents?.[0]
+                                      ?.IDImages?.[0]?.FileContent
+                                  }
+                                  className="object-cover w-full h-full"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                  <Image
+                                    src="/placeholder.png"
+                                    alt="No Image Available"
+                                    width={256}
+                                    height={160}
+                                    className="object-cover"
+                                  />
+                                </div>
+                              )}
                             </div>
                             <p className="flex justify-end text-xs text-gray-500 text-center mt-2">
-                              Uploaded &middot;{" "}
-                              {formatDayMonthYear(
-                                crewValidationDetails?.RegisterDate?.toString()
-                              ) || "Not Registered"}
+                              {crewValidationDetails?.Documents?.[0]
+                                ?.IDImages?.[0]?.FileContent ? (
+                                <>
+                                  Uploaded &middot;{" "}
+                                  {formatDayMonthYear(
+                                    crewValidationDetails?.RegisterDate?.toString()
+                                  )}
+                                </>
+                              ) : (
+                                "Not Uploaded"
+                              )}
                             </p>
                           </div>
                         </div>
@@ -1719,9 +1741,15 @@ export default function CrewDetails() {
                                   No selfie images uploaded
                                 </h4>
                                 <div className="w-64 h-40 overflow-hidden rounded mx-auto bg-gray-100 flex items-center justify-center">
-                                  <p className="text-gray-400">
-                                    No selfie images available
-                                  </p>
+                                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                    <Image
+                                      src="/placeholder.png"
+                                      alt="No Image Available"
+                                      width={256}
+                                      height={160}
+                                      className="object-cover"
+                                    />
+                                  </div>
                                 </div>
                                 <p className="flex justify-end text-xs text-gray-500 text-center mt-2">
                                   Not uploaded
