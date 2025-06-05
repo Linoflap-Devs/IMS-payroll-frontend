@@ -23,6 +23,7 @@ import { formatDate } from "@/types/crew";
 import AddCrewAllottee from "./crew/AddCrewAllottee";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import Image from "next/image";
+import Base64Image from "../Base64Image";
 
 export default function CrewDetails() {
   const searchParams = useSearchParams();
@@ -354,6 +355,8 @@ export default function CrewDetails() {
         <p>Crew member not found.</p>
       </div>
     );
+
+  console.log("Crew Details:", crewValidationDetails?.Documents[0]?.IDImages);
 
   return (
     <div className="h-full w-full p-4 pt-3">
@@ -1417,12 +1420,12 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${
-                              crewValidationDetails?.Documents?.IDType
+                              crewValidationDetails?.Documents[0]?.IDType
                                 ? ""
                                 : "text-gray-400"
                             }`}
                             value={
-                              crewValidationDetails?.Documents?.IDType ||
+                              crewValidationDetails?.Documents[0]?.IDType ||
                               "Not Registered"
                             }
                             readOnly
@@ -1434,12 +1437,12 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${
-                              crewValidationDetails?.Documents?.IDNumber
+                              crewValidationDetails?.Documents[0]?.IDNumber
                                 ? ""
                                 : "text-gray-400"
                             }`}
                             value={
-                              crewValidationDetails?.Documents?.IDNumber ||
+                              crewValidationDetails?.Documents[0]?.IDNumber ||
                               "Not Registered"
                             }
                             readOnly
@@ -1453,14 +1456,14 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             className={`${
-                              crewValidationDetails?.Documents?.IDIssueDate
+                              crewValidationDetails?.Documents[0]?.IDIssueDate
                                 ? ""
                                 : "text-gray-400"
                             }`}
                             value={
-                              crewValidationDetails?.Documents?.IDIssueDate
+                              crewValidationDetails?.Documents[0]?.IDIssueDate
                                 ? formatDate(
-                                    crewValidationDetails.Documents.IDIssueDate.toString()
+                                    crewValidationDetails.Documents[0].IDIssueDate.toString()
                                   )
                                 : "Not Registered"
                             }
@@ -1475,14 +1478,14 @@ export default function CrewDetails() {
                             type="text"
                             placeholder="Expiration Date"
                             className={`${
-                              crewValidationDetails?.Documents?.IDExpiryDate
+                              crewValidationDetails?.Documents[0]?.IDExpiryDate
                                 ? ""
                                 : "text-gray-400"
                             }`}
                             value={
-                              crewValidationDetails?.Documents?.IDExpiryDate
+                              crewValidationDetails?.Documents[0]?.IDExpiryDate
                                 ? formatDate(
-                                    crewValidationDetails.Documents.IDExpiryDate.toString()
+                                    crewValidationDetails.Documents[0].IDExpiryDate.toString()
                                   )
                                 : "Not Registered"
                             }
@@ -1510,13 +1513,31 @@ export default function CrewDetails() {
                             </h4>
                             <div
                               className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
-                              onClick={() => openModal("/placeholder.png")}>
-                              <Image
-                                src="/placeholder.png"
-                                alt="ID Attachment"
-                                className="object-cover w-full h-full transition-transform hover:scale-105"
+                              onClick={() => {
+                                const imageData =
+                                  crewValidationDetails?.Documents[0]
+                                    ?.IDImages[0];
+                                if (
+                                  imageData?.FileContent &&
+                                  imageData?.ContentType
+                                ) {
+                                  const fullDataUrl = `data:${imageData.ContentType};base64,${imageData.FileContent}`;
+                                  openModal(fullDataUrl);
+                                }
+                              }}>
+                              <Base64Image
                                 width={256}
                                 height={160}
+                                imageType={
+                                  crewValidationDetails?.Documents[0]
+                                    ?.IDImages[0]?.ContentType
+                                }
+                                alt="ID Attachment"
+                                base64String={
+                                  crewValidationDetails?.Documents[0]
+                                    ?.IDImages[0]?.FileContent
+                                }
+                                className="object-cover w-full h-full"
                               />
                             </div>
                             <p className="flex justify-end text-xs text-gray-500 text-center mt-2">

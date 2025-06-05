@@ -18,7 +18,7 @@ export interface ICrewValidationDetails {
             FileExtension: string;
             FileContent: string;
         }[];
-    }
+    }[]
 }
 
 export interface ICrewValidationResponse {
