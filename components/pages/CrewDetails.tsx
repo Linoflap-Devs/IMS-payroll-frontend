@@ -452,7 +452,7 @@ export default function CrewDetails() {
                       <TabsTrigger
                         value="allottee"
                         className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
-                        View Allottee
+                        Allottee Profile
                       </TabsTrigger>
                       <TabsTrigger
                         value="validation"
