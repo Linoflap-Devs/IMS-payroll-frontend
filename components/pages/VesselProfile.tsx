@@ -15,7 +15,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -25,13 +24,10 @@ import {
   MoreHorizontal,
   Trash,
   Filter,
-  IdCard,
-  FolderClock,
   Users,
   Pencil,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 
@@ -47,22 +43,19 @@ import Swal from "sweetalert2";
 import {
   getVesselList,
   VesselItem,
-  addVessel,
   deleteVessel,
 } from "@/src/services/vessel/vessel.api";
 import {
   getVesselTypeList,
   VesselTypeItem,
-  addVesselType,
   deleteVesselType,
 } from "@/src/services/vessel/vesselType.api";
 import {
   getVesselPrincipalList,
   VesselPrincipalItem,
-  VesselPrincipalResponse,
-  addVesselPrincipal,
   deleteVesselPrincipal,
 } from "@/src/services/vessel/vesselPrincipal.api";
+import { NewVesselItem } from "@/types/vessel";
 
 // Define the shape used by the DataTable
 interface Vessel {
@@ -135,22 +128,24 @@ export default function VesselProfile() {
     setVesselPrincipalData((prevData) => [...prevData, newItem]);
   };
 
-  const handleVesselAdded = (newVessel: any) => {
+  const handleVesselAdded = (newVessel: NewVesselItem) => {
     // Convert API response format to your internal format
     const newItem: Vessel = {
       vesselId: newVessel.VesselID,
       vesselCode: newVessel.VesselCode,
       vesselName: newVessel.VesselName,
-      vesselType: newVessel.VesselType,
+      vesselType: parseInt(newVessel.VesselType),
       vesselTypeName: newVessel.VesselType,
       principalName: newVessel.Principal,
-      principalID: newVessel.Principal,
+      principalID: parseInt(newVessel.Principal),
       status: newVessel.IsActive === 1 ? "Active" : "Inactive",
     };
-
-    // Add the new vessel to the list
+    // Add the new
+    //  vessel to the list
     setVesselData((prevData) => [...prevData, newItem]);
   };
+
+  console.log("Vessel Data:", vesselData);
 
   const handleVesselUpdated = (updatedVessel: any) => {
     setVesselData((prevData) =>
@@ -170,6 +165,8 @@ export default function VesselProfile() {
       )
     );
   };
+
+  console.log(vesselData);
 
   const handleVesselTypeUpdated = (updatedVesselType: VesselTypeItem) => {
     // Update the vessel type in the list
@@ -467,6 +464,8 @@ export default function VesselProfile() {
             );
           }
         };
+
+        console.log(vesselData);
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
