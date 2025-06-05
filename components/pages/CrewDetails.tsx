@@ -26,6 +26,7 @@ import Base64Image from "../Base64Image";
 import Image from "next/image";
 import { verifyCrew } from "@/src/services/crew/crewValidation.api";
 import { toast } from "../ui/use-toast";
+import { Calendar } from "lucide-react";
 
 export default function CrewDetails() {
   const searchParams = useSearchParams();
@@ -649,6 +650,7 @@ export default function CrewDetails() {
                           <label className="text-sm text-gray-500 mb-1 block">
                             Birthdate
                           </label>
+                          {/* <Calendar strokeWidth={1.5} size={10} /> */}
                           <Input
                             type="date"
                             placeholder="Date of Birth"
@@ -671,6 +673,7 @@ export default function CrewDetails() {
                                 : ""
                             }
                           />
+
                           {submitted &&
                             isEditing &&
                             !editedCrew?.dateOfBirth && (

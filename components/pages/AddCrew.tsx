@@ -19,6 +19,7 @@ import { addCrew, AddCrewDataForm } from "@/src/services/crew/crew.api"; // Ensu
 import { useRef } from "react";
 import Image from "next/image";
 import { AxiosError } from "axios";
+import { Checkbox } from "../ui/checkbox";
 
 export default function AddCrew() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function AddCrew() {
   const [isSubmitting, setIsSubmitting] = useState(false); // For loading state during submission
   const fileInputRef = useRef<HTMLInputElement>(null); // For triggering file input
   const [duplicateError, setDuplicateError] = useState(false); // For duplicate crew code error
+  const [noMiddleName, setNoMiddleName] = useState(false); // For no middle name checkbox
 
   const { fetchCrews: refreshCrewList } = useCrewStore.getState(); // To refresh list after adding
 
@@ -339,6 +341,7 @@ export default function AddCrew() {
       }
     } finally {
       setIsSubmitting(false);
+      // setDuplicateError(false); // Reset duplicate error state
     }
   };
 
@@ -534,7 +537,8 @@ export default function AddCrew() {
                           handleInputChange("crewCode", e.target.value)
                         }
                         className={`h-8 mt-1 text-sm ${
-                          (submitted && duplicateError) ||
+                          submitted &&
+                          duplicateError &&
                           formData.crewCode.length == 0
                             ? "border-red-500 focus:!ring-red-500/50"
                             : ""
@@ -819,12 +823,30 @@ export default function AddCrew() {
                             )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
-                              Middle Name
-                            </label>
+                            <div className="flex items-center space-x-10">
+                              <label className="text-sm text-gray-500 mb-1 block">
+                                Middle Name
+                              </label>
+                              <div className="flex items-center space-x-2 mb-1">
+                                <Checkbox
+                                  id="middlename"
+                                  className=""
+                                  onClick={() => {
+                                    setNoMiddleName((prev) => !prev);
+                                  }}
+                                />
+                                <label
+                                  htmlFor="middlename"
+                                  className="text-sm text-gray-500">
+                                  No Middle Name
+                                </label>
+                              </div>
+                            </div>
+
                             <Input
                               placeholder="Enter middle name"
                               value={formData.middleName}
+                              disabled={noMiddleName}
                               onChange={(e) =>
                                 handleInputChange("middleName", e.target.value)
                               }
