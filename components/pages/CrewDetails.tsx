@@ -80,7 +80,11 @@ export default function CrewDetails() {
     setEditedCrew,
     isEditLoading,
     crewValidationDetails,
+    isCrewVerified,
   } = useCrewDetails(crewId);
+
+  console.log("Crew Details:", crewValidationDetails);
+  console.log(isCrewVerified);
 
   useEffect(() => {
     if (handleVerify) {
@@ -420,6 +424,7 @@ export default function CrewDetails() {
           isDeletingAllottee={isDeletingAllottee}
           handleTriggerVerify={handleTriggerVerify}
           isVerifying={isVerifying}
+          isCrewVerified={isCrewVerified}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -1298,17 +1303,17 @@ export default function CrewDetails() {
                         </h3>
                         <div
                           className={`text-sm px-5 mb-4 py-1 ${
-                            crewValidationDetails?.IsVerified
+                            crewValidationDetails?.IsVerified === 1
                               ? "bg-green-100 text-green-800 border-green-600"
                               : "bg-yellow-100 text-yellow-800 border-yellow-600"
                           } rounded-full border  flex items-center gap-1 flex-shrink-0`}>
                           <p
                             className={`${
-                              crewValidationDetails?.IsVerified
+                              crewValidationDetails?.IsVerified === 1
                                 ? "text-green-800"
                                 : "text-yellow-800"
                             }`}>
-                            {crewValidationDetails?.IsVerified
+                            {crewValidationDetails?.IsVerified === 1
                               ? "Verified"
                               : crewValidationDetails?.IsVerified === null
                               ? "Not Registered"

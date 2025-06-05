@@ -43,6 +43,7 @@ interface CrewHeaderProps {
   isEditLoading: boolean;
   handleTriggerVerify: () => void;
   isVerifying: boolean;
+  isCrewVerified: number | null;
 }
 
 export function CrewHeader({
@@ -63,6 +64,7 @@ export function CrewHeader({
   isEditLoading,
   handleTriggerVerify,
   isVerifying,
+  isCrewVerified,
 }: CrewHeaderProps) {
   return (
     <>
@@ -257,7 +259,7 @@ export function CrewHeader({
             <Button
               className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40"
               onClick={handleTriggerVerify}
-              disabled={isVerifying}>
+              disabled={isVerifying || isCrewVerified === 1}>
               {isVerifying ? (
                 <>
                   <Loader2 className="animate-spin" />
@@ -266,7 +268,7 @@ export function CrewHeader({
               ) : (
                 <>
                   <TbUserCheck className="h-4 w-4 mr-2" />
-                  Verify Crew
+                  {isCrewVerified === 1 ? <>Verified</> : <>Verify Crew</>}
                 </>
               )}
             </Button>

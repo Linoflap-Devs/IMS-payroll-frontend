@@ -24,7 +24,8 @@ export function useCrewDetails(crewId: string | null) {
     resetBasic,
     crewValidationDetails,
     isLoadingValidationDetails,
-    fetchCrewValidationDetails
+    fetchCrewValidationDetails,
+    isCrewVerified
   } = useCrewStore();
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export function useCrewDetails(crewId: string | null) {
       fetchCrewDetails(crewId);
       fetchCrewBasic(crewId);
       fetchCrewValidationDetails(crewId);
+
     }
     return () => {
       resetDetails();
@@ -172,5 +174,6 @@ export function useCrewDetails(crewId: string | null) {
     isEditLoading,
     crewValidationDetails,
     isLoadingValidationDetails,
+    isCrewVerified
   };
 }

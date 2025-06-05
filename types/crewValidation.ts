@@ -6,7 +6,7 @@ export interface ICrewValidationDetails {
     MiddleName: string | null;
     LastName: string;
     ContactNumber: string;
-    IsVerified: boolean;
+    IsVerified: number;
     City: string;
     Province: string;
     Documents: {

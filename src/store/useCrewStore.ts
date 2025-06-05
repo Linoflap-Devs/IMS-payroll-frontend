@@ -47,6 +47,7 @@ interface CrewStore {
   crewValidationDetails: ICrewValidationDetails | null;
   isLoadingValidationDetails: boolean;
   crewValidationError: string | null;
+  isCrewVerified: number | null;
 
   // Crew rank state
   crewRanks: CrewRankItem[];
@@ -89,6 +90,7 @@ export const useCrewStore = create<CrewStore>((set) => ({
   crewValidationDetails: null,
   isLoadingValidationDetails: false,
   crewValidationError: null,
+  isCrewVerified: null,
 
   crewRanks: [],
   isLoadingRanks: false,
@@ -199,6 +201,7 @@ export const useCrewStore = create<CrewStore>((set) => ({
       const response = await getCrewValidationDetails(crewCode);
       if (response.success) {
         set({ crewValidationDetails: response.data, isLoadingValidationDetails: false });
+        set({ isCrewVerified: response.data?.IsVerified || null });
       }
       else {
         set({
