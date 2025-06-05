@@ -45,6 +45,7 @@ export default function CrewDetails() {
   const [submitted, setSubmitted] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [provinceSearch, setProvinceSearch] = useState("");
+  const [currentSelfieIndex, setCurrentSelfieIndex] = useState(0);
 
   const [displayProvinceCity, setDisplayProvinceCity] = useState({
     provinceName: "",
@@ -1550,31 +1551,183 @@ export default function CrewDetails() {
                           </div>
                         </div>
 
+                        {/* selfiewithID */}
+
                         <div>
                           <label className="text-sm text-gray-500 mb-1 block">
                             Selfie with ID Attachment
                           </label>
                           <div className="border border-gray-200 rounded-lg p-4">
-                            <h4 className="text-sm font-medium text-gray-800 mb-2">
-                              placeholder..png
-                            </h4>
-                            <div
-                              className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
-                              onClick={() => openModal("/placeholder.png")}>
-                              <Image
-                                width={256}
-                                height={160}
-                                src="/placeholder.png"
-                                alt="Selfie with ID Attachment"
-                                className="object-cover w-full h-full transition-transform hover:scale-105"
-                              />
-                            </div>
-                            <p className="flex justify-end text-xs text-gray-500 text-center mt-2">
-                              Uploaded &middot;{" "}
-                              {formatDayMonthYear(
-                                crewValidationDetails?.RegisterDate?.toString()
-                              ) || "Not Registered"}
-                            </p>
+                            {crewValidationDetails?.Documents?.[0]?.IDImages &&
+                            crewValidationDetails.Documents[0].IDImages.length >
+                              1 ? (
+                              <>
+                                <h4 className="text-sm font-medium text-gray-800 mb-2">
+                                  {currentSelfieIndex + 1} of{" "}
+                                  {crewValidationDetails.Documents[0].IDImages
+                                    .length - 1}{" "}
+                                  Selfie with ID Image/s
+                                </h4>
+                                <div className="relative">
+                                  <div
+                                    className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
+                                    onClick={() => {
+                                      const imageData =
+                                        crewValidationDetails?.Documents?.[0]
+                                          ?.IDImages?.[currentSelfieIndex + 1];
+                                      if (
+                                        imageData?.FileContent &&
+                                        imageData?.ContentType
+                                      ) {
+                                        const fullDataUrl = `data:${imageData.ContentType};base64,${imageData.FileContent}`;
+                                        openModal(fullDataUrl);
+                                      }
+                                    }}>
+                                    {crewValidationDetails?.Documents?.[0]
+                                      ?.IDImages?.[currentSelfieIndex + 1]
+                                      ?.FileContent ? (
+                                      <Base64Image
+                                        width={256}
+                                        height={160}
+                                        imageType={
+                                          crewValidationDetails.Documents[0]
+                                            .IDImages[currentSelfieIndex + 1]
+                                            ?.ContentType || "image/jpeg"
+                                        }
+                                        alt={`Selfie with ID ${
+                                          currentSelfieIndex + 1
+                                        }`}
+                                        base64String={
+                                          crewValidationDetails.Documents[0]
+                                            .IDImages[currentSelfieIndex + 1]
+                                            ?.FileContent
+                                        }
+                                        className="object-cover w-full h-full transition-transform hover:scale-105"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                        <p className="text-gray-400">
+                                          Image not available
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {crewValidationDetails?.Documents?.[0]
+                                    ?.IDImages &&
+                                    crewValidationDetails.Documents[0].IDImages
+                                      .length > 2 && (
+                                      <>
+                                        <button
+                                          className="absolute left-0 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-1 shadow-md"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const totalImages =
+                                              (crewValidationDetails
+                                                ?.Documents?.[0]?.IDImages
+                                                ?.length || 0) - 1;
+                                            setCurrentSelfieIndex((prev) =>
+                                              prev === 0
+                                                ? Math.max(0, totalImages - 1)
+                                                : prev - 1
+                                            );
+                                          }}>
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-5 w-5"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M15 19l-7-7 7-7"
+                                            />
+                                          </svg>
+                                        </button>
+                                        <button
+                                          className="absolute right-0 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-1 shadow-md"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const totalImages =
+                                              (crewValidationDetails
+                                                ?.Documents?.[0]?.IDImages
+                                                ?.length || 0) - 1;
+                                            setCurrentSelfieIndex((prev) =>
+                                              prev ===
+                                              Math.max(0, totalImages - 1)
+                                                ? 0
+                                                : prev + 1
+                                            );
+                                          }}>
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-5 w-5"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M9 5l7 7-7 7"
+                                            />
+                                          </svg>
+                                        </button>
+                                      </>
+                                    )}
+
+                                  {crewValidationDetails?.Documents?.[0]
+                                    ?.IDImages &&
+                                    crewValidationDetails.Documents[0].IDImages
+                                      .length > 2 && (
+                                      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                                        {Array.from({
+                                          length: Math.max(
+                                            0,
+                                            (crewValidationDetails.Documents[0]
+                                              .IDImages.length || 0) - 1
+                                          ),
+                                        }).map((_, index) => (
+                                          <button
+                                            key={index}
+                                            className={`h-2 w-2 rounded-full ${
+                                              currentSelfieIndex === index
+                                                ? "bg-blue-500"
+                                                : "bg-gray-300"
+                                            }`}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setCurrentSelfieIndex(index);
+                                            }}
+                                          />
+                                        ))}
+                                      </div>
+                                    )}
+                                </div>
+                                <p className="flex justify-end text-xs text-gray-500 text-center mt-2">
+                                  Uploaded &middot;{" "}
+                                  {formatDayMonthYear(
+                                    crewValidationDetails?.RegisterDate?.toString()
+                                  ) || "Not Registered"}
+                                </p>
+                              </>
+                            ) : (
+                              <>
+                                <h4 className="text-sm font-medium text-gray-800 mb-2">
+                                  No selfie images uploaded
+                                </h4>
+                                <div className="w-64 h-40 overflow-hidden rounded mx-auto bg-gray-100 flex items-center justify-center">
+                                  <p className="text-gray-400">
+                                    No selfie images available
+                                  </p>
+                                </div>
+                                <p className="flex justify-end text-xs text-gray-500 text-center mt-2">
+                                  Not uploaded
+                                </p>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
