@@ -19,7 +19,7 @@ import { useCrewDetails } from "@/src/hooks/useCrewDetails";
 import { CrewSidebar } from "@/components/CrewSidebar";
 import { CrewHeader } from "@/components/CrewHeader";
 import { ImageModal } from "@/components/ImageModal";
-import { formatDate } from "@/types/crew";
+import { formatDate, formatDayMonthYear } from "@/types/crew";
 import AddCrewAllottee from "./crew/AddCrewAllottee";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import Image from "next/image";
@@ -1509,7 +1509,8 @@ export default function CrewDetails() {
                           </label>
                           <div className="border border-gray-200 rounded-lg p-4">
                             <h4 className="text-sm font-medium text-gray-800 mb-2">
-                              sampleimagename.jpg
+                              {crewValidationDetails?.Documents[0]?.IDImages[0]
+                                ?.Filename || "Not Uploaded"}
                             </h4>
                             <div
                               className="w-64 h-40 overflow-hidden rounded cursor-pointer mx-auto"
@@ -1541,7 +1542,10 @@ export default function CrewDetails() {
                               />
                             </div>
                             <p className="flex justify-end text-xs text-gray-500 text-center mt-2">
-                              Uploaded &middot; March 28, 2025
+                              Uploaded &middot;{" "}
+                              {formatDayMonthYear(
+                                crewValidationDetails?.RegisterDate?.toString()
+                              ) || "Not Registered"}
                             </p>
                           </div>
                         </div>
@@ -1566,7 +1570,10 @@ export default function CrewDetails() {
                               />
                             </div>
                             <p className="flex justify-end text-xs text-gray-500 text-center mt-2">
-                              Uploaded &middot; March 28, 2025
+                              Uploaded &middot;{" "}
+                              {formatDayMonthYear(
+                                crewValidationDetails?.RegisterDate?.toString()
+                              ) || "Not Registered"}
                             </p>
                           </div>
                         </div>

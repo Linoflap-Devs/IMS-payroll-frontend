@@ -90,6 +90,19 @@ export const formatDate = (dateString: string | undefined) => {
   }
 };
 
+export const formatDayMonthYear = (dateString: string | undefined) => {
+  if (!dateString) return "";
+  try {
+    return format(new Date(dateString), "MMMM d, yyyy");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Error formatting date:", error.message);
+    } else {
+      console.error("Unexpected error formatting date:", error);
+    }
+    return "";
+  }
+};
 export const calculateAge = (dateOfBirth: string | undefined) => {
   if (!dateOfBirth) return "";
   const birthDate = new Date(dateOfBirth);
