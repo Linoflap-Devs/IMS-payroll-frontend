@@ -46,3 +46,10 @@ export const addCrewAllotteeSchema = z.object({
     isActive: z.number().min(0).max(1),
     priority: z.boolean(),
 });
+
+export const addVesselSchema = z.object({
+    vesselCode: z.string().min(1, "Vessel code is required"),
+    vesselName: z.string().min(1, "Vessel name is required"),
+    vesselType: z.string().min(1, "Vessel type is required"),
+    principalName: z.string().min(1, "Principal name is required"),
+});

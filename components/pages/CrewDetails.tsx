@@ -26,7 +26,6 @@ import Base64Image from "../Base64Image";
 import Image from "next/image";
 import { verifyCrew } from "@/src/services/crew/crewValidation.api";
 import { toast } from "../ui/use-toast";
-import { Calendar } from "lucide-react";
 
 export default function CrewDetails() {
   const searchParams = useSearchParams();
