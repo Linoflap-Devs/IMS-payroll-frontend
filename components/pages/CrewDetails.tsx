@@ -1389,8 +1389,13 @@ export default function CrewDetails() {
                             City
                           </label>
                           <Input
+                            className={`${
+                              crewValidationDetails?.City ? "" : "text-gray-400"
+                            }`}
                             placeholder="Enter city"
-                            value={displayProvinceCity.cityName || ""}
+                            value={
+                              crewValidationDetails?.City || "Not Registered"
+                            }
                             readOnly
                           />
                         </div>
@@ -1399,8 +1404,16 @@ export default function CrewDetails() {
                             Province
                           </label>
                           <Input
+                            className={`${
+                              crewValidationDetails?.Province
+                                ? ""
+                                : "text-gray-400"
+                            }`}
                             placeholder="Enter province"
-                            value={displayProvinceCity.provinceName || ""}
+                            value={
+                              crewValidationDetails?.Province ||
+                              "Not Registered"
+                            }
                             readOnly
                           />
                         </div>
