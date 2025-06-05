@@ -55,7 +55,7 @@ import {
   VesselPrincipalItem,
   deleteVesselPrincipal,
 } from "@/src/services/vessel/vesselPrincipal.api";
-import { NewVesselItem } from "@/types/vessel";
+import { NewVesselItem, UpdatedVesselFromApi } from "@/types/vessel";
 
 // Define the shape used by the DataTable
 interface Vessel {
@@ -147,7 +147,7 @@ export default function VesselProfile() {
 
   console.log("Vessel Data:", vesselData);
 
-  const handleVesselUpdated = (updatedVessel: any) => {
+  const handleVesselUpdated = (updatedVessel: UpdatedVesselFromApi) => {
     setVesselData((prevData) =>
       prevData.map((vessel) =>
         vessel.vesselId === updatedVessel.VesselID
@@ -155,10 +155,10 @@ export default function VesselProfile() {
               vesselId: updatedVessel.VesselID,
               vesselCode: updatedVessel.VesselCode,
               vesselName: updatedVessel.VesselName,
-              vesselType: updatedVessel.VesselType,
+              vesselType: parseInt(updatedVessel.VesselType),
               vesselTypeName: updatedVessel.VesselType,
               principalName: updatedVessel.Principal,
-              principalID: updatedVessel.Principal,
+              principalID: parseInt(updatedVessel.Principal),
               status: updatedVessel.IsActive === 1 ? "Active" : "Inactive",
             }
           : vessel

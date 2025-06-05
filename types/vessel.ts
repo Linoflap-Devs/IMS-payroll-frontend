@@ -7,3 +7,12 @@ export interface NewVesselItem {
     PrincipalCode: string;
     IsActive: number;
 }
+
+export interface UpdatedVesselFromApi {
+    VesselID: number;
+    VesselCode: string
+    VesselName: string;
+    VesselType: string;
+    Principal: string;
+    IsActive: number;
+}
