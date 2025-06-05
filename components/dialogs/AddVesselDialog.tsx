@@ -41,6 +41,7 @@ import {
 } from "@/src/services/vessel/vesselPrincipal.api";
 
 import { addVesselSchema } from "@/lib/zod-validations";
+import axios from "axios";
 // Form schema with validation
 
 type FormValues = z.infer<typeof addVesselSchema>;
@@ -59,6 +60,7 @@ export function AddVesselDialog({
   const [vesselTypes, setVesselTypes] = useState<VesselTypeItem[]>([]);
   const [principals, setPrincipals] = useState<VesselPrincipalItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uniqueError, setUniqueError] = useState(false);
   const { toast } = useToast();
 
   // Initialize form with react-hook-form
@@ -128,16 +130,15 @@ export function AddVesselDialog({
           variant: "success",
         });
 
-        // Call the onSuccess callback if provided
         if (onSuccess && response.data) {
-          // Ensure we pass a single VesselItem
           const vesselData = Array.isArray(response.data)
             ? response.data[0]
             : response.data;
           onSuccess(vesselData);
         }
+        setUniqueError(false);
 
-        handleOpenChange(false); // Close the dialog after success
+        handleOpenChange(false);
       } else {
         toast({
           title: "Error",
@@ -147,9 +148,35 @@ export function AddVesselDialog({
       }
     } catch (error) {
       console.error("Error adding vessel:", error);
+
+      let errorMessage = "Adding vessel failed. Please try again.";
+
+      if (axios.isAxiosError(error)) {
+        const responseData = error.response?.data;
+
+        if (
+          responseData?.message &&
+          typeof responseData.message === "string" &&
+          responseData.message.includes("Unique constraint failed")
+        ) {
+          setUniqueError(true);
+          errorMessage =
+            "A vessel with this code or name already exists. Please use different values.";
+        } else if (responseData?.message) {
+          errorMessage = responseData.message;
+        }
+      } else if (error instanceof Error) {
+        if (error.message.includes("Unique constraint failed")) {
+          errorMessage =
+            "A vessel with this code or name already exists. Please use different values.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       toast({
         title: "Error",
-        description: "An unexpected error occurred.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -175,12 +202,18 @@ export function AddVesselDialog({
                   name="vesselCode"
                   render={({ field }) => (
                     <FormItem className="">
-                      <FormLabel>Vessel Code</FormLabel>
+                      <FormLabel
+                        className={`${uniqueError ? "text-destructive" : ""}`}>
+                        Vessel Code
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter vessel code"
                           {...field}
-                          className="w-full"
+                          className={`w-full ${
+                            uniqueError ? "border-destructive" : ""
+                          }`}
+                          aria-invalid={uniqueError}
                         />
                       </FormControl>
                       <FormMessage />
@@ -193,12 +226,18 @@ export function AddVesselDialog({
                   name="vesselName"
                   render={({ field }) => (
                     <FormItem className="mt-5 col-span-2">
-                      <FormLabel>Vessel Name</FormLabel>
+                      <FormLabel
+                        className={`${uniqueError ? "text-destructive" : ""}`}>
+                        Vessel Name
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter vessel name"
                           {...field}
-                          className="w-full"
+                          className={`w-full ${
+                            uniqueError ? "border-destructive" : ""
+                          }`}
+                          aria-invalid={uniqueError}
                         />
                       </FormControl>
                       <FormMessage />
@@ -270,7 +309,8 @@ export function AddVesselDialog({
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1 border-gray-300 rounded-md text-black hover:bg-gray-100 hover:text-black">
+                    className="flex-1 border-gray-300 rounded-md text-black hover:bg-gray-100 hover:text-black"
+                    onClick={() => setUniqueError(false)}>
                     Cancel
                   </Button>
                 </DialogClose>
