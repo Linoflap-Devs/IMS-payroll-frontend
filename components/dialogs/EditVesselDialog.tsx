@@ -26,6 +26,7 @@ import {
 } from "@/src/services/vessel/vesselPrincipal.api";
 import { updateVessel, getVesselCrew } from "@/src/services/vessel/vessel.api";
 import { useToast } from "@/components/ui/use-toast";
+import { AxiosError } from "axios";
 
 interface EditVesselDialogProps {
   open: boolean;
@@ -61,9 +62,11 @@ export function EditVesselDialog({
   const [principals, setPrincipals] = useState<VesselPrincipalItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const [uniqueError, setUniqueError] = useState(false);
 
   useEffect(() => {
     if (open) {
+      setUniqueError(false); // Reset unique error state when dialog opens
       const fetchData = async () => {
         try {
           const [typesResponse, principalsResponse] = await Promise.all([
@@ -152,17 +155,27 @@ export function EditVesselDialog({
           variant: "destructive",
         });
       }
-    } catch (error: any) {
-      console.error("Error updating vessel:", error);
+    } catch (error: unknown) {
+      const err = error as Error;
       // Ensure error message is a string
-      const errorMessage = error.response?.data?.message;
+      // const errorMessage = err.response?.data?.message;
+
+      if (err instanceof AxiosError) {
+        if (err.response?.data?.message.includes("Unique constraint failed")) {
+          toast({
+            title: "Error",
+            description: "Vessel Code or Name already exists",
+            variant: "destructive",
+          });
+
+          setUniqueError(true);
+          return;
+        }
+      }
+
       toast({
         title: "Error",
-        description:
-          typeof errorMessage === "object"
-            ? JSON.stringify(errorMessage)
-            : errorMessage ||
-              "An unexpected error occurred while updating the vessel",
+        description: "Failed to update vessel",
         variant: "destructive",
       });
     } finally {
@@ -185,7 +198,9 @@ export function EditVesselDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="vesselCode"
-                  className="block text-sm font-medium">
+                  className={`block text-sm font-medium ${
+                    uniqueError ? "text-red-500 focus:ring-red-500" : ""
+                  }`}>
                   Vessel Code
                 </label>
                 <Input
@@ -193,7 +208,7 @@ export function EditVesselDialog({
                   name="vesselCode"
                   value={formData.vesselCode}
                   onChange={handleInputChange}
-                  className="w-full"
+                  className={`w-full ${uniqueError ? "border-red-500" : ""}`}
                   placeholder="Enter vessel code"
                   required
                 />
@@ -202,7 +217,9 @@ export function EditVesselDialog({
               <div className="space-y-2 col-span-2">
                 <label
                   htmlFor="vesselName"
-                  className="block text-sm font-medium">
+                  className={`block text-sm font-medium ${
+                    uniqueError ? "text-red-500 focus:ring-red-500" : ""
+                  }`}>
                   Vessel Name
                 </label>
                 <Input
@@ -210,7 +227,7 @@ export function EditVesselDialog({
                   name="vesselName"
                   value={formData.vesselName}
                   onChange={handleInputChange}
-                  className="w-full"
+                  className={`w-full ${uniqueError ? "border-red-500" : ""}`}
                   placeholder="Enter vessel name"
                   required
                 />
@@ -281,11 +298,12 @@ export function EditVesselDialog({
             </div>
 
             <DialogFooter className="flex gap-4 pt-6">
-              <DialogClose asChild>
+              <DialogClose asChild onClick={() => setUniqueError(false)}>
                 <Button
                   type="button"
                   variant="outline"
                   className="flex-1 border-gray-300 rounded-md text-black hover:bg-gray-100 hover:text-black"
+                  onClick={() => setUniqueError(false)}
                   disabled={isSubmitting}>
                   Cancel
                 </Button>
