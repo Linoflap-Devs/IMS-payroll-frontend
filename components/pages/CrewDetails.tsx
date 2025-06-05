@@ -1265,7 +1265,9 @@ export default function CrewDetails() {
                             }`}>
                             {crewValidationDetails?.IsVerified
                               ? "Verified"
-                              : "Pending"}
+                              : crewValidationDetails?.IsVerified === null
+                              ? "Not Registered"
+                              : "Pending Verification"}
                           </p>
                         </div>
                       </div>
@@ -1277,7 +1279,11 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             type="text"
-                            placeholder="Register Date"
+                            className={`${
+                              crewValidationDetails?.RegisterDate
+                                ? ""
+                                : "text-gray-400"
+                            }`}
                             value={
                               formatDate(
                                 crewValidationDetails?.RegisterDate?.toString()
@@ -1292,7 +1298,11 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             type="text"
-                            placeholder="Verified Date"
+                            className={`${
+                              crewValidationDetails?.VerificationDate
+                                ? ""
+                                : "text-gray-400"
+                            }`}
                             value={
                               formatDate(
                                 crewValidationDetails?.VerificationDate?.toString()
@@ -1306,8 +1316,15 @@ export default function CrewDetails() {
                             Last Name
                           </label>
                           <Input
-                            placeholder="Enter last name"
-                            value={crew.lastName || ""}
+                            className={`${
+                              crewValidationDetails?.LastName
+                                ? ""
+                                : "text-gray-400"
+                            }`}
+                            value={
+                              crewValidationDetails?.LastName ||
+                              "Not Registered"
+                            }
                             readOnly
                           />
                         </div>
@@ -1316,8 +1333,15 @@ export default function CrewDetails() {
                             First Name
                           </label>
                           <Input
-                            placeholder="Enter first name"
-                            value={crew.firstName || ""}
+                            className={`${
+                              crewValidationDetails?.FirstName
+                                ? ""
+                                : "text-gray-400"
+                            }`}
+                            value={
+                              crewValidationDetails?.FirstName ||
+                              "Not Registered"
+                            }
                             readOnly
                           />
                         </div>
@@ -1326,7 +1350,15 @@ export default function CrewDetails() {
                             Middle Name
                           </label>
                           <Input
-                            value={crewValidationDetails?.MiddleName || ""}
+                            className={`${
+                              crewValidationDetails?.MiddleName
+                                ? ""
+                                : "text-gray-400"
+                            }`}
+                            value={
+                              crewValidationDetails?.MiddleName ||
+                              "Not Registered"
+                            }
                             readOnly
                           />
                         </div>
@@ -1335,7 +1367,15 @@ export default function CrewDetails() {
                             Contact Number
                           </label>
                           <Input
-                            value={crewValidationDetails?.ContactNumber || ""}
+                            className={`${
+                              crewValidationDetails?.ContactNumber
+                                ? ""
+                                : "text-gray-400"
+                            }`}
+                            value={
+                              crewValidationDetails?.ContactNumber ||
+                              "Not Registered."
+                            }
                             readOnly
                           />
                         </div>
@@ -1376,8 +1416,14 @@ export default function CrewDetails() {
                             ID Type
                           </label>
                           <Input
+                            className={`${
+                              crewValidationDetails?.Documents?.IDType
+                                ? ""
+                                : "text-gray-400"
+                            }`}
                             value={
-                              crewValidationDetails?.Documents?.IDType || ""
+                              crewValidationDetails?.Documents?.IDType ||
+                              "Not Registered"
                             }
                             readOnly
                           />
@@ -1386,7 +1432,18 @@ export default function CrewDetails() {
                           <label className="text-sm text-gray-500 mb-1 block">
                             ID Number
                           </label>
-                          <Input value={crew.fileNumber || ""} readOnly />
+                          <Input
+                            className={`${
+                              crewValidationDetails?.Documents?.IDNumber
+                                ? ""
+                                : "text-gray-400"
+                            }`}
+                            value={
+                              crewValidationDetails?.Documents?.IDNumber ||
+                              "Not Registered"
+                            }
+                            readOnly
+                          />
                         </div>
 
                         <div>
@@ -1395,8 +1452,18 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             type="text"
-                            placeholder="Issued Date"
-                            value={formatDate(crew.issuedDate)}
+                            className={`${
+                              crewValidationDetails?.Documents?.IDIssueDate
+                                ? ""
+                                : "text-gray-400"
+                            }`}
+                            value={
+                              crewValidationDetails?.Documents?.IDIssueDate
+                                ? formatDate(
+                                    crewValidationDetails.Documents.IDIssueDate.toString()
+                                  )
+                                : "Not Registered"
+                            }
                             readOnly
                           />
                         </div>
@@ -1407,7 +1474,18 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             placeholder="Expiration Date"
-                            value={formatDate(crew.expirationDate)}
+                            className={`${
+                              crewValidationDetails?.Documents?.IDExpiryDate
+                                ? ""
+                                : "text-gray-400"
+                            }`}
+                            value={
+                              crewValidationDetails?.Documents?.IDExpiryDate
+                                ? formatDate(
+                                    crewValidationDetails.Documents.IDExpiryDate.toString()
+                                  )
+                                : "Not Registered"
+                            }
                             readOnly
                           />
                         </div>
