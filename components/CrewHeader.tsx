@@ -41,6 +41,8 @@ interface CrewHeaderProps {
   isAddLoading: boolean;
   isDeletingAllottee: boolean;
   isEditLoading: boolean;
+  handleTriggerVerify: () => void;
+  isVerifying: boolean;
 }
 
 export function CrewHeader({
@@ -59,6 +61,8 @@ export function CrewHeader({
   isAddLoading,
   isDeletingAllottee,
   isEditLoading,
+  handleTriggerVerify,
+  isVerifying,
 }: CrewHeaderProps) {
   return (
     <>
@@ -250,9 +254,21 @@ export function CrewHeader({
               Decline
             </Button>
 
-            <Button className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40">
-              <TbUserCheck className="h-4 w-4 mr-2" />
-              Verify Account
+            <Button
+              className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40"
+              onClick={handleTriggerVerify}
+              disabled={isVerifying}>
+              {isVerifying ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  <TbUserCheck className="h-4 w-4 mr-2" />
+                  Verify Crew
+                </>
+              )}
             </Button>
           </div>
         )}

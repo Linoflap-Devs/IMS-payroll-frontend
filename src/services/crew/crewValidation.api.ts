@@ -7,6 +7,6 @@ export const getCrewValidationDetails = async (crewId: string): Promise<ICrewVal
 }
 
 export const verifyCrew = async (crewId: string): Promise<ICrewValidationResponse> => {
-    const response = await axiosInstance.post<ICrewValidationResponse>(`crew/${crewId}/validation`);
+    const response = await axiosInstance.patch<ICrewValidationResponse>(`crew/${crewId}/validation`);
     return response.data;
 }

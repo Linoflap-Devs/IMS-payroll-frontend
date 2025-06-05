@@ -24,6 +24,8 @@ import AddCrewAllottee from "./crew/AddCrewAllottee";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
+import { verifyCrew } from "@/src/services/crew/crewValidation.api";
+import { toast } from "../ui/use-toast";
 
 export default function CrewDetails() {
   const searchParams = useSearchParams();
@@ -54,6 +56,13 @@ export default function CrewDetails() {
     cityId: "",
   });
 
+  const [handleVerify, setHandleVerify] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const handleTriggerVerify = () => {
+    setHandleVerify((prev) => !prev);
+  };
+
   const handleTriggerAdd = () => {
     setTriggerAdd((prev) => !prev);
   };
@@ -73,14 +82,44 @@ export default function CrewDetails() {
     crewValidationDetails,
   } = useCrewDetails(crewId);
 
+  useEffect(() => {
+    if (handleVerify) {
+      setIsVerifying(true);
+      // console.log("Handle Verify Triggered");
+
+      if (!crewId) return;
+
+      verifyCrew(crewId)
+        .then((response) => {
+          console.log("Crew verification response:", response);
+          toast({
+            title: "Success",
+            description: "Crew member verified successfully.",
+            variant: "success",
+          });
+        })
+        .catch((error) => {
+          const err = error as Error;
+          console.error("Error verifying crew member:", err.message);
+          toast({
+            title: "Error",
+            description: "Failed to verify crew member.",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          setIsVerifying(false);
+          setHandleVerify(false);
+        });
+    }
+  }, [handleVerify, crewId]);
+
   const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
 
   useEffect(() => {
     fetchCities();
     fetchProvinces();
   }, [fetchCities, fetchProvinces]);
-
-  console.log("Crew Validation Details:", crewValidationDetails);
 
   // Store province and city names along with IDs when data is loaded
   useEffect(() => {
@@ -379,6 +418,8 @@ export default function CrewDetails() {
           handleTriggerAdd={handleTriggerAdd}
           isAddLoading={isAddLoading}
           isDeletingAllottee={isDeletingAllottee}
+          handleTriggerVerify={handleTriggerVerify}
+          isVerifying={isVerifying}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
