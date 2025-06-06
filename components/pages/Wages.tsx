@@ -56,9 +56,7 @@ import {
   WageDescriptionItem,
   getWageDescriptionList,
 } from "../../src/services/wages/wageDescription.api";
-import {
-  getWageForexList,
-} from "@/src/services/wages/wageForex.api";
+import { getWageForexList } from "@/src/services/wages/wageForex.api";
 
 // Type for data passed to dialog was previously SalaryScaleData, now managed by selectedSalaryScale (SalaryScaleItem)
 // type SalaryScaleData = {
@@ -732,8 +730,8 @@ export default function Wages() {
                           <SelectTrigger className="bg-white h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[280px] w-full sm:w-auto">
                             <div className="flex items-center justify-between w-full">
                               <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md -ml-3 sm:-ml-4">
-                                <span className="text-muted-foreground text-sm sm:text-base whitespace-nowrap">
-                                  Vessel Type
+                                <span className="text-gray-700 font-medium whitespace-nowrap">
+                                  Select Vessel
                                 </span>
                               </div>
                               <div className="flex-grow text-left px-2 truncate">

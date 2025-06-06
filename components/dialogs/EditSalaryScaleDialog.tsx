@@ -106,6 +106,7 @@ export function EditSalaryScaleDialog({
         toast({
           title: "Success!",
           description: response.message || "Salary scale updated successfully.",
+          variant: "success", // Use the success variant from shadcn/ui
           // className: "bg-green-500 text-white", // Example for custom styling if needed via variant
         });
         onUpdateSuccess(response.data);
@@ -120,10 +121,11 @@ export function EditSalaryScaleDialog({
           description: failureMessage,
         });
       }
-    } catch (err: any) {
+    } catch (error: unknown) {
+
+      const err = error as Error
       console.error("Update error:", err);
       const errorMessage =
-        err.response?.data?.message ||
         err.message ||
         "An unexpected error occurred during update.";
       setError(errorMessage);
@@ -160,12 +162,10 @@ export function EditSalaryScaleDialog({
             <Select
               value={currentRankId}
               onValueChange={setCurrentRankId}
-              disabled={isLoading}
-            >
+              disabled={isLoading}>
               <SelectTrigger
                 id="rank-edit"
-                className="w-full border border-[#E0E0E0] rounded-md"
-              >
+                className="w-full border border-[#E0E0E0] rounded-md">
                 <SelectValue placeholder="Select rank" />
               </SelectTrigger>
               <SelectContent>
@@ -185,12 +185,10 @@ export function EditSalaryScaleDialog({
             <Select
               value={currentWageTypeId}
               onValueChange={setCurrentWageTypeId}
-              disabled={isLoading}
-            >
+              disabled={isLoading}>
               <SelectTrigger
                 id="wageType-edit"
-                className="w-full border border-[#E0E0E0] rounded-md"
-              >
+                className="w-full border border-[#E0E0E0] rounded-md">
                 <SelectValue placeholder="Select wage type" />
               </SelectTrigger>
               <SelectContent>
@@ -223,37 +221,32 @@ export function EditSalaryScaleDialog({
             <Button
               variant="outline"
               className="flex-1 text-sm h-11"
-              disabled={isLoading}
-            >
+              disabled={isLoading}>
               Cancel
             </Button>
           </DialogClose>
           <Button
             className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90"
             onClick={handleSaveChanges}
-            disabled={isLoading}
-          >
+            disabled={isLoading}>
             {isLoading ? (
               <>
                 <svg
                   className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
-                  viewBox="0 0 24 24"
-                >
+                  viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
                     cx="12"
                     cy="12"
                     r="10"
                     stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
+                    strokeWidth="4"></circle>
                   <path
                     className="opacity-75"
                     fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 Saving...
               </>
