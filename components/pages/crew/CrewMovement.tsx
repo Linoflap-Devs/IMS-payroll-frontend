@@ -21,7 +21,7 @@ interface Movement {
   type: string;
   date: string;
   rank: string;
-  vessel: string;
+  // vessel: string;
 }
 
 // Table column definitions
@@ -36,10 +36,9 @@ const movementColumns: ColumnDef<Movement>[] = [
           ? "bg-blue-100 text-blue-800"
           : "bg-yellow-100 text-yellow-800";
       return (
-        <div className="p-2 flex items-center">
+        <div className="p-2 flex items-center justify-center">
           <span
-            className={`inline-block px-3 py-1 rounded-full text-sm ${badgeClasses}`}
-          >
+            className={`flex items-center justify-center px-3 py-1 rounded-full text-sm ${badgeClasses}`}>
             {type}
           </span>
         </div>
@@ -56,11 +55,11 @@ const movementColumns: ColumnDef<Movement>[] = [
     header: "Rank",
     cell: ({ row }) => <div className="p-2">{row.getValue("rank")}</div>,
   },
-  {
-    accessorKey: "vessel",
-    header: "Vessel",
-    cell: ({ row }) => <div className="p-2">{row.getValue("vessel")}</div>,
-  },
+  // {
+  //   accessorKey: "vessel",
+  //   header: "Vessel",
+  //   cell: ({ row }) => <div className="p-2">{row.getValue("vessel")}</div>,
+  // },
 ];
 
 // Helpers to map and format API data
@@ -155,8 +154,7 @@ export function CrewMovement() {
               <div className="flex-1 w-full flex items-center">
                 <Select
                   value={selectedVessel}
-                  onValueChange={handleVesselChange}
-                >
+                  onValueChange={handleVesselChange}>
                   <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                     <SelectValue placeholder="Select vessel" />
                   </SelectTrigger>
@@ -178,10 +176,11 @@ export function CrewMovement() {
           <Button
             variant="outline"
             className="h-11 px-5 border rounded-lg shadow-sm cursor-pointer"
-            onClick={() => handleVesselChange(selectedVessel)}
-          >
+            onClick={() => handleVesselChange(selectedVessel)}>
             <Filter className="h-5 w-5 text-primary mr-2" />
-            <span className="text-gray-700 font-medium">Filter</span>
+            <span className="text-gray-700 font-medium">
+              Filter By Movement Type
+            </span>
           </Button>
         </div>
       </div>
