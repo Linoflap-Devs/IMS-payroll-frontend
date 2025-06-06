@@ -105,7 +105,7 @@ export default function VesselProfile() {
   const [selectedVesselPrincipal, setSelectedVesselPrincipal] =
     useState<VesselPrincipal | null>(null);
 
-  const handleVesselTypeAdded = (newVesselType: any) => {
+  const handleVesselTypeAdded = (newVesselType: VesselTypeItem) => {
     // Convert API response format to your internal format
     const newItem: VesselType = {
       vesselTypeId: newVesselType.VesselTypeID,
@@ -116,7 +116,10 @@ export default function VesselProfile() {
     // Add the new vessel type to the list
     setVesselTypeData((prevData) => [...prevData, newItem]);
   };
-  const handleVesselPrincipalAdded = (newVesselPrincipal: any) => {
+
+  const handleVesselPrincipalAdded = (
+    newVesselPrincipal: VesselPrincipalItem
+  ) => {
     // Convert API response format to your internal format
     const newItem: VesselPrincipal = {
       vesselPrincipalId: newVesselPrincipal.PrincipalID,
@@ -145,7 +148,7 @@ export default function VesselProfile() {
     setVesselData((prevData) => [...prevData, newItem]);
   };
 
-  console.log("Vessel Data:", vesselData);
+  // console.log("Vessel Data:", vesselData);
 
   const handleVesselUpdated = (updatedVessel: UpdatedVesselFromApi) => {
     setVesselData((prevData) =>
@@ -166,7 +169,7 @@ export default function VesselProfile() {
     );
   };
 
-  console.log(vesselData);
+  // console.log(vesselData);
 
   const handleVesselTypeUpdated = (updatedVesselType: VesselTypeItem) => {
     // Update the vessel type in the list
@@ -340,6 +343,8 @@ export default function VesselProfile() {
       .catch((err) => console.error("Error fetching vessel type:", err));
   }, []);
 
+  console.log("Vessel Type Data:", vesselTypeData);
+
   // Fetch vessel principal list on mount
   useEffect(() => {
     getVesselPrincipalList()
@@ -362,37 +367,35 @@ export default function VesselProfile() {
   const columns: ColumnDef<Vessel>[] = [
     {
       accessorKey: "vesselCode",
-      header: ({ column }) => <div className="text-justify">Vessel Code</div>,
+      header: () => <div className="text-justify">Vessel Code</div>,
       cell: ({ row }) => (
         <div className="text-justify">{row.getValue("vesselCode")}</div>
       ),
     },
     {
       accessorKey: "vesselName",
-      header: ({ column }) => <div className="text-justify">Vessel Name</div>,
+      header: () => <div className="text-justify">Vessel Name</div>,
       cell: ({ row }) => (
         <div className="text-justify">{row.getValue("vesselName")}</div>
       ),
     },
     {
       accessorKey: "vesselTypeName",
-      header: ({ column }) => <div className="text-justify">Vessel Type</div>,
+      header: () => <div className="text-justify">Vessel Type</div>,
       cell: ({ row }) => (
         <div className="text-justify">{row.getValue("vesselTypeName")}</div>
       ),
     },
     {
       accessorKey: "principalName",
-      header: ({ column }) => (
-        <div className="text-justify">Principal Name</div>
-      ),
+      header: () => <div className="text-justify">Principal Name</div>,
       cell: ({ row }) => (
         <div className="text-justify">{row.getValue("principalName")}</div>
       ),
     },
     {
       accessorKey: "status",
-      header: ({ column }) => <div className="text-justify">Status</div>,
+      header: () => <div className="text-justify">Status</div>,
       cell: ({ row }) => {
         const statusRow = row.getValue("status") as string;
         return (
@@ -412,7 +415,7 @@ export default function VesselProfile() {
 
     {
       id: "actions",
-      header: ({ column }) => <div className="text-center">Actions</div>,
+      header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const vessel = row.original;
         const handleDelete = async (vessel: Vessel) => {
@@ -504,25 +507,21 @@ export default function VesselProfile() {
   const columnsVesselType: ColumnDef<VesselType>[] = [
     {
       accessorKey: "vesselTypeCode",
-      header: ({ column }) => (
-        <div className="text-justify">Vessel Type Code</div>
-      ),
+      header: () => <div className="text-justify">Vessel Type Code</div>,
       cell: ({ row }) => (
         <div className="text-justify">{row.getValue("vesselTypeCode")}</div>
       ),
     },
     {
       accessorKey: "vesselTypeName",
-      header: ({ column }) => (
-        <div className="text-justify">Vessel Type Name</div>
-      ),
+      header: () => <div className="text-justify">Vessel Type Name</div>,
       cell: ({ row }) => (
         <div className="text-justify">{row.getValue("vesselTypeName")}</div>
       ),
     },
     {
       id: "actions",
-      header: ({ column }) => <div className="text-justify">Actions</div>,
+      header: () => <div className="text-justify">Actions</div>,
       cell: ({ row }) => {
         const vesselType = row.original;
         return (
@@ -561,9 +560,7 @@ export default function VesselProfile() {
   const columnsVesselPrincipal: ColumnDef<VesselPrincipal>[] = [
     {
       accessorKey: "vesselPrincipalCode",
-      header: ({ column }) => (
-        <div className="text-justify">Vessel Principal Code</div>
-      ),
+      header: () => <div className="text-justify">Vessel Principal Code</div>,
       cell: ({ row }) => (
         <div className="text-justify">
           {row.getValue("vesselPrincipalCode")}
@@ -572,9 +569,7 @@ export default function VesselProfile() {
     },
     {
       accessorKey: "vesselPrincipalName",
-      header: ({ column }) => (
-        <div className="text-justify">Vessel Principal Name</div>
-      ),
+      header: () => <div className="text-justify">Vessel Principal Name</div>,
       cell: ({ row }) => (
         <div className="text-justify">
           {row.getValue("vesselPrincipalName")}
@@ -583,7 +578,7 @@ export default function VesselProfile() {
     },
     {
       id: "actions",
-      header: ({ column }) => <div className="text-justify">Actions</div>,
+      header: () => <div className="text-justify">Actions</div>,
       cell: ({ row }) => {
         const vesselPrincipal = row.original;
         return (

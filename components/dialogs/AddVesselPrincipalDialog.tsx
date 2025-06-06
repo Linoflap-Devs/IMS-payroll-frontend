@@ -1,3 +1,4 @@
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -6,16 +7,34 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-
+import { useToast } from "@/components/ui/use-toast";
 import { addVesselPrincipal } from "@/src/services/vessel/vesselPrincipal.api";
 import { VesselPrincipalItem } from "@/src/services/vessel/vesselPrincipal.api";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { AxiosError } from "axios";
+
+// Define form schema with Zod - both fields are required
+const formSchema = z.object({
+  principalCode: z.string().min(1, "Principal Code is required"),
+  principalName: z.string().min(1, "Principal Name is required"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface AddVesselPrincipalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: (newVesselPrincipal: VesselPrincipalItem) => void; // Add this prop
+  onSuccess?: (newVesselPrincipal: VesselPrincipalItem) => void;
 }
 
 export function AddVesselPrincipalDialog({
@@ -23,39 +42,40 @@ export function AddVesselPrincipalDialog({
   onOpenChange,
   onSuccess,
 }: AddVesselPrincipalDialogProps) {
-  // Form state
-  const [principalCode, setPrincipalCode] = useState("");
-  const [principalName, setPrincipalName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const { toast } = useToast();
 
+  const [uniqueError, setUniqueError] = useState<boolean>(false);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      principalCode: "",
+      principalName: "",
+    },
+  });
+
+  const {
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = form;
+
+  // Reset form when dialog opens/closes
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      setPrincipalCode("");
-      setPrincipalName("");
-      setIsSubmitting(false);
+      setUniqueError(false);
+      reset();
     }
     onOpenChange(open);
   };
+
   // Handle form submission
-  const handleSubmit = async () => {
-    // Basic validation
-    if (!principalCode.trim() || !principalName.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Principal Code and Principal Name are required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
+  const onSubmit = async (data: FormValues) => {
+    setUniqueError(false);
     try {
       const response = await addVesselPrincipal({
-        principalCode: principalCode.trim(),
-        principalName: principalName.trim(),
+        principalCode: data.principalCode.trim(),
+        principalName: data.principalName.trim(),
       });
 
       if (response.success) {
@@ -65,6 +85,7 @@ export function AddVesselPrincipalDialog({
             response.message || "Vessel principal added successfully.",
           variant: "success",
         });
+
         // Call the onSuccess callback if provided
         if (onSuccess && response.data) {
           // Ensure we pass a single VesselPrincipalItem
@@ -83,16 +104,30 @@ export function AddVesselPrincipalDialog({
         });
       }
     } catch (error) {
+      const err = error as Error;
       console.error("Error adding vessel principal:", error);
+
+      if (err instanceof AxiosError) {
+        if (err.response?.data?.message.includes("Unique constraint failed")) {
+          toast({
+            title: "Error",
+            description: "Vessel principal code or name already exists.",
+            variant: "destructive",
+          });
+
+          setUniqueError(true);
+          return;
+        }
+      }
+
       toast({
         title: "Error",
         description: "An error occurred while adding the vessel principal.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] p-4 bg-[#FCFCFC]">
@@ -104,44 +139,81 @@ export function AddVesselPrincipalDialog({
           </div>
         </DialogHeader>
 
-        <div className="p-6 flex flex-col space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600">Principal Code</label>
-            <Input
-              placeholder="Enter principal code"
-              className="h-10"
-              value={principalCode}
-              onChange={(e) => setPrincipalCode(e.target.value)}
-              disabled={isSubmitting}
+        <Form {...form}>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="p-6 flex flex-col space-y-6">
+            <FormField
+              control={form.control}
+              name="principalCode"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel className="text-sm text-gray-600">
+                    Principal Code
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter principal code"
+                      className={`h-10 ${
+                        uniqueError
+                          ? "border-destructive focus:!ring-destructive/50"
+                          : ""
+                      }`}
+                      disabled={isSubmitting}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600">Principal Name</label>
-            <Input
-              placeholder="Enter principal name"
-              className="h-10"
-              value={principalName}
-              onChange={(e) => setPrincipalName(e.target.value)}
+            <FormField
+              control={form.control}
+              name="principalName"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel
+                    className={`text-sm text-gray-600 ${
+                      uniqueError ? "text-destructive" : ""
+                    }`}>
+                    Principal Name
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter principal name"
+                      className={`h-10 ${
+                        uniqueError
+                          ? "border-destructive focus:!ring-destructive/50"
+                          : ""
+                      }`}
+                      disabled={isSubmitting}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="flex space-x-3 pt-4">
-            <Button
-              variant="outline"
-              className="flex-1 h-10"
-              onClick={() => handleOpenChange(false)}
-              disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button
-              className="flex-1 h-10"
-              onClick={handleSubmit}
-              disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Principal"}
-            </Button>
-          </div>
-        </div>
+            <div className="flex space-x-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 h-10"
+                onClick={() => handleOpenChange(false)}
+                disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 h-10"
+                disabled={isSubmitting}>
+                {isSubmitting ? "Adding..." : "Add Principal"}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
