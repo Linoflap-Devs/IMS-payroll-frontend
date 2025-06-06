@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   ChevronLeft,
   User,
@@ -11,8 +10,6 @@ import {
   PhoneCall,
   Mail,
   MoreHorizontal,
-  Filter,
-  BadgeCheck,
   Ship,
   Calendar,
   Plus,
@@ -44,90 +41,91 @@ import {
   getCrewDeductionList,
 } from "@/src/services/deduction/crewDeduction.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
+import Base64Image from "../Base64Image";
+import Image from "next/image";
 
-type DeductionEntry = {
-  deduction: string;
-  amount: number;
-  remarks?: string;
-  status: "Completed" | "Pending" | "Adjusted" | "Failed" | "On Hold";
-};
+// type DeductionEntry = {
+//   deduction: string;
+//   amount: number;
+//   remarks?: string;
+//   status: "Completed" | "Pending" | "Adjusted" | "Failed" | "On Hold";
+// };
 
-const deductionColumns: ColumnDef<DeductionEntry>[] = [
-  {
-    accessorKey: "deduction",
-    header: "Deduction",
-  },
-  {
-    accessorKey: "amount",
-    header: "Amount",
-    cell: ({ row }) => {
-      return <div className="text-right">{row.original.amount.toFixed(2)}</div>;
-    },
-  },
-  {
-    accessorKey: "remarks",
-    header: "Remarks",
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.original.status;
-      const getStatusColor = (status: string) => {
-        switch (status) {
-          case "Completed":
-            return "bg-green-100 text-green-800";
-          case "Pending":
-            return "bg-yellow-100 text-yellow-800";
-          case "Adjusted":
-            return "bg-blue-100 text-blue-800";
-          case "Failed":
-            return "bg-red-100 text-red-800";
-          case "On Hold":
-            return "bg-gray-100 text-gray-800";
-          default:
-            return "bg-gray-100 text-gray-800";
-        }
-      };
+// const deductionColumns: ColumnDef<DeductionEntry>[] = [
+//   {
+//     accessorKey: "deduction",
+//     header: "Deduction",
+//   },
+//   {
+//     accessorKey: "amount",
+//     header: "Amount",
+//     cell: ({ row }) => {
+//       return <div className="text-right">{row.original.amount.toFixed(2)}</div>;
+//     },
+//   },
+//   {
+//     accessorKey: "remarks",
+//     header: "Remarks",
+//   },
+//   {
+//     accessorKey: "status",
+//     header: "Status",
+//     cell: ({ row }) => {
+//       const status = row.original.status;
+//       const getStatusColor = (status: string) => {
+//         switch (status) {
+//           case "Completed":
+//             return "bg-green-100 text-green-800";
+//           case "Pending":
+//             return "bg-yellow-100 text-yellow-800";
+//           case "Adjusted":
+//             return "bg-blue-100 text-blue-800";
+//           case "Failed":
+//             return "bg-red-100 text-red-800";
+//           case "On Hold":
+//             return "bg-gray-100 text-gray-800";
+//           default:
+//             return "bg-gray-100 text-gray-800";
+//         }
+//       };
 
-      return (
-        <div className="flex justify-center">
-          <span
-            className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-              status
-            )}`}
-          >
-            {status}
-          </span>
-        </div>
-      );
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: () => {
-      return (
-        <div className="text-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-              <DropdownMenuItem>Edit</DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-  },
-];
+//       return (
+//         <div className="flex justify-center">
+//           <span
+//             className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+//               status
+//             )}`}>
+//             {status}
+//           </span>
+//         </div>
+//       );
+//     },
+//   },
+//   {
+//     id: "actions",
+//     header: "Actions",
+//     cell: () => {
+//       return (
+//         <div className="text-center">
+//           <DropdownMenu>
+//             <DropdownMenuTrigger asChild>
+//               <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+//                 <span className="sr-only">Open menu</span>
+//                 <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+//               </Button>
+//             </DropdownMenuTrigger>
+//             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+//               <DropdownMenuItem>Edit</DropdownMenuItem>
+//               <DropdownMenuItem className="text-red-600">
+//                 Delete
+//               </DropdownMenuItem>
+//             </DropdownMenuContent>
+//           </DropdownMenu>
+//         </div>
+//       );
+//     },
+//   },
+// ];
 
 // Updated columns definition to match the API data structure
 const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
@@ -183,8 +181,7 @@ const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
           <span
             className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
               row.original.Status
-            )}`}
-          >
+            )}`}>
             {statusLabel}
           </span>
         </div>
@@ -234,12 +231,110 @@ export default function DeductionEntries() {
     landlineNo: "",
     emailAddress: "",
     birthday: "",
+    profileImage: {
+      FileContent: "",
+      FileExtension: "",
+      ContentType: "",
+    },
   });
   const [loading, setLoading] = useState(false);
   const [deductionEntries, setDeductionEntries] = useState<
     DeductionEntriesType[]
   >([]);
   const [error, setError] = useState<string | null>(null);
+
+  // Function to fetch deduction entries
+  const fetchDeductionEntries = useCallback(
+    async (crewCode: string) => {
+      if (!crewCode) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await getDeductionEntries(crewCode);
+
+        if (response.success) {
+          setDeductionEntries(response.data);
+
+          // Process the years and months from the data
+          if (response.data.length > 0) {
+            // Extract unique years from the data
+            const years = [
+              ...new Set(response.data.map((entry) => entry.Year.toString())),
+            ];
+
+            // Sort years in descending order (newest first)
+            years.sort((a, b) => parseInt(b) - parseInt(a));
+
+            setAvailableYears(years);
+
+            // Set the default selected year to the most recent one
+            if (years.length > 0 && !years.includes(selectedYear)) {
+              setSelectedYear(years[0]);
+            }
+
+            // Extract unique months from the data
+            const months = [
+              ...new Set(response.data.map((entry) => entry.Month)),
+            ];
+
+            // Sort months in calendar order
+            const monthOrder = [
+              "January",
+              "February",
+              "March",
+              "April",
+              "May",
+              "June",
+              "July",
+              "August",
+              "September",
+              "October",
+              "November",
+              "December",
+            ];
+            months.sort(
+              (a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b)
+            );
+
+            setAvailableMonths(months.length > 0 ? months : monthOrder);
+
+            // Set default month if current selection isn't in the available months
+            if (months.length > 0 && !months.includes(selectedMonth)) {
+              setSelectedMonth(months[0]);
+            }
+          } else {
+            // Default values if no data
+            setAvailableYears(["2025", "2024", "2023"]);
+            setAvailableMonths([
+              "January",
+              "February",
+              "March",
+              "April",
+              "May",
+              "June",
+              "July",
+              "August",
+              "September",
+              "October",
+              "November",
+              "December",
+            ]);
+          }
+        } else {
+          setError(response.message || "Failed to fetch deduction entries");
+          console.error("API Error:", response.message);
+        }
+      } catch (err) {
+        setError("Error fetching deduction entries");
+        console.error("Error fetching deduction entries:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedYear, selectedMonth]
+  );
 
   // Read the parameters from URL and fetch crew details
   useEffect(() => {
@@ -260,6 +355,7 @@ export default function DeductionEntries() {
         .then(([basicResponse, deductionResponse]) => {
           if (basicResponse.success) {
             const { data } = basicResponse;
+            console.log("Crew Basic Data:", data);
 
             // Find the crew's vessel from the deduction list
             const crewVessel = deductionResponse.success
@@ -276,9 +372,14 @@ export default function DeductionEntries() {
               vessel: crewVessel || "",
               crewCode: decodedCrewCode,
               mobileNo: data.MobileNo,
-              landlineNo: data.LandlineNo,
+              landlineNo: data.LandLineNo,
               emailAddress: data.EmailAddress,
               birthday: data.Birthday,
+              profileImage: {
+                FileContent: data.ProfileImage?.FileContent || "",
+                FileExtension: data.ProfileImage?.FileExtension || "",
+                ContentType: data.ProfileImage?.ContentType || "",
+              },
             });
 
             // After getting crew info, fetch deduction entries
@@ -290,102 +391,14 @@ export default function DeductionEntries() {
           setError("Failed to fetch crew details");
         });
     }
-  }, []);
-
-  // Function to fetch deduction entries
-  const fetchDeductionEntries = async (crewCode: string) => {
-    if (!crewCode) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await getDeductionEntries(crewCode);
-
-      if (response.success) {
-        setDeductionEntries(response.data);
-
-        // Process the years and months from the data
-        if (response.data.length > 0) {
-          // Extract unique years from the data
-          const years = [
-            ...new Set(response.data.map((entry) => entry.Year.toString())),
-          ];
-
-          // Sort years in descending order (newest first)
-          years.sort((a, b) => parseInt(b) - parseInt(a));
-
-          setAvailableYears(years);
-
-          // Set the default selected year to the most recent one
-          if (years.length > 0 && !years.includes(selectedYear)) {
-            setSelectedYear(years[0]);
-          }
-
-          // Extract unique months from the data
-          const months = [
-            ...new Set(response.data.map((entry) => entry.Month)),
-          ];
-
-          // Sort months in calendar order
-          const monthOrder = [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-          ];
-          months.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
-
-          setAvailableMonths(months.length > 0 ? months : monthOrder);
-
-          // Set default month if current selection isn't in the available months
-          if (months.length > 0 && !months.includes(selectedMonth)) {
-            setSelectedMonth(months[0]);
-          }
-        } else {
-          // Default values if no data
-          setAvailableYears(["2025", "2024", "2023"]);
-          setAvailableMonths([
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-          ]);
-        }
-      } else {
-        setError(response.message || "Failed to fetch deduction entries");
-        console.error("API Error:", response.message);
-      }
-    } catch (err) {
-      setError("Error fetching deduction entries");
-      console.error("Error fetching deduction entries:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchDeductionEntries]);
 
   // Re-fetch data when month or year changes
   useEffect(() => {
     if (crewData.crewCode) {
       fetchDeductionEntries(crewData.crewCode);
     }
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth, selectedYear, crewData.crewCode, fetchDeductionEntries]);
 
   // Handle tab change
   const handleTabChange = (value: string) => {
@@ -415,8 +428,7 @@ export default function DeductionEntries() {
           {activeTab !== "hdmf-upgrade" && (
             <Button
               className="bg-primary hover:bg-primary/90"
-              onClick={() => setIsAddDeductionOpen(true)}
-            >
+              onClick={() => setIsAddDeductionOpen(true)}>
               Add Deduction
             </Button>
           )}
@@ -441,11 +453,26 @@ export default function DeductionEntries() {
                   }
                 `}</style>
                 <div className="w-60 h-60 min-w-[160px] bg-white rounded-md mb-3 flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
-                  <img
-                    src="/image.png"
-                    alt="Profile Logo"
-                    className="w-full h-full object-contain p-1"
-                  />
+                  {!crewData.profileImage.FileContent ? (
+                    <Image
+                      width={256}
+                      height={160}
+                      src="/image.png"
+                      alt="Selfie with ID Attachment"
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <>
+                      <Base64Image
+                        imageType={crewData.profileImage?.ContentType || ""}
+                        alt="Crew Profile Image"
+                        base64String={crewData.profileImage?.FileContent || ""}
+                        width={60}
+                        height={60}
+                        className="object-contain w-full h-full"
+                      />
+                    </>
+                  )}
                 </div>
 
                 <h2 className="text-lg font-bold mb-1 w-full">
@@ -554,21 +581,18 @@ export default function DeductionEntries() {
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full flex flex-col h-full"
-              >
+                className="w-full flex flex-col h-full">
                 <div className="border-b">
                   <div className="px-4 pt-1">
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
                       <TabsTrigger
                         value="deduction-entries"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
+                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         Deduction Entries
                       </TabsTrigger>
                       <TabsTrigger
                         value="hdmf-upgrade"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                      >
+                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         HDMF Upgrade Contributions
                       </TabsTrigger>
                     </TabsList>
@@ -577,15 +601,13 @@ export default function DeductionEntries() {
 
                 <TabsContent
                   value="deduction-entries"
-                  className="p-6 mt-0 overflow-y-auto flex-1"
-                >
+                  className="p-6 mt-0 overflow-y-auto flex-1">
                   <div className="space-y-6">
                     <div className="flex items-center justify-center gap-6 w-full">
                       <div className="w-1/2">
                         <Select
                           value={selectedMonth}
-                          onValueChange={setSelectedMonth}
-                        >
+                          onValueChange={setSelectedMonth}>
                           <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                             <div className="flex items-center w-full">
                               <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
@@ -631,8 +653,7 @@ export default function DeductionEntries() {
                       <div className="w-1/2">
                         <Select
                           value={selectedYear}
-                          onValueChange={setSelectedYear}
-                        >
+                          onValueChange={setSelectedYear}>
                           <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                             <div className="flex items-center w-full">
                               <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
@@ -686,8 +707,7 @@ export default function DeductionEntries() {
 
                 <TabsContent
                   value="hdmf-upgrade"
-                  className="p-6 mt-0 overflow-y-auto flex-1"
-                >
+                  className="p-6 mt-0 overflow-y-auto flex-1">
                   <div className="space-y-6">
                     <div className="space-y-4">
                       <div>

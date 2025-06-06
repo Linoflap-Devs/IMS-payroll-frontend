@@ -72,6 +72,11 @@ export interface CrewBasic {
   MobileNo: string;
   LandLineNo: string;
   EmailAddress: string;
+  ProfileImage?: {
+    FileContent: string;
+    FileExtension: string;
+    ContentType: string;
+  };
 }
 
 export interface CrewBasicResponse {
