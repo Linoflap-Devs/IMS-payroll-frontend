@@ -7,6 +7,7 @@ export interface VesselItem {
   VesselType: string;
   Principal: string;
   IsActive: number;
+  PrincipalCode: string;
 }
 
 
@@ -42,7 +43,7 @@ export const addVessel = async (payload: AddVesselPayload): Promise<AddVesselRes
   return response.data;
 };
 
-export interface UpdateVesselPayload{
+export interface UpdateVesselPayload {
   vesselID: number;
   vesselCode: string;
   vesselName: string;

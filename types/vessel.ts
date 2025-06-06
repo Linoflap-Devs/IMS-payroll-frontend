@@ -1,3 +1,5 @@
+import { CrewMember, VesselInfoItem } from "@/src/services/vessel/vessel.api";
+
 export interface NewVesselItem {
     VesselID: number;
     VesselCode: string;
@@ -15,4 +17,8 @@ export interface UpdatedVesselFromApi {
     VesselType: string;
     Principal: string;
     IsActive: number;
+    crewData?: {
+        VesselInfo: VesselInfoItem;
+        Crew: CrewMember[];
+    } | null
 }

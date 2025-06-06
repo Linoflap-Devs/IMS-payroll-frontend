@@ -27,6 +27,7 @@ import {
 import { updateVessel, getVesselCrew } from "@/src/services/vessel/vessel.api";
 import { useToast } from "@/components/ui/use-toast";
 import { AxiosError } from "axios";
+import { UpdatedVesselFromApi } from "@/types/vessel";
 
 interface EditVesselDialogProps {
   open: boolean;
@@ -41,7 +42,7 @@ interface EditVesselDialogProps {
     principalID: number;
     status: string;
   };
-  onSuccess?: (updatedVessel: any) => void;
+  onSuccess?: (updatedVessel: UpdatedVesselFromApi) => void;
 }
 
 export function EditVesselDialog({
