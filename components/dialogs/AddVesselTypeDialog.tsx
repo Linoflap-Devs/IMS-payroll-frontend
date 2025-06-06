@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,13 +8,34 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { addVesselType } from "@/src/services/vessel/vesselType.api"; // Import the new API function
+import { addVesselType } from "@/src/services/vessel/vesselType.api";
 import { VesselTypeItem } from "@/src/services/vessel/vesselType.api";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { AxiosError } from "axios";
+import { useState } from "react";
+
+// Define form schema with Zod
+const formSchema = z.object({
+  vesselTypeCode: z.string().min(1, "Vessel Code is required"),
+  vesselTypeName: z.string().min(1, "Vessel Type Name is required"),
+});
+
+// Type for form values
+type FormValues = z.infer<typeof formSchema>;
 
 interface AddVesselTypeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: (newVesselType: VesselTypeItem) => void; // Add this prop
+  onSuccess?: (newVesselType: VesselTypeItem) => void;
 }
 
 export function AddVesselTypeDialog({
@@ -22,41 +43,41 @@ export function AddVesselTypeDialog({
   onOpenChange,
   onSuccess,
 }: AddVesselTypeDialogProps) {
-  // Form state
-  const [vesselTypeCode, setVesselTypeCode] = useState("");
-  const [vesselTypeName, setVesselTypeName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const { toast } = useToast();
+
+  // Initialize react-hook-form
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      vesselTypeCode: "",
+      vesselTypeName: "",
+    },
+  });
+
+  const [uniqueError, setUniqueError] = useState<boolean>(false);
+
+  const {
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = form;
 
   // Reset form when dialog opens/closes
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      setVesselTypeCode("");
-      setVesselTypeName("");
-      setIsSubmitting(false);
+      setUniqueError(false);
+      reset();
     }
     onOpenChange(open);
   };
 
   // Handle form submission
-  const handleSubmit = async () => {
-    // Basic validation
-    if (!vesselTypeCode.trim() || !vesselTypeName.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Vessel Code and Vessel Type Name are required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
+  const onSubmit = async (data: FormValues) => {
+    setUniqueError(false);
     try {
       const response = await addVesselType({
-        vesselTypeCode: vesselTypeCode.trim(),
-        vesselTypeName: vesselTypeName.trim(),
+        vesselTypeCode: data.vesselTypeCode.trim(),
+        vesselTypeName: data.vesselTypeName.trim(),
       });
 
       if (response.success) {
@@ -85,14 +106,26 @@ export function AddVesselTypeDialog({
         });
       }
     } catch (error) {
-      console.error("Error adding vessel type:", error);
+      const err = error as Error;
+
+      if (err instanceof AxiosError) {
+        if (err.response?.data?.message.includes("Unique constraint failed")) {
+          toast({
+            title: "Error",
+            description: "Vessel type code or name already exists.",
+            variant: "destructive",
+          });
+
+          setUniqueError(true);
+          return;
+        }
+      }
+
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: "An unexpected error occurred. Please try agains.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -107,45 +140,87 @@ export function AddVesselTypeDialog({
           </div>
         </DialogHeader>
 
-        <div className="p-6 flex flex-col space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600">Vessel Code</label>
-            <Input
-              placeholder="Enter vessel code"
-              className="h-10"
-              value={vesselTypeCode}
-              onChange={(e) => setVesselTypeCode(e.target.value)}
-              disabled={isSubmitting}
+        <Form {...form}>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="p-6 flex flex-col space-y-6">
+            <FormField
+              control={form.control}
+              name="vesselTypeCode"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel
+                    className={`text-sm text-gray-600 ${
+                      uniqueError ? "text-red-500" : ""
+                    }`}>
+                    Vessel Code
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter vessel code"
+                      className={`h-10 ${
+                        uniqueError
+                          ? "border-destructive focus:!ring-destructive/50"
+                          : ""
+                      }`}
+                      disabled={isSubmitting}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600">Vessel Type Name</label>
-            <Input
-              placeholder="Enter vessel type"
-              className="h-10"
-              value={vesselTypeName}
-              onChange={(e) => setVesselTypeName(e.target.value)}
-              disabled={isSubmitting}
+            <FormField
+              control={form.control}
+              name="vesselTypeName"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel
+                    className={`text-sm text-gray-600 ${
+                      uniqueError ? "text-red-500" : ""
+                    }`}>
+                    Vessel Type Name
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter vessel type"
+                      className={`h-10 ${
+                        uniqueError
+                          ? "border-destructive focus:!ring-destructive/50"
+                          : ""
+                      }`}
+                      disabled={isSubmitting}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="flex space-x-3 pt-4">
-            <Button
-              variant="outline"
-              className="flex-1 h-10"
-              onClick={() => handleOpenChange(false)}
-              disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button
-              className="flex-1 h-10"
-              onClick={handleSubmit}
-              disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Vessel Type"}
-            </Button>
-          </div>
-        </div>
+            <div className="flex space-x-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 h-10"
+                onClick={() => {
+                  setUniqueError(false);
+                  handleOpenChange(false);
+                }}
+                disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 h-10"
+                disabled={isSubmitting}>
+                {isSubmitting ? "Adding..." : "Add Vessel Type"}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
