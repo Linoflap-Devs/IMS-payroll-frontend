@@ -27,7 +27,7 @@ interface EditWageDescriptionDialogProps {
     wageId: number;
     wageCode: string;
     wageName: string;
-    payableOnBoard: boolean;
+    payableOnboard: boolean;
   };
   onUpdateSuccess?: (updatedWageDescription: WageDescriptionItem) => void;
 }
@@ -40,8 +40,8 @@ export function EditWageDescriptionDialog({
 }: EditWageDescriptionDialogProps) {
   const [wageCode, setWageCode] = useState(wageDescription.wageCode);
   const [wageName, setWageName] = useState(wageDescription.wageName);
-  const [payableOnBoard, setPayableOnBoard] = useState<number>(
-    wageDescription.payableOnBoard ? 1 : 0
+  const [payableOnboard, setPayableOnboard] = useState<number>(
+    wageDescription.payableOnboard ? 1 : 0
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -50,7 +50,7 @@ export function EditWageDescriptionDialog({
     if (!open) {
       setWageCode(wageDescription.wageCode);
       setWageName(wageDescription.wageName);
-      setPayableOnBoard(wageDescription.payableOnBoard ? 1 : 0);
+      setPayableOnboard(wageDescription.payableOnboard ? 1 : 0);
       setIsSubmitting(false);
     }
     onOpenChange(open);
@@ -72,7 +72,7 @@ export function EditWageDescriptionDialog({
         wageID: wageDescription.wageId,
         wageCode: wageCode,
         wageName: wageName,
-        payableOnBoard: payableOnBoard,
+        payableOnboard: payableOnboard,
       });
 
       if (response.success) {
@@ -86,11 +86,11 @@ export function EditWageDescriptionDialog({
         }
         onOpenChange(false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
         title: "Error",
-        description:
-          error.response?.data?.message || "Failed to update wage description.",
+        description: err.message || "Failed to update wage description.",
         variant: "destructive",
       });
     } finally {
@@ -135,10 +135,9 @@ export function EditWageDescriptionDialog({
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Payable On Board</label>
             <Select
-              value={payableOnBoard === 1 ? "1" : "0"}
-              onValueChange={(value) => setPayableOnBoard(parseInt(value))}
-              disabled={isSubmitting}
-            >
+              value={payableOnboard === 1 ? "1" : "0"}
+              onValueChange={(value) => setPayableOnboard(parseInt(value))}
+              disabled={isSubmitting}>
               <SelectTrigger className="h-10">
                 <SelectValue placeholder="Select option" />
               </SelectTrigger>
@@ -154,15 +153,13 @@ export function EditWageDescriptionDialog({
               variant="outline"
               className="flex-1 h-10"
               onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               Cancel
             </Button>
             <Button
               className="flex-1 h-10"
               onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               {isSubmitting ? "Updating..." : "Update Wage Description"}
             </Button>
           </div>

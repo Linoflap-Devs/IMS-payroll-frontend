@@ -4,7 +4,7 @@ export interface WageDescriptionItem {
   WageID: number;
   WageCode: string;
   WageName: string;
-  PayableOnBoard: number;
+  PayableOnboard: number;
 }
 
 export interface WageDescriptionResponse {
@@ -22,7 +22,7 @@ export interface updateWageDescriptionPayload {
   wageID: number;
   wageCode: string;
   wageName: string;
-  payableOnBoard: number;
+  payableOnboard: number;
 }
 
 export interface updateWageDescriptionResponse {
@@ -38,7 +38,7 @@ export const updateWageDescription = async (
     {
       wageCode: payload.wageCode,
       wageName: payload.wageName,
-      payableOnBoard: payload.payableOnBoard,
+      payableOnboard: payload.payableOnboard,
     }
   );
   return response.data;

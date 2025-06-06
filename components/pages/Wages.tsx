@@ -70,7 +70,7 @@ type WageDescriptionData = {
   wageId: number;
   wageCode: string;
   wageName: string;
-  payableOnBoard: boolean;
+  payableOnboard: boolean;
 };
 
 type ForexData = {
@@ -250,6 +250,8 @@ export default function Wages() {
     fetchWageDescription();
   }, []);
 
+  console.log("Fetched Wage Descriptions:", wageDescriptionItems);
+
   useEffect(() => {
     getWageForexList()
       .then((res) => {
@@ -426,17 +428,18 @@ export default function Wages() {
       ),
     },
     {
-      id: "PayableOnBoard",
-      accessorKey: "PayableOnBoard",
+      id: "PayableOnboard",
+      accessorKey: "PayableOnboard",
       header: () => <div className="text-center">Payable On Board</div>,
       cell: ({ row }) => {
-        console.log("row.original in PayableOnBoard cell:", row.original);
-        const rawValue = row.original?.PayableOnBoard;
-        console.log(
-          "PayableOnBoard Raw Value (row.original):",
-          rawValue,
-          typeof rawValue
-        );
+        // console.log("row.original in PayableOnBoard cell:", row.original);
+        const rawValue = row.original?.PayableOnboard;
+        console.log(rawValue);
+        // console.log(
+        //   "PayableOnBoard Raw Value (row.original):",
+        //   rawValue,
+        //   typeof rawValue
+        // );
         const value = rawValue === 1;
         return (
           <div className="text-center">
@@ -492,7 +495,7 @@ export default function Wages() {
                       wageId: wageDescription.WageID,
                       wageCode: wageDescription.WageCode,
                       wageName: wageDescription.WageName,
-                      payableOnBoard: Boolean(wageDescription.PayableOnBoard),
+                      payableOnboard: Boolean(wageDescription.PayableOnboard),
                     });
                     setEditWageDescriptionDialogOpen(true);
                   }}>
