@@ -132,9 +132,6 @@ export default function Login() {
                         />
                       </FormControl>
                       <div className="flex items-center gap-1">
-                        {form.formState.errors.email && (
-                          <PiWarningCircleLight color="red" size={20} />
-                        )}
                         <FormMessage className="text-base" />
                       </div>
                     </FormItem>
@@ -176,9 +173,6 @@ export default function Login() {
                         </div>
                       </FormControl>
                       <div className="flex items-center gap-1">
-                        {form.formState.errors.password && (
-                          <PiWarningCircleLight color="red" size={20} />
-                        )}
                         <FormMessage className="text-base" />
                       </div>
                     </FormItem>
