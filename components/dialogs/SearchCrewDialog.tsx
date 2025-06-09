@@ -45,7 +45,11 @@ export function SearchCrewDialog({
       getCrewList()
         .then((response) => {
           if (response.success) {
-            setCrews(response.data.filter((crew) => crew.CrewStatusID === 2));
+            setCrews(
+              response.data
+                .filter((crew) => crew.CrewStatusID === 2)
+                .slice(0, 50)
+            );
           } else {
             console.error("Failed to fetch crew list:", response.message);
           }
@@ -55,6 +59,8 @@ export function SearchCrewDialog({
         });
     }
   }, [open]);
+
+  console.log(crews);
 
   const columns: ColumnDef<IOffBoardCrew>[] = [
     {
