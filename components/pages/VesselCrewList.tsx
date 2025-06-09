@@ -29,7 +29,7 @@ import { TbShipOff } from "react-icons/tb";
 import { MdOutlineBadge } from "react-icons/md";
 import { PromoteCrewDialog } from "../dialogs/PromoteCrewDialog";
 import { RepatriateCrewDialog } from "../dialogs/RepatriateCrewDialog";
-import { SearchCrewDialog } from "../dialogs/SearchCrewDialog";
+import { IOffBoardCrew, SearchCrewDialog } from "../dialogs/SearchCrewDialog";
 import { JoinCrewDialog } from "../dialogs/JoinCrewDialog";
 import Swal from "sweetalert2";
 import {
@@ -59,7 +59,8 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
   const [searchCrewDialogOpen, setSearchCrewDialogOpen] = useState(false);
   const [joinCrewDialogOpen, setJoinCrewDialogOpen] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState<any>(null);
-  const [selectedOffBoardCrew, setSelectedOffBoardCrew] = useState<any>(null);
+  const [selectedOffBoardCrew, setSelectedOffBoardCrew] =
+    useState<IOffBoardCrew | null>(null);
 
   useEffect(() => {
     const fetchVesselCrew = async () => {
@@ -94,8 +95,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       header: ({ column }) => (
         <div
           className="flex items-center cursor-pointer text-left"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           Crew Code
         </div>
       ),
@@ -108,8 +108,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       header: ({ column }) => (
         <div
           className="flex items-center cursor-pointer text-left"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           Crew Name
         </div>
       ),
@@ -122,8 +121,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       header: ({ column }) => (
         <div
           className="flex items-center cursor-pointer text-left"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           Rank
         </div>
       ),
@@ -136,8 +134,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       header: ({ column }) => (
         <div
           className="flex items-center cursor-pointer justify-center"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           Status
         </div>
       ),
@@ -151,8 +148,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
                 status === "On board"
                   ? "bg-green-100 text-green-800 hover:bg-green-100/80"
                   : "bg-gray-100 text-gray-800 hover:bg-gray-100/80"
-              }`}
-            >
+              }`}>
               {status}
             </Badge>
           </div>
@@ -215,8 +211,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
                   onClick={() => {
                     setSelectedCrew(crew);
                     setRepatriateDialogOpen(true);
-                  }}
-                >
+                  }}>
                   <TbShipOff />
                   Repatriate
                 </DropdownMenuItem>
@@ -224,16 +219,14 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
                   onClick={() => {
                     setSelectedCrew(crew);
                     setPromoteDialogOpen(true);
-                  }}
-                >
+                  }}>
                   <MdOutlineBadge />
                   For Promotion
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive"
-                  onClick={() => handleDelete(crew.id.toString())}
-                >
+                  onClick={() => handleDelete(crew.id.toString())}>
                   <Trash className="text-red-500" />
                   Delete
                 </DropdownMenuItem>
@@ -297,8 +290,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
                   vesselData?.data.VesselInfo.Status === 1
                     ? "bg-blue-100 text-blue-800"
                     : "bg-gray-100 text-gray-800"
-                }`}
-              >
+                }`}>
                 {vesselData?.data.VesselInfo.Status === 1
                   ? "Active"
                   : "Inactive"}
@@ -340,8 +332,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
             </Button>
             <Button
               className="gap-2 h-11 px-5"
-              onClick={() => setSearchCrewDialogOpen(true)}
-            >
+              onClick={() => setSearchCrewDialogOpen(true)}>
               <Plus className="h-4 w-4" />
               Join Crew
             </Button>

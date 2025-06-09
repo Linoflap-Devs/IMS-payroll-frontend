@@ -19,7 +19,7 @@ interface SearchCrewDialogProps {
   onOpenChange: (open: boolean) => void;
   onCrewSelect: (crew: IOffBoardCrew) => void;
 }
-interface IOffBoardCrew {
+export interface IOffBoardCrew {
   CrewCode: string;
   LastName: string;
   FirstName: string;

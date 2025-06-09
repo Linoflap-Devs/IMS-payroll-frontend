@@ -19,18 +19,12 @@ import { useState } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Icon } from "@iconify/react/dist/iconify.js";
+import { IOffBoardCrew } from "./SearchCrewDialog";
 
 interface JoinCrewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  crewMember: {
-    id: string;
-    name: string;
-    status: string;
-    rank: string;
-    currentVessel: string;
-    country: string;
-  };
+  crewMember: IOffBoardCrew;
 }
 
 export function JoinCrewDialog({
@@ -59,18 +53,17 @@ export function JoinCrewDialog({
             </div>
 
             <h3 className="text-xl font-semibold text-center mb-0">
-              {crewMember.name}
+              {crewMember.FirstName} {crewMember.LastName}
             </h3>
 
             <div className="flex items-center gap-1 justify-center">
               <span
                 className={`${
-                  crewMember.status === "Off board"
+                  crewMember.CrewStatusID === 2
                     ? "bg-red-100 text-red-600"
                     : "bg-green-100 text-green-600"
-                } px-2 py-0.5 rounded-full text-xs`}
-              >
-                {crewMember.status}
+                } px-2 py-0.5 rounded-full text-xs`}>
+                {crewMember.CrewStatusID === 2 ? "Off board" : "On board"}
               </span>
             </div>
 
@@ -79,7 +72,7 @@ export function JoinCrewDialog({
                 <User className="w-4 h-4 text-black-500" />
                 <div>
                   <div className="text-gray-500">Crew Code</div>
-                  <div>{crewMember.id || "not assigned"}</div>
+                  <div>{crewMember.CrewCode || "not assigned"}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -91,21 +84,23 @@ export function JoinCrewDialog({
                 />
                 <div>
                   <div className="text-gray-500">Rank</div>
-                  <div>{crewMember.rank || "not assigned"}</div>
+                  <div>{crewMember.Rank || "not assigned"}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Ship className="w-4 h-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Current Vessel</div>
-                  <div>{crewMember.currentVessel || "not assigned"}</div>
+                  {/* <div>{crewMember.currentVessel || "not assigned"}</div> */}
+                  <div>not assigned</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Country</div>
-                  <div>{crewMember.country || "not assigned"}</div>
+                  {/* <div>{crewMember.country || "not assigned"}</div> */}
+                  <div>not assigned</div>
                 </div>
               </div>
             </div>
@@ -170,8 +165,7 @@ export function JoinCrewDialog({
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => onOpenChange(false)}
-          >
+            onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button className="flex-1 bg-[#2F3593] hover:bg-[#252a72]">
