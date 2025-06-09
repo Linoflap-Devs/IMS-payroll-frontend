@@ -14,61 +14,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import { getCrewList } from "@/src/services/crew/crew.api";
 import { useDebounce } from "@/lib/useDebounce";
 
-// Sample off-board crew data
-const offBoardCrewData = [
-  { id: "1012", name: "Juan Dela Cruz", status: "Off board", rank: "Captain" },
-  {
-    id: "1012",
-    name: "Tony Tony Chapper",
-    status: "Off board",
-    rank: "Chief Engineer",
-  },
-  {
-    id: "1012",
-    name: "Maria Isabella De La Cruz Santos",
-    status: "Off board",
-    rank: "First Officer",
-  },
-  {
-    id: "1012",
-    name: "Francisco Javier Gutierrez Delos Reyes",
-    status: "Off board",
-    rank: "Second Officer",
-  },
-  {
-    id: "1012",
-    name: "Jose Luis Tomas Lopez Rivera",
-    status: "Off board",
-    rank: "Third Officer",
-  },
-  {
-    id: "1012",
-    name: "Rafael Alberto Pimentel Diaz",
-    status: "Off board",
-    rank: "Chief Engineer",
-  },
-  {
-    id: "1012",
-    name: "Carlos Antonio Aquino Velasco",
-    status: "Off board",
-    rank: "Second Engineer",
-  },
-  {
-    id: "1012",
-    name: "Ana Gabriela Mendoza Quijano",
-    status: "Off board",
-    rank: "Third Engineer",
-  },
-];
-
-type OffBoardCrew = (typeof offBoardCrewData)[number];
-
 interface SearchCrewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCrewSelect: (crew: OffBoardCrew) => void;
+  onCrewSelect: (crew: IOffBoardCrew) => void;
 }
-
 interface IOffBoardCrew {
   CrewCode: string;
   LastName: string;
