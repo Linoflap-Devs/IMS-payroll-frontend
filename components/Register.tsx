@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { PiWarningCircleLight } from "react-icons/pi";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import {
@@ -97,9 +96,6 @@ export default function Register() {
                           />
                         </FormControl>
                         <div className="flex items-center gap-1">
-                          {form.formState.errors.lastName && (
-                            <PiWarningCircleLight color="red" size={20} />
-                          )}
                           <FormMessage className="text-base" />
                         </div>{" "}
                       </FormItem>
@@ -119,9 +115,6 @@ export default function Register() {
                           />
                         </FormControl>
                         <div className="flex items-center gap-1">
-                          {form.formState.errors.firstName && (
-                            <PiWarningCircleLight color="red" size={20} />
-                          )}
                           <FormMessage className="text-base" />
                         </div>{" "}
                       </FormItem>
@@ -141,9 +134,6 @@ export default function Register() {
                           />
                         </FormControl>
                         <div className="flex items-center gap-1">
-                          {form.formState.errors.email && (
-                            <PiWarningCircleLight color="red" size={20} />
-                          )}
                           <FormMessage className="text-base" />
                         </div>{" "}
                       </FormItem>
@@ -164,9 +154,7 @@ export default function Register() {
                           />
                         </FormControl>
                         <div className="flex items-center gap-1">
-                          {form.formState.errors.password && (
-                            <PiWarningCircleLight color="red" size={20} />
-                          )}
+                       
                           <FormMessage className="text-base" />
                         </div>{" "}
                       </FormItem>
@@ -189,9 +177,7 @@ export default function Register() {
                           />
                         </FormControl>
                         <div className="flex items-center gap-1">
-                          {form.formState.errors.confirmPassword && (
-                            <PiWarningCircleLight color="red" size={20} />
-                          )}
+                      
                           <FormMessage className="text-base" />
                         </div>{" "}
                       </FormItem>

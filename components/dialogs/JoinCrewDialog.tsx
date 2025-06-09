@@ -14,8 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarDays, Ship, MapPin, User } from "lucide-react";
-import { useState } from "react";
+import { Ship, MapPin, User } from "lucide-react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Icon } from "@iconify/react/dist/iconify.js";

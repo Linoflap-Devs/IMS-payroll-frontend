@@ -18,7 +18,7 @@ import {
 import { Input } from "./ui/input";
 import { loginUser, LoginResponse } from "../src/services/auth/auth.api";
 import Link from "next/link";
-import { PiWarningCircleLight, PiEye, PiEyeSlash } from "react-icons/pi";
+import { PiEye, PiEyeSlash } from "react-icons/pi";
 
 import {
   Dialog,
