@@ -19,6 +19,10 @@ import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { IOffBoardCrew } from "./SearchCrewDialog";
+import { useEffect, useState } from "react";
+import { CrewBasic, getCrewBasic } from "@/src/services/crew/crew.api";
+import Base64Image from "../Base64Image";
+import Image from "next/image";
 
 interface JoinCrewDialogProps {
   open: boolean;
@@ -31,6 +35,25 @@ export function JoinCrewDialog({
   onOpenChange,
   crewMember,
 }: JoinCrewDialogProps) {
+  const [crew, setCrew] = useState<CrewBasic | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      getCrewBasic(crewMember.CrewCode)
+        .then((response) => {
+          if (response.success) {
+            console.log("Crew details fetched successfully:", response.data);
+            setCrew(response.data);
+          } else {
+            console.error("Failed to fetch crew details:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching crew details:", error);
+        });
+    }
+  }, [open, crewMember.CrewCode]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] p-0 gap-0 bg-[#FCFCFC]">
@@ -44,11 +67,24 @@ export function JoinCrewDialog({
           {/* Left side - Crew Info Card */}
           <Card className="w-[300px] bg-[#FCFCFC] rounded-lg px-4 py-4 gap-2.5">
             <div className="w-40 h-40 mx-auto overflow-hidden rounded-lg border border-gray-200">
-              <img
-                src="/image.png"
-                alt="Profile"
-                className="w-full h-full object-contain"
-              />
+              {crew?.ProfileImage ? (
+                <Base64Image
+                  imageType={crew.ProfileImage.ContentType}
+                  alt="Crew Profile Image"
+                  base64String={crew.ProfileImage.FileContent}
+                  width={160}
+                  height={160}
+                  className="object-contain w-full h-full"
+                />
+              ) : (
+                <Image
+                  width={256}
+                  height={160}
+                  src="/image.png"
+                  alt="Selfie with ID Attachment"
+                  className="object-cover w-full h-full"
+                />
+              )}
             </div>
 
             <h3 className="text-xl font-semibold text-center mb-0">
