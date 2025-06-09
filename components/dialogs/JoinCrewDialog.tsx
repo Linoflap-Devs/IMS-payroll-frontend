@@ -23,11 +23,26 @@ import { useEffect, useState } from "react";
 import { CrewBasic, getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
+import { getVesselList } from "@/src/services/vessel/vessel.api";
+import {
+  CountriesItem,
+  getCountriesList,
+} from "@/src/services/location/location.api";
+import { getPortList, IPort } from "@/src/services/port/port.api";
 
 interface JoinCrewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   crewMember: IOffBoardCrew;
+}
+
+interface IVesselItem {
+  VesselID: number;
+  VesselCode: string;
+  VesselName: string;
+  VesselType: string;
+  Principal: string;
+  IsActive: number;
 }
 
 export function JoinCrewDialog({
@@ -36,6 +51,9 @@ export function JoinCrewDialog({
   crewMember,
 }: JoinCrewDialogProps) {
   const [crew, setCrew] = useState<CrewBasic | null>(null);
+  const [vesselList, setVesselList] = useState<IVesselItem[]>([]);
+  const [countryList, setCountryList] = useState<CountriesItem[]>([]);
+  const [portList, setPortList] = useState<IPort[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -53,6 +71,59 @@ export function JoinCrewDialog({
         });
     }
   }, [open, crewMember.CrewCode]);
+
+  useEffect(() => {
+    if (open) {
+      getVesselList()
+        .then((response) => {
+          if (response.success) {
+            console.log("Vessel list fetched successfully:", response.data);
+            setVesselList(response.data);
+          } else {
+            console.error("Failed to fetch vessel list:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching vessel list:", error);
+        });
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      getCountriesList()
+        .then((response) => {
+          if (response.success) {
+            setCountryList(response.data);
+          } else {
+            console.error("Failed to fetch country list:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching country list:", error);
+        });
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (countryList) {
+      getPortList()
+        .then((response) => {
+          if (response.success) {
+            setPortList(response.data);
+          } else {
+            console.error("Failed to fetch port list:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching port list:", error);
+        });
+    }
+  }, [countryList]);
+
+  // console.log("Vessel List:", vesselList);
+  // console.log("Country List:", countryList);
+  console.log("Port List:", portList);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -150,9 +221,11 @@ export function JoinCrewDialog({
                   <SelectValue placeholder="Select vessel" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="atlas-island">Atlas Island</SelectItem>
-                  <SelectItem value="amakus-island">Amakus Island</SelectItem>
-                  <SelectItem value="andes-island">Andes Island</SelectItem>
+                  {vesselList.map((vessel) => (
+                    <SelectItem key={vessel.VesselID} value={vessel.VesselCode}>
+                      {vessel.VesselName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -164,10 +237,13 @@ export function JoinCrewDialog({
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="japan">Japan</SelectItem>
-                  <SelectItem value="philippines">Philippines</SelectItem>
-                  <SelectItem value="singapore">Singapore</SelectItem>
-                  <SelectItem value="indonesia">Indonesia</SelectItem>
+                  {countryList.map((country) => (
+                    <SelectItem
+                      key={country.CountryID}
+                      value={country.CountryID.toString()}>
+                      {country.CountryName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -179,11 +255,11 @@ export function JoinCrewDialog({
                   <SelectValue placeholder="Select port" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="tokyo">Tokyo Port</SelectItem>
-                  <SelectItem value="yokohama">Yokohama Port</SelectItem>
-                  <SelectItem value="osaka">Osaka Port</SelectItem>
-                  <SelectItem value="kobe">Kobe Port</SelectItem>
-                  <SelectItem value="nagoya">Nagoya Port</SelectItem>
+                  {portList.map((port) => (
+                    <SelectItem key={port.PortID} value={port.PortCode}>
+                      {port.PortName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
