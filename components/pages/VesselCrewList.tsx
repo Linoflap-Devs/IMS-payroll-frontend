@@ -160,43 +160,43 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       header: "Action",
       cell: ({ row }) => {
         const crew = row.original;
-        const handleDelete = (vesselCode: string) => {
-          const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-              confirmButton:
-                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-              cancelButton:
-                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            },
-            buttonsStyling: false,
-          });
+        // const handleDelete = (vesselCode: string) => {
+        //   const swalWithBootstrapButtons = Swal.mixin({
+        //     customClass: {
+        //       confirmButton:
+        //         "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
+        //       cancelButton:
+        //         "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+        //     },
+        //     buttonsStyling: false,
+        //   });
 
-          swalWithBootstrapButtons
-            .fire({
-              title: "Are you sure?",
-              text: "Are you sure you want to delete this crew in the crew list? This action cannot be undone.",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "Yes, delete it!",
-              cancelButtonText: "No, cancel!",
-              reverseButtons: true,
-            })
-            .then((result) => {
-              if (result.isConfirmed) {
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The crew member has been successfully deleted.",
-                  icon: "success",
-                });
-              } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
-                  title: "Cancelled",
-                  text: "Your crew member is safe :)",
-                  icon: "error",
-                });
-              }
-            });
-        };
+        //   swalWithBootstrapButtons
+        //     .fire({
+        //       title: "Are you sure?",
+        //       text: "Are you sure you want to delete this crew in the crew list? This action cannot be undone.",
+        //       icon: "warning",
+        //       showCancelButton: true,
+        //       confirmButtonText: "Yes, delete it!",
+        //       cancelButtonText: "No, cancel!",
+        //       reverseButtons: true,
+        //     })
+        //     .then((result) => {
+        //       if (result.isConfirmed) {
+        //         swalWithBootstrapButtons.fire({
+        //           title: "Deleted!",
+        //           text: "The crew member has been successfully deleted.",
+        //           icon: "success",
+        //         });
+        //       } else if (result.dismiss === Swal.DismissReason.cancel) {
+        //         swalWithBootstrapButtons.fire({
+        //           title: "Cancelled",
+        //           text: "Your crew member is safe :)",
+        //           icon: "error",
+        //         });
+        //       }
+        //     });
+        // };
         return (
           <div className="text-center">
             <DropdownMenu>
@@ -223,13 +223,13 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
                   <MdOutlineBadge />
                   For Promotion
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {/* <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive"
                   onClick={() => handleDelete(crew.id.toString())}>
                   <Trash className="text-red-500" />
                   Delete
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
