@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
+import { getCrewList } from "@/src/services/crew/crew.api";
+import { useDebounce } from "@/lib/useDebounce";
 
 // Sample off-board crew data
 const offBoardCrewData = [
@@ -68,75 +69,100 @@ interface SearchCrewDialogProps {
   onCrewSelect: (crew: OffBoardCrew) => void;
 }
 
+interface IOffBoardCrew {
+  CrewCode: string;
+  LastName: string;
+  FirstName: string;
+  MiddleName: string;
+  RankID: number;
+  Rank: string;
+  CrewStatusID: number;
+  AccountValidation: string | null;
+  IsActive: number;
+}
+
 export function SearchCrewDialog({
   open,
   onOpenChange,
   onCrewSelect,
 }: SearchCrewDialogProps) {
+  const [crews, setCrews] = useState<IOffBoardCrew[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
-  const columns: ColumnDef<OffBoardCrew>[] = [
+  useEffect(() => {
+    if (open) {
+      getCrewList()
+        .then((response) => {
+          if (response.success) {
+            setCrews(response.data.filter((crew) => crew.CrewStatusID === 2));
+          } else {
+            console.error("Failed to fetch crew list:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching crew list:", error);
+        });
+    }
+  }, [open]);
+
+  const columns: ColumnDef<IOffBoardCrew>[] = [
     {
-      accessorKey: "id",
+      accessorKey: "CrewCode",
       cell: ({ row }) => (
         <div
           className="cursor-pointer"
           onClick={() => {
             onCrewSelect(row.original);
             onOpenChange(false);
-          }}
-        >
-          {row.getValue("id")}
+          }}>
+          {row.getValue("CrewCode")}
         </div>
       ),
     },
     {
-      accessorKey: "name",
+      accessorKey: "LastName",
       cell: ({ row }) => (
         <div
           className="cursor-pointer"
           onClick={() => {
             onCrewSelect(row.original);
             onOpenChange(false);
-          }}
-        >
-          {row.getValue("name")}
+          }}>
+          {row.getValue("LastName")}
         </div>
       ),
     },
     {
-      accessorKey: "rank",
+      accessorKey: "Rank",
       cell: ({ row }) => (
         <div
           className="cursor-pointer"
           onClick={() => {
             onCrewSelect(row.original);
             onOpenChange(false);
-          }}
-        >
-          {row.getValue("rank")}
+          }}>
+          {row.getValue("Rank")}
         </div>
       ),
     },
     {
-      accessorKey: "status",
+      accessorKey: "CrewStatus",
       cell: ({ row }) => {
-        const status = row.getValue("status") as string;
+        const status = row.getValue("CrewStatus") as string;
         return (
           <div
             className="cursor-pointer"
             onClick={() => {
               onCrewSelect(row.original);
               onOpenChange(false);
-            }}
-          >
+            }}>
             <span
               className={`${
                 status === "Off board"
                   ? "bg-red-100 text-red-600"
                   : "bg-green-100 text-green-600"
-              } px-2 py-0.5 rounded-full text-xs`}
-            >
+              } px-2 py-0.5 rounded-full text-xs`}>
               {status}
             </span>
           </div>
@@ -146,10 +172,11 @@ export function SearchCrewDialog({
   ];
 
   // Filter crew based on search term
-  const filteredCrew = offBoardCrewData.filter(
+  const filteredCrew = crews.filter(
     (crew) =>
-      crew.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      crew.id.toLowerCase().includes(searchTerm.toLowerCase())
+      crew.FirstName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      crew.LastName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      crew.CrewCode.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   return (
