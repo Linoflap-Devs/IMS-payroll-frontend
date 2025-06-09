@@ -36,31 +36,49 @@ export function SearchCrewDialog({
   onOpenChange,
   onCrewSelect,
 }: SearchCrewDialogProps) {
-  const [crews, setCrews] = useState<IOffBoardCrew[]>([]);
+  const [allCrews, setAllCrews] = useState<IOffBoardCrew[]>([]);
+  const [displayedCrews, setDisplayedCrews] = useState<IOffBoardCrew[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const debouncedSearch = useDebounce(searchTerm, 500);
 
   useEffect(() => {
     if (open) {
+      setIsLoading(true);
       getCrewList()
         .then((response) => {
           if (response.success) {
-            setCrews(
-              response.data
-                .filter((crew) => crew.CrewStatusID === 2)
-                .slice(0, 50)
+            const offBoardCrews = response.data.filter(
+              (crew) => crew.CrewStatusID === 2
             );
+            setAllCrews(offBoardCrews);
+            setDisplayedCrews(offBoardCrews.slice(0, 50));
           } else {
             console.error("Failed to fetch crew list:", response.message);
           }
+          setIsLoading(false);
         })
         .catch((error) => {
           console.error("Error fetching crew list:", error);
+          setIsLoading(false);
         });
     }
   }, [open]);
 
-  console.log(crews);
+  useEffect(() => {
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase();
+      const filtered = allCrews.filter(
+        (crew) =>
+          crew.FirstName.toLowerCase().includes(searchLower) ||
+          crew.LastName.toLowerCase().includes(searchLower) ||
+          crew.CrewCode.toLowerCase().includes(searchLower)
+      );
+      setDisplayedCrews(filtered.slice(0, 50));
+    } else {
+      setDisplayedCrews(allCrews.slice(0, 50));
+    }
+  }, [debouncedSearch, allCrews]);
 
   const columns: ColumnDef<IOffBoardCrew>[] = [
     {
@@ -103,9 +121,9 @@ export function SearchCrewDialog({
       ),
     },
     {
-      accessorKey: "CrewStatus",
+      accessorKey: "CrewStatusID",
       cell: ({ row }) => {
-        const status = row.getValue("CrewStatus") as string;
+        const status = row.getValue("CrewStatusID");
         return (
           <div
             className="cursor-pointer"
@@ -115,25 +133,17 @@ export function SearchCrewDialog({
             }}>
             <span
               className={`${
-                status === "Off board"
+                status === 2
                   ? "bg-red-100 text-red-600"
                   : "bg-green-100 text-green-600"
               } px-2 py-0.5 rounded-full text-xs`}>
-              {status}
+              {status === 2 ? "Off board" : "On board"}
             </span>
           </div>
         );
       },
     },
   ];
-
-  // Filter crew based on search term
-  const filteredCrew = crews.filter(
-    (crew) =>
-      crew.FirstName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      crew.LastName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      crew.CrewCode.toLowerCase().includes(debouncedSearch.toLowerCase())
-  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -158,12 +168,16 @@ export function SearchCrewDialog({
 
           {/* Crew Table */}
           <div className="rounded-md border max-h-[300px] overflow-y-auto">
-            <DataTable
-              columns={columns}
-              data={filteredCrew}
-              pagination={false}
-              hideHeader={true}
-            />
+            {isLoading ? (
+              <div className="p-4 text-center">Loading...</div>
+            ) : (
+              <DataTable
+                columns={columns}
+                data={displayedCrews}
+                pagination={false}
+                hideHeader={true}
+              />
+            )}
           </div>
         </div>
       </DialogContent>
