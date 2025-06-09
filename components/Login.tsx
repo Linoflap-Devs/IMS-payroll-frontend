@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
 import Image from "next/image";
+import { AxiosError } from "axios";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -63,24 +64,34 @@ export default function Login() {
       console.log("Login response:", response);
 
       if (response.success) {
-        // Store the user's email in localStorage
+        setIsLoading(false);
         localStorage.setItem("userEmail", response.data.email);
-        // On success, the backend sets the auth cookie.
-        // Redirect the user to the dashboard.
+
         router.push("/home/dashboard");
       } else {
-        // Display error message from API when login fails
         setErrorMessage(
           response.message || "Invalid credentials, please try again."
         );
         console.error("Error during login:", response.message);
       }
     } catch (error: unknown) {
-      // Handle any unexpected errors. Customize the message as needed.
-      const err = error as Error;
-      const errorMsg = err.message || "An unexpected error occurred.";
-      setErrorMessage(errorMsg);
-      console.error("Login failed:", errorMsg);
+      const axiosError = error as AxiosError;
+
+      if (axiosError?.response?.status === 401) {
+        setErrorMessage(
+          "Invalid credentials, please check your email and password."
+        );
+      } else if (axiosError?.response?.status === 500) {
+        setErrorMessage(
+          "Internal server error. Please try again later or contact support."
+        );
+      } else {
+        setErrorMessage(
+          "An unexpected error occurred. Please try again later."
+        );
+      }
+
+      console.log("Error during login:", axiosError.message);
     } finally {
       setIsLoading(false);
     }
@@ -106,8 +117,7 @@ export default function Login() {
                       <FormLabel
                         className={`text-sm ${
                           errorMessage ? "text-red-600" : ""
-                        }`}
-                      >
+                        }`}>
                         Email Address
                       </FormLabel>
                       <FormControl>
@@ -138,8 +148,7 @@ export default function Login() {
                       <FormLabel
                         className={`text-sm ${
                           errorMessage ? "text-red-600" : ""
-                        }`}
-                      >
+                        }`}>
                         Password
                       </FormLabel>
                       <FormControl>
@@ -157,8 +166,7 @@ export default function Login() {
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-                          >
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
                             {showPassword ? (
                               <PiEyeSlash size={20} />
                             ) : (
@@ -188,8 +196,7 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90"
-                disabled={isLoading}
-              >
+                disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Log in"}
               </Button>
             </form>
@@ -217,8 +224,7 @@ export default function Login() {
                   <DialogClose>
                     <Button
                       variant="outline"
-                      className="py-5 px-18 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white"
-                    >
+                      className="py-5 px-18 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white">
                       Okay
                     </Button>
                   </DialogClose>
