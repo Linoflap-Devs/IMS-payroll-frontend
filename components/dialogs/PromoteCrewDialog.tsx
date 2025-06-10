@@ -29,10 +29,12 @@ interface PromoteCrewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   crewMember: {
+    id: number;
     name: string;
+    status: string;
     rank: string;
-    signOnDate: string;
-    currentVessel: string;
+    crewCode: string;
+    currentVessel?: string;
   };
 }
 
@@ -148,8 +150,7 @@ export function PromoteCrewDialog({
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => onOpenChange(false)}
-          >
+            onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button className="flex-1 bg-green-600 hover:bg-green-700">

@@ -14,22 +14,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CalendarDays, Ship, MapPin } from "lucide-react";
+import { CalendarDays, Ship, MapPin, User } from "lucide-react";
 import { useState } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
-import { Icon } from "@iconify/react/dist/iconify.js";
 import { RiShieldStarLine } from "react-icons/ri";
 
 interface RepatriateCrewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   crewMember: {
+    id: number;
     name: string;
+    status: string;
     rank: string;
-    signOnDate: string;
-    currentVessel: string;
+    crewCode: string;
+    currentVessel?: string;
+    // signOnDate?: string | undefined;
+    // currentVessel?: string | undefined;
   };
 }
 
@@ -40,6 +42,7 @@ export function RepatriateCrewDialog({
 }: RepatriateCrewDialogProps) {
   const [date, setDate] = useState<Date>();
 
+  console.log("Repatriate Crew Dialog Opened", crewMember);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] p-0 gap-0 bg-[#FCFCFC]">
@@ -79,10 +82,12 @@ export function RepatriateCrewDialog({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-gray-500" />
+                {/* <CalendarDays className="w-4 h-4 text-gray-500" /> */}
+                <User className="w-4 h-4 text-black-500" />
+
                 <div>
-                  <div className="text-gray-500">Sign-on date</div>
-                  <div>{crewMember.signOnDate}</div>
+                  <div className="text-gray-500">Crew Code</div>
+                  <div>{crewMember.crewCode}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -147,8 +152,7 @@ export function RepatriateCrewDialog({
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => onOpenChange(false)}
-          >
+            onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button className="flex-1 bg-red-600 hover:bg-red-700">

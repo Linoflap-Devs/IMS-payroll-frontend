@@ -487,7 +487,8 @@ export default function VesselProfile() {
                 Edit Vessel
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/home/vessel/crew-list?id=${vessel.vesselId}`}>
+                <Link
+                  href={`/home/vessel/crew-list?id=${vessel.vesselId}&vesselName=${vessel.vesselName}`}>
                   <Users className="mr-2 h-4 w-4" /> View Crew List
                 </Link>
               </DropdownMenuItem>

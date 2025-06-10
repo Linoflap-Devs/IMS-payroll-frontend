@@ -9,7 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
+  // DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -18,7 +18,7 @@ import {
   MoreHorizontal,
   Filter,
   Ship,
-  Trash,
+  // Trash,
   ChevronLeft,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,7 @@ import { PromoteCrewDialog } from "../dialogs/PromoteCrewDialog";
 import { RepatriateCrewDialog } from "../dialogs/RepatriateCrewDialog";
 import { IOffBoardCrew, SearchCrewDialog } from "../dialogs/SearchCrewDialog";
 import { JoinCrewDialog } from "../dialogs/JoinCrewDialog";
-import Swal from "sweetalert2";
+// import Swal from "sweetalert2";
 import {
   getVesselCrew,
   type VesselCrewResponse,
@@ -48,9 +48,21 @@ interface VesselCrewListProps {
   vesselInfo?: VesselInfo;
 }
 
+interface ISelectedCrew {
+  id: number;
+  name: string;
+  status: string;
+  rank: string;
+  crewCode: string;
+  currentVessel?: string;
+  // signOnDate?: string;
+  // currentVessel?: string;
+}
+
 export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
   const searchParams = useSearchParams();
   const vesselId = searchParams.get("id");
+  const vesselName = searchParams.get("vesselName");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [vesselData, setVesselData] = useState<VesselCrewResponse | null>(null);
@@ -58,7 +70,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
   const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
   const [searchCrewDialogOpen, setSearchCrewDialogOpen] = useState(false);
   const [joinCrewDialogOpen, setJoinCrewDialogOpen] = useState(false);
-  const [selectedCrew, setSelectedCrew] = useState<any>(null);
+  const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew>();
   const [selectedOffBoardCrew, setSelectedOffBoardCrew] =
     useState<IOffBoardCrew | null>(null);
 
@@ -88,6 +100,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       rank: crew.Rank,
       crewCode: crew.CrewCode,
     })) || [];
+  console.log(vesselInfo, "Vessel Info");
 
   const columns: ColumnDef<(typeof crewData)[number]>[] = [
     {
@@ -197,6 +210,8 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
         //       }
         //     });
         // };
+
+        console.log("Crew:", JSON.stringify(selectedCrew, null, 2));
         return (
           <div className="text-center">
             <DropdownMenu>
@@ -355,17 +370,14 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
         onOpenChange={setPromoteDialogOpen}
         crewMember={
           selectedCrew
-            ? {
-                name: selectedCrew.name,
-                rank: selectedCrew.rank,
-                signOnDate: selectedCrew.signOnDate,
-                currentVessel: vesselInfo?.name || "Atlas Island",
-              }
+            ? { ...selectedCrew, currentVessel: vesselName || "" }
             : {
+                id: 0,
                 name: "",
+                status: "",
                 rank: "",
-                signOnDate: "",
-                currentVessel: vesselInfo?.name || "Atlas Island",
+                crewCode: "",
+                currentVessel: "",
               }
         }
       />
@@ -375,17 +387,14 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
         onOpenChange={setRepatriateDialogOpen}
         crewMember={
           selectedCrew
-            ? {
-                name: selectedCrew.name,
-                rank: selectedCrew.rank,
-                signOnDate: selectedCrew.signOnDate,
-                currentVessel: vesselInfo?.name || "Atlas Island",
-              }
+            ? { ...selectedCrew, currentVessel: vesselName || "" }
             : {
+                id: 0,
                 name: "",
+                status: "",
                 rank: "",
-                signOnDate: "",
-                currentVessel: vesselInfo?.name || "Atlas Island",
+                crewCode: "",
+                currentVessel: "",
               }
         }
       />
