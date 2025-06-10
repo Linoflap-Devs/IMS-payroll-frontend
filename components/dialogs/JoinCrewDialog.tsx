@@ -7,19 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Ship, MapPin, User } from "lucide-react";
+import { Ship, MapPin, User, Check, ChevronDown } from "lucide-react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { IOffBoardCrew } from "./SearchCrewDialog";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { CrewBasic, getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
@@ -29,6 +22,7 @@ import {
   getCountriesList,
 } from "@/src/services/location/location.api";
 import { getPortList, IPort } from "@/src/services/port/port.api";
+import { cn } from "@/lib/utils";
 
 interface JoinCrewDialogProps {
   open: boolean;
@@ -45,6 +39,129 @@ interface IVesselItem {
   IsActive: number;
 }
 
+function SimpleSearchableSelect({
+  options,
+  placeholder,
+  value,
+  onChange,
+  className,
+}: {
+  options: { id: string | number; value: string; label: string }[];
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredOptions, setFilteredOptions] = useState(options);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selectedOption = options.find((option) => option.value === value);
+
+  useEffect(() => {
+    const filtered = options.filter((option) =>
+      option.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredOptions(filtered);
+  }, [searchQuery, options]);
+
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery("");
+    } else {
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 50);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <Button
+        variant="outline"
+        role="combobox"
+        aria-expanded={open}
+        className={cn(
+          "w-full justify-between bg-white",
+          !value && "text-muted-foreground",
+          className
+        )}
+        onClick={() => setOpen(!open)}>
+        {selectedOption ? selectedOption.label : placeholder}
+        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+
+      {open && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-md">
+          <div className="p-2">
+            <Input
+              ref={inputRef}
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-[200px] overflow-y-auto">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <div
+                  key={option.id}
+                  className={cn(
+                    "flex items-center px-2 py-2 cursor-pointer hover:bg-accent",
+                    value === option.value && "bg-accent"
+                  )}
+                  onClick={() => {
+                    onChange(option.value);
+                    setOpen(false);
+                  }}>
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <span>{option.label}</span>
+                </div>
+              ))
+            ) : (
+              <div className="py-6 text-center text-sm text-muted-foreground">
+                No results found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function JoinCrewDialog({
   open,
   onOpenChange,
@@ -54,6 +171,11 @@ export function JoinCrewDialog({
   const [vesselList, setVesselList] = useState<IVesselItem[]>([]);
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
   const [portList, setPortList] = useState<IPort[]>([]);
+
+  const [selectedVessel, setSelectedVessel] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedPort, setSelectedPort] = useState("");
+  const [signOnDate, setSignOnDate] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -121,9 +243,43 @@ export function JoinCrewDialog({
     }
   }, [countryList]);
 
-  // console.log("Vessel List:", vesselList);
-  // console.log("Country List:", countryList);
-  console.log("Port List:", portList);
+  const vesselOptions = vesselList.map((vessel) => ({
+    id: vessel.VesselID,
+    value: vessel.VesselID.toString(),
+    label: vessel.VesselName,
+  }));
+
+  const countryOptions = countryList.map((country) => ({
+    id: country.CountryID,
+    value: country.CountryID.toString(),
+    label: country.CountryName,
+  }));
+
+  const portOptions = portList.map((port) => ({
+    id: port.PortID,
+    value: port.PortID.toString(),
+    label: port.PortName,
+  }));
+
+  const handleSubmit = () => {
+    if (!selectedVessel || !selectedCountry || !selectedPort || !signOnDate) {
+      alert("Please fill in all fields before submitting.");
+      return;
+    }
+
+    const joinCrewData = {
+      crewCode: Number(crewMember.CrewCode),
+      vesselId: Number(selectedVessel),
+      // countryId: Number(selectedCountry),
+      portId: Number(selectedPort),
+      dateOnBoard: signOnDate,
+      rankId: crewMember.RankID,
+    };
+
+    console.log("Submitting join crew data:", joinCrewData);
+
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -197,7 +353,6 @@ export function JoinCrewDialog({
                 <Ship className="w-4 h-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Current Vessel</div>
-                  {/* <div>{crewMember.currentVessel || "not assigned"}</div> */}
                   <div>not assigned</div>
                 </div>
               </div>
@@ -205,7 +360,6 @@ export function JoinCrewDialog({
                 <MapPin className="w-4 h-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Country</div>
-                  {/* <div>{crewMember.country || "not assigned"}</div> */}
                   <div>not assigned</div>
                 </div>
               </div>
@@ -216,57 +370,42 @@ export function JoinCrewDialog({
           <div className="flex-1 space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Vessel</label>
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select vessel" />
-                </SelectTrigger>
-                <SelectContent>
-                  {vesselList.map((vessel) => (
-                    <SelectItem key={vessel.VesselID} value={vessel.VesselCode}>
-                      {vessel.VesselName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SimpleSearchableSelect
+                options={vesselOptions}
+                placeholder="Select vessel"
+                value={selectedVessel}
+                onChange={setSelectedVessel}
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Country</label>
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countryList.map((country) => (
-                    <SelectItem
-                      key={country.CountryID}
-                      value={country.CountryID.toString()}>
-                      {country.CountryName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SimpleSearchableSelect
+                options={countryOptions}
+                placeholder="Select country"
+                value={selectedCountry}
+                onChange={setSelectedCountry}
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Port</label>
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select port" />
-                </SelectTrigger>
-                <SelectContent>
-                  {portList.map((port) => (
-                    <SelectItem key={port.PortID} value={port.PortCode}>
-                      {port.PortName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SimpleSearchableSelect
+                options={portOptions}
+                placeholder="Select port"
+                value={selectedPort}
+                onChange={setSelectedPort}
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Sign on date</label>
-              <Input type="date" className="w-full" />
+              <Input
+                type="date"
+                className="w-full"
+                value={signOnDate}
+                onChange={(e) => setSignOnDate(e.target.value)}
+              />
             </div>
           </div>
         </div>
@@ -279,7 +418,9 @@ export function JoinCrewDialog({
             onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button className="flex-1 bg-[#2F3593] hover:bg-[#252a72]">
+          <Button
+            className="flex-1 bg-[#2F3593] hover:bg-[#252a72]"
+            onClick={handleSubmit}>
             Join Crew
           </Button>
         </div>
