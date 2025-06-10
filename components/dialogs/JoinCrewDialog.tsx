@@ -170,7 +170,8 @@ export function JoinCrewDialog({
   const [crew, setCrew] = useState<CrewBasic | null>(null);
   const [vesselList, setVesselList] = useState<IVesselItem[]>([]);
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
-  const [portList, setPortList] = useState<IPort[]>([]);
+  const [allPorts, setAllPorts] = useState<IPort[]>([]);
+  const [filteredPorts, setFilteredPorts] = useState<IPort[]>([]);
 
   const [selectedVessel, setSelectedVessel] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -232,7 +233,8 @@ export function JoinCrewDialog({
       getPortList()
         .then((response) => {
           if (response.success) {
-            setPortList(response.data);
+            setAllPorts(response.data);
+            setFilteredPorts(response.data);
           } else {
             console.error("Failed to fetch port list:", response.message);
           }
@@ -242,6 +244,23 @@ export function JoinCrewDialog({
         });
     }
   }, [countryList]);
+
+  useEffect(() => {
+    if (selectedCountry) {
+      const filtered = allPorts.filter(
+        (port) => port.CountryID.toString() === selectedCountry
+      );
+      setFilteredPorts(filtered);
+      const currentPort = allPorts.find(
+        (p) => p.PortID.toString() === selectedPort
+      );
+      if (currentPort && currentPort.CountryID.toString() !== selectedCountry) {
+        setSelectedPort("");
+      }
+    } else {
+      setFilteredPorts(allPorts);
+    }
+  }, [selectedCountry, allPorts, selectedPort]);
 
   const vesselOptions = vesselList.map((vessel) => ({
     id: vessel.VesselID,
@@ -255,7 +274,7 @@ export function JoinCrewDialog({
     label: country.CountryName,
   }));
 
-  const portOptions = portList.map((port) => ({
+  const portOptions = filteredPorts.map((port) => ({
     id: port.PortID,
     value: port.PortID.toString(),
     label: port.PortName,
