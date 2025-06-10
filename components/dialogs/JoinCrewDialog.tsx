@@ -287,7 +287,7 @@ export function JoinCrewDialog({
     }
 
     const joinCrewData = {
-      crewCode: Number(crewMember.CrewCode),
+      crewCode: crewMember.CrewCode,
       vesselId: Number(selectedVessel),
       // countryId: Number(selectedCountry),
       portId: Number(selectedPort),
