@@ -261,7 +261,6 @@ export function RepatriateCrewDialog({
 
   const handleSubmit = () => {
     setSubmitted(true);
-    setIsLoading(true);
 
     if (!selectedPort || !signOffDate) {
       toast({
@@ -270,7 +269,10 @@ export function RepatriateCrewDialog({
           "Please fill in all required fields. (Port, Sign off date)",
         variant: "destructive",
       });
+      return;
     }
+
+    setIsLoading(true);
 
     const repatriateData = {
       crewId: crewMember.id,
