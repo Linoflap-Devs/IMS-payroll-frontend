@@ -23,6 +23,7 @@ import {
 } from "@/src/services/location/location.api";
 import { getPortList, IPort } from "@/src/services/port/port.api";
 import { cn } from "@/lib/utils";
+import { addCrewToVessel } from "@/src/services/vessel/vesselCrew.api";
 
 interface JoinCrewDialogProps {
   open: boolean;
@@ -296,6 +297,28 @@ export function JoinCrewDialog({
     };
 
     console.log("Submitting join crew data:", joinCrewData);
+
+    addCrewToVessel(
+      joinCrewData.crewCode,
+      joinCrewData.vesselId,
+      joinCrewData.portId,
+      joinCrewData.rankId,
+      new Date(joinCrewData.dateOnBoard)
+    )
+      .then((response) => {
+        if (response.success) {
+          console.log("Crew joined successfully:", response.data);
+          alert("Crew joined successfully!");
+          onOpenChange(false);
+        } else {
+          console.error("Failed to join crew:", response.message);
+          alert(`Failed to join crew: ${response.message}`);
+        }
+      })
+      .catch((error) => {
+        console.error("Error joining crew:", error);
+        alert("An error occurred while joining the crew.");
+      });
 
     onOpenChange(false);
   };
