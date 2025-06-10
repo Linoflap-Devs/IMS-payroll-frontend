@@ -39,6 +39,7 @@ interface RepatriateCrewDialogProps {
     rank: string;
     crewCode: string;
     currentVessel?: string;
+    country?: string;
   };
 }
 
@@ -284,6 +285,8 @@ export function RepatriateCrewDialog({
     onOpenChange(false);
   };
 
+  console.log("RepatriateCrewDialog rendered with crewMember:", crewMember);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] p-0 gap-0 bg-[#FCFCFC]">
@@ -353,7 +356,7 @@ export function RepatriateCrewDialog({
                 <MapPin className="w-4 h-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Country</div>
-                  <div>Japan</div>
+                  <div>{crewMember.country}</div>
                 </div>
               </div>
             </div>

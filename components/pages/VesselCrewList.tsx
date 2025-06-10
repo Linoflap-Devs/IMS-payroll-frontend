@@ -99,6 +99,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       status: crew.Status === 1 ? "On board" : "Inactive",
       rank: crew.Rank,
       crewCode: crew.CrewCode,
+      country: crew.Country,
     })) || [];
   console.log(vesselInfo, "Vessel Info");
 
@@ -252,6 +253,8 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       },
     },
   ];
+
+  
 
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">

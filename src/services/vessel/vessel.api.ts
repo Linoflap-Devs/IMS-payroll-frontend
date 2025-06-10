@@ -91,6 +91,7 @@ export interface CrewMember {
   LastName: string;
   Rank: string;
   Status: number;
+  Country: string;
 }
 
 export interface VesselCrewResponse {
