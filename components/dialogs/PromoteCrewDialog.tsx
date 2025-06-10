@@ -35,6 +35,7 @@ interface PromoteCrewDialogProps {
     rank: string;
     crewCode: string;
     currentVessel?: string;
+    vesselId?: number;
   };
 }
 

@@ -37,17 +37,6 @@ import {
   type VesselCrewResponse,
 } from "@/src/services/vessel/vessel.api";
 
-interface VesselInfo {
-  code: string;
-  name: string;
-  type: string;
-  principalName: string;
-}
-
-interface VesselCrewListProps {
-  vesselInfo?: VesselInfo;
-}
-
 interface ISelectedCrew {
   id: number;
   name: string;
@@ -55,11 +44,12 @@ interface ISelectedCrew {
   rank: string;
   crewCode: string;
   currentVessel?: string;
+  vesselId?: number;
   // signOnDate?: string;
   // currentVessel?: string;
 }
 
-export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
+export default function VesselCrewList() {
   const searchParams = useSearchParams();
   const vesselId = searchParams.get("id");
   const vesselName = searchParams.get("vesselName");
@@ -101,7 +91,6 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
       crewCode: crew.CrewCode,
       country: crew.Country,
     })) || [];
-  console.log(vesselInfo, "Vessel Info");
 
   const columns: ColumnDef<(typeof crewData)[number]>[] = [
     {
@@ -254,8 +243,6 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
     },
   ];
 
-  
-
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">
       <style jsx global>{`
@@ -373,7 +360,11 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
         onOpenChange={setPromoteDialogOpen}
         crewMember={
           selectedCrew
-            ? { ...selectedCrew, currentVessel: vesselName || "" }
+            ? {
+                ...selectedCrew,
+                currentVessel: vesselName || "",
+                vesselId: vesselId ? Number(vesselId) : 0,
+              }
             : {
                 id: 0,
                 name: "",
@@ -381,6 +372,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
                 rank: "",
                 crewCode: "",
                 currentVessel: "",
+                vesselId: 0,
               }
         }
       />
@@ -390,7 +382,11 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
         onOpenChange={setRepatriateDialogOpen}
         crewMember={
           selectedCrew
-            ? { ...selectedCrew, currentVessel: vesselName || "" }
+            ? {
+                ...selectedCrew,
+                currentVessel: vesselName || "",
+                vesselId: vesselId ? Number(vesselId) : 0,
+              }
             : {
                 id: 0,
                 name: "",
@@ -398,6 +394,7 @@ export default function VesselCrewList({ vesselInfo }: VesselCrewListProps) {
                 rank: "",
                 crewCode: "",
                 currentVessel: "",
+                vesselId: 0,
               }
         }
       />

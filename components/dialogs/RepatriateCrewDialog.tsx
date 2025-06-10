@@ -7,13 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Ship,
-  MapPin,
-  User,
-  Check,
-  ChevronDown,
-} from "lucide-react";
+import { Ship, MapPin, User, Check, ChevronDown } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
@@ -27,6 +21,8 @@ import {
   getCountriesList,
 } from "@/src/services/location/location.api";
 import { cn } from "@/lib/utils";
+import { repatriateCrew } from "@/src/services/vessel/vesselCrew.api";
+import { toast } from "../ui/use-toast";
 
 interface RepatriateCrewDialogProps {
   open: boolean;
@@ -39,10 +35,10 @@ interface RepatriateCrewDialogProps {
     crewCode: string;
     currentVessel?: string;
     country?: string;
+    vesselId: number;
   };
 }
 
-// SimpleSearchableSelect component
 function SimpleSearchableSelect({
   options,
   placeholder,
@@ -230,7 +226,6 @@ export function RepatriateCrewDialog({
     }
   }, [countryList]);
 
-  // Filter ports when country changes
   useEffect(() => {
     if (selectedCountry) {
       const filtered = allPorts.filter(
@@ -238,7 +233,6 @@ export function RepatriateCrewDialog({
       );
       setFilteredPorts(filtered);
 
-      // Reset port selection if current selection doesn't belong to selected country
       const currentPort = allPorts.find(
         (p) => p.PortID.toString() === selectedPort
       );
@@ -250,7 +244,6 @@ export function RepatriateCrewDialog({
     }
   }, [selectedCountry, allPorts, selectedPort]);
 
-  // Format data for the SimpleSearchableSelect component
   const countryOptions = countryList.map((country) => ({
     id: country.CountryID,
     value: country.CountryID.toString(),
@@ -263,9 +256,8 @@ export function RepatriateCrewDialog({
     label: port.PortName,
   }));
 
-  // Handle form submission
   const handleSubmit = () => {
-    if (!selectedCountry || !selectedPort || !signOffDate) {
+    if (!selectedPort || !signOffDate) {
       alert("Please fill in all fields before submitting.");
       return;
     }
@@ -278,13 +270,38 @@ export function RepatriateCrewDialog({
       signOffDate: signOffDate,
     };
 
-    console.log("Submitting repatriate data:", repatriateData);
-    // Add API call here
+    repatriateCrew(
+      repatriateData.crewCode,
+      crewMember.vesselId,
+      Number(selectedPort),
+      new Date(signOffDate)
+    )
+      .then((response) => {
+        if (response.success) {
+          toast({
+            title: "Crew Repatriated",
+            description: `Crew ${crewMember.name} has been successfully repatriated.`,
+            variant: "success",
+          });
+        } else {
+          toast({
+            title: "Failed to Repatriate Crew",
+            description: response.message,
+            variant: "destructive",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error repatriating crew:", error);
+        toast({
+          title: "Error Repatriating Crew",
+          description: "An error occurred while repatriating the crew.",
+          variant: "destructive",
+        });
+      });
 
     onOpenChange(false);
   };
-
-  console.log("RepatriateCrewDialog rendered with crewMember:", crewMember);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
