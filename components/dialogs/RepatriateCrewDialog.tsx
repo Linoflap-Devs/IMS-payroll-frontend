@@ -8,17 +8,26 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CalendarDays, Ship, MapPin, User } from "lucide-react";
-import { useState } from "react";
+  CalendarDays,
+  Ship,
+  MapPin,
+  User,
+  Check,
+  ChevronDown,
+} from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { RiShieldStarLine } from "react-icons/ri";
+import { CrewBasic, getCrewBasic } from "@/src/services/crew/crew.api";
+import Image from "next/image";
+import Base64Image from "../Base64Image";
+import { getPortList, IPort } from "@/src/services/port/port.api";
+import {
+  CountriesItem,
+  getCountriesList,
+} from "@/src/services/location/location.api";
+import { cn } from "@/lib/utils";
 
 interface RepatriateCrewDialogProps {
   open: boolean;
@@ -30,9 +39,131 @@ interface RepatriateCrewDialogProps {
     rank: string;
     crewCode: string;
     currentVessel?: string;
-    // signOnDate?: string | undefined;
-    // currentVessel?: string | undefined;
   };
+}
+
+// SimpleSearchableSelect component
+function SimpleSearchableSelect({
+  options,
+  placeholder,
+  value,
+  onChange,
+  className,
+}: {
+  options: { id: string | number; value: string; label: string }[];
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredOptions, setFilteredOptions] = useState(options);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selectedOption = options.find((option) => option.value === value);
+
+  useEffect(() => {
+    const filtered = options.filter((option) =>
+      option.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredOptions(filtered);
+  }, [searchQuery, options]);
+
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery("");
+    } else {
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 50);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <Button
+        variant="outline"
+        role="combobox"
+        aria-expanded={open}
+        className={cn(
+          "w-full justify-between bg-white",
+          !value && "text-muted-foreground",
+          className
+        )}
+        onClick={() => setOpen(!open)}>
+        {selectedOption ? selectedOption.label : placeholder}
+        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+
+      {open && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-md">
+          <div className="p-2">
+            <Input
+              ref={inputRef}
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-[200px] overflow-y-auto">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <div
+                  key={option.id}
+                  className={cn(
+                    "flex items-center px-2 py-2 cursor-pointer hover:bg-accent",
+                    value === option.value && "bg-accent"
+                  )}
+                  onClick={() => {
+                    onChange(option.value);
+                    setOpen(false);
+                  }}>
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <span>{option.label}</span>
+                </div>
+              ))
+            ) : (
+              <div className="py-6 text-center text-sm text-muted-foreground">
+                No results found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function RepatriateCrewDialog({
@@ -40,9 +171,119 @@ export function RepatriateCrewDialog({
   onOpenChange,
   crewMember,
 }: RepatriateCrewDialogProps) {
-  const [date, setDate] = useState<Date>();
+  const [crew, setCrew] = useState<CrewBasic | null>(null);
+  const [countryList, setCountryList] = useState<CountriesItem[]>([]);
+  const [allPorts, setAllPorts] = useState<IPort[]>([]); // Store all ports
+  const [filteredPorts, setFilteredPorts] = useState<IPort[]>([]); // Store filtered ports
 
-  console.log("Repatriate Crew Dialog Opened", crewMember);
+  // State for selected values
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedPort, setSelectedPort] = useState("");
+  const [signOffDate, setSignOffDate] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      getCrewBasic(crewMember.crewCode)
+        .then((response) => {
+          if (response.success) {
+            setCrew(response.data);
+          } else {
+            console.error("Failed to fetch crew details:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.log("Error fetching crew details:", error);
+        });
+    }
+  }, [open, crewMember.crewCode]);
+
+  useEffect(() => {
+    if (open) {
+      getCountriesList()
+        .then((response) => {
+          if (response.success) {
+            setCountryList(response.data);
+          } else {
+            console.error("Failed to fetch countries list:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching countries list:", error);
+        });
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (countryList.length > 0) {
+      getPortList()
+        .then((response) => {
+          if (response.success) {
+            setAllPorts(response.data); // Store all ports
+            setFilteredPorts(response.data); // Initially show all ports
+          } else {
+            console.error("Failed to fetch ports list:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching ports list:", error);
+        });
+    }
+  }, [countryList]);
+
+  // Filter ports when country changes
+  useEffect(() => {
+    if (selectedCountry) {
+      const filtered = allPorts.filter(
+        (port) => port.CountryID.toString() === selectedCountry
+      );
+      setFilteredPorts(filtered);
+
+      // Reset port selection if current selection doesn't belong to selected country
+      const currentPort = allPorts.find(
+        (p) => p.PortID.toString() === selectedPort
+      );
+      if (currentPort && currentPort.CountryID.toString() !== selectedCountry) {
+        setSelectedPort("");
+      }
+    } else {
+      setFilteredPorts(allPorts);
+    }
+  }, [selectedCountry, allPorts, selectedPort]);
+
+  // Format data for the SimpleSearchableSelect component
+  const countryOptions = countryList.map((country) => ({
+    id: country.CountryID,
+    value: country.CountryID.toString(),
+    label: country.CountryName,
+  }));
+
+  const portOptions = filteredPorts.map((port) => ({
+    id: port.PortID,
+    value: port.PortID.toString(),
+    label: port.PortName,
+  }));
+
+  // Handle form submission
+  const handleSubmit = () => {
+    if (!selectedCountry || !selectedPort || !signOffDate) {
+      alert("Please fill in all fields before submitting.");
+      return;
+    }
+
+    const repatriateData = {
+      crewId: crewMember.id,
+      crewCode: crewMember.crewCode,
+      countryId: Number(selectedCountry),
+      portId: Number(selectedPort),
+      signOffDate: signOffDate,
+    };
+
+    console.log("Submitting repatriate data:", repatriateData);
+    // Add API call here
+
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] p-0 gap-0 bg-[#FCFCFC]">
@@ -56,11 +297,24 @@ export function RepatriateCrewDialog({
           {/* Left side - Crew Info Card */}
           <Card className="w-[300px] bg-[#FCFCFC] rounded-lg px-4 py-4 gap-2.5">
             <div className="w-40 h-40 mx-auto overflow-hidden rounded-lg border border-gray-200">
-              <img
-                src="/image.png"
-                alt="Profile"
-                className="w-full h-full object-contain"
-              />
+              {crew?.ProfileImage ? (
+                <Base64Image
+                  imageType={crew.ProfileImage.ContentType}
+                  alt="Crew Profile Image"
+                  base64String={crew.ProfileImage.FileContent}
+                  width={160}
+                  height={160}
+                  className="object-contain w-full h-full"
+                />
+              ) : (
+                <Image
+                  width={256}
+                  height={160}
+                  src="/image.png"
+                  alt="Selfie with ID Attachment"
+                  className="object-cover w-full h-full"
+                />
+              )}
             </div>
 
             <h3 className="text-xl font-semibold text-center mb-0">
@@ -82,9 +336,7 @@ export function RepatriateCrewDialog({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {/* <CalendarDays className="w-4 h-4 text-gray-500" /> */}
                 <User className="w-4 h-4 text-black-500" />
-
                 <div>
                   <div className="text-gray-500">Crew Code</div>
                   <div>{crewMember.crewCode}</div>
@@ -111,38 +363,32 @@ export function RepatriateCrewDialog({
           <div className="flex-1 space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Country</label>
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="japan">Japan</SelectItem>
-                  <SelectItem value="philippines">Philippines</SelectItem>
-                  <SelectItem value="singapore">Singapore</SelectItem>
-                  <SelectItem value="indonesia">Indonesia</SelectItem>
-                </SelectContent>
-              </Select>
+              <SimpleSearchableSelect
+                options={countryOptions}
+                placeholder="Select country"
+                value={selectedCountry}
+                onChange={setSelectedCountry}
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Port</label>
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select port" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tokyo">Tokyo Port</SelectItem>
-                  <SelectItem value="yokohama">Yokohama Port</SelectItem>
-                  <SelectItem value="osaka">Osaka Port</SelectItem>
-                  <SelectItem value="kobe">Kobe Port</SelectItem>
-                  <SelectItem value="nagoya">Nagoya Port</SelectItem>
-                </SelectContent>
-              </Select>
+              <SimpleSearchableSelect
+                options={portOptions}
+                placeholder="Select port"
+                value={selectedPort}
+                onChange={setSelectedPort}
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Sign off date</label>
-              <Input type="date" className="w-full" />
+              <Input
+                type="date"
+                className="w-full"
+                value={signOffDate}
+                onChange={(e) => setSignOffDate(e.target.value)}
+              />
             </div>
           </div>
         </div>
@@ -155,7 +401,9 @@ export function RepatriateCrewDialog({
             onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button className="flex-1 bg-red-600 hover:bg-red-700">
+          <Button
+            className="flex-1 bg-red-600 hover:bg-red-700"
+            onClick={handleSubmit}>
             Repatriate Crew
           </Button>
         </div>
