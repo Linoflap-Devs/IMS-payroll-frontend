@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Ship, MapPin, User, Check, ChevronDown } from "lucide-react";
+import { Ship, MapPin, User, Check, ChevronDown, Loader2 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
@@ -177,6 +177,8 @@ export function RepatriateCrewDialog({
   const [selectedPort, setSelectedPort] = useState("");
   const [signOffDate, setSignOffDate] = useState("");
 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     if (open) {
       getCrewBasic(crewMember.crewCode)
@@ -262,6 +264,8 @@ export function RepatriateCrewDialog({
       return;
     }
 
+    setIsLoading(true);
+
     const repatriateData = {
       crewId: crewMember.id,
       crewCode: crewMember.crewCode,
@@ -298,6 +302,9 @@ export function RepatriateCrewDialog({
           description: "An error occurred while repatriating the crew.",
           variant: "destructive",
         });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
 
     onOpenChange(false);
@@ -422,8 +429,16 @@ export function RepatriateCrewDialog({
           </Button>
           <Button
             className="flex-1 bg-red-600 hover:bg-red-700"
-            onClick={handleSubmit}>
-            Repatriate Crew
+            onClick={handleSubmit}
+            disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin" />
+                Repatriating...
+              </>
+            ) : (
+              "Repatriate Crew"
+            )}
           </Button>
         </div>
       </DialogContent>
