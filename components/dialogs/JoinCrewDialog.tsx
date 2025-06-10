@@ -297,6 +297,8 @@ export function JoinCrewDialog({
 
   const handleSubmit = () => {
     setSubmitted(true);
+    setIsLoading(true);
+    
     if (!selectedVessel || !selectedPort || !signOnDate) {
       toast({
         title: "Error",
@@ -304,11 +306,7 @@ export function JoinCrewDialog({
           "Please fill in all required fields. (Vessel, Port, Sign on date)",
         variant: "destructive",
       });
-
-      return;
     }
-
-    setIsLoading(true);
 
     const joinCrewData = {
       crewCode: crewMember.CrewCode,

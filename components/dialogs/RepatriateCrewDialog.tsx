@@ -178,6 +178,7 @@ export function RepatriateCrewDialog({
   const [signOffDate, setSignOffDate] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -259,12 +260,17 @@ export function RepatriateCrewDialog({
   }));
 
   const handleSubmit = () => {
-    if (!selectedPort || !signOffDate) {
-      alert("Please fill in all fields before submitting.");
-      return;
-    }
-
+    setSubmitted(true);
     setIsLoading(true);
+
+    if (!selectedPort || !signOffDate) {
+      toast({
+        title: "Error",
+        description:
+          "Please fill in all required fields. (Port, Sign off date)",
+        variant: "destructive",
+      });
+    }
 
     const repatriateData = {
       crewId: crewMember.id,
@@ -287,6 +293,8 @@ export function RepatriateCrewDialog({
             description: `Crew ${crewMember.name} has been successfully repatriated.`,
             variant: "success",
           });
+          onOpenChange(false);
+          setSubmitted(false);
         } else {
           toast({
             title: "Failed to Repatriate Crew",
@@ -306,8 +314,6 @@ export function RepatriateCrewDialog({
       .finally(() => {
         setIsLoading(false);
       });
-
-    onOpenChange(false);
   };
 
   return (
@@ -404,6 +410,9 @@ export function RepatriateCrewDialog({
                 placeholder="Select port"
                 value={selectedPort}
                 onChange={setSelectedPort}
+                className={`${
+                  submitted && !selectedPort ? "border-red-500" : ""
+                }`}
               />
             </div>
 
@@ -411,7 +420,9 @@ export function RepatriateCrewDialog({
               <label className="text-sm font-medium">Sign off date</label>
               <Input
                 type="date"
-                className="w-full"
+                className={`w-full ${
+                  submitted && !signOffDate ? "border-red-500" : ""
+                }`}
                 value={signOffDate}
                 onChange={(e) => setSignOffDate(e.target.value)}
               />
