@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Ship, MapPin, User, Check, ChevronDown } from "lucide-react";
+import { Ship, MapPin, User, Check, ChevronDown, Loader2 } from "lucide-react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Icon } from "@iconify/react/dist/iconify.js";
@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { addCrewToVessel } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "../ui/use-toast";
 import { AxiosError } from "axios";
+import { set } from "date-fns";
 
 interface JoinCrewDialogProps {
   open: boolean;
@@ -110,7 +111,7 @@ function SimpleSearchableSelect({
         role="combobox"
         aria-expanded={open}
         className={cn(
-          "w-full justify-between bg-white",
+          `w-full justify-between bg-white`,
           !value && "text-muted-foreground",
           className
         )}
@@ -180,6 +181,8 @@ export function JoinCrewDialog({
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedPort, setSelectedPort] = useState("");
   const [signOnDate, setSignOnDate] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -221,6 +224,7 @@ export function JoinCrewDialog({
       setAllPorts([]);
       setCountryList([]);
       setSignOnDate("");
+      setSubmitted(false);
     }
   }, [open]);
 
@@ -293,10 +297,19 @@ export function JoinCrewDialog({
   }));
 
   const handleSubmit = () => {
+    setSubmitted(true);
     if (!selectedVessel || !selectedPort || !signOnDate) {
-      alert("Please fill in all fields before submitting.");
+      toast({
+        title: "Error",
+        description:
+          "Please fill in all required fields. (Vessel, Port, Sign on date)",
+        variant: "destructive",
+      });
+
       return;
     }
+
+    setIsLoading(true);
 
     const joinCrewData = {
       crewCode: crewMember.CrewCode,
@@ -306,8 +319,6 @@ export function JoinCrewDialog({
       dateOnBoard: signOnDate,
       rankId: crewMember.RankID,
     };
-
-    console.log("Submitting join crew data:", joinCrewData);
 
     addCrewToVessel(
       joinCrewData.crewCode,
@@ -324,6 +335,7 @@ export function JoinCrewDialog({
             variant: "success",
           });
           onOpenChange(false);
+          setSubmitted(false);
         } else {
           toast({
             title: "Error",
@@ -342,6 +354,9 @@ export function JoinCrewDialog({
             "An error occurred while joining the crew.",
           variant: "destructive",
         });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 
@@ -439,6 +454,9 @@ export function JoinCrewDialog({
                 placeholder="Select vessel"
                 value={selectedVessel}
                 onChange={setSelectedVessel}
+                className={`w-full ${
+                  submitted && !selectedVessel ? "border-red-500" : ""
+                }`}
               />
             </div>
 
@@ -459,6 +477,9 @@ export function JoinCrewDialog({
                 placeholder="Select port"
                 value={selectedPort}
                 onChange={setSelectedPort}
+                className={`w-full ${
+                  submitted && !selectedPort ? "border-red-500" : ""
+                }`}
               />
             </div>
 
@@ -466,7 +487,9 @@ export function JoinCrewDialog({
               <label className="text-sm font-medium">Sign on date</label>
               <Input
                 type="date"
-                className="w-full"
+                className={`w-full ${
+                  submitted && !signOnDate ? "border-red-500" : ""
+                }`}
                 value={signOnDate}
                 onChange={(e) => setSignOnDate(e.target.value)}
               />
@@ -484,8 +507,16 @@ export function JoinCrewDialog({
           </Button>
           <Button
             className="flex-1 bg-[#2F3593] hover:bg-[#252a72]"
-            onClick={handleSubmit}>
-            Join Crew
+            onClick={handleSubmit}
+            disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin" />
+                Joining...
+              </>
+            ) : (
+              "Join Crew"
+            )}
           </Button>
         </div>
       </DialogContent>
