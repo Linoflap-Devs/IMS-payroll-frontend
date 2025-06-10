@@ -24,6 +24,8 @@ import {
 import { getPortList, IPort } from "@/src/services/port/port.api";
 import { cn } from "@/lib/utils";
 import { addCrewToVessel } from "@/src/services/vessel/vesselCrew.api";
+import { toast } from "../ui/use-toast";
+import { AxiosError } from "axios";
 
 interface JoinCrewDialogProps {
   open: boolean;
@@ -210,6 +212,15 @@ export function JoinCrewDialog({
         .catch((error) => {
           console.error("Error fetching vessel list:", error);
         });
+    } else {
+      setVesselList([]);
+      setSelectedVessel("");
+      setSelectedCountry("");
+      setSelectedPort("");
+      setFilteredPorts([]);
+      setAllPorts([]);
+      setCountryList([]);
+      setSignOnDate("");
     }
   }, [open]);
 
@@ -282,7 +293,7 @@ export function JoinCrewDialog({
   }));
 
   const handleSubmit = () => {
-    if (!selectedVessel || !selectedCountry || !selectedPort || !signOnDate) {
+    if (!selectedVessel || !selectedPort || !signOnDate) {
       alert("Please fill in all fields before submitting.");
       return;
     }
@@ -307,20 +318,31 @@ export function JoinCrewDialog({
     )
       .then((response) => {
         if (response.success) {
-          console.log("Crew joined successfully:", response.data);
-          alert("Crew joined successfully!");
+          toast({
+            title: "Success",
+            description: "Crew has been successfully added to the vessel.",
+            variant: "success",
+          });
           onOpenChange(false);
         } else {
-          console.error("Failed to join crew:", response.message);
-          alert(`Failed to join crew: ${response.message}`);
+          toast({
+            title: "Error",
+            description: `Failed to join crew: ${response.message}`,
+            variant: "destructive",
+          });
         }
       })
-      .catch((error) => {
-        console.error("Error joining crew:", error);
-        alert("An error occurred while joining the crew.");
+      .catch((error: unknown) => {
+        const err = error as AxiosError<{ message?: string }>;
+        console.log("Error joining crew:", err);
+        toast({
+          title: "Error",
+          description:
+            err.response?.data?.message ||
+            "An error occurred while joining the crew.",
+          variant: "destructive",
+        });
       });
-
-    onOpenChange(false);
   };
 
   return (
