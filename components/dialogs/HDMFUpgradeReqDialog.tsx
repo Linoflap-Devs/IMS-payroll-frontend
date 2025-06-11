@@ -59,12 +59,13 @@ export function HDMFUpgradeReqDialog({
           variant: "destructive",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       console.error("Error processing HDMF upgrade request:", error);
       toast({
         title: "Error",
         description:
-          error.response?.data?.message ||
+          err.message ||
           "An error occurred while processing the HDMF upgrade request",
         variant: "destructive",
       });
@@ -88,8 +89,7 @@ export function HDMFUpgradeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="hdmfAmount"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   HDMF Amount
                 </label>
                 <Input
@@ -107,8 +107,7 @@ export function HDMFUpgradeReqDialog({
                 variant="outline"
                 className="flex-1 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md"
                 onClick={() => handleProcess(3)}
-                disabled={isSubmitting}
-              >
+                disabled={isSubmitting}>
                 <XCircle className="mr-2 h-4 w-4" />
                 {isSubmitting ? "Processing..." : "Decline"}
               </Button>
@@ -116,8 +115,7 @@ export function HDMFUpgradeReqDialog({
                 type="button"
                 className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md"
                 onClick={() => handleProcess(2)}
-                disabled={isSubmitting}
-              >
+                disabled={isSubmitting}>
                 <CheckCircle2 className="mr-2 h-4 w-4" />
                 {isSubmitting ? "Processing..." : "Approve Request"}
               </Button>

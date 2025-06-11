@@ -71,12 +71,13 @@ export function DeleteAllotteeReqDialog({
           variant: "destructive",
         });
       }
-    } catch (error: any) {
-      console.error("Error processing delete request:", error);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error("Error processing delete request:", err);
       toast({
         title: "Error",
         description:
-          error.response?.data?.message ||
+          err.message ||
           "An error occurred while processing the delete request",
         variant: "destructive",
       });
@@ -100,8 +101,7 @@ export function DeleteAllotteeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="allotteeName"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   Allottee Name
                 </label>
                 <Input
@@ -115,8 +115,7 @@ export function DeleteAllotteeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="relation"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   Relationship
                 </label>
                 <Input
@@ -130,8 +129,7 @@ export function DeleteAllotteeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="contactNumber"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   Contact Number
                 </label>
                 <Input
@@ -145,8 +143,7 @@ export function DeleteAllotteeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="address"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   Address
                 </label>
                 <Input
@@ -160,8 +157,7 @@ export function DeleteAllotteeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="city"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   City
                 </label>
                 <Input
@@ -175,8 +171,7 @@ export function DeleteAllotteeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="province"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   Province
                 </label>
                 <Input
@@ -190,8 +185,7 @@ export function DeleteAllotteeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="bank"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   Bank
                 </label>
                 <Input
@@ -205,8 +199,7 @@ export function DeleteAllotteeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="bankBranch"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   Bank Branch
                 </label>
                 <Input
@@ -220,8 +213,7 @@ export function DeleteAllotteeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="accountNumber"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   Account Number
                 </label>
                 <Input
@@ -235,8 +227,7 @@ export function DeleteAllotteeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="allotment"
-                  className="block text-sm font-medium text-gray-500"
-                >
+                  className="block text-sm font-medium text-gray-500">
                   Allotment Amount
                 </label>
                 <Input
@@ -254,8 +245,7 @@ export function DeleteAllotteeReqDialog({
                 variant="outline"
                 className="flex-1 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md"
                 onClick={() => handleProcess(3)}
-                disabled={isSubmitting}
-              >
+                disabled={isSubmitting}>
                 <XCircle className="mr-2 h-4 w-4" />
                 {isSubmitting ? "Processing..." : "Decline"}
               </Button>
@@ -263,8 +253,7 @@ export function DeleteAllotteeReqDialog({
                 type="button"
                 className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md"
                 onClick={() => handleProcess(2)}
-                disabled={isSubmitting}
-              >
+                disabled={isSubmitting}>
                 <CheckCircle2 className="mr-2 h-4 w-4" />
                 {isSubmitting ? "Processing..." : "Approve Delete Request"}
               </Button>

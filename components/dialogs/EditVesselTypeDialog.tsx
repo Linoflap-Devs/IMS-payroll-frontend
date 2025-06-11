@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { updateVesselType } from "@/src/services/vessel/vesselType.api"; // Import the new API function
 import { VesselTypeItem } from "@/src/services/vessel/vesselType.api";
-import { set } from "date-fns";
 import { useEffect, useState } from "react";
 
 interface EditVesselTypeDialogProps {
@@ -84,11 +83,11 @@ export function EditVesselTypeDialog({
         }
         onOpenChange(false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
         title: "Error",
-        description:
-          error.response?.data?.message || "Failed to update vessel type.",
+        description: err.message || "Failed to update vessel type.",
         variant: "destructive",
       });
     } finally {
