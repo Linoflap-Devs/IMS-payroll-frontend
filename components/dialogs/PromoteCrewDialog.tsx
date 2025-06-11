@@ -7,7 +7,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CalendarDays, Ship, MapPin, Check, ChevronDown } from "lucide-react";
+import {
+  CalendarDays,
+  Ship,
+  MapPin,
+  Check,
+  ChevronDown,
+  Loader2,
+} from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
@@ -18,7 +25,6 @@ import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { cn } from "@/lib/utils";
 import { promoteCrew } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "../ui/use-toast";
-import { set } from "date-fns";
 
 interface PromoteCrewDialogProps {
   open: boolean;
@@ -170,9 +176,11 @@ export function PromoteCrewDialog({
   const [promotionDate, setPromotionDate] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [currentRank, setCurrentRank] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
+      setIsLoading(true);
       getVesselList()
         .then((response) => {
           if (response.success) {
@@ -187,6 +195,9 @@ export function PromoteCrewDialog({
         })
         .catch((error) => {
           console.error("Error fetching vessel list:", error);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     } else {
       setSelectedVessel("");
@@ -198,6 +209,7 @@ export function PromoteCrewDialog({
 
   useEffect(() => {
     if (open) {
+      setIsLoading(true);
       getCrewRankList()
         .then((response) => {
           if (response.success) {
@@ -215,6 +227,9 @@ export function PromoteCrewDialog({
         })
         .catch((error) => {
           console.error("Error fetching rank list:", error);
+        })
+        .then(() => {
+          setIsLoading(false);
         });
     }
   }, [open, crewMember.rank]);
@@ -250,6 +265,8 @@ export function PromoteCrewDialog({
       });
       return;
     }
+
+    setIsLoading(true);
 
     const crewToBePromoted = {
       crewCode: crewMember.crewCode,
@@ -294,6 +311,9 @@ export function PromoteCrewDialog({
           description: error.message || "An unexpected error occurred.",
           variant: "destructive",
         });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 
@@ -418,8 +438,16 @@ export function PromoteCrewDialog({
           </Button>
           <Button
             className="flex-1 bg-green-600 hover:bg-green-700"
-            onClick={handlePromote}>
-            Promote Crew
+            onClick={handlePromote}
+            disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Promoting...
+              </>
+            ) : (
+              <>Promote Crew</>
+            )}
           </Button>
         </div>
       </DialogContent>
