@@ -420,6 +420,7 @@ export default function VesselCrewList() {
       {selectedOffBoardCrew && (
         <JoinCrewDialog
           open={joinCrewDialogOpen}
+          setOnSuccess={setOnSuccess}
           onOpenChange={setJoinCrewDialogOpen}
           crewMember={selectedOffBoardCrew}
         />

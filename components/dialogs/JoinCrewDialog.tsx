@@ -12,7 +12,7 @@ import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { IOffBoardCrew } from "./SearchCrewDialog";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Dispatch, SetStateAction } from "react";
 import { CrewBasic, getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
@@ -31,6 +31,7 @@ interface JoinCrewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   crewMember: IOffBoardCrew;
+  setOnSuccess: Dispatch<SetStateAction<boolean>>;
 }
 
 interface IVesselItem {
@@ -169,6 +170,7 @@ export function JoinCrewDialog({
   open,
   onOpenChange,
   crewMember,
+  setOnSuccess,
 }: JoinCrewDialogProps) {
   const [crew, setCrew] = useState<CrewBasic | null>(null);
   const [vesselList, setVesselList] = useState<IVesselItem[]>([]);
@@ -335,6 +337,7 @@ export function JoinCrewDialog({
           });
           onOpenChange(false);
           setSubmitted(false);
+          setOnSuccess(true);
         } else {
           toast({
             title: "Error",
