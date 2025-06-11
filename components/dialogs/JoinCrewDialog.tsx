@@ -285,11 +285,17 @@ export function JoinCrewDialog({
     label: vessel.VesselName,
   }));
 
-  const countryOptions = countryList.map((country) => ({
-    id: country.CountryID,
-    value: country.CountryID.toString(),
-    label: country.CountryName,
-  }));
+  const countriesWithPorts = [
+    ...new Set(allPorts.map((port) => port.CountryID)),
+  ];
+
+  const countryOptions = countryList
+    .filter((country) => countriesWithPorts.includes(country.CountryID))
+    .map((country) => ({
+      id: country.CountryID,
+      value: country.CountryID.toString(),
+      label: country.CountryName,
+    }));
 
   const portOptions = filteredPorts.map((port) => ({
     id: port.PortID,
