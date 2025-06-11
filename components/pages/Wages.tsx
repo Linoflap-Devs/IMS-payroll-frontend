@@ -57,6 +57,7 @@ import {
   getWageDescriptionList,
 } from "../../src/services/wages/wageDescription.api";
 import { getWageForexList } from "@/src/services/wages/wageForex.api";
+import { set } from "date-fns";
 
 // Type for data passed to dialog was previously SalaryScaleData, now managed by selectedSalaryScale (SalaryScaleItem)
 // type SalaryScaleData = {
@@ -138,6 +139,7 @@ export default function Wages() {
   const [wageDescriptionError, setWageDescriptionError] = useState<
     string | null
   >(null);
+  const [onSuccessAdd, setOnSuccessAdd] = useState(false);
 
   const fetchSalaryScaleData = async () => {
     // Renamed function for clarity
@@ -248,7 +250,12 @@ export default function Wages() {
       }
     }
     fetchWageDescription();
-  }, []);
+
+    if (onSuccessAdd) {
+      fetchWageDescription();
+      setOnSuccessAdd(false);
+    }
+  }, [onSuccessAdd]);
 
   useEffect(() => {
     getWageForexList()
@@ -984,12 +991,13 @@ export default function Wages() {
         />
       )}
       <AddWageDescriptionDialog
+        setOnSuccessAdd={setOnSuccessAdd}
         open={AddWageDescriptionDialogOpen}
         onOpenChange={setAddWageDescriptionDialogOpen}
-        onSuccess={(newWageDescription) => {
-          setWageDescriptionItems((prev) => [...prev, newWageDescription]);
-          // Optionally refetch wage descriptions or rely on local update if AddWageDescriptionDialog returns full item
-        }}
+        // onSuccess={(newWageDescription) => {
+        //   setWageDescriptionItems((prev) => [...prev, newWageDescription]);
+        //   // Optionally refetch wage descriptions or rely on local update if AddWageDescriptionDialog returns full item
+        // }}
       />
     </>
   );

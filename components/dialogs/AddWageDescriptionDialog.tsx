@@ -26,13 +26,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { addWageDescription } from "@/src/services/wages/wageDescription.api";
 
 interface AddWageDescriptionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: (newWageDescription: any) => void;
+  setOnSuccessAdd: Dispatch<SetStateAction<boolean>>;
 }
 
 // Form validation schema
@@ -47,7 +47,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddWageDescriptionDialog({
   open,
   onOpenChange,
-  onSuccess,
+  setOnSuccessAdd,
 }: AddWageDescriptionDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,52 +64,34 @@ export function AddWageDescriptionDialog({
 
   const handleFormSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-    try {
-      const AddWageDescriptionPayload = {
-        wageCode: values.wageCode.trim(),
-        wageName: values.wageName.trim(),
-        wagePayableOnBoard: values.payableOnBoard ? 1 : 0,
-      };
+    const AddWageDescriptionPayload = {
+      wageCode: values.wageCode.trim(),
+      wageName: values.wageName.trim(),
+      wagePayableOnBoard: values.payableOnBoard ? 1 : 0,
+    };
 
-      const UIPayload = {
-        WageCode: AddWageDescriptionPayload.wageCode,
-        WageName: AddWageDescriptionPayload.wageName,
-        PayableOnBoard: AddWageDescriptionPayload.wagePayableOnBoard ? 1 : 0,
-      };
-
-      addWageDescription(AddWageDescriptionPayload)
-        .then(() => {
-          toast({
-            title: "Success",
-            description: "Wage description added successfully",
-            variant: "success",
-          });
-
-          if (onSuccess) {
-            onSuccess(UIPayload);
-          }
-
-          // Reset form and close dialog
-          form.reset();
-          onOpenChange(false);
-        })
-        .catch(() => {
-          toast({
-            title: "Error",
-            description: "Failed to add wage description",
-            variant: "destructive",
-          });
+    addWageDescription(AddWageDescriptionPayload)
+      .then(() => {
+        toast({
+          title: "Success",
+          description: "Wage description added successfully",
+          variant: "success",
         });
-    } catch (error) {
-      console.error("Error adding wage description:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add wage description",
-        variant: "destructive",
+
+        form.reset();
+        onOpenChange(false);
+        setOnSuccessAdd(true);
+      })
+      .catch(() => {
+        toast({
+          title: "Error",
+          description: "Failed to add wage description",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
