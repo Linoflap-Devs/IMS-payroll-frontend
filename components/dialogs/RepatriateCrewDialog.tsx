@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Ship, MapPin, User, Check, ChevronDown, Loader2 } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Dispatch, SetStateAction } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { RiShieldStarLine } from "react-icons/ri";
@@ -37,6 +37,7 @@ interface RepatriateCrewDialogProps {
     country?: string;
     vesselId: number;
   };
+  setOnSuccess: Dispatch<SetStateAction<boolean>>;
 }
 
 function SimpleSearchableSelect({
@@ -166,6 +167,7 @@ export function RepatriateCrewDialog({
   open,
   onOpenChange,
   crewMember,
+  setOnSuccess,
 }: RepatriateCrewDialogProps) {
   const [crew, setCrew] = useState<CrewBasic | null>(null);
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
@@ -315,6 +317,7 @@ export function RepatriateCrewDialog({
       })
       .finally(() => {
         setIsLoading(false);
+        setOnSuccess(true);
       });
   };
 

@@ -63,6 +63,7 @@ export default function VesselCrewList() {
   const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew>();
   const [selectedOffBoardCrew, setSelectedOffBoardCrew] =
     useState<IOffBoardCrew | null>(null);
+  const [onSuccess, setOnSuccess] = useState(false);
 
   useEffect(() => {
     const fetchVesselCrew = async () => {
@@ -78,7 +79,14 @@ export default function VesselCrewList() {
     };
 
     fetchVesselCrew();
-  }, [vesselId]);
+    if (onSuccess) {
+      fetchVesselCrew().then(() => {
+        setOnSuccess(false);
+      });
+    }
+
+    fetchVesselCrew();
+  }, [vesselId, onSuccess]);
 
   const crewData =
     vesselData?.data.Crew.map((crew, index) => ({
@@ -380,6 +388,7 @@ export default function VesselCrewList() {
       <RepatriateCrewDialog
         open={repatriateDialogOpen}
         onOpenChange={setRepatriateDialogOpen}
+        setOnSuccess={setOnSuccess}
         crewMember={
           selectedCrew
             ? {
