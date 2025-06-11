@@ -35,3 +35,11 @@ export const repatriateCrew = async (crewCode: string, vesselId: number, portId:
     })
     return response.data
 }
+
+export const promoteCrew = async (crewCode: string, vesselId: number, rankId: number, promotionDate: Date): Promise<VesselCrewResponse> => {
+    const response = await axiosInstance.post<VesselCrewResponse>(`/vessels/${vesselId}/crew/${crewCode}/promote`, {
+        rankId: rankId,
+        promotionDate: promotionDate
+    })
+    return response.data
+}

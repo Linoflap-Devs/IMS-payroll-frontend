@@ -195,6 +195,17 @@ export function RepatriateCrewDialog({
         .catch((error) => {
           console.log("Error fetching crew details:", error);
         });
+    } else {
+      // Reset state when dialog is closed
+      setCrew(null);
+      setCountryList([]);
+      setAllPorts([]);
+      setFilteredPorts([]);
+      setSelectedCountry("");
+      setSelectedPort("");
+      setSignOffDate("");
+      setSubmitted(false);
+      setIsLoading(false);
     }
   }, [open, crewMember.crewCode]);
 

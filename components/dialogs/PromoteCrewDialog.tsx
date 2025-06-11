@@ -16,6 +16,8 @@ import { IVesselItem } from "./JoinCrewDialog";
 import { CrewRankItem, getCrewRankList } from "@/src/services/crew/crew.api";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { cn } from "@/lib/utils";
+import { promoteCrew } from "@/src/services/vessel/vesselCrew.api";
+import { toast } from "../ui/use-toast";
 
 interface PromoteCrewDialogProps {
   open: boolean;
@@ -164,7 +166,7 @@ export function PromoteCrewDialog({
   const [rankList, setRankList] = useState<CrewRankItem[]>([]);
   const [selectedVessel, setSelectedVessel] = useState("");
   const [selectedRank, setSelectedRank] = useState("");
-  const [signOffDate, setSignOffDate] = useState("");
+  const [promotionDate, setPromotionDate] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -183,6 +185,10 @@ export function PromoteCrewDialog({
         .catch((error) => {
           console.error("Error fetching vessel list:", error);
         });
+    } else {
+      setSelectedVessel("");
+      setSelectedRank("");
+      setPromotionDate("");
     }
   }, [open, crewMember.vesselId]);
 
@@ -223,12 +229,60 @@ export function PromoteCrewDialog({
 
   const handlePromote = () => {
     // Implement promotion logic here
-    console.log("Promoting crew with:", {
-      crewMember,
-      vessel: selectedVessel,
-      rank: selectedRank,
-      signOffDate,
-    });
+    if (!selectedVessel || !selectedRank || !promotionDate) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a vessel, rank, and promotion date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const crewToBePromoted = {
+      crewCode: crewMember.crewCode,
+      vesselId: Number(selectedVessel),
+      rankId: Number(selectedRank),
+      promotionDate: new Date(promotionDate),
+    };
+
+    console.log("Promoting crew member:", crewToBePromoted);
+
+    promoteCrew(
+      crewToBePromoted.crewCode,
+      crewToBePromoted.vesselId,
+      crewToBePromoted.rankId,
+      crewToBePromoted.promotionDate
+    )
+      .then((response) => {
+        if (response.success) {
+          toast({
+            title: "Crew Promoted",
+            description: `${
+              crewMember.name
+            } has been successfully promoted to ${
+              rankOptions.find((r) => r.value === selectedRank)?.label
+            } on vessel ${
+              vesselOptions.find((v) => v.value === selectedVessel)?.label
+            }.`,
+            variant: "success",
+          });
+          onOpenChange(false); // Close dialog on success
+        } else {
+          toast({
+            title: "Promotion Failed",
+            description:
+              response.message || "An error occurred while promoting the crew.",
+            variant: "destructive",
+          });
+        }
+      })
+      .catch((error) => {
+        toast({
+          title: "Error",
+          description: error.message || "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      });
   };
 
   return (
@@ -321,8 +375,8 @@ export function PromoteCrewDialog({
               <label className="text-sm font-medium">Sign off date</label>
               <Input
                 type="date"
-                value={signOffDate}
-                onChange={(e) => setSignOffDate(e.target.value)}
+                value={promotionDate}
+                onChange={(e) => setPromotionDate(e.target.value)}
               />
             </div>
           </div>
