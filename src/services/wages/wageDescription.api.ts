@@ -67,3 +67,8 @@ export const updateWageDescription = async (
   );
   return response.data;
 }
+
+export const deleteWageDescription = async (wageID: number): Promise<IWageDescriptionResponse> => {
+  const response = await axiosInstance.delete<IWageDescriptionResponse>(`/wages/description/${wageID}`)
+  return response.data;
+}

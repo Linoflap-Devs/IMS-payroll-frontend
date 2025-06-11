@@ -54,10 +54,10 @@ import {
 } from "../../src/services/wages/salaryScale.api"; // Ensure path is correct
 import {
   WageDescriptionItem,
+  deleteWageDescription,
   getWageDescriptionList,
 } from "../../src/services/wages/wageDescription.api";
 import { getWageForexList } from "@/src/services/wages/wageForex.api";
-import { set } from "date-fns";
 
 // Type for data passed to dialog was previously SalaryScaleData, now managed by selectedSalaryScale (SalaryScaleItem)
 // type SalaryScaleData = {
@@ -472,16 +472,33 @@ export default function Wages() {
             showCancelButton: true,
             confirmButtonText: "Yes, delete it!",
             cancelButtonText: "No, cancel!",
-          }).then((result) => {
-            console.log("Wage Code in handle Delete: " + wageCode);
-            if (result.isConfirmed) {
-              /* TODO: delete logic */ Swal.fire(
-                "Deleted!",
-                "Wage type deleted.",
-                "success"
+          })
+            .then((result) => {
+              console.log("Wage Code in handle Delete: " + wageCode);
+              if (result.isConfirmed) {
+                deleteWageDescription(wageDescription.WageID).then(
+                  (response) => {
+                    if (response.success) {
+                      Swal.fire("Deleted!", "Wage type deleted.", "success");
+                      setOnSuccessAdd(true);
+                    } else {
+                      Swal.fire(
+                        "Error!",
+                        response.message || "Failed to delete wage type.",
+                        "error"
+                      );
+                    }
+                  }
+                );
+              }
+            })
+            .catch((err) => {
+              Swal.fire(
+                "Error!",
+                err.message || "Failed to delete wage type.",
+                "error"
               );
-            }
-          });
+            });
         };
         return (
           <div className="text-center">
