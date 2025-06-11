@@ -34,7 +34,7 @@ interface JoinCrewDialogProps {
   setOnSuccess: Dispatch<SetStateAction<boolean>>;
 }
 
-interface IVesselItem {
+export interface IVesselItem {
   VesselID: number;
   VesselCode: string;
   VesselName: string;

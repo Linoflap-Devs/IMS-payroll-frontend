@@ -209,7 +209,6 @@ export default function VesselCrewList() {
         //     });
         // };
 
-        console.log("Crew:", JSON.stringify(selectedCrew, null, 2));
         return (
           <div className="text-center">
             <DropdownMenu>

@@ -14,16 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon, Shield, CalendarDays, Ship, MapPin } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { CalendarDays, Ship, MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
-import { Icon } from "@iconify/react/dist/iconify.js";
 import { RiShieldStarLine } from "react-icons/ri";
+import { IVesselItem } from "./JoinCrewDialog";
+import { CrewRankItem, getCrewRankList } from "@/src/services/crew/crew.api";
+import { getVesselList } from "@/src/services/vessel/vessel.api";
 
 interface PromoteCrewDialogProps {
   open: boolean;
@@ -44,7 +42,43 @@ export function PromoteCrewDialog({
   onOpenChange,
   crewMember,
 }: PromoteCrewDialogProps) {
-  const [date, setDate] = useState<Date>();
+  const [vesselList, setVesslList] = useState<IVesselItem[]>([]);
+  const [rankList, setRankList] = useState<CrewRankItem[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      getVesselList()
+        .then((response) => {
+          if (response.success) {
+            setVesslList(response.data);
+          } else {
+            console.error("Failed to fetch vessel list:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching vessel list:", error);
+        });
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      getCrewRankList()
+        .then((response) => {
+          if (response.success) {
+            setRankList(response.data);
+          } else {
+            console.error("Failed to fetch rank list:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching rank list:", error);
+        });
+    }
+  }, [open]);
+
+  console.log("Vessel List:", vesselList);
+  console.log("Rank List:", rankList);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

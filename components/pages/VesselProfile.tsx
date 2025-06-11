@@ -343,8 +343,6 @@ export default function VesselProfile() {
       .catch((err) => console.error("Error fetching vessel type:", err));
   }, []);
 
-  console.log("Vessel Type Data:", vesselTypeData);
-
   // Fetch vessel principal list on mount
   useEffect(() => {
     getVesselPrincipalList()
