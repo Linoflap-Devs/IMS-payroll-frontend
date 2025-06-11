@@ -7,21 +7,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CalendarDays, Ship, MapPin } from "lucide-react";
-import { useEffect, useState } from "react";
+import { CalendarDays, Ship, MapPin, Check, ChevronDown } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { RiShieldStarLine } from "react-icons/ri";
 import { IVesselItem } from "./JoinCrewDialog";
 import { CrewRankItem, getCrewRankList } from "@/src/services/crew/crew.api";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
+import { cn } from "@/lib/utils";
 
 interface PromoteCrewDialogProps {
   open: boolean;
@@ -34,7 +28,131 @@ interface PromoteCrewDialogProps {
     crewCode: string;
     currentVessel?: string;
     vesselId?: number;
+    signOnDate?: string;
   };
+}
+
+function SimpleSearchableSelect({
+  options,
+  placeholder,
+  value,
+  onChange,
+  className,
+}: {
+  options: { id: string | number; value: string; label: string }[];
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredOptions, setFilteredOptions] = useState(options);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selectedOption = options.find((option) => option.value === value);
+
+  useEffect(() => {
+    const filtered = options.filter((option) =>
+      option.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredOptions(filtered);
+  }, [searchQuery, options]);
+
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery("");
+    } else {
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 50);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <Button
+        variant="outline"
+        role="combobox"
+        aria-expanded={open}
+        className={cn(
+          `w-full justify-between bg-white`,
+          !value && "text-muted-foreground",
+          className
+        )}
+        onClick={() => setOpen(!open)}>
+        {selectedOption ? selectedOption.label : placeholder}
+        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+
+      {open && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-md">
+          <div className="p-2">
+            <Input
+              ref={inputRef}
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-[200px] overflow-y-auto">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <div
+                  key={option.id}
+                  className={cn(
+                    "flex items-center px-2 py-2 cursor-pointer hover:bg-accent",
+                    value === option.value && "bg-accent"
+                  )}
+                  onClick={() => {
+                    onChange(option.value);
+                    setOpen(false);
+                  }}>
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <span>{option.label}</span>
+                </div>
+              ))
+            ) : (
+              <div className="py-6 text-center text-sm text-muted-foreground">
+                No results found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function PromoteCrewDialog({
@@ -42,15 +160,22 @@ export function PromoteCrewDialog({
   onOpenChange,
   crewMember,
 }: PromoteCrewDialogProps) {
-  const [vesselList, setVesslList] = useState<IVesselItem[]>([]);
+  const [vesselList, setVesselList] = useState<IVesselItem[]>([]);
   const [rankList, setRankList] = useState<CrewRankItem[]>([]);
+  const [selectedVessel, setSelectedVessel] = useState("");
+  const [selectedRank, setSelectedRank] = useState("");
+  const [signOffDate, setSignOffDate] = useState("");
 
   useEffect(() => {
     if (open) {
       getVesselList()
         .then((response) => {
           if (response.success) {
-            setVesslList(response.data);
+            setVesselList(response.data);
+            // Pre-select current vessel if available
+            if (crewMember.vesselId) {
+              setSelectedVessel(crewMember.vesselId.toString());
+            }
           } else {
             console.error("Failed to fetch vessel list:", response.message);
           }
@@ -59,7 +184,7 @@ export function PromoteCrewDialog({
           console.error("Error fetching vessel list:", error);
         });
     }
-  }, [open]);
+  }, [open, crewMember.vesselId]);
 
   useEffect(() => {
     if (open) {
@@ -67,6 +192,13 @@ export function PromoteCrewDialog({
         .then((response) => {
           if (response.success) {
             setRankList(response.data);
+            // Find current rank ID based on name and pre-select it
+            const currentRank = response.data.find(
+              (rank) => rank.RankName === crewMember.rank
+            );
+            if (currentRank) {
+              setSelectedRank(currentRank.RankID.toString());
+            }
           } else {
             console.error("Failed to fetch rank list:", response.message);
           }
@@ -75,10 +207,29 @@ export function PromoteCrewDialog({
           console.error("Error fetching rank list:", error);
         });
     }
-  }, [open]);
+  }, [open, crewMember.rank]);
 
-  console.log("Vessel List:", vesselList);
-  console.log("Rank List:", rankList);
+  const vesselOptions = vesselList.map((vessel) => ({
+    id: vessel.VesselID,
+    value: vessel.VesselID.toString(),
+    label: vessel.VesselName,
+  }));
+
+  const rankOptions = rankList.map((rank) => ({
+    id: rank.RankID,
+    value: rank.RankID.toString(),
+    label: rank.RankName,
+  }));
+
+  const handlePromote = () => {
+    // Implement promotion logic here
+    console.log("Promoting crew with:", {
+      crewMember,
+      vessel: selectedVessel,
+      rank: selectedRank,
+      signOffDate,
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -93,11 +244,11 @@ export function PromoteCrewDialog({
           {/* Left side - Crew Info Card */}
           <Card className="w-[300px] bg-[#FCFCFC] rounded-lg px-4 py-4 gap-2.5">
             <div className="w-40 h-40 mx-auto overflow-hidden rounded-lg border border-gray-200">
-              <img
+              {/* <img
                 src="/image.png"
                 alt="Profile"
                 className="w-full h-full object-contain"
-              />
+              /> */}
             </div>
 
             <h3 className="text-xl font-semibold text-center mb-0">
@@ -122,14 +273,14 @@ export function PromoteCrewDialog({
                 <CalendarDays className="w-4 h-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Sign-on date</div>
-                  <div>{crewMember.signOnDate}</div>
+                  <div>{crewMember.signOnDate || "N/A"}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Ship className="w-4 h-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Current Vessel</div>
-                  <div>{crewMember.currentVessel}</div>
+                  <div>{crewMember.currentVessel || "N/A"}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -146,36 +297,33 @@ export function PromoteCrewDialog({
           <div className="flex-1 space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Vessel</label>
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select vessel" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="atlas-island">Atlas Island</SelectItem>
-                  <SelectItem value="amakus-island">Amakus Island</SelectItem>
-                  <SelectItem value="andes-island">Andes Island</SelectItem>
-                </SelectContent>
-              </Select>
+              <SimpleSearchableSelect
+                options={vesselOptions}
+                placeholder="Select vessel"
+                value={selectedVessel}
+                onChange={setSelectedVessel}
+                className="w-full"
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">New Rank</label>
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select rank" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="captain">Captain</SelectItem>
-                  <SelectItem value="chief-officer">Chief Officer</SelectItem>
-                  <SelectItem value="second-officer">Second Officer</SelectItem>
-                </SelectContent>
-              </Select>
+              <SimpleSearchableSelect
+                options={rankOptions}
+                placeholder="Select rank"
+                value={selectedRank}
+                onChange={setSelectedRank}
+                className="w-full"
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Sign off date</label>
-
-              <Input type="date" />
+              <Input
+                type="date"
+                value={signOffDate}
+                onChange={(e) => setSignOffDate(e.target.value)}
+              />
             </div>
           </div>
         </div>
@@ -188,7 +336,9 @@ export function PromoteCrewDialog({
             onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button className="flex-1 bg-green-600 hover:bg-green-700">
+          <Button
+            className="flex-1 bg-green-600 hover:bg-green-700"
+            onClick={handlePromote}>
             Promote Crew
           </Button>
         </div>
