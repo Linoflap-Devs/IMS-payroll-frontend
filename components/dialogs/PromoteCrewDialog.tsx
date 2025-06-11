@@ -18,6 +18,7 @@ import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { cn } from "@/lib/utils";
 import { promoteCrew } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "../ui/use-toast";
+import { set } from "date-fns";
 
 interface PromoteCrewDialogProps {
   open: boolean;
@@ -167,6 +168,8 @@ export function PromoteCrewDialog({
   const [selectedVessel, setSelectedVessel] = useState("");
   const [selectedRank, setSelectedRank] = useState("");
   const [promotionDate, setPromotionDate] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [currentRank, setCurrentRank] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -189,6 +192,7 @@ export function PromoteCrewDialog({
       setSelectedVessel("");
       setSelectedRank("");
       setPromotionDate("");
+      setSubmitted(false);
     }
   }, [open, crewMember.vesselId]);
 
@@ -198,12 +202,12 @@ export function PromoteCrewDialog({
         .then((response) => {
           if (response.success) {
             setRankList(response.data);
-            // Find current rank ID based on name and pre-select it
             const currentRank = response.data.find(
               (rank) => rank.RankName === crewMember.rank
             );
             if (currentRank) {
               setSelectedRank(currentRank.RankID.toString());
+              setCurrentRank(currentRank.RankID.toString());
             }
           } else {
             console.error("Failed to fetch rank list:", response.message);
@@ -228,11 +232,20 @@ export function PromoteCrewDialog({
   }));
 
   const handlePromote = () => {
-    // Implement promotion logic here
+    setSubmitted(true);
     if (!selectedVessel || !selectedRank || !promotionDate) {
       toast({
         title: "Missing Information",
         description: "Please select a vessel, rank, and promotion date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedRank === currentRank) {
+      toast({
+        title: "No Rank Change",
+        description: "The selected rank is the same as the current rank.",
         variant: "destructive",
       });
       return;
@@ -244,8 +257,6 @@ export function PromoteCrewDialog({
       rankId: Number(selectedRank),
       promotionDate: new Date(promotionDate),
     };
-
-    console.log("Promoting crew member:", crewToBePromoted);
 
     promoteCrew(
       crewToBePromoted.crewCode,
@@ -267,6 +278,7 @@ export function PromoteCrewDialog({
             variant: "success",
           });
           onOpenChange(false); // Close dialog on success
+          setSubmitted(false);
         } else {
           toast({
             title: "Promotion Failed",
@@ -367,15 +379,29 @@ export function PromoteCrewDialog({
                 placeholder="Select rank"
                 value={selectedRank}
                 onChange={setSelectedRank}
-                className="w-full"
+                className={`w-full ${
+                  submitted && !selectedRank ? "border-red-500" : ""
+                } ${
+                  submitted && selectedRank === currentRank
+                    ? "border-red-500"
+                    : ""
+                }`}
               />
+              {submitted && selectedRank === currentRank && (
+                <p className="text-sm text-red-500 mt-1">
+                  Please select a different rank for promotion
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Sign off date</label>
+              <label className="text-sm font-medium">Promotion Date</label>
               <Input
                 type="date"
                 value={promotionDate}
+                className={`w-full ${
+                  submitted && !promotionDate ? "border-red-500" : ""
+                }`}
                 onChange={(e) => setPromotionDate(e.target.value)}
               />
             </div>
