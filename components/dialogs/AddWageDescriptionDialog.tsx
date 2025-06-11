@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Form,
@@ -95,7 +95,12 @@ export function AddWageDescriptionDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={() => {
+        form.reset();
+        onOpenChange(false);
+      }}>
       <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC]">
         <DialogHeader>
           <DialogTitle className="text-center text-lg font-semibold text-[#2E37A4]">
@@ -185,8 +190,17 @@ export function AddWageDescriptionDialog({
                 type="submit"
                 className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90"
                 disabled={isSubmitting}>
-                <Save className="w-4 h-4 mr-2" />
-                {isSubmitting ? "Saving..." : "Save Changes"}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
               </Button>
             </div>
           </form>
