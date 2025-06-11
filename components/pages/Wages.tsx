@@ -250,8 +250,6 @@ export default function Wages() {
     fetchWageDescription();
   }, []);
 
-  console.log("Fetched Wage Descriptions:", wageDescriptionItems);
-
   useEffect(() => {
     getWageForexList()
       .then((res) => {
@@ -433,9 +431,7 @@ export default function Wages() {
       header: () => <div className="text-center">Payable On Board</div>,
       cell: ({ row }) => {
         // console.log("row.original in PayableOnBoard cell:", row.original);
-        const rawValue = row.original?.PayableOnboard;
-        console.log(rawValue);
-        // console.log(
+        const rawValue = row.original?.PayableOnboard; // console.log(
         //   "PayableOnBoard Raw Value (row.original):",
         //   rawValue,
         //   typeof rawValue
