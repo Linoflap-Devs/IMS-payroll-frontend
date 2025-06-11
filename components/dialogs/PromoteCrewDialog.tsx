@@ -20,11 +20,18 @@ import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { RiShieldStarLine } from "react-icons/ri";
 import { IVesselItem } from "./JoinCrewDialog";
-import { CrewRankItem, getCrewRankList } from "@/src/services/crew/crew.api";
+import {
+  CrewBasic,
+  CrewRankItem,
+  getCrewBasic,
+  getCrewRankList,
+} from "@/src/services/crew/crew.api";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { cn } from "@/lib/utils";
 import { promoteCrew } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "../ui/use-toast";
+import Base64Image from "../Base64Image";
+import Image from "next/image";
 
 interface PromoteCrewDialogProps {
   open: boolean;
@@ -169,6 +176,7 @@ export function PromoteCrewDialog({
   onOpenChange,
   crewMember,
 }: PromoteCrewDialogProps) {
+  const [crew, setCrew] = useState<CrewBasic | null>(null);
   const [vesselList, setVesselList] = useState<IVesselItem[]>([]);
   const [rankList, setRankList] = useState<CrewRankItem[]>([]);
   const [selectedVessel, setSelectedVessel] = useState("");
@@ -206,6 +214,22 @@ export function PromoteCrewDialog({
       setSubmitted(false);
     }
   }, [open, crewMember.vesselId]);
+
+  useEffect(() => {
+    if (open) {
+      getCrewBasic(crewMember.crewCode)
+        .then((response) => {
+          if (response.success) {
+            setCrew(response.data);
+          } else {
+            console.error("Failed to fetch crew basic info:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching crew basic info:", error);
+        });
+    }
+  }, [open, crewMember.crewCode]);
 
   useEffect(() => {
     if (open) {
@@ -330,11 +354,24 @@ export function PromoteCrewDialog({
           {/* Left side - Crew Info Card */}
           <Card className="w-[300px] bg-[#FCFCFC] rounded-lg px-4 py-4 gap-2.5">
             <div className="w-40 h-40 mx-auto overflow-hidden rounded-lg border border-gray-200">
-              {/* <img
-                src="/image.png"
-                alt="Profile"
-                className="w-full h-full object-contain"
-              /> */}
+              {crew?.ProfileImage ? (
+                <Base64Image
+                  imageType={crew.ProfileImage.ContentType}
+                  alt="Crew Profile Image"
+                  base64String={crew.ProfileImage.FileContent}
+                  width={160}
+                  height={160}
+                  className="object-contain w-full h-full"
+                />
+              ) : (
+                <Image
+                  width={256}
+                  height={160}
+                  src="/image.png"
+                  alt="Selfie with ID Attachment"
+                  className="object-cover w-full h-full"
+                />
+              )}
             </div>
 
             <h3 className="text-xl font-semibold text-center mb-0">
