@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
   Ship,
   // Trash,
   ChevronLeft,
+  Check,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
@@ -64,6 +65,7 @@ export default function VesselCrewList() {
   const [selectedOffBoardCrew, setSelectedOffBoardCrew] =
     useState<IOffBoardCrew | null>(null);
   const [onSuccess, setOnSuccess] = useState(false);
+  const [selectedRank, setSelectedRank] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchVesselCrew = async () => {
@@ -88,17 +90,45 @@ export default function VesselCrewList() {
     fetchVesselCrew();
   }, [vesselId, onSuccess]);
 
-  const crewData =
-    vesselData?.data.Crew.map((crew, index) => ({
-      id: index + 1,
-      name: `${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + " " : ""}${
-        crew.LastName
-      }`,
-      status: crew.Status === 1 ? "On board" : "Inactive",
-      rank: crew.Rank,
-      crewCode: crew.CrewCode,
-      country: crew.Country,
-    })) || [];
+  const crewData = useMemo(
+    () =>
+      vesselData?.data.Crew.map((crew, index) => ({
+        id: index + 1,
+        name: `${crew.FirstName} ${
+          crew.MiddleName ? crew.MiddleName + " " : ""
+        }${crew.LastName}`,
+        status: crew.Status === 1 ? "On board" : "Inactive",
+        rank: crew.Rank,
+        crewCode: crew.CrewCode,
+        country: crew.Country,
+      })) || [],
+    [vesselData]
+  );
+
+  // Extract unique ranks from crew data
+  const uniqueRanks = useMemo(() => {
+    const ranks = crewData.map((crew) => crew.rank);
+    return [...new Set(ranks)].sort();
+  }, [crewData]);
+
+  // Filter crew data based on search term and selected rank
+  const filteredCrewData = useMemo(() => {
+    return crewData.filter((crew) => {
+      const matchesSearch = searchTerm
+        ? crew.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          crew.rank.toLowerCase().includes(searchTerm.toLowerCase())
+        : true;
+
+      const matchesRank = selectedRank ? crew.rank === selectedRank : true;
+
+      return matchesSearch && matchesRank;
+    });
+  }, [crewData, searchTerm, selectedRank]);
+
+  const handleClearRankFilter = () => {
+    setSelectedRank(null);
+  };
 
   const columns: ColumnDef<(typeof crewData)[number]>[] = [
     {
@@ -171,43 +201,6 @@ export default function VesselCrewList() {
       header: "Action",
       cell: ({ row }) => {
         const crew = row.original;
-        // const handleDelete = (vesselCode: string) => {
-        //   const swalWithBootstrapButtons = Swal.mixin({
-        //     customClass: {
-        //       confirmButton:
-        //         "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-        //       cancelButton:
-        //         "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-        //     },
-        //     buttonsStyling: false,
-        //   });
-
-        //   swalWithBootstrapButtons
-        //     .fire({
-        //       title: "Are you sure?",
-        //       text: "Are you sure you want to delete this crew in the crew list? This action cannot be undone.",
-        //       icon: "warning",
-        //       showCancelButton: true,
-        //       confirmButtonText: "Yes, delete it!",
-        //       cancelButtonText: "No, cancel!",
-        //       reverseButtons: true,
-        //     })
-        //     .then((result) => {
-        //       if (result.isConfirmed) {
-        //         swalWithBootstrapButtons.fire({
-        //           title: "Deleted!",
-        //           text: "The crew member has been successfully deleted.",
-        //           icon: "success",
-        //         });
-        //       } else if (result.dismiss === Swal.DismissReason.cancel) {
-        //         swalWithBootstrapButtons.fire({
-        //           title: "Cancelled",
-        //           text: "Your crew member is safe :)",
-        //           icon: "error",
-        //         });
-        //       }
-        //     });
-        // };
 
         return (
           <div className="text-center">
@@ -235,13 +228,6 @@ export default function VesselCrewList() {
                   <MdOutlineBadge />
                   For Promotion
                 </DropdownMenuItem>
-                {/* <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={() => handleDelete(crew.id.toString())}>
-                  <Trash className="text-red-500" />
-                  Delete
-                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -338,10 +324,32 @@ export default function VesselCrewList() {
             />
           </div>
           <div className="flex gap-4">
-            <Button variant="outline" className="gap-2 h-11 px-5">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2 h-11 px-5">
+                  <Filter className="h-4 w-4" />
+                  {selectedRank ? `Rank: ${selectedRank}` : "Filter by Rank"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {uniqueRanks.map((rank) => (
+                  <DropdownMenuItem
+                    key={rank}
+                    onClick={() => setSelectedRank(rank)}
+                    className="flex justify-between">
+                    {rank}
+                    {selectedRank === rank && <Check className="h-4 w-4" />}
+                  </DropdownMenuItem>
+                ))}
+                {selectedRank && (
+                  <DropdownMenuItem
+                    onClick={handleClearRankFilter}
+                    className="text-blue-600 font-medium">
+                    Clear Filter
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               className="gap-2 h-11 px-5"
               onClick={() => setSearchCrewDialogOpen(true)}>
@@ -357,7 +365,7 @@ export default function VesselCrewList() {
               Loading...
             </div>
           ) : (
-            <DataTable columns={columns} data={crewData} pageSize={6} />
+            <DataTable columns={columns} data={filteredCrewData} pageSize={6} />
           )}
         </div>
       </div>
