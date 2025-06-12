@@ -234,7 +234,6 @@ export default function Wages() {
         const response = await getWageDescriptionList();
         if (response.success) {
           setWageDescriptionItems(response.data);
-          console.log("Fetched Wage Descriptions (in state):", response.data);
         } else {
           setWageDescriptionError(
             response.message || "Failed to fetch wage description data"

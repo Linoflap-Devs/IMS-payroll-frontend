@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/form";
 import { Dispatch, SetStateAction, useState } from "react";
 import { addWageDescription } from "@/src/services/wages/wageDescription.api";
+import { AxiosError } from "axios";
 
 interface AddWageDescriptionDialogProps {
   open: boolean;
@@ -51,6 +52,7 @@ export function AddWageDescriptionDialog({
 }: AddWageDescriptionDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uniqueError, setUniqueError] = useState<boolean>(false);
 
   // Initialize form
   const form = useForm<FormValues>({
@@ -63,6 +65,7 @@ export function AddWageDescriptionDialog({
   });
 
   const handleFormSubmit = async (values: FormValues) => {
+    setUniqueError(false);
     setIsSubmitting(true);
     const AddWageDescriptionPayload = {
       wageCode: values.wageCode.trim(),
@@ -82,12 +85,26 @@ export function AddWageDescriptionDialog({
         onOpenChange(false);
         setOnSuccessAdd(true);
       })
-      .catch(() => {
-        toast({
-          title: "Error",
-          description: "Failed to add wage description",
-          variant: "destructive",
-        });
+      .catch((error) => {
+        const err = error as Error;
+        if (err instanceof AxiosError) {
+          toast({
+            title: "Error",
+            description:
+              err.response?.data.message ||
+              "Failed to add wage description. Please try again.",
+            variant: "destructive",
+          });
+
+          setUniqueError(true);
+          return;
+        } else {
+          toast({
+            title: "Error",
+            description: err.message || "An unexpected error occurred.",
+            variant: "destructive",
+          });
+        }
       })
       .finally(() => {
         setIsSubmitting(false);
@@ -116,13 +133,20 @@ export function AddWageDescriptionDialog({
               name="wageCode"
               render={({ field }) => (
                 <FormItem className="">
-                  <FormLabel className="text-sm text-gray-600">
+                  <FormLabel
+                    className={`text-sm text-gray-600 ${
+                      uniqueError ? "text-destructive" : ""
+                    }`}>
                     Wage Code
                   </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      className="border border-[#E0E0E0] rounded-md"
+                      className={`border border-[#E0E0E0] rounded-md ${
+                        uniqueError
+                          ? "border-destructive focus:!ring-destructive/50"
+                          : ""
+                      }`}
                       placeholder="Enter wage code"
                     />
                   </FormControl>
@@ -136,13 +160,20 @@ export function AddWageDescriptionDialog({
               name="wageName"
               render={({ field }) => (
                 <FormItem className="">
-                  <FormLabel className="text-sm text-gray-600">
+                  <FormLabel
+                    className={`text-sm text-gray-600 ${
+                      uniqueError ? "text-destructive" : ""
+                    }`}>
                     Wage Name
                   </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      className="border border-[#E0E0E0] rounded-md"
+                      className={`border border-[#E0E0E0] rounded-md ${
+                        uniqueError
+                          ? "border-destructive focus:!ring-destructive/50"
+                          : ""
+                      }`}
                       placeholder="Enter wage name"
                     />
                   </FormControl>
