@@ -149,27 +149,28 @@ const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
     header: "Status",
     cell: ({ row }) => {
       // Map numeric status to string labels
-      const statusMap: Record<number, string> = {
-        0: "Completed",
-        2: "Pending",
-        3: "Adjusted",
-        4: "Failed",
-        5: "On Hold",
-      };
+      // const statusMap: Record<number, string> = {
+      //   0: "Completed",
+      //   2: "Pending",
+      //   3: "Adjusted",
+      //   4: "Failed",
+      //   5: "On Hold",
+      // };
+      // console.log("Row Status:", row.original.Status);
 
-      const statusLabel = statusMap[row.original.Status] || "Unknown";
+      // const statusLabel = statusMap[row.original.Status] || "Unknown";
 
-      const getStatusColor = (statusCode: number) => {
+      const getStatusColor = (statusCode: string) => {
         switch (statusCode) {
-          case 0: // Completed
+          case "Completed": // Completed
             return "bg-green-100 text-green-800";
-          case 2: // Pending
+          case "Pending": // Pending
             return "bg-yellow-100 text-yellow-800";
-          case 3: // Adjusted
+          case "Adjusted": // Adjusted
             return "bg-blue-100 text-blue-800";
-          case 4: // Failed
+          case "Failed": // Failed
             return "bg-red-100 text-red-800";
-          case 5: // On Hold
+          case "On Hold": // On Hold
             return "bg-gray-100 text-gray-800";
           default:
             return "bg-gray-100 text-gray-800";
@@ -180,9 +181,9 @@ const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
         <div className="flex justify-center">
           <span
             className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-              row.original.Status
+              row.original.Status.toString(10) // Convert numeric status to string for mapping
             )}`}>
-            {statusLabel}
+            {row.original.Status.toString(10)}
           </span>
         </div>
       );
@@ -335,6 +336,8 @@ export default function DeductionEntries() {
     },
     [selectedYear, selectedMonth]
   );
+
+  console.log("Deduction Entries:", deductionEntries);
 
   // Read the parameters from URL and fetch crew details
   useEffect(() => {

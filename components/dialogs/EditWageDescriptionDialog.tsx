@@ -66,6 +66,13 @@ export function EditWageDescriptionDialog({
       return;
     }
 
+    console.log("Submitting wage description update:", {
+      wageID: wageDescription.wageId,
+      wageCode: wageCode,
+      wageName: wageName,
+      payableOnboard: payableOnboard,
+    });
+
     setIsSubmitting(true);
     try {
       const response = await updateWageDescription({
