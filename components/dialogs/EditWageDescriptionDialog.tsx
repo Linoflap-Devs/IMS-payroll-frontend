@@ -66,27 +66,20 @@ export function EditWageDescriptionDialog({
       return;
     }
 
-    console.log("Submitting wage description update:", {
-      wageID: wageDescription.wageId,
-      wageCode: wageCode,
-      wageName: wageName,
-      payableOnboard: payableOnboard,
-    });
-
     setIsSubmitting(true);
     try {
       const response = await updateWageDescription({
         wageID: wageDescription.wageId,
         wageCode: wageCode,
         wageName: wageName,
-        payableOnboard: payableOnboard,
+        wagePayableOnBoard: payableOnboard,
       });
 
       if (response.success) {
         toast({
           title: "Success",
           description: "Wage description updated successfully.",
-          variant: "default",
+          variant: "success",
         });
         if (onUpdateSuccess && response.data) {
           onUpdateSuccess(response.data);
