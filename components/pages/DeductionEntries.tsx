@@ -248,6 +248,7 @@ export default function DeductionEntries() {
     DeductionEntriesType[]
   >([]);
   const [error, setError] = useState<string | null>(null);
+  const [onSuccess, setOnSuccess] = useState(false);
 
   // Function to fetch deduction entries
   const fetchDeductionEntries = useCallback(
@@ -406,7 +407,13 @@ export default function DeductionEntries() {
     if (crewData.crewCode) {
       fetchDeductionEntries(crewData.crewCode);
     }
-  }, [selectedMonth, selectedYear, crewData.crewCode, fetchDeductionEntries]);
+  }, [
+    selectedMonth,
+    selectedYear,
+    crewData.crewCode,
+    fetchDeductionEntries,
+    onSuccess,
+  ]);
 
   // Handle tab change
   const handleTabChange = (value: string) => {
@@ -757,6 +764,7 @@ export default function DeductionEntries() {
       <AddDeductionDialog
         open={isAddDeductionOpen}
         onOpenChange={setIsAddDeductionOpen}
+        setOnSuccess={setOnSuccess}
       />
     </div>
   );

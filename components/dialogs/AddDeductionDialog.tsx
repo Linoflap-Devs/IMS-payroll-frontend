@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,14 +52,14 @@ type DeductionFormValues = z.infer<typeof deductionFormSchema>;
 interface AddDeductionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: (data: DeductionFormValues) => void;
+  setOnSuccess: Dispatch<SetStateAction<boolean>>;
 }
 
 export function AddDeductionDialog({
   open,
   onOpenChange,
-}: // onSuccess,
-AddDeductionDialogProps) {
+  setOnSuccess,
+}: AddDeductionDialogProps) {
   const [deductionDescription, setDeductionDescription] = useState<
     DeductionDescriptionItem[]
   >([]);
@@ -121,6 +121,7 @@ AddDeductionDialogProps) {
             description: `Deduction has been added.`,
             variant: "success",
           });
+          setOnSuccess(true);
           handleOpenChange(false);
         } else {
           toast({
