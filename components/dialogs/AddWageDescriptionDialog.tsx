@@ -117,6 +117,7 @@ export function AddWageDescriptionDialog({
       onOpenChange={() => {
         form.reset();
         onOpenChange(false);
+        setUniqueError(false);
       }}>
       <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC]">
         <DialogHeader>
