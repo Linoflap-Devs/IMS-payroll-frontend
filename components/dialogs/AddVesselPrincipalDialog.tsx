@@ -105,19 +105,20 @@ export function AddVesselPrincipalDialog({
       }
     } catch (error) {
       const err = error as Error;
-      console.error("Error adding vessel principal:", error);
 
       if (err instanceof AxiosError) {
-        if (err.response?.data?.message.includes("Unique constraint failed")) {
-          toast({
-            title: "Error",
-            description: "Vessel principal code or name already exists.",
-            variant: "destructive",
-          });
+        // if (err.response?.data?.message.includes("Unique constraint failed")) {
+        toast({
+          title: "Error",
+          description:
+            err.response?.data.message ||
+            "Vessel principal code or name already exists.",
+          variant: "destructive",
+        });
 
-          setUniqueError(true);
-          return;
-        }
+        setUniqueError(true);
+        return;
+        // }
       }
 
       toast({
@@ -148,7 +149,10 @@ export function AddVesselPrincipalDialog({
               name="principalCode"
               render={({ field }) => (
                 <FormItem className="">
-                  <FormLabel className="text-sm text-gray-600">
+                  <FormLabel
+                    className={`text-sm text-gray-600 ${
+                      uniqueError ? "text-destructive" : ""
+                    }`}>
                     Principal Code
                   </FormLabel>
                   <FormControl>
