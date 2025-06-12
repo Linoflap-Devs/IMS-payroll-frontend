@@ -1,4 +1,5 @@
 import axiosInstance from "@/src/lib/axios";
+import { DeductionDescriptionItem } from "./deductionDescription.api";
 
 export interface CrewDeductionItem {
   CrewCode: string;
@@ -37,5 +38,23 @@ export interface DeductionEntriesResponse {
 
 export const getDeductionEntries = async (crewCode: string): Promise<DeductionEntriesResponse> => {
   const response = await axiosInstance.get<DeductionEntriesResponse>(`/deductions/${crewCode}/entries`);
+  return response.data;
+}
+
+export interface AddDeductionResponse {
+  success: boolean;
+  data: DeductionDescriptionItem;
+  message?: string;
+}
+
+export interface DeductionEntriesPayload {
+  deductionID: number;
+  deductionAmount: number;
+  deductionRemarks?: string;
+  deductionStatus: number;
+}
+
+export const addCrewDeductionEntry = async (crewCode: string, payload: DeductionEntriesPayload): Promise<AddDeductionResponse> => {
+  const response = await axiosInstance.post<AddDeductionResponse>(`/deductions/${crewCode}/entries`, payload);
   return response.data;
 }

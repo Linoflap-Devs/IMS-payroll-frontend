@@ -31,14 +31,17 @@ import {
   DeductionDescriptionItem,
   getDeductionDescriptionList,
 } from "@/src/services/deduction/deductionDescription.api";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
+import { addCrewDeductionEntry } from "@/src/services/deduction/crewDeduction.api";
+import { useSearchParams } from "next/navigation";
+import { toast } from "../ui/use-toast";
 
 const deductionFormSchema = z.object({
   deductionId: z.string().min(1, "Deduction type is required"),
   amount: z
     .number({ invalid_type_error: "Amount is required" })
     .min(1, "Amount must be greater than 0"),
-  remarks: z.string().optional(),
+  remarks: z.string().min(1, "Remarks are required"),
   status: z.enum(["0", "1", "2", "3", "5"], {
     errorMap: () => ({ message: "Status is required" }),
   }),
@@ -60,6 +63,9 @@ AddDeductionDialogProps) {
   const [deductionDescription, setDeductionDescription] = useState<
     DeductionDescriptionItem[]
   >([]);
+
+  const params = useSearchParams();
+  const crewCode = params.get("crewCode");
 
   useEffect(() => {
     if (open) {
@@ -95,7 +101,10 @@ AddDeductionDialogProps) {
   };
 
   const onSubmit = async (data: DeductionFormValues) => {
-    // handle submit logic here, or call onSuccess
+    if (!crewCode) {
+      console.error("Crew code is required");
+      return;
+    }
 
     const payload = {
       deductionID: Number(data.deductionId),
@@ -104,11 +113,33 @@ AddDeductionDialogProps) {
       deductionStatus: Number(data.status),
     };
 
-    console.log("Submitting deduction data:", payload);
-
-    // onSuccess?.(data);
-
-    handleOpenChange(false);
+    await addCrewDeductionEntry(crewCode, payload)
+      .then((response) => {
+        if (response.success) {
+          toast({
+            title: "Deduction added successfully",
+            description: `Deduction has been added.`,
+            variant: "success",
+          });
+          handleOpenChange(false);
+        } else {
+          toast({
+            title: "Error adding deduction",
+            description:
+              response.message ||
+              "An error occurred while adding the deduction.",
+            variant: "destructive",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error adding deduction:", error);
+        toast({
+          title: "Error",
+          description: "An error occurred while adding the deduction.",
+          variant: "destructive",
+        });
+      });
   };
 
   return (
@@ -255,8 +286,17 @@ AddDeductionDialogProps) {
                 type="submit"
                 className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90"
                 disabled={isSubmitting}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Deduction
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Deduction
+                  </>
+                )}
               </Button>
             </div>
           </form>
