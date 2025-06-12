@@ -1,3 +1,8 @@
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,88 +18,249 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+import {
+  DeductionDescriptionItem,
+  getDeductionDescriptionList,
+} from "@/src/services/deduction/deductionDescription.api";
 import { Plus } from "lucide-react";
+
+const deductionFormSchema = z.object({
+  deductionId: z.string().min(1, "Deduction type is required"),
+  amount: z
+    .number({ invalid_type_error: "Amount is required" })
+    .min(1, "Amount must be greater than 0"),
+  remarks: z.string().optional(),
+  status: z.enum(["0", "1", "2", "3", "5"], {
+    errorMap: () => ({ message: "Status is required" }),
+  }),
+});
+
+type DeductionFormValues = z.infer<typeof deductionFormSchema>;
 
 interface AddDeductionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: (data: DeductionFormValues) => void;
 }
 
 export function AddDeductionDialog({
   open,
   onOpenChange,
-}: AddDeductionDialogProps) {
+}: // onSuccess,
+AddDeductionDialogProps) {
+  const [deductionDescription, setDeductionDescription] = useState<
+    DeductionDescriptionItem[]
+  >([]);
+
+  useEffect(() => {
+    if (open) {
+      getDeductionDescriptionList()
+        .then((response) => setDeductionDescription(response.data))
+        .catch((error) => {
+          console.error("Error fetching deduction descriptions:", error);
+        });
+    }
+  }, [open]);
+
+  const form = useForm<DeductionFormValues>({
+    resolver: zodResolver(deductionFormSchema),
+    defaultValues: {
+      deductionId: "",
+      amount: undefined,
+      remarks: "",
+      status: undefined,
+    },
+  });
+
+  const {
+    handleSubmit,
+    reset,
+    formState: { isSubmitting, errors },
+  } = form;
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      reset();
+    }
+    onOpenChange(open);
+  };
+
+  const onSubmit = async (data: DeductionFormValues) => {
+    // handle submit logic here, or call onSuccess
+
+    const payload = {
+      deductionID: Number(data.deductionId),
+      deductionAmount: data.amount,
+      deductionRemarks: data.remarks || "",
+      deductionStatus: Number(data.status),
+    };
+
+    console.log("Submitting deduction data:", payload);
+
+    // onSuccess?.(data);
+
+    handleOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC]">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
             Add Deduction
           </DialogTitle>
         </DialogHeader>
-        <div className="mt-6 space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600">Deduction</label>
-            <Select>
-              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
-                <SelectValue placeholder="Select deduction type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash-advance">Cash Advance</SelectItem>
-                <SelectItem value="lbc-courier">LBC Courier</SelectItem>
-                <SelectItem value="allotment">Allotment</SelectItem>
-                <SelectItem value="loan">Loan</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600">Amount</label>
-            <Input
-              type="number"
-              placeholder="Enter amount"
-              className="border border-[#E0E0E0] rounded-md"
+        <Form {...form}>
+          <form
+            className="mt-6 space-y-6"
+            onSubmit={handleSubmit(onSubmit)}
+            autoComplete="off">
+            <FormField
+              control={form.control}
+              name="deductionId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-600">
+                    Deduction
+                  </FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isSubmitting}>
+                      <SelectTrigger
+                        className={`w-full border border-[#E0E0E0] rounded-md ${
+                          errors.deductionId ? "border-red-500" : ""
+                        }`}>
+                        <SelectValue placeholder="Select deduction type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {deductionDescription.map((item) => (
+                          <SelectItem
+                            key={item.DeductionID}
+                            value={item.DeductionID.toString()}>
+                            {item.DeductionName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600">Remarks</label>
-            <Input
-              placeholder="Enter remarks"
-              className="border border-[#E0E0E0] rounded-md"
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-600">
+                    Amount
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Enter amount"
+                      className="border border-[#E0E0E0] rounded-md"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === ""
+                            ? undefined
+                            : Number(e.target.value)
+                        )
+                      }
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600">Status</label>
-            <Select>
-              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="adjusted">Adjusted</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="on-hold">On Hold</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <FormField
+              control={form.control}
+              name="remarks"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-600">
+                    Remarks
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter remarks"
+                      className="border border-[#E0E0E0] rounded-md"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              className="flex-1 text-sm h-11"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Amount
-            </Button>
-          </div>
-        </div>
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-600">
+                    Status
+                  </FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isSubmitting}>
+                      <SelectTrigger
+                        className={`w-full border border-[#E0E0E0] rounded-md ${
+                          errors.status ? "border-red-500" : ""
+                        }`}>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Pending</SelectItem>
+                        <SelectItem value="1">Completed</SelectItem>
+                        <SelectItem value="2">Declined</SelectItem>
+                        <SelectItem value="3">On Hold</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 text-sm h-11"
+                onClick={() => handleOpenChange(false)}
+                disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90"
+                disabled={isSubmitting}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Deduction
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

@@ -160,6 +160,11 @@ const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
 
       // const statusLabel = statusMap[row.original.Status] || "Unknown";
 
+      // 0 - completed
+      // 1 - pending
+      // 2 -  declined
+      // 3 - on hold
+
       const getStatusColor = (statusCode: string) => {
         switch (statusCode) {
           case "Completed": // Completed
