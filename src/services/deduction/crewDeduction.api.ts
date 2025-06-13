@@ -59,6 +59,13 @@ export const addCrewDeductionEntry = async (crewCode: string, payload: Deduction
   return response.data;
 }
 
-// export interface UpdateDeductionEntryPayload {
+export interface UpdateDeductionEntryPayload {
+  deductionAmount?: number;
+  deductionRemarks?: string;
+  status?: number;
+}
 
-// }
+export const updateCrewDeductionEntry = async (crewCode: string, deductionId: number, payload: UpdateDeductionEntryPayload): Promise<AddDeductionResponse> => {
+  const response = await axiosInstance.patch<AddDeductionResponse>(`/deductions/${crewCode}/entries/${deductionId}`, payload);
+  return response.data;
+}

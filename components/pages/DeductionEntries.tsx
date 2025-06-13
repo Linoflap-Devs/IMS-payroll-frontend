@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -43,11 +49,13 @@ import {
   getDeductionEntries,
   DeductionEntries as DeductionEntriesType,
   getCrewDeductionList,
+  updateCrewDeductionEntry,
 } from "@/src/services/deduction/crewDeduction.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { toast } from "../ui/use-toast";
 
 // type DeductionEntry = {
 //   deduction: string;
@@ -136,10 +144,12 @@ import { useSearchParams } from "next/navigation";
 
 type Props = {
   crewCode: string | null;
+  setOnSuccess: Dispatch<SetStateAction<boolean>>;
 };
 
 const apiDeductionColumns = ({
   crewCode,
+  setOnSuccess,
 }: Props): ColumnDef<DeductionEntriesType>[] => [
   {
     accessorKey: "Deduction",
@@ -210,10 +220,56 @@ const apiDeductionColumns = ({
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const deductionDetailID = row.original.DeductionDetailID;
+      const deductionId = row.original.DeductionDetailID;
+
+      const statusMap: Record<number, string> = {
+        1: "Completed",
+        0: "Pending",
+        2: "Declined",
+        3: "On Hold",
+      };
+
       const handleEdit = (status: number) => {
         // Handle edit logic here
-        console.log("Edit entry:", status, crewCode, deductionDetailID);
+
+        if (!crewCode) {
+          console.error(
+            "Crew code is not available for updating deduction entry."
+          );
+          return;
+        }
+
+        const payload = {
+          status,
+        };
+
+        // const statusLabel = statusMap[status] || statusMap[1];
+
+        updateCrewDeductionEntry(crewCode, deductionId, payload)
+          .then((response) => {
+            if (response.success) {
+              toast({
+                title: "Deduction entry updated successfully",
+                description: `Status changed to ${statusMap[status]}`,
+                variant: "success",
+              });
+              setOnSuccess(true);
+            } else {
+              toast({
+                title: "Failed to update deduction entry",
+                description: response.message || "Unknown error",
+                variant: "destructive",
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Error updating deduction entry:", error);
+            toast({
+              title: "Error updating deduction entry",
+              description: error.message || "An error occurred",
+              variant: "destructive",
+            });
+          });
       };
 
       return (
@@ -226,11 +282,11 @@ const apiDeductionColumns = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-              <DropdownMenuItem onClick={() => handleEdit(0)}>
+              <DropdownMenuItem onClick={() => handleEdit(1)}>
                 <CircleCheck strokeWidth={2} />
                 Completed
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleEdit(1)}>
+              <DropdownMenuItem onClick={() => handleEdit(0)}>
                 <CircleEllipsis strokeWidth={2} />
                 Pending
               </DropdownMenuItem>
@@ -447,6 +503,12 @@ export default function DeductionEntries() {
   useEffect(() => {
     if (crewData.crewCode) {
       fetchDeductionEntries(crewData.crewCode);
+    }
+
+    if (onSuccess) {
+      // Reset onSuccess state after fetching new data
+      fetchDeductionEntries(crewData.crewCode);
+      setOnSuccess(false);
     }
   }, [
     selectedMonth,
@@ -752,7 +814,10 @@ export default function DeductionEntries() {
                         </div>
                       ) : (
                         <DataTable
-                          columns={apiDeductionColumns({ crewCode })}
+                          columns={apiDeductionColumns({
+                            crewCode,
+                            setOnSuccess,
+                          })}
                           data={filteredEntries}
                           pageSize={7}
                         />
