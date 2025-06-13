@@ -13,6 +13,11 @@ import {
   Ship,
   Calendar,
   Plus,
+  Trash,
+  CircleCheck,
+  CircleEllipsis,
+  CircleX,
+  CircleDot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +33,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DataTable } from "@/components/ui/data-table";
@@ -208,8 +214,25 @@ const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-              <DropdownMenuItem>Edit</DropdownMenuItem>
+              <DropdownMenuItem>
+                <CircleCheck strokeWidth={2} />
+                Completed
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <CircleEllipsis strokeWidth={2} />
+                Pending
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <CircleX strokeWidth={2} />
+                Declined
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <CircleDot strokeWidth={2} />
+                On Hold
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-600">
+                <Trash className="text-red-600" />
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
