@@ -69,3 +69,11 @@ export const updateCrewDeductionEntry = async (crewCode: string, deductionId: nu
   const response = await axiosInstance.patch<AddDeductionResponse>(`/deductions/${crewCode}/entries/${deductionId}`, payload);
   return response.data;
 }
+
+export const addHDMFUpgrade = async (crewCode: string, hdmfAmount: number, isDollar: number): Promise<AddDeductionResponse> => {
+  const response = await axiosInstance.post<AddDeductionResponse>(`/deductions/${crewCode}/hdmf`, {
+    hdmfAmount,
+    isDollar
+  });
+  return response.data;
+}

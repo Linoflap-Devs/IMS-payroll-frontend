@@ -50,6 +50,7 @@ import {
   DeductionEntries as DeductionEntriesType,
   getCrewDeductionList,
   updateCrewDeductionEntry,
+  addHDMFUpgrade,
 } from "@/src/services/deduction/crewDeduction.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
@@ -346,6 +347,7 @@ export default function DeductionEntries() {
   >([]);
   const [error, setError] = useState<string | null>(null);
   const [onSuccess, setOnSuccess] = useState(false);
+  const [HDMFUpgradeAmount, setHDMFUpgradeAmount] = useState<number>(0);
 
   // Function to fetch deduction entries
   const fetchDeductionEntries = useCallback(
@@ -440,8 +442,6 @@ export default function DeductionEntries() {
     [selectedYear, selectedMonth]
   );
 
-  console.log("Deduction Entries:", deductionEntries);
-
   // Read the parameters from URL and fetch crew details
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -529,6 +529,40 @@ export default function DeductionEntries() {
       entry.Month === selectedMonth && entry.Year.toString() === selectedYear
     );
   });
+
+  const handleSubmitHDMFUpgrade = () => {
+    console.log("HMDF Upgrade Amount:", HDMFUpgradeAmount);
+    console.log("Dollar Option:", isDollar);
+
+    addHDMFUpgrade(crewData.crewCode, HDMFUpgradeAmount, isDollar ? 1 : 0)
+      .then((response) => {
+        if (response.success) {
+          toast({
+            title: "HDMF Upgrade Amount saved successfully",
+            description: `Amount: ${HDMFUpgradeAmount} ${
+              isDollar ? "USD" : "PHP"
+            }`,
+            variant: "success",
+          });
+          setOnSuccess(true);
+          setHDMFUpgradeAmount(0); // Reset amount after successful submission
+        } else {
+          toast({
+            title: "Failed to save HDMF Upgrade Amount",
+            description: response.message || "Unknown error",
+            variant: "destructive",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error saving HDMF Upgrade Amount:", error);
+        toast({
+          title: "Error saving HDMF Upgrade Amount",
+          description: error.message || "An error occurred",
+          variant: "destructive",
+        });
+      });
+  };
 
   return (
     <div className="h-full w-full p-4 pt-3">
@@ -849,12 +883,19 @@ export default function DeductionEntries() {
                           HDMF Amount
                         </h3>
                         <Input
+                          type="number"
                           placeholder="Enter HDMF Amount"
                           className="bg-white border border-gray-200 h-12"
+                          value={HDMFUpgradeAmount}
+                          onChange={(e) =>
+                            setHDMFUpgradeAmount(Number(e.target.value))
+                          }
                         />
                       </div>
                       <div className="flex justify-end">
-                        <Button className="bg-primary hover:bg-primary/90">
+                        <Button
+                          className="bg-primary hover:bg-primary/90"
+                          onClick={handleSubmitHDMFUpgrade}>
                           <Plus className="h-4 w-4 mr-2" />
                           Save Amount
                         </Button>
