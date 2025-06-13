@@ -58,3 +58,7 @@ export const addCrewDeductionEntry = async (crewCode: string, payload: Deduction
   const response = await axiosInstance.post<AddDeductionResponse>(`/deductions/${crewCode}/entries`, payload);
   return response.data;
 }
+
+// export interface UpdateDeductionEntryPayload {
+
+// }

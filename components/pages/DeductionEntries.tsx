@@ -13,7 +13,6 @@ import {
   Ship,
   Calendar,
   Plus,
-  Trash,
   CircleCheck,
   CircleEllipsis,
   CircleX,
@@ -33,7 +32,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DataTable } from "@/components/ui/data-table";
@@ -49,6 +47,7 @@ import {
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 
 // type DeductionEntry = {
 //   deduction: string;
@@ -134,7 +133,14 @@ import Image from "next/image";
 // ];
 
 // Updated columns definition to match the API data structure
-const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
+
+type Props = {
+  crewCode: string | null;
+};
+
+const apiDeductionColumns = ({
+  crewCode,
+}: Props): ColumnDef<DeductionEntriesType>[] => [
   {
     accessorKey: "Deduction",
     header: "Deduction",
@@ -191,7 +197,7 @@ const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
       return (
         <div className="flex justify-center">
           <span
-            className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+            className={`px-2 py-1 w-full rounded-full text-xs ${getStatusColor(
               row.original.Status.toString(10) // Convert numeric status to string for mapping
             )}`}>
             {row.original.Status.toString(10)}
@@ -203,7 +209,13 @@ const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
   {
     id: "actions",
     header: "Actions",
-    cell: () => {
+    cell: ({ row }) => {
+      const deductionDetailID = row.original.DeductionDetailID;
+      const handleEdit = (status: number) => {
+        // Handle edit logic here
+        console.log("Edit entry:", status, crewCode, deductionDetailID);
+      };
+
       return (
         <div className="text-center">
           <DropdownMenu>
@@ -214,27 +226,30 @@ const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleEdit(0)}>
                 <CircleCheck strokeWidth={2} />
                 Completed
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleEdit(1)}>
                 <CircleEllipsis strokeWidth={2} />
                 Pending
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleEdit(2)}>
                 <CircleX strokeWidth={2} />
                 Declined
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleEdit(3)}>
                 <CircleDot strokeWidth={2} />
                 On Hold
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
+              {/* <DropdownMenuSeparator /> */}
+
+              {/* DELETE IS NOT NEEDED AS PER SIR WENDELL */}
+
+              {/* <DropdownMenuItem className="text-red-600">
                 <Trash className="text-red-600" />
                 Delete
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -244,6 +259,9 @@ const apiDeductionColumns: ColumnDef<DeductionEntriesType>[] = [
 ];
 
 export default function DeductionEntries() {
+  const params = useSearchParams();
+  const crewCode = params.get("crewCode");
+
   const [activeTab, setActiveTab] = useState("deduction-entries");
   const [selectedMonth, setSelectedMonth] = useState("August");
   const [selectedYear, setSelectedYear] = useState("2025");
@@ -734,7 +752,7 @@ export default function DeductionEntries() {
                         </div>
                       ) : (
                         <DataTable
-                          columns={apiDeductionColumns}
+                          columns={apiDeductionColumns({ crewCode })}
                           data={filteredEntries}
                           pageSize={7}
                         />
