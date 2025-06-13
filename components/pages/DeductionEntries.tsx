@@ -23,6 +23,7 @@ import {
   CircleEllipsis,
   CircleX,
   CircleDot,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -348,6 +349,7 @@ export default function DeductionEntries() {
   const [error, setError] = useState<string | null>(null);
   const [onSuccess, setOnSuccess] = useState(false);
   const [HDMFUpgradeAmount, setHDMFUpgradeAmount] = useState<number>(0);
+  const [hdmfLoading, setHdmfLoading] = useState(false);
 
   // Function to fetch deduction entries
   const fetchDeductionEntries = useCallback(
@@ -531,8 +533,7 @@ export default function DeductionEntries() {
   });
 
   const handleSubmitHDMFUpgrade = () => {
-    console.log("HMDF Upgrade Amount:", HDMFUpgradeAmount);
-    console.log("Dollar Option:", isDollar);
+    setHdmfLoading(true);
 
     addHDMFUpgrade(crewData.crewCode, HDMFUpgradeAmount, isDollar ? 1 : 0)
       .then((response) => {
@@ -561,6 +562,9 @@ export default function DeductionEntries() {
           description: error.message || "An error occurred",
           variant: "destructive",
         });
+      })
+      .finally(() => {
+        setHdmfLoading(false);
       });
   };
 
@@ -895,9 +899,19 @@ export default function DeductionEntries() {
                       <div className="flex justify-end">
                         <Button
                           className="bg-primary hover:bg-primary/90"
-                          onClick={handleSubmitHDMFUpgrade}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Save Amount
+                          onClick={handleSubmitHDMFUpgrade}
+                          disabled={hdmfLoading}>
+                          {hdmfLoading ? (
+                            <>
+                              <Loader2 className="animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="" />
+                              Save Amount
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
