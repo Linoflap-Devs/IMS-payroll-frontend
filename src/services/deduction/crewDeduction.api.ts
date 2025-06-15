@@ -77,3 +77,19 @@ export const addHDMFUpgrade = async (crewCode: string, hdmfAmount: number, isDol
   });
   return response.data;
 }
+
+export interface hfmdUpgrade {
+  HDMFAmount: number;
+  DollarCurrency: number;
+}
+
+export interface hdmfUpgradeResponse {
+  success: boolean;
+  data: hfmdUpgrade;
+  message?: string;
+}
+
+export const getCrewHDMFUpgrade = async (crewCode: string): Promise<hdmfUpgradeResponse> => {
+  const response = await axiosInstance.get<hdmfUpgradeResponse>(`/deductions/${crewCode}/hdmf`);
+  return response.data;
+}
