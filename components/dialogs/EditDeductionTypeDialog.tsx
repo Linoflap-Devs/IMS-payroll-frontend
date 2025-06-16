@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Add useEffect import
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -61,6 +61,16 @@ export function EditDeductionTypeDialog({
       currency: String(deduction.DeductionCurrency),
     },
   });
+
+  // Add this useEffect to reset form values when deduction prop changes
+  useEffect(() => {
+    form.reset({
+      deductionCode: deduction.DeductionCode,
+      deductionName: deduction.DeductionName,
+      deductionType: String(deduction.DeductionType),
+      currency: String(deduction.DeductionCurrency),
+    });
+  }, [deduction, form]);
 
   // Form submission handler
   const onSubmit = async (values: FormValues) => {
@@ -149,8 +159,8 @@ export function EditDeductionTypeDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="0">Common Deduction</SelectItem>
-                      <SelectItem value="1">Loan Type</SelectItem>
+                      <SelectItem value="1">Common Deduction</SelectItem>
+                      <SelectItem value="2">Loan Type</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage className="text-xs text-red-500" />
@@ -175,8 +185,8 @@ export function EditDeductionTypeDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="0">PHP</SelectItem>
-                      <SelectItem value="1">USD</SelectItem>
+                      <SelectItem value="1">PHP</SelectItem>
+                      <SelectItem value="2">USD</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage className="text-xs text-red-500" />
