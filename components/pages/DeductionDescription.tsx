@@ -54,6 +54,9 @@ export default function Deduction() {
     DeductionDescriptionItem[]
   >([]);
 
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [currencyFilter, setCurrencyFilter] = useState("all");
+
   const loantype: Record<number, string> = {
     1: "Common Deduction",
     2: "Loan Type",
@@ -202,8 +205,21 @@ export default function Deduction() {
     },
   ];
 
-  const filteredDeductionDescription = deductionDescriptionData.filter((item) =>
-    item.DeductionName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDeductionDescription = deductionDescriptionData.filter(
+    (item) => {
+      const matchesSearch =
+        item.DeductionName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.DeductionCode.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesType =
+        typeFilter === "all" || item.DeductionType.toString() === typeFilter;
+
+      const matchesCurrency =
+        currencyFilter === "all" ||
+        item.DeductionCurrency.toString() === currencyFilter;
+
+      return matchesSearch && matchesType && matchesCurrency;
+    }
   );
 
   return (
@@ -248,33 +264,35 @@ export default function Deduction() {
                 <div className="relative w-full md:flex-1">
                   <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
                   <Input
-                    placeholder="Search crew by wage code, wage name..."
+                    placeholder="Search deduction by code or name..."
                     className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-                  <Select>
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
                     <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                       <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
                       <SelectValue placeholder="Filter by deduction type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Ranks</SelectItem>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Inactive">Inactive</SelectItem>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="1">Common Deduction</SelectItem>
+                      <SelectItem value="2">Loan Type</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Select>
+                  <Select
+                    value={currencyFilter}
+                    onValueChange={setCurrencyFilter}>
                     <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                       <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
                       <SelectValue placeholder="Filter by currency" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Currencies</SelectItem>
-                      <SelectItem value="PHP">PHP</SelectItem>
-                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="1">PHP</SelectItem>
+                      <SelectItem value="2">USD</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button
