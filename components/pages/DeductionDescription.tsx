@@ -38,98 +38,6 @@ import {
   getDeductionDescriptionList,
 } from "@/src/services/deduction/deductionDescription.api";
 
-// const deductionDescriptionData = [
-//   {
-//     deductionCode: "DED001",
-//     deductionName: "Deduction 1",
-//     deductionType: "Percentage",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED002",
-//     deductionName: "Deduction 2",
-//     deductionType: "Fixed Amount",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED003",
-//     deductionName: "Deduction 3",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED004",
-//     deductionName: "Deduction 4",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED005",
-//     deductionName: "Deduction 5",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED006",
-//     deductionName: "Deduction 6",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED007",
-//     deductionName: "Deduction 7",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED008",
-//     deductionName: "Deduction 8",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED009",
-//     deductionName: "Deduction 9",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED010",
-//     deductionName: "Deduction 10",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED011",
-//     deductionName: "Deduction 11",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED012",
-//     deductionName: "Deduction 12",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED013",
-//     deductionName: "Deduction 13",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-// ];
-
-// type CrewDeduction = {
-//   CrewCode: string;
-//   FirstName: string;
-//   LastName: string;
-//   MiddleName: string;
-//   Rank: string;
-//   VesselName: string;
-//   crewName: string;
-// };
-// type DeductionDescription = (typeof deductionDescriptionData)[number];
-
 export default function Deduction() {
   // const [activeTab, setActiveTab] = useState("crew-deduction");
   const [searchTerm, setSearchTerm] = useState("");
@@ -140,29 +48,9 @@ export default function Deduction() {
   const [selectedDeduction, setSelectedDeduction] =
     useState<DeductionDescriptionItem | null>(null);
 
-  // const [crewDeductionData, setCrewDeductionData] = useState<CrewDeduction[]>(
-  //   []
-  // );
-
   const [deductionDescriptionData, setDeductionDescriptionData] = useState<
     DeductionDescriptionItem[]
   >([]);
-
-  // useEffect(() => {
-  //   getCrewDeductionList()
-  //     .then((res) => {
-  //       if (res.success) {
-  //         const mapped: CrewDeduction[] = res.data.map((item) => ({
-  //           ...item, // Spread all the original properties
-  //           crewName: `${item.FirstName} ${item.MiddleName} ${item.LastName}`, // Add the computed property
-  //         }));
-  //         setCrewDeductionData(mapped);
-  //       } else {
-  //         console.error("Failed to fetch crew deduction:", res.message);
-  //       }
-  //     })
-  //     .catch((err) => console.error("Error fetching crew deduction:", err));
-  // }, []); // Add empty dependency array to run only once on mount
 
   const loantype: Record<number, string> = {
     1: "Common Deduction",
@@ -194,83 +82,6 @@ export default function Deduction() {
   // const handleTabChange = (value: string) => {
   //   setActiveTab(value);
   // };
-
-  // const crewDeductionColumns: ColumnDef<CrewDeduction>[] = [
-  //   {
-  //     accessorKey: "CrewCode",
-  //     header: ({ column }) => <div className="text-justify">Crew Code</div>,
-  //     cell: ({ row }) => (
-  //       <div className="text-justify">{row.getValue("CrewCode")}</div>
-  //     ),
-  //   },
-  //   {
-  //     accessorKey: "crewName",
-  //     header: ({ column }) => <div className="text-justify">Name</div>,
-  //     cell: ({ row }) => (
-  //       <div className="text-justify">{row.getValue("crewName")}</div>
-  //     ),
-  //   },
-  //   {
-  //     accessorKey: "VesselName",
-  //     header: ({ column }) => <div className="text-center">Vessel</div>,
-  //     cell: ({ row }) => (
-  //       <div className="text-center">{row.getValue("VesselName")}</div>
-  //     ),
-  //   },
-  //   {
-  //     accessorKey: "Rank",
-  //     header: ({ column }) => <div className="text-center">Rank</div>,
-  //     cell: ({ row }) => (
-  //       <div className="text-center">{row.getValue("Rank")}</div>
-  //     ),
-  //   },
-
-  //   {
-  //     accessorKey: "actions",
-  //     header: ({ column }) => <div className="text-center">Actions</div>,
-  //     cell: ({ row }) => {
-  //       const vessel = row.original;
-  //       return (
-  //         <div className="text-center">
-  //           <DropdownMenu>
-  //             <DropdownMenuTrigger asChild>
-  //               <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-  //                 <span className="sr-only">Open menu</span>
-  //                 <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-  //               </Button>
-  //             </DropdownMenuTrigger>
-  //             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-  //               <DropdownMenuItem asChild className="text-xs sm:text-sm">
-  //                 <Link
-  //                   href={`/home/deduction/deduction-entries?&crewCode=${encodeURIComponent(
-  //                     row.getValue("CrewCode")
-  //                   )}`}>
-  //                   <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-  //                   View Deduction Entries
-  //                 </Link>
-  //               </DropdownMenuItem>
-  //               <DropdownMenuItem asChild className="text-xs sm:text-sm">
-  //                 <Link
-  //                   href={`/home/deduction/deduction-entries?tab=hdmf-upgrade&&crewCode=${encodeURIComponent(
-  //                     row.getValue("CrewCode")
-  //                   )}`}>
-  //                   <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-  //                   View HDMF Upgrade Contributions
-  //                 </Link>
-  //               </DropdownMenuItem>
-  //               <DropdownMenuItem asChild className="text-xs sm:text-sm">
-  //                 <Link href={`/`}>
-  //                   <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-  //                   View Remittance
-  //                 </Link>
-  //               </DropdownMenuItem>
-  //             </DropdownMenuContent>
-  //           </DropdownMenu>
-  //         </div>
-  //       );
-  //     },
-  //   },
-  // ];
 
   const deductionDescriptionColumns: ColumnDef<DeductionDescriptionItem>[] = [
     {
@@ -386,9 +197,6 @@ export default function Deduction() {
     },
   ];
 
-  // const filteredCrewDeduction = crewDeductionData.filter((item) =>
-  //   item.CrewCode.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
   const filteredDeductionDescription = deductionDescriptionData.filter((item) =>
     item.DeductionName.toLowerCase().includes(searchTerm.toLowerCase())
   );
