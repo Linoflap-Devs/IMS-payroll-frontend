@@ -14,16 +14,12 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Save } from "lucide-react";
+import { DeductionDescriptionItem } from "@/src/services/deduction/deductionDescription.api";
 
 interface EditDeductionTypeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  deduction: {
-    deductionCode: string;
-    deductionName: string;
-    deductionType: string;
-    currency: string;
-  };
+  deduction: DeductionDescriptionItem;
 }
 
 export function EditDeductionTypeDialog({
@@ -43,7 +39,7 @@ export function EditDeductionTypeDialog({
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Deduction Code</label>
             <Input
-              defaultValue={deduction.deductionCode}
+              defaultValue={deduction.DeductionCode}
               className="border border-[#E0E0E0] rounded-md"
             />
           </div>
@@ -51,39 +47,34 @@ export function EditDeductionTypeDialog({
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Deduction Name</label>
             <Input
-              defaultValue={deduction.deductionName}
+              defaultValue={deduction.DeductionName}
               className="border border-[#E0E0E0] rounded-md"
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Deduction Type</label>
-            <Select
-              defaultValue={deduction.deductionType
-                .toLowerCase()
-                .replace(" ", "-")}
-            >
+            <Select>
               <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
                 <SelectValue placeholder="Select deduction type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="percentage">Percentage</SelectItem>
-                <SelectItem value="fixed-amount">Fixed Amount</SelectItem>
-                <SelectItem value="loan-type">Loan Type</SelectItem>
+                <SelectItem value="1">Common Deduction</SelectItem>
+                <SelectItem value="2">Loan Type</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Currency</label>
-            <Select defaultValue={deduction.currency.toLowerCase()}>
+            <Select>
               <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="php">PHP</SelectItem>
-                <SelectItem value="usd">USD</SelectItem>
-                <SelectItem value="eur">EUR</SelectItem>
+                <SelectItem value="1">PHP</SelectItem>
+                <SelectItem value="2">USD</SelectItem>
+                {/* <SelectItem value="eur">EUR</SelectItem> */}
               </SelectContent>
             </Select>
           </div>
@@ -92,8 +83,7 @@ export function EditDeductionTypeDialog({
             <Button
               variant="outline"
               className="flex-1 text-sm h-11"
-              onClick={() => onOpenChange(false)}
-            >
+              onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90">

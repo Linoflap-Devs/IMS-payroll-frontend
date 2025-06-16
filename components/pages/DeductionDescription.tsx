@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +14,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -25,271 +23,289 @@ import {
   MoreHorizontal,
   Trash,
   Filter,
-  IdCard,
-  FolderClock,
-  Users,
   Pencil,
-  ChevronDown,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 
-import { Card } from "../ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PiUserListFill } from "react-icons/pi";
 import { AddDeductionTypeDialog } from "@/components/dialogs/AddDeductionTypeDialog";
 import { EditDeductionTypeDialog } from "@/components/dialogs/EditDeductionTypeDialog";
 import Swal from "sweetalert2";
+// import { getCrewDeductionList } from "@/src/services/deduction/crewDeduction.api";
 import {
-  getCrewDeductionList,
-  CrewDeductionItem,
-} from "@/src/services/deduction/crewDeduction.api";
+  DeductionDescriptionItem,
+  getDeductionDescriptionList,
+} from "@/src/services/deduction/deductionDescription.api";
 
-const deductionDescriptionData = [
-  {
-    deductionCode: "DED001",
-    deductionName: "Deduction 1",
-    deductionType: "Percentage",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED002",
-    deductionName: "Deduction 2",
-    deductionType: "Fixed Amount",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED003",
-    deductionName: "Deduction 3",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED004",
-    deductionName: "Deduction 4",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED005",
-    deductionName: "Deduction 5",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED006",
-    deductionName: "Deduction 6",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED007",
-    deductionName: "Deduction 7",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED008",
-    deductionName: "Deduction 8",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED009",
-    deductionName: "Deduction 9",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED010",
-    deductionName: "Deduction 10",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED011",
-    deductionName: "Deduction 11",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED012",
-    deductionName: "Deduction 12",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED013",
-    deductionName: "Deduction 13",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-];
+// const deductionDescriptionData = [
+//   {
+//     deductionCode: "DED001",
+//     deductionName: "Deduction 1",
+//     deductionType: "Percentage",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED002",
+//     deductionName: "Deduction 2",
+//     deductionType: "Fixed Amount",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED003",
+//     deductionName: "Deduction 3",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED004",
+//     deductionName: "Deduction 4",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED005",
+//     deductionName: "Deduction 5",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED006",
+//     deductionName: "Deduction 6",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED007",
+//     deductionName: "Deduction 7",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED008",
+//     deductionName: "Deduction 8",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED009",
+//     deductionName: "Deduction 9",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED010",
+//     deductionName: "Deduction 10",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED011",
+//     deductionName: "Deduction 11",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED012",
+//     deductionName: "Deduction 12",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED013",
+//     deductionName: "Deduction 13",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+// ];
 
-type CrewDeduction = {
-  CrewCode: string;
-  FirstName: string;
-  LastName: string;
-  MiddleName: string;
-  Rank: string;
-  VesselName: string;
-  crewName: string;
-};
-type DeductionDescription = (typeof deductionDescriptionData)[number];
+// type CrewDeduction = {
+//   CrewCode: string;
+//   FirstName: string;
+//   LastName: string;
+//   MiddleName: string;
+//   Rank: string;
+//   VesselName: string;
+//   crewName: string;
+// };
+// type DeductionDescription = (typeof deductionDescriptionData)[number];
 
 export default function Deduction() {
-  const [activeTab, setActiveTab] = useState("crew-deduction");
+  // const [activeTab, setActiveTab] = useState("crew-deduction");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  // const [statusFilter, setStatusFilter] = useState("all");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addDeductionTypeDialogOpen, setAddDeductionTypeDialogOpen] =
     useState(false);
   const [selectedDeduction, setSelectedDeduction] =
-    useState<DeductionDescription | null>(null);
+    useState<DeductionDescriptionItem | null>(null);
 
-  const [crewDeductionData, setCrewDeductionData] = useState<CrewDeduction[]>(
-    []
-  );
+  // const [crewDeductionData, setCrewDeductionData] = useState<CrewDeduction[]>(
+  //   []
+  // );
 
-  useEffect(() => {
-    getCrewDeductionList()
-      .then((res) => {
-        if (res.success) {
-          const mapped: CrewDeduction[] = res.data.map((item) => ({
-            ...item, // Spread all the original properties
-            crewName: `${item.FirstName} ${item.MiddleName} ${item.LastName}`, // Add the computed property
-          }));
-          setCrewDeductionData(mapped);
-        } else {
-          console.error("Failed to fetch crew deduction:", res.message);
-        }
-      })
-      .catch((err) => console.error("Error fetching crew deduction:", err));
-  }, []); // Add empty dependency array to run only once on mount
+  const [deductionDescriptionData, setDeductionDescriptionData] = useState<
+    DeductionDescriptionItem[]
+  >([]);
 
-  // Handle tab change
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
+  // useEffect(() => {
+  //   getCrewDeductionList()
+  //     .then((res) => {
+  //       if (res.success) {
+  //         const mapped: CrewDeduction[] = res.data.map((item) => ({
+  //           ...item, // Spread all the original properties
+  //           crewName: `${item.FirstName} ${item.MiddleName} ${item.LastName}`, // Add the computed property
+  //         }));
+  //         setCrewDeductionData(mapped);
+  //       } else {
+  //         console.error("Failed to fetch crew deduction:", res.message);
+  //       }
+  //     })
+  //     .catch((err) => console.error("Error fetching crew deduction:", err));
+  // }, []); // Add empty dependency array to run only once on mount
+
+  const loantype: Record<number, string> = {
+    1: "Common Deduction",
+    2: "Loan Type",
   };
 
-  const crewDeductionColumns: ColumnDef<CrewDeduction>[] = [
-    {
-      accessorKey: "CrewCode",
-      header: ({ column }) => <div className="text-justify">Crew Code</div>,
-      cell: ({ row }) => (
-        <div className="text-justify">{row.getValue("CrewCode")}</div>
-      ),
-    },
-    {
-      accessorKey: "crewName",
-      header: ({ column }) => <div className="text-justify">Name</div>,
-      cell: ({ row }) => (
-        <div className="text-justify">{row.getValue("crewName")}</div>
-      ),
-    },
-    {
-      accessorKey: "VesselName",
-      header: ({ column }) => <div className="text-center">Vessel</div>,
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("VesselName")}</div>
-      ),
-    },
-    {
-      accessorKey: "Rank",
-      header: ({ column }) => <div className="text-center">Rank</div>,
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("Rank")}</div>
-      ),
-    },
+  const currency: Record<number, string> = {
+    1: "PHP",
+    2: "USD",
+  };
 
-    {
-      accessorKey: "actions",
-      header: ({ column }) => <div className="text-center">Actions</div>,
-      cell: ({ row }) => {
-        const vessel = row.original;
-        return (
-          <div className="text-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                  <Link
-                    href={`/home/deduction/deduction-entries?&crewCode=${encodeURIComponent(
-                      row.getValue("CrewCode")
-                    )}`}
-                  >
-                    <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    View Deduction Entries
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                  <Link
-                    href={`/home/deduction/deduction-entries?tab=hdmf-upgrade&&crewCode=${encodeURIComponent(
-                      row.getValue("CrewCode")
-                    )}`}
-                  >
-                    <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    View HDMF Upgrade Contributions
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                  <Link href={`/`}>
-                    <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    View Remittance
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        );
-      },
-    },
-  ];
+  useEffect(() => {
+    getDeductionDescriptionList()
+      .then((res) => {
+        if (res.success) {
+          setDeductionDescriptionData(res.data);
+        } else {
+          console.error("Failed to fetch deduction description:", res.message);
+        }
+      })
+      .catch((err) =>
+        console.error("Error fetching deduction description:", err)
+      );
+  }, []);
 
-  const deductionDescriptionColumns: ColumnDef<DeductionDescription>[] = [
+  console.log("Deduction Description Data:", deductionDescriptionData);
+
+  // Handle tab change
+  // const handleTabChange = (value: string) => {
+  //   setActiveTab(value);
+  // };
+
+  // const crewDeductionColumns: ColumnDef<CrewDeduction>[] = [
+  //   {
+  //     accessorKey: "CrewCode",
+  //     header: ({ column }) => <div className="text-justify">Crew Code</div>,
+  //     cell: ({ row }) => (
+  //       <div className="text-justify">{row.getValue("CrewCode")}</div>
+  //     ),
+  //   },
+  //   {
+  //     accessorKey: "crewName",
+  //     header: ({ column }) => <div className="text-justify">Name</div>,
+  //     cell: ({ row }) => (
+  //       <div className="text-justify">{row.getValue("crewName")}</div>
+  //     ),
+  //   },
+  //   {
+  //     accessorKey: "VesselName",
+  //     header: ({ column }) => <div className="text-center">Vessel</div>,
+  //     cell: ({ row }) => (
+  //       <div className="text-center">{row.getValue("VesselName")}</div>
+  //     ),
+  //   },
+  //   {
+  //     accessorKey: "Rank",
+  //     header: ({ column }) => <div className="text-center">Rank</div>,
+  //     cell: ({ row }) => (
+  //       <div className="text-center">{row.getValue("Rank")}</div>
+  //     ),
+  //   },
+
+  //   {
+  //     accessorKey: "actions",
+  //     header: ({ column }) => <div className="text-center">Actions</div>,
+  //     cell: ({ row }) => {
+  //       const vessel = row.original;
+  //       return (
+  //         <div className="text-center">
+  //           <DropdownMenu>
+  //             <DropdownMenuTrigger asChild>
+  //               <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+  //                 <span className="sr-only">Open menu</span>
+  //                 <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+  //               </Button>
+  //             </DropdownMenuTrigger>
+  //             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+  //               <DropdownMenuItem asChild className="text-xs sm:text-sm">
+  //                 <Link
+  //                   href={`/home/deduction/deduction-entries?&crewCode=${encodeURIComponent(
+  //                     row.getValue("CrewCode")
+  //                   )}`}>
+  //                   <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+  //                   View Deduction Entries
+  //                 </Link>
+  //               </DropdownMenuItem>
+  //               <DropdownMenuItem asChild className="text-xs sm:text-sm">
+  //                 <Link
+  //                   href={`/home/deduction/deduction-entries?tab=hdmf-upgrade&&crewCode=${encodeURIComponent(
+  //                     row.getValue("CrewCode")
+  //                   )}`}>
+  //                   <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+  //                   View HDMF Upgrade Contributions
+  //                 </Link>
+  //               </DropdownMenuItem>
+  //               <DropdownMenuItem asChild className="text-xs sm:text-sm">
+  //                 <Link href={`/`}>
+  //                   <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+  //                   View Remittance
+  //                 </Link>
+  //               </DropdownMenuItem>
+  //             </DropdownMenuContent>
+  //           </DropdownMenu>
+  //         </div>
+  //       );
+  //     },
+  //   },
+  // ];
+
+  const deductionDescriptionColumns: ColumnDef<DeductionDescriptionItem>[] = [
     {
       accessorKey: "deductionCode",
-      header: ({ column }) => (
-        <div className="text-justify">Deduction Code</div>
-      ),
+      header: () => <div className="text-justify">Deduction Code</div>,
       cell: ({ row }) => {
         const deduction = row.original;
-        return <div className="text-justify">{deduction.deductionCode}</div>;
+        return <div className="text-justify">{deduction.DeductionCode}</div>;
       },
     },
     {
       accessorKey: "deductionName",
-      header: ({ column }) => (
-        <div className="text-justify">Deduction Name</div>
-      ),
+      header: () => <div className="text-justify">Deduction Name</div>,
       cell: ({ row }) => {
         const deduction = row.original;
-        return <div className="text-justify">{deduction.deductionName}</div>;
+        return <div className="text-justify">{deduction.DeductionName}</div>;
       },
     },
     {
       accessorKey: "deductionType",
-      header: ({ column }) => (
-        <div className="text-justify">Deduction Type</div>
-      ),
+      header: () => <div className="text-justify">Deduction Type</div>,
       cell: ({ row }) => {
         const deduction = row.original;
-        return <div className="text-justify">{deduction.deductionType}</div>;
+        const value = loantype[deduction.DeductionType];
+
+        return <div className="text-justify">{value}</div>;
       },
     },
     {
       accessorKey: "currency",
-      header: ({ column }) => <div className="text-justify">Currency</div>,
+      header: () => <div className="text-justify">Currency</div>,
       cell: ({ row }) => {
         const deduction = row.original;
-        return <div className="text-justify">{deduction.currency}</div>;
+        const value = currency[deduction.DeductionCurrency];
+        return <div className="text-justify">{value}</div>;
       },
     },
     {
@@ -297,7 +313,8 @@ export default function Deduction() {
       header: "Actions",
       cell: ({ row }) => {
         const deduction = row.original;
-        const handleDelete = (vesselCode: string) => {
+        const handleDelete = (deductionId: number) => {
+          console.log("Delete deduction with ID:", deductionId);
           const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
               confirmButton:
@@ -350,16 +367,14 @@ export default function Deduction() {
                     setSelectedDeduction(deduction);
                     setEditDialogOpen(true);
                   }}
-                  className="text-xs sm:text-sm"
-                >
+                  className="text-xs sm:text-sm">
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleDelete(deduction.deductionCode)}
-                >
+                  onClick={() => handleDelete(deduction.DeductionID)}>
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
                 </DropdownMenuItem>
@@ -371,11 +386,11 @@ export default function Deduction() {
     },
   ];
 
-  const filteredCrewDeduction = crewDeductionData.filter((item) =>
-    item.CrewCode.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredCrewDeduction = crewDeductionData.filter((item) =>
+  //   item.CrewCode.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
   const filteredDeductionDescription = deductionDescriptionData.filter((item) =>
-    item.deductionName.toLowerCase().includes(searchTerm.toLowerCase())
+    item.DeductionName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -427,21 +442,31 @@ export default function Deduction() {
                   />
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Select>
                     <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                       <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
-                      <SelectValue placeholder="Filter by status" />
+                      <SelectValue placeholder="Filter by deduction type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Rank</SelectItem>
+                      <SelectItem value="all">All Ranks</SelectItem>
                       <SelectItem value="Active">Active</SelectItem>
                       <SelectItem value="Inactive">Inactive</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Select>
+                    <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                      <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
+                      <SelectValue placeholder="Filter by currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Currencies</SelectItem>
+                      <SelectItem value="PHP">PHP</SelectItem>
+                      <SelectItem value="USD">USD</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Button
                     className="bg-primary hover:bg-primary/90"
-                    onClick={() => setAddDeductionTypeDialogOpen(true)}
-                  >
+                    onClick={() => setAddDeductionTypeDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Description
                   </Button>
