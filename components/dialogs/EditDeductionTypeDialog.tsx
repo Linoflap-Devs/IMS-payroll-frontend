@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; // Add useEffect import
+import { useState, useEffect, Dispatch, SetStateAction } from "react"; // Add useEffect import
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -46,12 +46,14 @@ interface EditDeductionTypeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   deduction: DeductionDescriptionItem;
+  setOnSuccess: Dispatch<SetStateAction<boolean>>;
 }
 
 export function EditDeductionTypeDialog({
   open,
   onOpenChange,
   deduction,
+  setOnSuccess,
 }: EditDeductionTypeDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -77,7 +79,6 @@ export function EditDeductionTypeDialog({
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
-  
       const payload = {
         deductionCode: values.deductionCode,
         deductionName: values.deductionName,
@@ -85,18 +86,16 @@ export function EditDeductionTypeDialog({
         currency: values.currency,
       };
 
-
       await editDeductionDescription(deduction.DeductionID, payload)
         .then((response) => {
           if (response.success) {
-            console.log("Deduction updated successfully:", response);
             toast({
               title: "Success",
               description: "Deduction description updated successfully.",
               variant: "success",
             });
+            setOnSuccess(true);
           } else {
-            console.error("Failed to update deduction:", response.message);
             toast({
               title: "Error",
               description: "Failed to update deduction description.",
@@ -105,10 +104,11 @@ export function EditDeductionTypeDialog({
           }
         })
         .catch((error) => {
-          console.error("Error updating deduction:", error);
           toast({
             title: "Error",
-            description: "An error occurred while updating the deduction.",
+            description:
+              error.message ||
+              "An error occurred while updating the deduction.",
             variant: "destructive",
           });
         });

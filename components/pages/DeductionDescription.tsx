@@ -48,6 +48,8 @@ export default function Deduction() {
   const [selectedDeduction, setSelectedDeduction] =
     useState<DeductionDescriptionItem | null>(null);
 
+  const [onSuccess, setOnSuccess] = useState(false);
+
   const [deductionDescriptionData, setDeductionDescriptionData] = useState<
     DeductionDescriptionItem[]
   >([]);
@@ -63,18 +65,21 @@ export default function Deduction() {
   };
 
   useEffect(() => {
-    getDeductionDescriptionList()
-      .then((res) => {
-        if (res.success) {
-          setDeductionDescriptionData(res.data);
-        } else {
-          console.error("Failed to fetch deduction description:", res.message);
-        }
-      })
-      .catch((err) =>
-        console.error("Error fetching deduction description:", err)
-      );
-  }, []);
+    const fetchDeductionDescriptionList = async () => {
+      const res = await getDeductionDescriptionList();
+      if (res.success) {
+        setDeductionDescriptionData(res.data);
+      } else {
+        console.error("Failed to fetch deduction description:", res.message);
+      }
+    };
+    fetchDeductionDescriptionList();
+
+    if (onSuccess) {
+      fetchDeductionDescriptionList();
+      setOnSuccess(false);
+    }
+  }, [onSuccess]);
 
   console.log("Deduction Description Data:", deductionDescriptionData);
 
@@ -302,6 +307,7 @@ export default function Deduction() {
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           deduction={selectedDeduction}
+          setOnSuccess={setOnSuccess}
         />
       )}
     </>
