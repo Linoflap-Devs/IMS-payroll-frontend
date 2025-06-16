@@ -35,6 +35,7 @@ import Swal from "sweetalert2";
 // import { getCrewDeductionList } from "@/src/services/deduction/crewDeduction.api";
 import {
   DeductionDescriptionItem,
+  deleteDeductionDescription,
   getDeductionDescriptionList,
 } from "@/src/services/deduction/deductionDescription.api";
 
@@ -83,7 +84,6 @@ export default function Deduction() {
       setOnSuccess(false);
     }
   }, [onSuccess]);
-
 
   // Handle tab change
   // const handleTabChange = (value: string) => {
@@ -153,14 +153,27 @@ export default function Deduction() {
               cancelButtonText: "No, cancel!",
               reverseButtons: true,
             })
-            .then((result) => {
+            .then(async (result) => {
               if (result.isConfirmed) {
                 // Place your delete logic here, for example, API call or state update
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The deduction has been successfully deleted.",
-                  icon: "success",
-                });
+                await deleteDeductionDescription(deduction.DeductionID).then(
+                  (response) => {
+                    if (response.success) {
+                      setOnSuccess(true);
+                      swalWithBootstrapButtons.fire({
+                        title: "Deleted!",
+                        text: "The deduction has been successfully deleted.",
+                        icon: "success",
+                      });
+                    } else {
+                      swalWithBootstrapButtons.fire({
+                        title: "Error!",
+                        text: response.message || "Failed to delete deduction.",
+                        icon: "error",
+                      });
+                    }
+                  }
+                );
               } else if (result.dismiss === Swal.DismissReason.cancel) {
                 swalWithBootstrapButtons.fire({
                   title: "Cancelled",

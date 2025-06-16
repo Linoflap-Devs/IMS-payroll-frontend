@@ -42,3 +42,8 @@ export const addDeductionDescription = async (payload: addDeductionDescriptionPa
   const response = await axiosInstance.post<DeductionDescriptionResponse>("/deductions/description", payload);
   return response.data;
 }
+
+export const deleteDeductionDescription = async (descriptionId: number): Promise<DeductionDescriptionResponse> => {
+  const response = await axiosInstance.delete<DeductionDescriptionResponse>(`/deductions/description/${descriptionId}`);
+  return response.data;
+}
