@@ -18,7 +18,6 @@ import {
   MoreHorizontal,
   Ship,
   Calendar,
-  Plus,
   CircleCheck,
   CircleEllipsis,
   CircleX,
@@ -269,10 +268,10 @@ export default function DeductionEntries() {
   const [hdmfLoading, setHdmfLoading] = useState(false);
 
   // HDMF Upgrade
-  const [currentHdmfUpgradeAmount, setCurrentHdmfUpgradeAmount] = useState<
-    number | null
-  >(null);
-  const [currentIsDollar, setCurrentIsDollar] = useState<number>(0);
+  // const [currentHdmfUpgradeAmount, setCurrentHdmfUpgradeAmount] = useState<
+  //   number | null
+  // >(null);
+  // const [currentIsDollar, setCurrentIsDollar] = useState<number>(0);
   const [onSuccessHDMF, setOnSuccessHDMF] = useState(false);
 
   // Function to fetch deduction entries
@@ -434,8 +433,8 @@ export default function DeductionEntries() {
               const hdmfData = response.data[0];
 
               // Set the current values
-              setCurrentHdmfUpgradeAmount(hdmfData.HDMFAmount ?? 0);
-              setCurrentIsDollar(hdmfData.DollarCurrency ?? 0);
+              // setCurrentHdmfUpgradeAmount(hdmfData.HDMFAmount ?? 0);
+              // setCurrentIsDollar(hdmfData.DollarCurrency ?? 0);
 
               // Initialize the form fields with current values
               setHDMFUpgradeAmount(hdmfData.HDMFAmount ?? 0);

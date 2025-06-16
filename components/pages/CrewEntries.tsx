@@ -15,106 +15,97 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Search,
-  MoreHorizontal,
-  Trash,
-  Filter,
-  Pencil,
-} from "lucide-react";
+import { Search, MoreHorizontal, Filter } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { PiUserListFill } from "react-icons/pi";
 import { AddDeductionTypeDialog } from "@/components/dialogs/AddDeductionTypeDialog";
-import { EditDeductionTypeDialog } from "@/components/dialogs/EditDeductionTypeDialog";
-import Swal from "sweetalert2";
-import {
-  getCrewDeductionList,
-} from "@/src/services/deduction/crewDeduction.api";
+// import { EditDeductionTypeDialog } from "@/components/dialogs/EditDeductionTypeDialog";
+// import Swal from "sweetalert2";
+import { getCrewDeductionList } from "@/src/services/deduction/crewDeduction.api";
 
-const deductionDescriptionData = [
-  {
-    deductionCode: "DED001",
-    deductionName: "Deduction 1",
-    deductionType: "Percentage",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED002",
-    deductionName: "Deduction 2",
-    deductionType: "Fixed Amount",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED003",
-    deductionName: "Deduction 3",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED004",
-    deductionName: "Deduction 4",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED005",
-    deductionName: "Deduction 5",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED006",
-    deductionName: "Deduction 6",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED007",
-    deductionName: "Deduction 7",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED008",
-    deductionName: "Deduction 8",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED009",
-    deductionName: "Deduction 9",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED010",
-    deductionName: "Deduction 10",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED011",
-    deductionName: "Deduction 11",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED012",
-    deductionName: "Deduction 12",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED013",
-    deductionName: "Deduction 13",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-];
+// const deductionDescriptionData = [
+//   {
+//     deductionCode: "DED001",
+//     deductionName: "Deduction 1",
+//     deductionType: "Percentage",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED002",
+//     deductionName: "Deduction 2",
+//     deductionType: "Fixed Amount",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED003",
+//     deductionName: "Deduction 3",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED004",
+//     deductionName: "Deduction 4",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED005",
+//     deductionName: "Deduction 5",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED006",
+//     deductionName: "Deduction 6",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED007",
+//     deductionName: "Deduction 7",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED008",
+//     deductionName: "Deduction 8",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED009",
+//     deductionName: "Deduction 9",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED010",
+//     deductionName: "Deduction 10",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED011",
+//     deductionName: "Deduction 11",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED012",
+//     deductionName: "Deduction 12",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+//   {
+//     deductionCode: "DED013",
+//     deductionName: "Deduction 13",
+//     deductionType: "Loan Type",
+//     currency: "PHP",
+//   },
+// ];
 
 type CrewDeduction = {
   CrewCode: string;
@@ -125,17 +116,17 @@ type CrewDeduction = {
   VesselName: string;
   crewName: string;
 };
-type DeductionDescription = (typeof deductionDescriptionData)[number];
+// type DeductionDescription = (typeof deductionDescriptionData)[number];
 
 export default function Deduction() {
-  const [activeTab, setActiveTab] = useState("crew-deduction");
+  // const [activeTab, setActiveTab] = useState("crew-deduction");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  // const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addDeductionTypeDialogOpen, setAddDeductionTypeDialogOpen] =
     useState(false);
-  const [selectedDeduction, setSelectedDeduction] =
-    useState<DeductionDescription | null>(null);
+  // const [selectedDeduction, setSelectedDeduction] =
+  //   useState<DeductionDescription | null>(null);
 
   const [crewDeductionData, setCrewDeductionData] = useState<CrewDeduction[]>(
     []
@@ -158,9 +149,9 @@ export default function Deduction() {
   }, []); // Add empty dependency array to run only once on mount
 
   // Handle tab change
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
+  // const handleTabChange = (value: string) => {
+  //   setActiveTab(value);
+  // };
 
   const crewDeductionColumns: ColumnDef<CrewDeduction>[] = [
     {
@@ -239,130 +230,130 @@ export default function Deduction() {
     },
   ];
 
-  const deductionDescriptionColumns: ColumnDef<DeductionDescription>[] = [
-    {
-      accessorKey: "deductionCode",
-      header: ({ column }) => (
-        <div className="text-justify">Deduction Code</div>
-      ),
-      cell: ({ row }) => {
-        const deduction = row.original;
-        return <div className="text-justify">{deduction.deductionCode}</div>;
-      },
-    },
-    {
-      accessorKey: "deductionName",
-      header: ({ column }) => (
-        <div className="text-justify">Deduction Name</div>
-      ),
-      cell: ({ row }) => {
-        const deduction = row.original;
-        return <div className="text-justify">{deduction.deductionName}</div>;
-      },
-    },
-    {
-      accessorKey: "deductionType",
-      header: ({ column }) => (
-        <div className="text-justify">Deduction Type</div>
-      ),
-      cell: ({ row }) => {
-        const deduction = row.original;
-        return <div className="text-justify">{deduction.deductionType}</div>;
-      },
-    },
-    {
-      accessorKey: "currency",
-      header: ({ column }) => <div className="text-justify">Currency</div>,
-      cell: ({ row }) => {
-        const deduction = row.original;
-        return <div className="text-justify">{deduction.currency}</div>;
-      },
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => {
-        const deduction = row.original;
-        const handleDelete = (vesselCode: string) => {
-          const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-              confirmButton:
-                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-              cancelButton:
-                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            },
-            buttonsStyling: false,
-          });
+  // const deductionDescriptionColumns: ColumnDef<DeductionDescription>[] = [
+  //   {
+  //     accessorKey: "deductionCode",
+  //     header: ({ column }) => (
+  //       <div className="text-justify">Deduction Code</div>
+  //     ),
+  //     cell: ({ row }) => {
+  //       const deduction = row.original;
+  //       return <div className="text-justify">{deduction.deductionCode}</div>;
+  //     },
+  //   },
+  //   {
+  //     accessorKey: "deductionName",
+  //     header: ({ column }) => (
+  //       <div className="text-justify">Deduction Name</div>
+  //     ),
+  //     cell: ({ row }) => {
+  //       const deduction = row.original;
+  //       return <div className="text-justify">{deduction.deductionName}</div>;
+  //     },
+  //   },
+  //   {
+  //     accessorKey: "deductionType",
+  //     header: ({ column }) => (
+  //       <div className="text-justify">Deduction Type</div>
+  //     ),
+  //     cell: ({ row }) => {
+  //       const deduction = row.original;
+  //       return <div className="text-justify">{deduction.deductionType}</div>;
+  //     },
+  //   },
+  //   {
+  //     accessorKey: "currency",
+  //     header: ({ column }) => <div className="text-justify">Currency</div>,
+  //     cell: ({ row }) => {
+  //       const deduction = row.original;
+  //       return <div className="text-justify">{deduction.currency}</div>;
+  //     },
+  //   },
+  //   {
+  //     id: "actions",
+  //     header: "Actions",
+  //     cell: ({ row }) => {
+  //       const deduction = row.original;
+  //       const handleDelete = (vesselCode: string) => {
+  //         const swalWithBootstrapButtons = Swal.mixin({
+  //           customClass: {
+  //             confirmButton:
+  //               "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
+  //             cancelButton:
+  //               "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+  //           },
+  //           buttonsStyling: false,
+  //         });
 
-          swalWithBootstrapButtons
-            .fire({
-              title: "Are you sure?",
-              text: "Are you sure you want to delete this crew in the deduction? This action cannot be undone.",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "Yes, delete it!",
-              cancelButtonText: "No, cancel!",
-              reverseButtons: true,
-            })
-            .then((result) => {
-              if (result.isConfirmed) {
-                // Place your delete logic here, for example, API call or state update
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The deduction has been successfully deleted.",
-                  icon: "success",
-                });
-              } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
-                  title: "Cancelled",
-                  text: "Your deduction is safe :)",
-                  icon: "error",
-                });
-              }
-            });
-        };
-        return (
-          <div className="text-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedDeduction(deduction);
-                    setEditDialogOpen(true);
-                  }}
-                  className="text-xs sm:text-sm">
-                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleDelete(deduction.deductionCode)}>
-                  <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        );
-      },
-    },
-  ];
+  //         swalWithBootstrapButtons
+  //           .fire({
+  //             title: "Are you sure?",
+  //             text: "Are you sure you want to delete this crew in the deduction? This action cannot be undone.",
+  //             icon: "warning",
+  //             showCancelButton: true,
+  //             confirmButtonText: "Yes, delete it!",
+  //             cancelButtonText: "No, cancel!",
+  //             reverseButtons: true,
+  //           })
+  //           .then((result) => {
+  //             if (result.isConfirmed) {
+  //               // Place your delete logic here, for example, API call or state update
+  //               swalWithBootstrapButtons.fire({
+  //                 title: "Deleted!",
+  //                 text: "The deduction has been successfully deleted.",
+  //                 icon: "success",
+  //               });
+  //             } else if (result.dismiss === Swal.DismissReason.cancel) {
+  //               swalWithBootstrapButtons.fire({
+  //                 title: "Cancelled",
+  //                 text: "Your deduction is safe :)",
+  //                 icon: "error",
+  //               });
+  //             }
+  //           });
+  //       };
+  //       return (
+  //         <div className="text-center">
+  //           <DropdownMenu>
+  //             <DropdownMenuTrigger asChild>
+  //               <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+  //                 <span className="sr-only">Open menu</span>
+  //                 <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+  //               </Button>
+  //             </DropdownMenuTrigger>
+  //             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+  //               <DropdownMenuItem
+  //                 onClick={() => {
+  //                   setSelectedDeduction(deduction);
+  //                   setEditDialogOpen(true);
+  //                 }}
+  //                 className="text-xs sm:text-sm">
+  //                 <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+  //                 Edit
+  //               </DropdownMenuItem>
+  //               <DropdownMenuSeparator />
+  //               <DropdownMenuItem
+  //                 className="text-destructive text-xs sm:text-sm"
+  //                 onClick={() => handleDelete(deduction.deductionCode)}>
+  //                 <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+  //                 Delete
+  //               </DropdownMenuItem>
+  //             </DropdownMenuContent>
+  //           </DropdownMenu>
+  //         </div>
+  //       );
+  //     },
+  //   },
+  // ];
 
   const filteredCrewDeduction = crewDeductionData.filter(
     (item) =>
       item.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.crewName.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const filteredDeductionDescription = deductionDescriptionData.filter((item) =>
-    item.deductionName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredDeductionDescription = deductionDescriptionData.filter((item) =>
+  //   item.deductionName.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   return (
     <>
@@ -443,13 +434,11 @@ export default function Deduction() {
         open={addDeductionTypeDialogOpen}
         onOpenChange={setAddDeductionTypeDialogOpen}
       />
-      {selectedDeduction && (
-        <EditDeductionTypeDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          deduction={selectedDeduction}
-        />
-      )}
+      {/* <EditDeductionTypeDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        deduction={selectedDeduction}
+      /> */}
     </>
   );
 }
