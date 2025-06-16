@@ -19,13 +19,15 @@ export const getDeductionDescriptionList = async (): Promise<DeductionDescriptio
   return response.data;
 };
 
-// export interface AddDeductionResponse {
-//   success: boolean;
-//   data: DeductionDescriptionItem;
-//   message?: string;
-// }
+export interface editDescriptionPayload {
+  deductionCode: string;
+  deductionName: string;
+  deductionType: number;
+  currency: string;
+}
 
-// export const addDeductionDescription = async (crewCode: string, payload: DeductionDescriptionItem): Promise<AddDeductionResponse> => {
-//   const response = await axiosInstance.post<AddDeductionResponse>(`/deductions/${crewCode}/entries`, payload);
-//   return response.data;
-// }
+export const editDeductionDescription = async (descriptionId: number, payload: editDescriptionPayload): Promise<DeductionDescriptionResponse> => {
+  const response = await axiosInstance.patch<DeductionDescriptionResponse>(`/deductions/description/${descriptionId}`, payload);
+  return response.data;
+}
+

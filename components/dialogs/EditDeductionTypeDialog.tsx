@@ -18,7 +18,10 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Save, Loader2 } from "lucide-react";
-import { DeductionDescriptionItem } from "@/src/services/deduction/deductionDescription.api";
+import {
+  DeductionDescriptionItem,
+  editDeductionDescription,
+} from "@/src/services/deduction/deductionDescription.api";
 import {
   Form,
   FormControl,
@@ -27,6 +30,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { toast } from "../ui/use-toast";
 
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -51,7 +55,6 @@ export function EditDeductionTypeDialog({
 }: EditDeductionTypeDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form with React Hook Form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,7 +65,6 @@ export function EditDeductionTypeDialog({
     },
   });
 
-  // Add this useEffect to reset form values when deduction prop changes
   useEffect(() => {
     form.reset({
       deductionCode: deduction.DeductionCode,
@@ -72,17 +74,45 @@ export function EditDeductionTypeDialog({
     });
   }, [deduction, form]);
 
-  // Form submission handler
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
-      // Your API call to update the deduction would go here
-      console.log("Form values:", values);
+  
+      const payload = {
+        deductionCode: values.deductionCode,
+        deductionName: values.deductionName,
+        deductionType: Number(values.deductionType),
+        currency: values.currency,
+      };
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Close the dialog on success
+      await editDeductionDescription(deduction.DeductionID, payload)
+        .then((response) => {
+          if (response.success) {
+            console.log("Deduction updated successfully:", response);
+            toast({
+              title: "Success",
+              description: "Deduction description updated successfully.",
+              variant: "success",
+            });
+          } else {
+            console.error("Failed to update deduction:", response.message);
+            toast({
+              title: "Error",
+              description: "Failed to update deduction description.",
+              variant: "destructive",
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating deduction:", error);
+          toast({
+            title: "Error",
+            description: "An error occurred while updating the deduction.",
+            variant: "destructive",
+          });
+        });
+
       onOpenChange(false);
     } catch (error) {
       console.error("Error updating deduction:", error);
