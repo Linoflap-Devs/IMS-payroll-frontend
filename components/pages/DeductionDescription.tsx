@@ -369,7 +369,7 @@ export default function Deduction() {
                   }}
                   className="text-xs sm:text-sm">
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Edit
+                  Edit Description
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
