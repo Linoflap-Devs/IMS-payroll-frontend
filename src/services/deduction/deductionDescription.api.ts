@@ -31,3 +31,14 @@ export const editDeductionDescription = async (descriptionId: number, payload: e
   return response.data;
 }
 
+export interface addDeductionDescriptionPayload {
+  deductionCode: string;
+  deductionName: string;
+  deductionType: number;
+  currency: string;
+}
+
+export const addDeductionDescription = async (payload: addDeductionDescriptionPayload): Promise<DeductionDescriptionResponse> => {
+  const response = await axiosInstance.post<DeductionDescriptionResponse>("/deductions/description", payload);
+  return response.data;
+}

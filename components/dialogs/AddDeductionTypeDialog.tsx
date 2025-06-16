@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -26,6 +26,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { addDeductionDescription } from "@/src/services/deduction/deductionDescription.api";
+import { toast } from "../ui/use-toast";
+import { AxiosError } from "axios";
 
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -40,7 +43,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface AddDeductionTypeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  setOnSuccess?: (success: boolean) => void;
+  setOnSuccess: Dispatch<SetStateAction<boolean>>;
 }
 
 export function AddDeductionTypeDialog({
@@ -64,42 +67,55 @@ export function AddDeductionTypeDialog({
   // Form submission handler
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-    try {
-      // Your API call to create the deduction would go here
-      console.log("Form values:", values);
 
-      // Example of how you might structure an API call:
-      // const response = await createDeductionDescription({
-      //   DeductionCode: values.deductionCode,
-      //   DeductionName: values.deductionName,
-      //   DeductionType: parseInt(values.deductionType),
-      //   DeductionCurrency: parseInt(values.currency),
-      //   CreatedBy: "lanceballicud", // You can get this from your auth context
-      //   CreatedDate: new Date().toISOString(),
-      // });
+    const payload = {
+      deductionCode: values.deductionCode,
+      deductionName: values.deductionName,
+      deductionType: parseInt(values.deductionType),
+      currency: values.currency,
+    };
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Trigger refresh of parent component data
-      if (setOnSuccess) {
+    await addDeductionDescription(payload)
+      .then(() => {
+        toast({
+          title: "Deduction Type Added",
+          description: "The deduction type has been successfully added.",
+          variant: "success",
+        });
+        form.reset();
+        onOpenChange(false);
         setOnSuccess(true);
-      }
-
-      // Reset form and close dialog
-      form.reset();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error creating deduction:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
+      })
+      .catch((error: unknown) => {
+        const err = error as Error;
+        if (
+          err instanceof AxiosError &&
+          err.response?.data.message.includes("already exists")
+        ) {
+          toast({
+            title: "Error",
+            description:
+              err.response.data.message || "Failed to add deduction type.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred. Please try again.",
+            variant: "destructive",
+          });
+        }
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   // Handler for when the dialog is closed
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       // Reset the form when dialog closes
+
       form.reset();
     }
     onOpenChange(open);

@@ -84,7 +84,6 @@ export default function Deduction() {
     }
   }, [onSuccess]);
 
-  console.log("Deduction Description Data:", deductionDescriptionData);
 
   // Handle tab change
   // const handleTabChange = (value: string) => {
@@ -319,6 +318,7 @@ export default function Deduction() {
       <AddDeductionTypeDialog
         open={addDeductionTypeDialogOpen}
         onOpenChange={setAddDeductionTypeDialogOpen}
+        setOnSuccess={setOnSuccess}
       />
       {selectedDeduction && (
         <EditDeductionTypeDialog
