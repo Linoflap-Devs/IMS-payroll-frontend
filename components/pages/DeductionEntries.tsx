@@ -24,6 +24,7 @@ import {
   CircleX,
   CircleDot,
   Loader2,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,97 +53,13 @@ import {
   getCrewDeductionList,
   updateCrewDeductionEntry,
   addHDMFUpgrade,
+  getCrewHDMFUpgrade,
 } from "@/src/services/deduction/crewDeduction.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { toast } from "../ui/use-toast";
-
-// type DeductionEntry = {
-//   deduction: string;
-//   amount: number;
-//   remarks?: string;
-//   status: "Completed" | "Pending" | "Adjusted" | "Failed" | "On Hold";
-// };
-
-// const deductionColumns: ColumnDef<DeductionEntry>[] = [
-//   {
-//     accessorKey: "deduction",
-//     header: "Deduction",
-//   },
-//   {
-//     accessorKey: "amount",
-//     header: "Amount",
-//     cell: ({ row }) => {
-//       return <div className="text-right">{row.original.amount.toFixed(2)}</div>;
-//     },
-//   },
-//   {
-//     accessorKey: "remarks",
-//     header: "Remarks",
-//   },
-//   {
-//     accessorKey: "status",
-//     header: "Status",
-//     cell: ({ row }) => {
-//       const status = row.original.status;
-//       const getStatusColor = (status: string) => {
-//         switch (status) {
-//           case "Completed":
-//             return "bg-green-100 text-green-800";
-//           case "Pending":
-//             return "bg-yellow-100 text-yellow-800";
-//           case "Adjusted":
-//             return "bg-blue-100 text-blue-800";
-//           case "Failed":
-//             return "bg-red-100 text-red-800";
-//           case "On Hold":
-//             return "bg-gray-100 text-gray-800";
-//           default:
-//             return "bg-gray-100 text-gray-800";
-//         }
-//       };
-
-//       return (
-//         <div className="flex justify-center">
-//           <span
-//             className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-//               status
-//             )}`}>
-//             {status}
-//           </span>
-//         </div>
-//       );
-//     },
-//   },
-//   {
-//     id: "actions",
-//     header: "Actions",
-//     cell: () => {
-//       return (
-//         <div className="text-center">
-//           <DropdownMenu>
-//             <DropdownMenuTrigger asChild>
-//               <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-//                 <span className="sr-only">Open menu</span>
-//                 <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-//               </Button>
-//             </DropdownMenuTrigger>
-//             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-//               <DropdownMenuItem>Edit</DropdownMenuItem>
-//               <DropdownMenuItem className="text-red-600">
-//                 Delete
-//               </DropdownMenuItem>
-//             </DropdownMenuContent>
-//           </DropdownMenu>
-//         </div>
-//       );
-//     },
-//   },
-// ];
-
-// Updated columns definition to match the API data structure
 
 type Props = {
   crewCode: string | null;
@@ -351,6 +268,13 @@ export default function DeductionEntries() {
   const [HDMFUpgradeAmount, setHDMFUpgradeAmount] = useState<number>(0);
   const [hdmfLoading, setHdmfLoading] = useState(false);
 
+  // HDMF Upgrade
+  const [currentHdmfUpgradeAmount, setCurrentHdmfUpgradeAmount] = useState<
+    number | null
+  >(null);
+  const [currentIsDollar, setCurrentIsDollar] = useState<number>(0);
+  const [onSuccessHDMF, setOnSuccessHDMF] = useState(false);
+
   // Function to fetch deduction entries
   const fetchDeductionEntries = useCallback(
     async (crewCode: string) => {
@@ -463,7 +387,7 @@ export default function DeductionEntries() {
         .then(([basicResponse, deductionResponse]) => {
           if (basicResponse.success) {
             const { data } = basicResponse;
-            console.log("Crew Basic Data:", data);
+            // console.log("Crew Basic Data:", data);
 
             // Find the crew's vessel from the deduction list
             const crewVessel = deductionResponse.success
@@ -500,6 +424,45 @@ export default function DeductionEntries() {
         });
     }
   }, [fetchDeductionEntries]);
+
+  useEffect(() => {
+    if (crewData.crewCode) {
+      const fetchCrewHDMFUpgrade = async () => {
+        getCrewHDMFUpgrade(crewData.crewCode)
+          .then((response) => {
+            if (response.success && response.data && response.data.length > 0) {
+              const hdmfData = response.data[0];
+
+              // Set the current values
+              setCurrentHdmfUpgradeAmount(hdmfData.HDMFAmount ?? 0);
+              setCurrentIsDollar(hdmfData.DollarCurrency ?? 0);
+
+              // Initialize the form fields with current values
+              setHDMFUpgradeAmount(hdmfData.HDMFAmount ?? 0);
+              setIsDollar(hdmfData.DollarCurrency === 1);
+            } else {
+              console.error("Failed to fetch HDMF Upgrade:", response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching HDMF Upgrade:", error);
+            toast({
+              title: "Error fetching HDMF Upgrade",
+              description: error.message || "An error occurred",
+              variant: "destructive",
+            });
+          });
+      };
+
+      fetchCrewHDMFUpgrade();
+
+      if (onSuccessHDMF) {
+        // Reset onSuccessHDMF state after fetching new data
+        fetchCrewHDMFUpgrade();
+        setOnSuccessHDMF(false);
+      }
+    }
+  }, [crewData.crewCode, onSuccessHDMF]);
 
   // Re-fetch data when month or year changes
   useEffect(() => {
@@ -547,6 +510,7 @@ export default function DeductionEntries() {
           });
           setOnSuccess(true);
           setHDMFUpgradeAmount(0); // Reset amount after successful submission
+          setOnSuccessHDMF(true);
         } else {
           toast({
             title: "Failed to save HDMF Upgrade Amount",
@@ -868,51 +832,96 @@ export default function DeductionEntries() {
                   value="hdmf-upgrade"
                   className="p-6 mt-0 overflow-y-auto flex-1">
                   <div className="space-y-6">
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex items-center justify-end mb-2">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Switch
-                              checked={isDollar}
-                              onCheckedChange={setIsDollar}
-                              className="data-[state=checked]:bg-primary"
-                            />
-
-                            <span className="text-sm text-gray-500">
-                              Dollar
-                            </span>
-                          </div>
+                    {/* Current Values Section */}
+                    {/* <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h3 className="text-base font-medium mb-3">
+                        Current HDMF Upgrade Values
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500">Amount</p>
+                          <p className="text-lg font-medium">
+                            {currentHdmfUpgradeAmount !== null
+                              ? `${currentHdmfUpgradeAmount.toFixed(2)} ${
+                                  currentIsDollar === 1 ? "USD" : "PHP"
+                                }`
+                              : "Not set"}
+                          </p>
                         </div>
-                        <h3 className="text-sm text-gray-500 font-semibold mb-1">
-                          HDMF Amount
-                        </h3>
-                        <Input
-                          type="number"
-                          placeholder="Enter HDMF Amount"
-                          className="bg-white border border-gray-200 h-12"
-                          value={HDMFUpgradeAmount}
-                          onChange={(e) =>
-                            setHDMFUpgradeAmount(Number(e.target.value))
-                          }
-                        />
+                        <div>
+                          <p className="text-sm text-gray-500">Currency</p>
+                          <p className="text-lg font-medium">
+                            {currentIsDollar === 1
+                              ? "Dollar (USD)"
+                              : "Peso (PHP)"}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex justify-end">
-                        <Button
-                          className="bg-primary hover:bg-primary/90"
-                          onClick={handleSubmitHDMFUpgrade}
-                          disabled={hdmfLoading}>
-                          {hdmfLoading ? (
-                            <>
-                              <Loader2 className="animate-spin" />
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="" />
-                              Save Amount
-                            </>
-                          )}
-                        </Button>
+                    </div> */}
+
+                    {/* Form Section */}
+                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      {/* <h3 className="text-base font-medium mb-3">
+                        Update HDMF Upgrade Amount
+                      </h3> */}
+                      <div className="space-y-6">
+                        <div>
+                          <div className="flex items-center justify-end mb-2">
+                            <div className="flex items-center gap-2 mb-4">
+                              <Switch
+                                checked={isDollar}
+                                onCheckedChange={setIsDollar}
+                                className="data-[state=checked]:bg-primary"
+                              />
+                              <span className="text-sm text-gray-500">
+                                {/* {isDollar ? "Dollar (USD)" : "Peso (PHP)"} */}
+                                Dollar (USD)
+                              </span>
+                            </div>
+                          </div>
+                          <h3 className="text-sm text-gray-500 font-semibold mb-1">
+                            HDMF Amount
+                          </h3>
+                          <Input
+                            type="number"
+                            placeholder="Enter HDMF Amount"
+                            className="bg-white border border-gray-200 h-12"
+                            value={HDMFUpgradeAmount}
+                            onChange={(e) =>
+                              setHDMFUpgradeAmount(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div className="flex justify-end">
+                          {/* <Button
+                            variant="outline"
+                            onClick={() => {
+                              // Reset to current values
+                              setHDMFUpgradeAmount(
+                                currentHdmfUpgradeAmount ?? 0
+                              );
+                              setIsDollar(currentIsDollar === 1);
+                            }}
+                            disabled={hdmfLoading}>
+                            Reset
+                          </Button> */}
+                          <Button
+                            className="bg-primary hover:bg-primary/90"
+                            onClick={handleSubmitHDMFUpgrade}
+                            disabled={hdmfLoading}>
+                            {hdmfLoading ? (
+                              <>
+                                <Loader2 className="animate-spin mr-2" />
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <Pencil className="mr-2" />
+                                Edit Amount
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -78,14 +78,14 @@ export const addHDMFUpgrade = async (crewCode: string, hdmfAmount: number, isDol
   return response.data;
 }
 
-export interface hfmdUpgrade {
+export interface hdmfUpgrade {
   HDMFAmount: number;
   DollarCurrency: number;
 }
 
 export interface hdmfUpgradeResponse {
   success: boolean;
-  data: hfmdUpgrade;
+  data: hdmfUpgrade[];
   message?: string;
 }
 
