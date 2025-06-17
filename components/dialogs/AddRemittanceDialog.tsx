@@ -23,6 +23,7 @@ import {
   type AddCrewRemittanceData,
   type AllotteeOption,
 } from "@/src/services/remittance/crewRemittance.api";
+import { toast } from "../ui/use-toast";
 
 const REMITTANCE_STATUS_OPTIONS = [
   { value: "0", label: "Pending" },
@@ -109,7 +110,7 @@ export function AddRemittanceDialog({
       if (response && response.success) {
         onSuccess?.();
         onOpenChange(false);
-        
+
         setFormData({
           allotteeID: "",
           amount: "",
@@ -117,6 +118,12 @@ export function AddRemittanceDialog({
           status: "0",
         });
         setErrorMessage("");
+
+        toast({
+          title: "Remittance Added",
+          description: "The remittance has been successfully added.",
+          variant: "success",
+        });
       } else {
         setErrorMessage(response?.message || "Failed to add remittance");
       }
@@ -125,11 +132,11 @@ export function AddRemittanceDialog({
 
       if (error.response?.data?.message) {
         const message = error.response.data.message;
-        
+
         if (Array.isArray(message)) {
           const errors = message
             .map((err: any) => {
-              if (typeof err === 'object' && err !== null) {
+              if (typeof err === "object" && err !== null) {
                 const key = Object.keys(err)[0];
                 const value = err[key];
                 return `${key}: ${value}`;
@@ -138,7 +145,7 @@ export function AddRemittanceDialog({
             })
             .join(", ");
           errorMsg = `Validation errors: ${errors}`;
-        } else if (typeof message === 'string') {
+        } else if (typeof message === "string") {
           errorMsg = message;
         } else {
           errorMsg = JSON.stringify(message);
@@ -188,8 +195,7 @@ export function AddRemittanceDialog({
                   allotteeID: value,
                 }));
                 setErrorMessage("");
-              }}
-            >
+              }}>
               <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-11">
                 <SelectValue placeholder="Select allottee" />
               </SelectTrigger>
@@ -198,8 +204,7 @@ export function AddRemittanceDialog({
                   allottees.map((allottee) => (
                     <SelectItem
                       key={allottee.AllotteeDetailID}
-                      value={allottee.AllotteeDetailID.toString()}
-                    >
+                      value={allottee.AllotteeDetailID.toString()}>
                       <div className="flex flex-col">
                         <span className="font-medium">
                           {allottee.AllotteeName}
@@ -275,8 +280,7 @@ export function AddRemittanceDialog({
                   status: value,
                 }));
                 setErrorMessage("");
-              }}
-            >
+              }}>
               <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-11">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
@@ -284,8 +288,7 @@ export function AddRemittanceDialog({
                 {REMITTANCE_STATUS_OPTIONS.map((statusOption) => (
                   <SelectItem
                     key={statusOption.value}
-                    value={statusOption.value}
-                  >
+                    value={statusOption.value}>
                     {statusOption.label}
                   </SelectItem>
                 ))}
@@ -301,15 +304,13 @@ export function AddRemittanceDialog({
                 onOpenChange(false);
                 setErrorMessage("");
               }}
-              disabled={isLoading}
-            >
+              disabled={isLoading}>
               Cancel
             </Button>
             <Button
               className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90"
               onClick={handleSubmit}
-              disabled={isLoading || !hasValidAllottees}
-            >
+              disabled={isLoading || !hasValidAllottees}>
               {isLoading ? (
                 "Adding..."
               ) : (

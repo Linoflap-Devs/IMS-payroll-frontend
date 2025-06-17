@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   ChevronLeft,
   User,
@@ -11,15 +10,11 @@ import {
   PhoneCall,
   Mail,
   MoreHorizontal,
-  Filter,
-  BadgeCheck,
   Ship,
   Calendar,
   Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -29,7 +24,6 @@ import {
 } from "@/components/ui/select";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -39,7 +33,6 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { RiShieldStarLine } from "react-icons/ri";
 import { AddRemittanceDialog } from "@/components/dialogs/AddRemittanceDialog";
-import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   getCrewRemittanceDetails,
@@ -52,6 +45,8 @@ import {
 } from "@/src/services/remittance/crewRemittance.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 import Swal from "sweetalert2";
+import Base64Image from "../Base64Image";
+import Image from "next/image";
 
 type RemittanceEntry = {
   remittanceId: number;
@@ -111,7 +106,7 @@ export default function RemittanceDetails() {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [isAddRemittanceOpen, setIsAddRemittanceOpen] = useState(false);
-  const [isDollar, setIsDollar] = useState(false);
+  // const [isDollar, setIsDollar] = useState(false);
   const [remittanceData, setRemittanceData] = useState<RemittanceEntry[]>([]);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [allottees, setAllottees] = useState<AllotteeOption[]>([]);
@@ -124,7 +119,14 @@ export default function RemittanceDetails() {
     landlineNo: "",
     emailAddress: "",
     birthday: "",
+    profileImage: {
+      FileContent: undefined as string | undefined,
+      FileExtension: undefined as string | undefined,
+      ContentType: undefined as string | undefined,
+    },
   });
+
+  console.log("crewData", crewData);
 
   const getStatusLabel = (statusValue: string): string => {
     switch (statusValue) {
@@ -211,42 +213,12 @@ export default function RemittanceDetails() {
               confirmButtonColor: "#ef4444",
             });
           }
-        } catch (error: any) {
-          let errorMsg = "An error occurred while updating status";
-
-          if (error.response?.status === 404) {
-            errorMsg =
-              "Status update endpoint not found. Please verify the crew code and remittance ID.";
-          } else if (error.response?.status === 403) {
-            errorMsg = "You don't have permission to update this status.";
-          } else if (error.response?.status === 500) {
-            errorMsg = "Server error occurred. Please try again later.";
-          } else if (error.response?.data?.message) {
-            const message = error.response.data.message;
-            if (Array.isArray(message)) {
-              const errors = message
-                .map((err: any) => {
-                  if (typeof err === "object" && err !== null) {
-                    const key = Object.keys(err)[0];
-                    const value = err[key];
-                    return `${key}: ${value}`;
-                  }
-                  return String(err);
-                })
-                .join(", ");
-              errorMsg = `Validation errors: ${errors}`;
-            } else if (typeof message === "string") {
-              errorMsg = message;
-            } else {
-              errorMsg = JSON.stringify(message);
-            }
-          } else if (error.message) {
-            errorMsg = error.message;
-          }
+        } catch (error: unknown) {
+          const err = error as Error;
 
           await Swal.fire({
             title: "Error!",
-            text: errorMsg,
+            text: err.message,
             icon: "error",
             confirmButtonColor: "#ef4444",
           });
@@ -301,13 +273,10 @@ export default function RemittanceDetails() {
           });
         }
       }
-    } catch (error: any) {
-      let errorMsg = "An error occurred while deleting the remittance";
-      if (error.response?.data?.message) {
-        errorMsg = error.response.data.message;
-      } else if (error.message) {
-        errorMsg = error.message;
-      }
+    } catch (error: unknown) {
+      const errorMsg =
+        (error as Error).message ||
+        "An error occurred while deleting the remittance";
 
       await Swal.fire({
         title: "Error!",
@@ -370,8 +339,7 @@ export default function RemittanceDetails() {
             <span
               className={`px-3 py-1 rounded-full text-xs font-medium min-w-[80px] text-center ${getStatusColor(
                 status
-              )}`}
-            >
+              )}`}>
               {status}
             </span>
           </div>
@@ -399,29 +367,25 @@ export default function RemittanceDetails() {
                 <DropdownMenuItem
                   className="text-green-600 hover:text-green-700 hover:bg-green-50"
                   onClick={() => handleStatusChange(remittanceDetailId, "1")}
-                  disabled={currentStatus === "Completed"}
-                >
+                  disabled={currentStatus === "Completed"}>
                   Completed
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
                   onClick={() => handleStatusChange(remittanceDetailId, "0")}
-                  disabled={currentStatus === "Pending"}
-                >
+                  disabled={currentStatus === "Pending"}>
                   Pending
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   onClick={() => handleStatusChange(remittanceDetailId, "2")}
-                  disabled={currentStatus === "Declined"}
-                >
+                  disabled={currentStatus === "Declined"}>
                   Declined
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
                   onClick={() => handleStatusChange(remittanceDetailId, "3")}
-                  disabled={currentStatus === "On Hold"}
-                >
+                  disabled={currentStatus === "On Hold"}>
                   On Hold
                 </DropdownMenuItem>
 
@@ -440,8 +404,7 @@ export default function RemittanceDetails() {
                         confirmButtonColor: "#ef4444",
                       });
                     }
-                  }}
-                >
+                  }}>
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -452,7 +415,7 @@ export default function RemittanceDetails() {
     },
   ];
 
-  const fetchRemittanceData = async (crewCode: string) => {
+  const fetchRemittanceData = useCallback(async (crewCode: string) => {
     if (crewCode) {
       try {
         const response = await getCrewRemittanceDetails(crewCode);
@@ -514,10 +477,11 @@ export default function RemittanceDetails() {
           setRemittanceData([]);
         }
       } catch (error) {
+        console.log("Error fetching remittance data:", error);
         setRemittanceData([]);
       }
     }
-  };
+  }, []);
 
   const fetchAllottees = async (crewCode: string) => {
     if (crewCode) {
@@ -529,6 +493,7 @@ export default function RemittanceDetails() {
           setAllottees([]);
         }
       } catch (error) {
+        console.log("Error fetching allottees:", error);
         setAllottees([]);
       }
     }
@@ -563,6 +528,11 @@ export default function RemittanceDetails() {
               landlineNo: data.LandLineNo,
               emailAddress: data.EmailAddress,
               birthday: data.Birthday,
+              profileImage: {
+                ContentType: data.ProfileImage?.ContentType,
+                FileContent: data.ProfileImage?.FileContent,
+                FileExtension: data.ProfileImage?.FileExtension,
+              },
             });
 
             fetchRemittanceData(decodedCrewCode);
@@ -570,10 +540,10 @@ export default function RemittanceDetails() {
           }
         })
         .catch((error) => {
-          // Error handled silently
+          console.log("Error fetching crew data:", error);
         });
     }
-  }, []);
+  }, [crewData.crewCode, selectedMonth, selectedYear, fetchRemittanceData]);
 
   useEffect(() => {
     const updateRemittanceData = async () => {
@@ -620,6 +590,7 @@ export default function RemittanceDetails() {
             setRemittanceData(validatedData);
           }
         } catch (error) {
+          console.log("Error fetching remittance data:", error);
           setRemittanceData([]);
         }
       }
@@ -673,8 +644,7 @@ export default function RemittanceDetails() {
 
           <Button
             className="bg-primary hover:bg-primary/90"
-            onClick={handleOpenDialog}
-          >
+            onClick={handleOpenDialog}>
             <Plus className="h-4 w-4 mr-2" />
             Add Remittance
           </Button>
@@ -694,11 +664,24 @@ export default function RemittanceDetails() {
                   }
                 `}</style>
                 <div className="w-60 h-60 min-w-[160px] bg-white rounded-md mb-3 flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
-                  <img
-                    src="/image.png"
-                    alt="Profile Logo"
-                    className="w-full h-full object-contain p-1"
-                  />
+                  {crewData.profileImage.ContentType ? (
+                    <Base64Image
+                      imageType={crewData.profileImage.ContentType}
+                      alt="Crew Profile Image"
+                      base64String={crewData.profileImage.FileContent}
+                      width={60}
+                      height={60}
+                      className="object-contain w-full h-full"
+                    />
+                  ) : (
+                    <Image
+                      width={256}
+                      height={160}
+                      src="/image.png"
+                      alt="Selfie with ID Attachment"
+                      className="object-cover w-full h-full"
+                    />
+                  )}
                 </div>
 
                 <h2 className="text-lg font-bold mb-1 w-full">
@@ -805,8 +788,7 @@ export default function RemittanceDetails() {
                     <div className="w-1/2">
                       <Select
                         value={selectedMonth}
-                        onValueChange={setSelectedMonth}
-                      >
+                        onValueChange={setSelectedMonth}>
                         <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                           <div className="flex items-center w-full">
                             <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
@@ -843,8 +825,7 @@ export default function RemittanceDetails() {
                     <div className="w-1/2">
                       <Select
                         value={selectedYear}
-                        onValueChange={setSelectedYear}
-                      >
+                        onValueChange={setSelectedYear}>
                         <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                           <div className="flex items-center w-full">
                             <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">

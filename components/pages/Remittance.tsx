@@ -15,28 +15,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  Trash,
-  Filter,
-  IdCard,
-  FolderClock,
-  Users,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Search, MoreHorizontal, Filter, IdCard } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  getCrewRemittanceList,
-  CrewRemittanceItem,
-} from "@/src/services/remittance/crewRemittance.api";
+import { getCrewRemittanceList } from "@/src/services/remittance/crewRemittance.api";
 
 type Crew = {
   id: number;
@@ -86,6 +70,8 @@ export default function Remittance() {
       })
       .catch((err) => console.error("Error fetching vessel principal:", err));
   }, []);
+
+  console.log("remittance data", crewData);
 
   const columns: ColumnDef<Crew>[] = [
     {
@@ -148,8 +134,7 @@ export default function Remittance() {
                       crew.crewCode
                     )}&rank=${encodeURIComponent(
                       crew.rank
-                    )}&vessel=${encodeURIComponent(crew.vessel)}`}
-                  >
+                    )}&vessel=${encodeURIComponent(crew.vessel)}`}>
                     <IdCard className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View Remittance
                   </Link>
