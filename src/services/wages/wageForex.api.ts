@@ -17,3 +17,15 @@ export const getWageForexList = async (): Promise<WageForexResponse> => {
   const response = await axiosInstance.get<WageForexResponse>("/wages/forex");
   return response.data;
 };
+
+export interface IEditWagePayload {
+  exchangeRateIdD: number;
+  exchangeRateMonth: number;
+  exchangeRateYear: number;
+  ExchangeRate: number;
+}
+
+export const editWageForex = async (forexId: number, payload: IEditWagePayload): Promise<WageForexResponse> => {
+  const response = await axiosInstance.put<WageForexResponse>(`/wages/forex/${forexId}`, payload);
+  return response.data;
+};

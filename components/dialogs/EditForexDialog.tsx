@@ -14,6 +14,11 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Save } from "lucide-react";
+import {
+  editWageForex,
+  IEditWagePayload,
+} from "@/src/services/wages/wageForex.api";
+import { useState } from "react";
 
 interface EditForexDialogProps {
   open: boolean;
@@ -45,6 +50,32 @@ export function EditForexDialog({
     "December",
   ];
 
+  const [year, setYear] = useState(forex.year);
+  const [month, setMonth] = useState(forex.month);
+  const [exchangeRate, setExchangeRate] = useState(forex.exchangeRate);
+
+  const handleSave = () => {
+    const payload: IEditWagePayload = {
+      // exchangeRateIdD: forex.id,
+      exchangeRateMonth: month,
+      exchangeRateYear: year,
+      ExchangeRate: exchangeRate,
+    };
+    // editWageForex(forex.id, payload)
+    //   .then((res) => {
+    //     if (res.success) {
+    //       // Handle successful edit
+    //     } else {
+    //       // Handle error
+    //     }
+    //   })
+    //   .catch((err) => {
+    //     // Handle error
+    //   });
+
+    console.log("Saving forex data:", payload);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC]">
@@ -59,6 +90,7 @@ export function EditForexDialog({
             <Input
               type="number"
               defaultValue={forex.year}
+              onChange={(e) => setYear(parseInt(e.target.value))}
               className="border border-[#E0E0E0] rounded-md"
             />
           </div>
@@ -71,7 +103,10 @@ export function EditForexDialog({
               </SelectTrigger>
               <SelectContent>
                 {months.map((month, index) => (
-                  <SelectItem key={index} value={(index + 1).toString()}>
+                  <SelectItem
+                    key={index}
+                    value={(index + 1).toString()}
+                    onChange={() => setMonth(index + 1)}>
                     {month}
                   </SelectItem>
                 ))}
@@ -85,6 +120,7 @@ export function EditForexDialog({
               type="number"
               step="0.1"
               defaultValue={forex.exchangeRate}
+              onChange={(e) => setExchangeRate(parseFloat(e.target.value))}
               className="border border-[#E0E0E0] rounded-md"
             />
           </div>
@@ -93,11 +129,12 @@ export function EditForexDialog({
             <Button
               variant="outline"
               className="flex-1 text-sm h-11"
-              onClick={() => onOpenChange(false)}
-            >
+              onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90">
+            <Button
+              className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90"
+              onClick={handleSave}>
               <Save className="w-4 h-4 mr-2" />
               Save Changes
             </Button>

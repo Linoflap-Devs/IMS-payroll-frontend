@@ -37,7 +37,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { RiShieldStarLine } from "react-icons/ri";
 import { AddRemittanceDialog } from "@/components/dialogs/AddRemittanceDialog";
-import { Checkbox } from "@/components/ui/checkbox";
+// import { Checkbox } from "@/components/ui/checkbox";
 import {
   getCrewRemittanceDetails,
   getCrewRemittanceList,
@@ -908,10 +908,11 @@ export default function RemittanceDetails() {
                   </div>
 
                   <div className="flex justify-end">
-                    <div className="flex items-center">
+                    {/* DONT DELETE THIS COMMENT, MIGHT BE HELPFUL FOR FUTURE */}
+                    {/* <div className="flex items-center">
                       <Checkbox />
                       <span className="ml-2">Remit with payroll</span>
-                    </div>
+                    </div> */}
                   </div>
 
                   <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden">
