@@ -1,5 +1,8 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,8 +19,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Plus } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   addCrewRemittance,
   type AddCrewRemittanceData,
@@ -32,12 +43,30 @@ const REMITTANCE_STATUS_OPTIONS = [
   { value: "3", label: "On Hold" },
 ] as const;
 
+const formSchema = z.object({
+  allotteeID: z.string().min(1, "Please select an allottee"),
+  amount: z
+    .string()
+    .min(1, "Please enter an amount")
+    .refine(
+      (val) => {
+        const num = parseFloat(val);
+        return !isNaN(num) && num > 0;
+      },
+      { message: "Please enter a valid amount greater than 0" }
+    ),
+  remarks: z.string().min(1, "Please enter remarks"),
+  status: z.string().min(1, "Please select a status"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 interface AddRemittanceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   crewCode: string;
   allottees: AllotteeOption[];
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
 export function AddRemittanceDialog({
@@ -47,77 +76,43 @@ export function AddRemittanceDialog({
   allottees,
   onSuccess,
 }: AddRemittanceDialogProps) {
-  const [formData, setFormData] = useState({
-    allotteeID: "",
-    amount: "",
-    remarks: "",
-    status: "",
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      allotteeID: "",
+      amount: "",
+      remarks: "",
+      status: "",
+    },
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+
+  const { reset, formState } = form;
+  const { isSubmitting } = formState;
 
   useEffect(() => {
     if (!open) {
-      setFormData({
-        allotteeID: "",
-        amount: "",
-        remarks: "",
-        status: "",
-      });
-      setErrorMessage("");
+      reset();
     }
-  }, [open]);
+  }, [open, reset]);
 
-  const handleSubmit = async () => {
+  const onSubmit = async (data: FormValues) => {
     try {
-      setIsLoading(true);
-      setErrorMessage("");
-
-      const allotteeID = parseInt(formData.allotteeID);
-      const amount = parseFloat(formData.amount);
-      const status = formData.status;
-      const remarks = formData.remarks.trim();
-
-      if (!formData.allotteeID || isNaN(allotteeID) || allotteeID <= 0) {
-        setErrorMessage("Please select an allottee");
-        return;
-      }
-
-      if (!formData.amount || isNaN(amount) || amount <= 0) {
-        setErrorMessage("Please enter a valid amount");
-        return;
-      }
-
-      if (!remarks) {
-        setErrorMessage("Please enter remarks");
-        return;
-      }
-
-      if (!status) {
-        setErrorMessage("Please select a valid status");
-        return;
-      }
+      const allotteeID = parseInt(data.allotteeID);
+      const amount = parseFloat(data.amount);
 
       const cleanData: AddCrewRemittanceData = {
         allotteeID: allotteeID,
         amount: amount,
-        remarks: remarks,
-        status: status,
+        remarks: data.remarks.trim(),
+        status: data.status,
       };
 
       const response = await addCrewRemittance(crewCode, cleanData);
 
       if (response && response.success) {
-        onSuccess?.();
+        onSuccess();
         onOpenChange(false);
-
-        setFormData({
-          allotteeID: "",
-          amount: "",
-          remarks: "",
-          status: "0",
-        });
-        setErrorMessage("");
+        reset();
 
         toast({
           title: "Remittance Added",
@@ -125,40 +120,21 @@ export function AddRemittanceDialog({
           variant: "success",
         });
       } else {
-        setErrorMessage(response?.message || "Failed to add remittance");
+        toast({
+          title: "Error",
+          description: response?.message || "Failed to add remittance",
+          variant: "destructive",
+        });
       }
-    } catch (error: any) {
-      let errorMsg = "An error occurred while adding remittance";
-
-      if (error.response?.data?.message) {
-        const message = error.response.data.message;
-
-        if (Array.isArray(message)) {
-          const errors = message
-            .map((err: any) => {
-              if (typeof err === "object" && err !== null) {
-                const key = Object.keys(err)[0];
-                const value = err[key];
-                return `${key}: ${value}`;
-              }
-              return String(err);
-            })
-            .join(", ");
-          errorMsg = `Validation errors: ${errors}`;
-        } else if (typeof message === "string") {
-          errorMsg = message;
-        } else {
-          errorMsg = JSON.stringify(message);
-        }
-      } else if (error.response?.data?.error?.message) {
-        errorMsg = error.response.data.error.message;
-      } else if (error.message) {
-        errorMsg = error.message;
-      }
-
-      setErrorMessage(errorMsg);
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error("Error adding remittance:", error);
+      const err = error as Error;
+      toast({
+        title: "Error",
+        description:
+          err?.message || "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -167,156 +143,169 @@ export function AddRemittanceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC]">
+      <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
             Add Remittance
           </DialogTitle>
-          <DialogDescription className="text-center text-sm text-gray-600">
+          {/* <DialogDescription className="text-center text-sm text-gray-600">
             Add a new remittance entry for the selected allottee
-          </DialogDescription>
+          </DialogDescription> */}
         </DialogHeader>
-        <div className="mt-6 space-y-6">
-          {errorMessage && (
-            <div className="text-sm text-red-500 text-center bg-red-50 p-3 rounded border border-red-200">
-              {errorMessage}
-            </div>
-          )}
 
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600 font-medium">
-              Allottee
-            </label>
-            <Select
-              value={formData.allotteeID}
-              onValueChange={(value) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  allotteeID: value,
-                }));
-                setErrorMessage("");
-              }}>
-              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md !h-11">
-                <SelectValue placeholder="Select allottee" />
-              </SelectTrigger>
-              <SelectContent>
-                {hasValidAllottees ? (
-                  allottees.map((allottee) => (
-                    <SelectItem
-                      key={allottee.AllotteeDetailID}
-                      value={allottee.AllotteeDetailID.toString()}
-                      className="hover:bg-gray-100">
-                      <div className="flex flex-col">
-                        <span className="font-medium">
-                          {allottee.AllotteeName}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {allottee.RelationName} • {allottee.BankName}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="no-data" disabled>
-                    No allottees available for this crew member
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-            {!hasValidAllottees && (
-              <p className="text-xs text-gray-500">
-                No allottees found for crew code: {crewCode}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600 font-medium">Amount</label>
-            <Input
-              type="number"
-              step="0.01"
-              min="0.01"
-              placeholder="Enter amount"
-              className="border border-[#E0E0E0] rounded-md h-11"
-              value={formData.amount}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  amount: e.target.value,
-                }));
-                setErrorMessage("");
-              }}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600 font-medium">Remarks</label>
-            <Input
-              placeholder="Enter remarks"
-              className="border border-[#E0E0E0] rounded-md h-11"
-              value={formData.remarks}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  remarks: e.target.value,
-                }));
-                setErrorMessage("");
-              }}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600 font-medium">Status</label>
-            <Select
-              value={formData.status}
-              onValueChange={(value) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  status: value,
-                }));
-                setErrorMessage("");
-              }}>
-              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md !h-11">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                {REMITTANCE_STATUS_OPTIONS.map((statusOption) => (
-                  <SelectItem
-                    key={statusOption.value}
-                    value={statusOption.value}>
-                    {statusOption.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              className="flex-1 text-sm h-11"
-              onClick={() => {
-                onOpenChange(false);
-                setErrorMessage("");
-              }}
-              disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button
-              className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90"
-              onClick={handleSubmit}
-              disabled={isLoading || !hasValidAllottees}>
-              {isLoading ? (
-                "Adding..."
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Remittance
-                </>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className=" space-y-4">
+            <FormField
+              control={form.control}
+              name="allotteeID"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel className="text-sm text-gray-600 font-medium">
+                    Allottee
+                  </FormLabel>
+                  <Select
+                    disabled={!hasValidAllottees}
+                    onValueChange={field.onChange}
+                    value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
+                        <SelectValue placeholder="Select allottee" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {hasValidAllottees ? (
+                        allottees.map((allottee) => (
+                          <SelectItem
+                            key={allottee.AllotteeDetailID}
+                            value={allottee.AllotteeDetailID.toString()}
+                            className="hover:bg-gray-100">
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {allottee.AllotteeName}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {allottee.RelationName} • {allottee.BankName}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-data" disabled>
+                          No allottees available for this crew member
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {!hasValidAllottees && (
+                    <p className="text-xs text-gray-500">
+                      No allottees found for crew code: {crewCode}
+                    </p>
+                  )}
+                  <FormMessage />
+                </FormItem>
               )}
-            </Button>
-          </div>
-        </div>
+            />
+
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel className="text-sm text-gray-600 font-medium">
+                    Amount
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="Enter amount"
+                      className="border border-[#E0E0E0] rounded-md"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="remarks"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel className="text-sm text-gray-600 font-medium">
+                    Remarks
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter remarks"
+                      className="border border-[#E0E0E0] rounded-md"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel className="text-sm text-gray-600 font-medium">
+                    Status
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {REMITTANCE_STATUS_OPTIONS.map((statusOption) => (
+                        <SelectItem
+                          key={statusOption.value}
+                          value={statusOption.value}>
+                          {statusOption.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 text-sm"
+                onClick={() => {
+                  onOpenChange(false);
+                  reset();
+                }}
+                disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 text-sm bg-[#2E37A4] hover:bg-[#2E37A4]/90"
+                disabled={isSubmitting || !hasValidAllottees}>
+                {isSubmitting ? (
+                  "Adding..."
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Remittance
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
