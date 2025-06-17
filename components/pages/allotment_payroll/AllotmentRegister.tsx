@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronLeft, MoreHorizontal } from "lucide-react";
+import { Search, ChevronLeft, MoreHorizontal, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AllotteeDistributionDialog } from "../../dialogs/AllotteeDistributionDialog";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
+import { useDebounce } from "@/lib/useDebounce";
 
 interface VesselInfo {
   code: string;
@@ -38,6 +39,8 @@ export default function AllotmentRegisterComponent({
   const searchParams = useSearchParams();
   const vesselId = searchParams.get("vesselId");
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
   const [allotmentData, setAllotmentData] = useState<AllotmentRegister[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCrew, setSelectedCrew] = useState<AllotmentRegister | null>(
@@ -184,7 +187,7 @@ export default function AllotmentRegisterComponent({
   ];
 
   const filteredData = allotmentData.filter((item) =>
-    item.CrewName.toLowerCase().includes(searchTerm.toLowerCase())
+    item.CrewName.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   return (
@@ -267,9 +270,18 @@ export default function AllotmentRegisterComponent({
             />
           </div>
           <div className="flex gap-4">
-            <Button className="gap-2 h-11 px-5">
-              <AiOutlinePrinter className="h-4 w-4" />
-              Print Register
+            <Button className="gap-2 h-11 px-5" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <AiOutlinePrinter className="h-4 w-4" />
+                  Print Register
+                </>
+              )}
             </Button>
           </div>
         </div>
