@@ -169,8 +169,8 @@ export default function RemittanceDetails() {
         text: `Change status for ${targetRemittance?.allottee} to: ${statusLabel}?`,
         icon: "question",
         showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
+        confirmButtonColor: "#22bb33",
+        cancelButtonColor: "#6b7280",
         confirmButtonText: "Yes, change it!",
         cancelButtonText: "Cancel",
       });
