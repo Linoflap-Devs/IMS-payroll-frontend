@@ -75,6 +75,7 @@ type WageDescriptionData = {
 };
 
 type ForexData = {
+  id: number;
   year: number;
   month: number;
   exchangeRate: number;
@@ -85,6 +86,7 @@ export default function Wages() {
   const [monthFilter, setMonthFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("salary");
   const [searchTerm, setSearchTerm] = useState("");
+  const [onSuccess, setOnSuccess] = useState(false);
 
   const [columnVisibility, setColumnVisibility] = useState<{
     [key: string]: boolean;
@@ -257,21 +259,30 @@ export default function Wages() {
   }, [onSuccessAdd]);
 
   useEffect(() => {
-    getWageForexList()
-      .then((res) => {
-        if (res.success) {
-          const mapped: ForexData[] = res.data.map((item) => ({
-            year: item.ExchangeRateYear,
-            month: item.ExchangeRateMonth,
-            exchangeRate: item.ExchangeRate,
-          }));
-          setForexData(mapped);
-        } else {
-          console.error("Failed to fetch forex data:", res.message);
-        }
-      })
-      .catch((err) => console.error("Error fetching forex data:", err));
-  }, []);
+    const fetchWageForex = async () => {
+      getWageForexList()
+        .then((res) => {
+          if (res.success) {
+            const mapped: ForexData[] = res.data.map((item) => ({
+              id: item.ExchangeRateID,
+              year: item.ExchangeRateYear,
+              month: item.ExchangeRateMonth,
+              exchangeRate: item.ExchangeRate,
+            }));
+            setForexData(mapped);
+          } else {
+            console.error("Failed to fetch forex data:", res.message);
+          }
+        })
+        .catch((err) => console.error("Error fetching forex data:", err));
+    };
+    fetchWageForex();
+
+    if (onSuccess) {
+      fetchWageForex();
+      setOnSuccess(false);
+    }
+  }, [onSuccess]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -582,7 +593,7 @@ export default function Wages() {
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const forex = row.original;
-        const handleDelete = (year: number, month: number) => {
+        const handleDelete = (year: number, month: number, id: number) => {
           Swal.fire({
             title: "Are you sure?",
             text: "Delete this forex entry?",
@@ -591,7 +602,7 @@ export default function Wages() {
             confirmButtonText: "Yes, delete it!",
             cancelButtonText: "No, cancel!",
           }).then((result) => {
-            console.log("Year and Month in handle Delete: " + year, month);
+            console.log("Year and Month in handle Delete: " + id, year, month);
             if (result.isConfirmed) {
               /* TODO: delete logic */ Swal.fire(
                 "Deleted!",
@@ -618,7 +629,9 @@ export default function Wages() {
                   <Pencil className="mr-2 h-4 w-4" /> Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => handleDelete(forex.year, forex.month)}
+                  onClick={() =>
+                    handleDelete(forex.year, forex.month, forex.id)
+                  }
                   className="text-destructive">
                   <Trash className="mr-2 h-4 w-4" /> Delete
                 </DropdownMenuItem>
@@ -1004,6 +1017,7 @@ export default function Wages() {
           open={editForexDialogOpen}
           onOpenChange={setEditForexDialogOpen}
           forex={selectedForex}
+          setOnSuccess={setOnSuccess}
         />
       )}
       <AddWageDescriptionDialog

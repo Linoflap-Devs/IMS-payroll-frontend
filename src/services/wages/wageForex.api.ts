@@ -19,13 +19,13 @@ export const getWageForexList = async (): Promise<WageForexResponse> => {
 };
 
 export interface IEditWagePayload {
-  exchangeRateIdD: number;
+  // exchangeRateIdD: number;
   exchangeRateMonth: number;
   exchangeRateYear: number;
-  ExchangeRate: number;
+  exchangeRate: number;
 }
 
 export const editWageForex = async (forexId: number, payload: IEditWagePayload): Promise<WageForexResponse> => {
-  const response = await axiosInstance.put<WageForexResponse>(`/wages/forex/${forexId}`, payload);
+  const response = await axiosInstance.patch<WageForexResponse>(`/wages/forex/${forexId}`, payload);
   return response.data;
 };
