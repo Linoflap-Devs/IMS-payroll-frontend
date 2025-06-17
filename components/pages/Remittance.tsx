@@ -37,8 +37,9 @@ type Crew = {
 
 export default function Remittance() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [vesselFilter, setVesselFilter] = useState("all");
   const [crewData, setCrewData] = useState<Crew[]>([]);
+  const [vessels, setVessels] = useState<string[]>([]);
 
   const debouncedSearch = useDebounce(searchTerm, 500);
 
@@ -66,6 +67,12 @@ export default function Remittance() {
               };
             }
           );
+
+          const mappedVessels = res.data.map((item) => item.Vessel);
+
+          const uniqueVessels = [...new Set(mappedVessels)];
+          setVessels(uniqueVessels);
+
           setCrewData(mapped);
         } else {
           console.error("Failed to fetch vessel principal:", res.message);
@@ -74,7 +81,7 @@ export default function Remittance() {
       .catch((err) => console.error("Error fetching vessel principal:", err));
   }, []);
 
-  console.log("remittance data", crewData);
+  console.log("remittance data", vessels);
 
   const columns: ColumnDef<Crew>[] = [
     {
@@ -156,7 +163,10 @@ export default function Remittance() {
       crew.crewCode.toString().includes(debouncedSearch.toLowerCase()) ||
       crew.rank.toLowerCase().includes(debouncedSearch.toLowerCase());
 
-    return matchesSearch;
+    const matchesVesselFilter =
+      vesselFilter === "all" || crew.vessel === vesselFilter;
+
+    return matchesSearch && matchesVesselFilter;
   });
 
   return (
@@ -193,17 +203,18 @@ export default function Remittance() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={vesselFilter} onValueChange={setVesselFilter}>
                 <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                   <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Filter by vessel" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="On board">On board</SelectItem>
-                  <SelectItem value="Off board">Off Board</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                <SelectContent className="max-h-80">
+                  <SelectItem value="all">All Vessels</SelectItem>
+                  {vessels.map((vessel) => (
+                    <SelectItem key={vessel} value={vessel}>
+                      {vessel}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
