@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
@@ -25,6 +25,7 @@ import { getPayrollList } from "@/src/services/payroll/payroll.api";
 import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
 import { TfiReload } from "react-icons/tfi";
 import { MdOutlineFileUpload } from "react-icons/md";
+import { useDebounce } from "@/lib/useDebounce";
 
 type Payroll = {
   vesselId: number;
@@ -37,6 +38,7 @@ type Payroll = {
 
 export default function Allotment() {
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [payrollData, setPayrollData] = useState<Payroll[]>([]);
   const [forexRate, setForexRate] = useState<number>(0); // State for Forex rate
   const [monthFilter, setMonthFilter] = useState(
@@ -207,7 +209,7 @@ export default function Allotment() {
   ];
 
   const filteredAllotment = payrollData.filter((p) =>
-    p.vesselName.toLowerCase().includes(searchTerm.toLowerCase())
+    p.vesselName.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   return (
@@ -340,6 +342,11 @@ export default function Allotment() {
               </CardContent>
             </Card>
           </div>
+          <Input
+            placeholder="Search Vessel Name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
 
           <div className="bg-white rounded-md border pb-3">
             <DataTable
