@@ -47,7 +47,7 @@ export default function Allotment() {
   );
 
   // Format numbers to two decimal places
-  const formatNumber = (value: number) => value.toFixed(2);
+  const formatNumber = (value: number) => value?.toFixed(2);
 
   const monthNames = [
     "January",
@@ -175,8 +175,7 @@ export default function Allotment() {
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
               <DropdownMenuItem asChild>
                 <Link
-                  href={`/home/allotment/allotment_register?vesselId=${row.original.vesselId}`}
-                >
+                  href={`/home/allotment/allotment_register?vesselId=${row.original.vesselId}`}>
                   Allotment Register
                 </Link>
               </DropdownMenuItem>
@@ -186,8 +185,7 @@ export default function Allotment() {
                     row.original.vesselId
                   }&month=${parseInt(monthFilter)}&year=${parseInt(
                     yearFilter
-                  )}`}
-                >
+                  )}`}>
                   Deduction Register
                 </Link>
               </DropdownMenuItem>
@@ -197,8 +195,7 @@ export default function Allotment() {
                     row.original.vesselId
                   }&month=${parseInt(monthFilter)}&year=${parseInt(
                     yearFilter
-                  )}`}
-                >
+                  )}`}>
                   Pay Slip
                 </Link>
               </DropdownMenuItem>
@@ -282,8 +279,7 @@ export default function Allotment() {
 
               <Button
                 variant="outline"
-                className="bg-blue-200 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
-              >
+                className="bg-blue-200 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full">
                 <MdOutlineFileUpload className="w-4 h-4" />
                 Post Process Payroll
               </Button>

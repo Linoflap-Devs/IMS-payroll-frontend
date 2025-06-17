@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AllotteeDistributionDialog } from "../../dialogs/AllotteeDistributionDialog";
+import { getVesselList } from "@/src/services/vessel/vessel.api";
 
 interface VesselInfo {
   code: string;
@@ -30,7 +31,7 @@ interface VesselInfo {
 }
 
 export default function AllotmentRegisterComponent({
-  vesselInfo,
+  vesselInfo: initialVesselInfo,
 }: {
   vesselInfo?: VesselInfo;
 }) {
@@ -43,6 +44,9 @@ export default function AllotmentRegisterComponent({
     null
   );
   const [isAllotteeDialogOpen, setIsAllotteeDialogOpen] = useState(false);
+  const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
+    initialVesselInfo
+  );
 
   useEffect(() => {
     const fetchAllotmentData = async () => {
@@ -62,6 +66,23 @@ export default function AllotmentRegisterComponent({
     };
 
     fetchAllotmentData();
+  }, [vesselId]);
+  useEffect(() => {
+    getVesselList().then((response) => {
+      if (response.success) {
+        const vessel = response.data.find(
+          (v) => v.VesselID === Number(vesselId)
+        );
+        if (vessel) {
+          setVesselInfo({
+            code: vessel.VesselCode,
+            name: vessel.VesselName,
+            type: vessel.VesselType,
+            principalName: vessel.Principal,
+          });
+        }
+      }
+    });
   }, [vesselId]);
 
   // Format numbers to two decimal places with null checking
@@ -152,8 +173,7 @@ export default function AllotmentRegisterComponent({
                 onClick={() => {
                   setSelectedCrew(crew);
                   setIsAllotteeDialogOpen(true);
-                }}
-              >
+                }}>
                 View Allottee Distribution
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -213,8 +233,7 @@ export default function AllotmentRegisterComponent({
               <h2 className="text-2xl font-semibold">{vesselInfo?.name}</h2>
               <Badge
                 variant="secondary"
-                className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]"
-              >
+                className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]">
                 Active
               </Badge>
             </div>
