@@ -251,7 +251,10 @@ export function CrewHeader({
         )}
         {activeTab === "validation" && (
           <div className="px-4 pt-0 flex justify-end gap-3">
-            <Button variant="destructive" className="px-6 bg-[#B63C3C] w-40">
+            <Button
+              variant="destructive"
+              className="px-6 bg-[#B63C3C] w-40"
+              disabled={isCrewVerified === 1}>
               <CircleMinus className="h-4 w-4 mr-2" />
               Decline
             </Button>

@@ -94,8 +94,7 @@ export default function CrewDetails() {
       if (!crewId) return;
 
       verifyCrew(crewId)
-        .then((response) => {
-          console.log("Crew verification response:", response);
+        .then(() => {
           toast({
             title: "Success",
             description: "Crew member verified successfully.",
@@ -104,10 +103,10 @@ export default function CrewDetails() {
         })
         .catch((error) => {
           const err = error as Error;
-          console.error("Error verifying crew member:", err.message);
+          console.log("Error verifying crew member:", err);
           toast({
             title: "Error",
-            description: "Failed to verify crew member.",
+            description: "Crew did not register.",
             variant: "destructive",
           });
         })
