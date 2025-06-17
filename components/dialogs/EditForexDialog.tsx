@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import {
   editWageForex,
   IEditWagePayload,
@@ -30,7 +30,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -73,6 +73,7 @@ export function EditForexDialog({
     "November",
     "December",
   ];
+  const [loading, setLoading] = useState(false);
 
   // Set up form with React Hook Form
   const form = useForm<FormValues>({
@@ -91,7 +92,7 @@ export function EditForexDialog({
       exchangeRate: values.exchangeRate,
     };
 
-    console.log("Saving forex data:", payload);
+    setLoading(true);
     editWageForex(forex.id, payload)
       .then((res) => {
         if (res.success) {
@@ -117,6 +118,9 @@ export function EditForexDialog({
           description: "Failed to save forex data.",
           variant: "destructive",
         });
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -210,9 +214,19 @@ export function EditForexDialog({
               </Button>
               <Button
                 type="submit"
-                className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90">
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
+                className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90"
+                disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
               </Button>
             </div>
           </form>
