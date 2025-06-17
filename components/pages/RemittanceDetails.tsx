@@ -13,6 +13,10 @@ import {
   Ship,
   Calendar,
   Plus,
+  CircleCheck,
+  CircleEllipsis,
+  CircleX,
+  CircleDot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -365,27 +369,31 @@ export default function RemittanceDetails() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
                 <DropdownMenuItem
-                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                  className=""
                   onClick={() => handleStatusChange(remittanceDetailId, "1")}
                   disabled={currentStatus === "Completed"}>
+                  <CircleCheck strokeWidth={2} />
                   Completed
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                  className=""
                   onClick={() => handleStatusChange(remittanceDetailId, "0")}
                   disabled={currentStatus === "Pending"}>
+                  <CircleEllipsis strokeWidth={2} />
                   Pending
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className=""
                   onClick={() => handleStatusChange(remittanceDetailId, "2")}
                   disabled={currentStatus === "Declined"}>
+                  <CircleX strokeWidth={2} />
                   Declined
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                  className=""
                   onClick={() => handleStatusChange(remittanceDetailId, "3")}
                   disabled={currentStatus === "On Hold"}>
+                  <CircleDot strokeWidth={2} />
                   On Hold
                 </DropdownMenuItem>
 
