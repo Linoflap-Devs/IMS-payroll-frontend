@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -114,6 +114,7 @@ export default function RemittanceDetails() {
   const [remittanceData, setRemittanceData] = useState<RemittanceEntry[]>([]);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [allottees, setAllottees] = useState<AllotteeOption[]>([]);
+  const initialLoadDone = useRef(false);
   const [crewData, setCrewData] = useState({
     name: "",
     rank: "",
@@ -129,8 +130,6 @@ export default function RemittanceDetails() {
       ContentType: undefined as string | undefined,
     },
   });
-
-  console.log("crewData", crewData);
 
   const getStatusLabel = (statusValue: string): string => {
     switch (statusValue) {
@@ -207,7 +206,11 @@ export default function RemittanceDetails() {
             );
 
             setTimeout(async () => {
-              await fetchRemittanceData(crewData.crewCode);
+              await fetchRemittanceDataForSelection(
+                crewData.crewCode,
+                selectedMonth,
+                selectedYear
+              );
             }, 500);
           } else {
             await Swal.fire({
@@ -267,7 +270,11 @@ export default function RemittanceDetails() {
             )
           );
 
-          await fetchRemittanceData(crewData.crewCode);
+          await fetchRemittanceDataForSelection(
+            crewData.crewCode,
+            selectedMonth,
+            selectedYear
+          );
         } else {
           await Swal.fire({
             title: "Error!",
@@ -423,73 +430,146 @@ export default function RemittanceDetails() {
     },
   ];
 
-  const fetchRemittanceData = useCallback(async (crewCode: string) => {
-    if (crewCode) {
-      try {
-        const response = await getCrewRemittanceDetails(crewCode);
-        if (response.success && response.data.length > 0) {
-          const years = [...new Set(response.data.map((item) => item.Year))];
-          setAvailableYears(years.sort((a, b) => b - a));
+  // Initial data load that sets default month and year
+  const fetchInitialRemittanceData = useCallback(
+    async (crewCode: string) => {
+      if (crewCode) {
+        try {
+          const response = await getCrewRemittanceDetails(crewCode);
+          if (response.success && response.data.length > 0) {
+            const years = [...new Set(response.data.map((item) => item.Year))];
+            setAvailableYears(years.sort((a, b) => b - a));
 
-          const sortedData = [...response.data].sort((a, b) => {
-            const dateA = new Date(a.Year, getMonthNumber(a.Month));
-            const dateB = new Date(b.Year, getMonthNumber(b.Month));
-            return dateB.getTime() - dateA.getTime();
-          });
-
-          const latestRemittance = sortedData[0];
-
-          setSelectedMonth(latestRemittance.Month);
-          setSelectedYear(latestRemittance.Year.toString());
-
-          const filteredData = sortedData
-            .filter(
-              (item) =>
-                item.Month === latestRemittance.Month &&
-                item.Year === latestRemittance.Year
-            )
-            .sort((a, b) => b.RemittanceDetailID - a.RemittanceDetailID) // Sort by RemittanceDetailID descending (newest first)
-            .map((item) => {
-              const remittanceDetailId = item.RemittanceDetailID;
-              const remittanceHeaderId = item.RemittanceHeaderID;
-
-              const mappedItem: RemittanceEntry = {
-                remittanceId: Number(remittanceDetailId),
-                remittanceHeaderId: Number(remittanceHeaderId),
-                allottee: String(item.AllotteeName || ""),
-                amount: Number(item.Amount) || 0,
-                remarks: String(item.Remarks || ""),
-                status: mapStatusToDisplay(item.Status),
-              };
-
-              return mappedItem;
+            const sortedData = [...response.data].sort((a, b) => {
+              const dateA = new Date(a.Year, getMonthNumber(a.Month));
+              const dateB = new Date(b.Year, getMonthNumber(b.Month));
+              return dateB.getTime() - dateA.getTime();
             });
 
-          const validatedData = filteredData.filter((item) => {
-            const isValid =
-              typeof item.allottee === "string" &&
-              typeof item.amount === "number" &&
-              typeof item.status === "string" &&
-              typeof item.remittanceId === "number" &&
-              typeof item.remittanceHeaderId === "number" &&
-              !isNaN(item.remittanceId) &&
-              !isNaN(item.remittanceHeaderId) &&
-              item.remittanceId > 0 &&
-              item.remittanceHeaderId > 0;
+            const latestRemittance = sortedData[0];
 
-            return isValid;
-          });
+            // Only set default values if this is the first load
+            if (!initialLoadDone.current) {
+              setSelectedMonth(latestRemittance.Month);
+              setSelectedYear(latestRemittance.Year.toString());
+              initialLoadDone.current = true;
+            }
 
-          setRemittanceData(validatedData);
-        } else {
+            // Use the current selections to filter data
+            const currentMonth = selectedMonth || latestRemittance.Month;
+            const currentYear =
+              selectedYear || latestRemittance.Year.toString();
+
+            const filteredData = sortedData
+              .filter(
+                (item) =>
+                  item.Month === currentMonth &&
+                  item.Year.toString() === currentYear
+              )
+              .sort((a, b) => b.RemittanceDetailID - a.RemittanceDetailID)
+              .map((item) => {
+                const remittanceDetailId = item.RemittanceDetailID;
+                const remittanceHeaderId = item.RemittanceHeaderID;
+
+                const mappedItem: RemittanceEntry = {
+                  remittanceId: Number(remittanceDetailId),
+                  remittanceHeaderId: Number(remittanceHeaderId),
+                  allottee: String(item.AllotteeName || ""),
+                  amount: Number(item.Amount) || 0,
+                  remarks: String(item.Remarks || ""),
+                  status: mapStatusToDisplay(item.Status),
+                };
+
+                return mappedItem;
+              });
+
+            const validatedData = filteredData.filter((item) => {
+              const isValid =
+                typeof item.allottee === "string" &&
+                typeof item.amount === "number" &&
+                typeof item.status === "string" &&
+                typeof item.remittanceId === "number" &&
+                typeof item.remittanceHeaderId === "number" &&
+                !isNaN(item.remittanceId) &&
+                !isNaN(item.remittanceHeaderId) &&
+                item.remittanceId > 0 &&
+                item.remittanceHeaderId > 0;
+
+              return isValid;
+            });
+
+            setRemittanceData(validatedData);
+          } else {
+            setRemittanceData([]);
+          }
+        } catch (error) {
+          console.log("Error fetching remittance data:", error);
           setRemittanceData([]);
         }
-      } catch (error) {
-        console.log("Error fetching remittance data:", error);
-        setRemittanceData([]);
       }
-    }
-  }, []);
+    },
+    [selectedMonth, selectedYear]
+  );
+
+  // This function fetches data for a specific month/year selection without changing the selection
+  const fetchRemittanceDataForSelection = useCallback(
+    async (crewCode: string, month: string, year: string) => {
+      if (crewCode && month && year) {
+        try {
+          const response = await getCrewRemittanceDetails(crewCode);
+          if (response.success) {
+            // Update available years if needed
+            const years = [...new Set(response.data.map((item) => item.Year))];
+            setAvailableYears(years.sort((a, b) => b - a));
+
+            const filteredData = response.data
+              .filter(
+                (item) => item.Month === month && item.Year.toString() === year
+              )
+              .sort((a, b) => b.RemittanceDetailID - a.RemittanceDetailID)
+              .map((item) => {
+                const remittanceDetailId = item.RemittanceDetailID;
+                const remittanceHeaderId = item.RemittanceHeaderID;
+
+                const mappedItem: RemittanceEntry = {
+                  remittanceId: Number(remittanceDetailId),
+                  remittanceHeaderId: Number(remittanceHeaderId),
+                  allottee: String(item.AllotteeName || ""),
+                  amount: Number(item.Amount) || 0,
+                  remarks: String(item.Remarks || ""),
+                  status: mapStatusToDisplay(item.Status),
+                };
+
+                return mappedItem;
+              });
+
+            const validatedData = filteredData.filter((item) => {
+              const isValid =
+                typeof item.allottee === "string" &&
+                typeof item.amount === "number" &&
+                typeof item.status === "string" &&
+                typeof item.remittanceId === "number" &&
+                typeof item.remittanceHeaderId === "number" &&
+                !isNaN(item.remittanceId) &&
+                !isNaN(item.remittanceHeaderId) &&
+                item.remittanceId > 0 &&
+                item.remittanceHeaderId > 0;
+
+              return isValid;
+            });
+
+            setRemittanceData(validatedData);
+          } else {
+            setRemittanceData([]);
+          }
+        } catch (error) {
+          console.log("Error fetching remittance data:", error);
+          setRemittanceData([]);
+        }
+      }
+    },
+    []
+  );
 
   const fetchAllottees = async (crewCode: string) => {
     if (crewCode) {
@@ -543,7 +623,7 @@ export default function RemittanceDetails() {
               },
             });
 
-            fetchRemittanceData(decodedCrewCode);
+            fetchInitialRemittanceData(decodedCrewCode);
             fetchAllottees(decodedCrewCode);
           }
         })
@@ -551,61 +631,28 @@ export default function RemittanceDetails() {
           console.log("Error fetching crew data:", error);
         });
     }
-  }, [crewData.crewCode, selectedMonth, selectedYear, fetchRemittanceData]);
+  }, [fetchInitialRemittanceData]);
 
+  // This effect handles changes in month/year selection
   useEffect(() => {
-    const updateRemittanceData = async () => {
-      if (crewData.crewCode && selectedMonth && selectedYear) {
-        try {
-          const response = await getCrewRemittanceDetails(crewData.crewCode);
-          if (response.success) {
-            const filteredData = response.data
-              .filter(
-                (item) =>
-                  item.Month === selectedMonth &&
-                  item.Year.toString() === selectedYear
-              )
-              .sort((a, b) => b.RemittanceDetailID - a.RemittanceDetailID) // Sort by RemittanceDetailID descending (newest first)
-              .map((item) => {
-                const remittanceDetailId = item.RemittanceDetailID;
-                const remittanceHeaderId = item.RemittanceHeaderID;
-
-                const mappedItem: RemittanceEntry = {
-                  remittanceId: Number(remittanceDetailId),
-                  remittanceHeaderId: Number(remittanceHeaderId),
-                  allottee: String(item.AllotteeName || ""),
-                  amount: Number(item.Amount) || 0,
-                  remarks: String(item.Remarks || ""),
-                  status: mapStatusToDisplay(item.Status),
-                };
-                return mappedItem;
-              });
-
-            const validatedData = filteredData.filter((item) => {
-              const isValid =
-                typeof item.allottee === "string" &&
-                typeof item.amount === "number" &&
-                typeof item.status === "string" &&
-                typeof item.remittanceId === "number" &&
-                typeof item.remittanceHeaderId === "number" &&
-                !isNaN(item.remittanceId) &&
-                !isNaN(item.remittanceHeaderId) &&
-                item.remittanceId > 0 &&
-                item.remittanceHeaderId > 0;
-              return isValid;
-            });
-
-            setRemittanceData(validatedData);
-          }
-        } catch (error) {
-          console.log("Error fetching remittance data:", error);
-          setRemittanceData([]);
-        }
-      }
-    };
-
-    updateRemittanceData();
-  }, [crewData.crewCode, selectedMonth, selectedYear]);
+    if (
+      crewData.crewCode &&
+      selectedMonth &&
+      selectedYear &&
+      initialLoadDone.current
+    ) {
+      fetchRemittanceDataForSelection(
+        crewData.crewCode,
+        selectedMonth,
+        selectedYear
+      );
+    }
+  }, [
+    crewData.crewCode,
+    selectedMonth,
+    selectedYear,
+    fetchRemittanceDataForSelection,
+  ]);
 
   const getMonthNumber = (month: string): number => {
     const months = {
@@ -632,7 +679,11 @@ export default function RemittanceDetails() {
   const handleRemittanceSuccess = () => {
     if (crewData.crewCode) {
       setTimeout(() => {
-        fetchRemittanceData(crewData.crewCode);
+        fetchRemittanceDataForSelection(
+          crewData.crewCode,
+          selectedMonth,
+          selectedYear
+        );
       }, 500);
     }
   };
