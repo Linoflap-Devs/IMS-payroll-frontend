@@ -51,7 +51,7 @@ export function AddRemittanceDialog({
     allotteeID: "",
     amount: "",
     remarks: "",
-    status: "0",
+    status: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -62,7 +62,7 @@ export function AddRemittanceDialog({
         allotteeID: "",
         amount: "",
         remarks: "",
-        status: "0",
+        status: "",
       });
       setErrorMessage("");
     }
@@ -185,7 +185,7 @@ export function AddRemittanceDialog({
 
           <div className="space-y-2">
             <label className="text-sm text-gray-600 font-medium">
-              Allottee <span className="text-red-500">*</span>
+              Allottee
             </label>
             <Select
               value={formData.allotteeID}
@@ -196,7 +196,7 @@ export function AddRemittanceDialog({
                 }));
                 setErrorMessage("");
               }}>
-              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-11">
+              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md !h-11">
                 <SelectValue placeholder="Select allottee" />
               </SelectTrigger>
               <SelectContent>
@@ -204,7 +204,8 @@ export function AddRemittanceDialog({
                   allottees.map((allottee) => (
                     <SelectItem
                       key={allottee.AllotteeDetailID}
-                      value={allottee.AllotteeDetailID.toString()}>
+                      value={allottee.AllotteeDetailID.toString()}
+                      className="hover:bg-gray-100">
                       <div className="flex flex-col">
                         <span className="font-medium">
                           {allottee.AllotteeName}
@@ -230,9 +231,7 @@ export function AddRemittanceDialog({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-gray-600 font-medium">
-              Amount <span className="text-red-500">*</span>
-            </label>
+            <label className="text-sm text-gray-600 font-medium">Amount</label>
             <Input
               type="number"
               step="0.01"
@@ -251,9 +250,7 @@ export function AddRemittanceDialog({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-gray-600 font-medium">
-              Remarks <span className="text-red-500">*</span>
-            </label>
+            <label className="text-sm text-gray-600 font-medium">Remarks</label>
             <Input
               placeholder="Enter remarks"
               className="border border-[#E0E0E0] rounded-md h-11"
@@ -269,9 +266,7 @@ export function AddRemittanceDialog({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-gray-600 font-medium">
-              Status <span className="text-red-500">*</span>
-            </label>
+            <label className="text-sm text-gray-600 font-medium">Status</label>
             <Select
               value={formData.status}
               onValueChange={(value) => {
@@ -281,7 +276,7 @@ export function AddRemittanceDialog({
                 }));
                 setErrorMessage("");
               }}>
-              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-11">
+              <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md !h-11">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
