@@ -21,7 +21,7 @@ import { Search, MoreHorizontal, Filter } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { PiUserListFill } from "react-icons/pi";
-import { AddDeductionTypeDialog } from "@/components/dialogs/AddDeductionTypeDialog";
+// import { AddDeductionTypeDialog } from "@/components/dialogs/AddDeductionTypeDialog";
 // import { EditDeductionTypeDialog } from "@/components/dialogs/EditDeductionTypeDialog";
 // import Swal from "sweetalert2";
 import { getCrewDeductionList } from "@/src/services/deduction/crewDeduction.api";
@@ -123,8 +123,8 @@ export default function Deduction() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   // const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [addDeductionTypeDialogOpen, setAddDeductionTypeDialogOpen] =
-    useState(false);
+  // const [addDeductionTypeDialogOpen, setAddDeductionTypeDialogOpen] =
+  //   useState(false);
   // const [selectedDeduction, setSelectedDeduction] =
   //   useState<DeductionDescription | null>(null);
 
@@ -430,10 +430,10 @@ export default function Deduction() {
         </div>
       </div>
 
-      <AddDeductionTypeDialog
+      {/* <AddDeductionTypeDialog
         open={addDeductionTypeDialogOpen}
         onOpenChange={setAddDeductionTypeDialogOpen}
-      />
+      /> */}
       {/* <EditDeductionTypeDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
