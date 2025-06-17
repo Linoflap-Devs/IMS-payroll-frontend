@@ -21,6 +21,7 @@ import { Search, MoreHorizontal, Filter, IdCard } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { getCrewRemittanceList } from "@/src/services/remittance/crewRemittance.api";
+import { useDebounce } from "@/lib/useDebounce";
 
 type Crew = {
   id: number;
@@ -38,6 +39,8 @@ export default function Remittance() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [crewData, setCrewData] = useState<Crew[]>([]);
+
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
   useEffect(() => {
     getCrewRemittanceList()
@@ -149,9 +152,9 @@ export default function Remittance() {
 
   const filteredCrew = crewData.filter((crew) => {
     const matchesSearch =
-      crew.crewName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      crew.id ||
-      crew.rank.toLowerCase().includes(searchTerm.toLowerCase());
+      crew.crewName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      crew.crewCode.toString().includes(debouncedSearch.toLowerCase()) ||
+      crew.rank.toLowerCase().includes(debouncedSearch.toLowerCase());
 
     return matchesSearch;
   });
