@@ -29,3 +29,8 @@ export const editWageForex = async (forexId: number, payload: IEditWagePayload):
   const response = await axiosInstance.patch<WageForexResponse>(`/wages/forex/${forexId}`, payload);
   return response.data;
 };
+
+export const deleteWageForex = async (forexId: number): Promise<WageForexResponse> => {
+  const response = await axiosInstance.delete<WageForexResponse>(`/wages/forex/${forexId}`);
+  return response.data;
+};
