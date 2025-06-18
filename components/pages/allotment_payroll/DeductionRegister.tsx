@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DeductionDistributionDialog } from "../../dialogs/DeductionDistributionDialog";
+import { getVesselList } from "@/src/services/vessel/vessel.api";
 
 interface VesselInfo {
   code: string;
@@ -30,7 +31,7 @@ interface VesselInfo {
 }
 
 export default function DeductionRegisterComponent({
-  vesselInfo,
+  vesselInfo: initialVesselInfo,
 }: {
   vesselInfo?: VesselInfo;
 }) {
@@ -45,6 +46,27 @@ export default function DeductionRegisterComponent({
     null
   );
   const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
+  const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
+    initialVesselInfo
+  );
+
+  useEffect(() => {
+    getVesselList().then((response) => {
+      if (response.success) {
+        const vessel = response.data.find(
+          (v) => v.VesselID === Number(vesselId)
+        );
+        if (vessel) {
+          setVesselInfo({
+            code: vessel.VesselCode,
+            name: vessel.VesselName,
+            type: vessel.VesselType,
+            principalName: vessel.Principal,
+          });
+        }
+      }
+    });
+  }, [vesselId]);
 
   useEffect(() => {
     const fetchAllotmentData = async () => {
@@ -138,8 +160,7 @@ export default function DeductionRegisterComponent({
                 onClick={() => {
                   setSelectedCrew(crew);
                   setIsDeductionDialogOpen(true);
-                }}
-              >
+                }}>
                 View Deduction
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -203,8 +224,7 @@ export default function DeductionRegisterComponent({
               <h2 className="text-2xl font-semibold">{vesselInfo?.name}</h2>
               <Badge
                 variant="secondary"
-                className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]"
-              >
+                className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]">
                 Active
               </Badge>
             </div>
@@ -239,7 +259,7 @@ export default function DeductionRegisterComponent({
             />
           </div>
           <div className="flex gap-4">
-            <Button className="gap-2 h-11 px-5">
+            <Button className="gap-2 h-11 px-5" disabled={isLoading}>
               <AiOutlinePrinter className="h-4 w-4" />
               Print Register
             </Button>
