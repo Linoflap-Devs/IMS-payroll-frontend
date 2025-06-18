@@ -4,12 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import {} from "@/components/ui/dropdown-menu";
 import { Search, Filter, Ship, ChevronLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
@@ -18,6 +13,7 @@ import { Card } from "../../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
 import { getVesselPayslip } from "@/src/services/payroll/payroll.api";
 import { useSearchParams } from "next/navigation";
+import { getVesselList } from "@/src/services/vessel/vessel.api";
 
 interface CrewPayroll {
   crewId: number;
@@ -26,19 +22,43 @@ interface CrewPayroll {
   rank: string;
 }
 
-interface VesselPayslipProps {
-  vesselInfo?: {
-    code: string;
-    name: string;
-    type: string;
-    principalName: string;
-  };
+interface VesselInfo {
+  code: string;
+  name: string;
+  type: string;
+  principalName: string;
 }
 
-export default function VesselPayslip({ vesselInfo }: VesselPayslipProps) {
+export default function VesselPayslip({
+  vesselInfo: initialVesselInfo,
+}: {
+  vesselInfo?: VesselInfo;
+}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [payslipData, setPayslipData] = useState<CrewPayroll[]>([]);
   const searchParams = useSearchParams();
+  const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
+    initialVesselInfo
+  );
+  const vesselId = searchParams.get("vesselId");
+
+  useEffect(() => {
+    getVesselList().then((response) => {
+      if (response.success) {
+        const vessel = response.data.find(
+          (v) => v.VesselID === Number(vesselId)
+        );
+        if (vessel) {
+          setVesselInfo({
+            code: vessel.VesselCode,
+            name: vessel.VesselName,
+            type: vessel.VesselType,
+            principalName: vessel.Principal,
+          });
+        }
+      }
+    });
+  }, [vesselId]);
 
   useEffect(() => {
     const vesselId = searchParams.get("vesselId");
@@ -135,8 +155,7 @@ export default function VesselPayslip({ vesselInfo }: VesselPayslipProps) {
               </h2>
               <Badge
                 variant="secondary"
-                className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]"
-              >
+                className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]">
                 Active
               </Badge>
             </div>
