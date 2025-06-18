@@ -10,3 +10,8 @@ export const verifyCrew = async (crewId: string): Promise<ICrewValidationRespons
     const response = await axiosInstance.patch<ICrewValidationResponse>(`crew/${crewId}/validation`);
     return response.data;
 }
+
+export const declineCrew = async (crewId: string): Promise<ICrewValidationResponse> => {
+    const response = await axiosInstance.patch<ICrewValidationResponse>(`crew/${crewId}/validation/decline`);
+    return response.data;
+}

@@ -24,8 +24,12 @@ import AddCrewAllottee from "./crew/AddCrewAllottee";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
-import { verifyCrew } from "@/src/services/crew/crewValidation.api";
+import {
+  declineCrew,
+  verifyCrew,
+} from "@/src/services/crew/crewValidation.api";
 import { toast } from "../ui/use-toast";
+import { useCrewStore } from "@/src/store/useCrewStore";
 
 export default function CrewDetails() {
   const searchParams = useSearchParams();
@@ -59,8 +63,15 @@ export default function CrewDetails() {
   const [handleVerify, setHandleVerify] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
+  const [handleDecline, setHandleDecline] = useState(false);
+  const [isDeclining, setIsDeclining] = useState(false);
+
   const handleTriggerVerify = () => {
     setHandleVerify((prev) => !prev);
+  };
+
+  const handleTriggerDecline = () => {
+    setHandleDecline((prev) => !prev);
   };
 
   const handleTriggerAdd = () => {
@@ -83,8 +94,7 @@ export default function CrewDetails() {
     isCrewVerified,
   } = useCrewDetails(crewId);
 
-  console.log("Crew Details:", crewValidationDetails);
-  console.log(isCrewVerified);
+  const { fetchCrewValidationDetails } = useCrewStore();
 
   useEffect(() => {
     if (handleVerify) {
@@ -116,6 +126,44 @@ export default function CrewDetails() {
         });
     }
   }, [handleVerify, crewId]);
+
+  useEffect(() => {
+    if (handleDecline) {
+      setIsDeclining(true);
+
+      if (!crewId) return;
+
+      declineCrew(crewId)
+        .then(() => {
+          toast({
+            title: "Success",
+            description: "Crew member declined successfully.",
+            variant: "success",
+          });
+        })
+        .catch((error) => {
+          const err = error as Error;
+          console.log("Error declining crew member:", err);
+          toast({
+            title: "Error",
+            description: "Crew did not register.",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          setIsDeclining(false);
+          setHandleDecline(false);
+        });
+    }
+  }, [handleDecline, crewId]);
+
+  useEffect(() => {
+    if (!crewId) return;
+
+    if (handleDecline || handleVerify) {
+      fetchCrewValidationDetails(crewId);
+    }
+  }, [crewId, fetchCrewValidationDetails, handleDecline, handleVerify]);
 
   const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
 
@@ -424,6 +472,9 @@ export default function CrewDetails() {
           handleTriggerVerify={handleTriggerVerify}
           isVerifying={isVerifying}
           isCrewVerified={isCrewVerified}
+          handleTriggerDecline={handleTriggerDecline}
+          isDeclining={isDeclining}
+          isRegistered={crewValidationDetails?.RegisterDate || null}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

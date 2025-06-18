@@ -44,6 +44,9 @@ interface CrewHeaderProps {
   handleTriggerVerify: () => void;
   isVerifying: boolean;
   isCrewVerified: number | null;
+  handleTriggerDecline: () => void;
+  isDeclining: boolean;
+  isRegistered: Date | null;
 }
 
 export function CrewHeader({
@@ -65,6 +68,9 @@ export function CrewHeader({
   handleTriggerVerify,
   isVerifying,
   isCrewVerified,
+  handleTriggerDecline,
+  isDeclining,
+  isRegistered,
 }: CrewHeaderProps) {
   return (
     <>
@@ -254,15 +260,25 @@ export function CrewHeader({
             <Button
               variant="destructive"
               className="px-6 bg-[#B63C3C] w-40"
-              disabled={isCrewVerified === 1}>
-              <CircleMinus className="h-4 w-4 mr-2" />
-              Decline
+              disabled={isCrewVerified === 1 || isDeclining || !isRegistered}
+              onClick={handleTriggerDecline}>
+              {isDeclining ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Declining...
+                </>
+              ) : (
+                <>
+                  <CircleMinus className="h-4 w-4 ml-2" />
+                  Decline Crew
+                </>
+              )}
             </Button>
 
             <Button
               className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40"
               onClick={handleTriggerVerify}
-              disabled={isVerifying || isCrewVerified === 1}>
+              disabled={isVerifying || isCrewVerified === 1 || !isRegistered}>
               {isVerifying ? (
                 <>
                   <Loader2 className="animate-spin" />
