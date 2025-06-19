@@ -52,7 +52,10 @@ export default function Allotment() {
     new Date().getFullYear().toString()
   );
 
+  //loading states
   const [payrollLoading, setPayrollLoading] = useState(false);
+  const [processLoading, setProcessLoading] = useState(false);
+  const [printLoading, setPrintLoading] = useState(false);
 
   // Format numbers to two decimal places
   const formatNumber = (value: number) => value?.toFixed(2);
@@ -153,6 +156,55 @@ export default function Allotment() {
       })
       .finally(() => {
         setPayrollLoading(false);
+      });
+  };
+
+  const handleProcessVessel = async () => {
+    setProcessLoading(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+      .then(() => {
+        toast({
+          title: "Vessel Processed",
+          description: "The vessel has been processed successfully.",
+          variant: "success",
+        });
+      })
+      .catch((error) => {
+        console.error("Error processing vessel:", error);
+        toast({
+          title: "Error Processing Vessel",
+          description: "An error occurred while processing the vessel.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setProcessLoading(false);
+      });
+  };
+
+  const handlePrintSummary = async () => {
+    setPrintLoading(true);
+
+    // Simulate print action
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+      .then(() => {
+        toast({
+          title: "Print Summary",
+          description: "The summary has been sent to the printer.",
+          variant: "success",
+        });
+      })
+      .catch((error) => {
+        console.error("Error printing summary:", error);
+        toast({
+          title: "Error Printing Summary",
+          description: "An error occurred while printing the summary.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setPrintLoading(false);
       });
   };
 
@@ -314,14 +366,26 @@ export default function Allotment() {
                 </SelectContent>
               </Select>
 
-              <Button className="bg-gray-200 text-gray-700 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full">
-                <TfiReload className="w-4 h-4" />
-                Process Vessel
+              <Button
+                className="bg-gray-300 text-gray-700 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full hover:bg-gray-400"
+                onClick={handleProcessVessel}
+                disabled={processLoading}>
+                {processLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <TfiReload className="w-4 h-4" />
+                    Process Vessel
+                  </>
+                )}
               </Button>
 
               <Button
                 variant="outline"
-                className="bg-blue-200 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
+                className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
                 onClick={handleProcessPayroll}
                 disabled={payrollLoading}>
                 {payrollLoading ? (
@@ -332,27 +396,37 @@ export default function Allotment() {
                 ) : (
                   <>
                     <MdOutlineFileUpload className="w-4 h-4" />
-                    Post Process Payroll
+                    Post Process Payrolls
                   </>
                 )}
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="whitespace-nowrap h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full">
+                  <Button
+                    className="whitespace-nowrap h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
+                    onClick={handlePrintSummary}
+                    disabled={printLoading}>
                     <AiOutlinePrinter className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
-                    Print Summary
+                    {printLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Printing...
+                      </>
+                    ) : (
+                      "Print Summary"
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="text-xs sm:text-sm">
                   <DropdownMenuItem asChild>
-                    <Link href="/">Allotment Register</Link>
+                    <Link href="">Allotment Register</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/">Deduction Register</Link>
+                    <Link href="">Deduction Register</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/">Allotment/Payslip</Link>
+                    <Link href="">Allotment/Payslip</Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
