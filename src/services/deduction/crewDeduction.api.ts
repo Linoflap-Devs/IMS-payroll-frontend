@@ -108,8 +108,8 @@ export interface philhealthDeductionResponse {
   message?: string;
 }
 
-export const getCrewPhilhealth = async (crewCode: string): Promise<philhealthDeductionResponse> => {
-  const response = await axiosInstance.get<philhealthDeductionResponse>(`/deductions/${crewCode}/philhealth`);
+export const getCrewPhilhealth = async (crewCode: string, year: number): Promise<philhealthDeductionResponse> => {
+  const response = await axiosInstance.get<philhealthDeductionResponse>(`/deductions/${crewCode}/philhealth?year=${year}`);
   return response.data;
 }
 
@@ -132,7 +132,7 @@ export interface sssDeductionResponse {
   message?: string;
 }
 
-export const getCrewSSS = async (crewCode: string): Promise<sssDeductionResponse> => {
-  const response = await axiosInstance.get<sssDeductionResponse>(`/deductions/${crewCode}/sss`);
+export const getCrewSSS = async (crewCode: string, year: number): Promise<sssDeductionResponse> => {
+  const response = await axiosInstance.get<sssDeductionResponse>(`/deductions/${crewCode}/sss?year=${year}`);
   return response.data;
 }

@@ -433,7 +433,7 @@ export default function DeductionEntries() {
       return;
     }
 
-    getCrewPhilhealth(crewCode)
+    getCrewPhilhealth(crewCode, Number(selectedPhilhealthYear))
       .then((response) => {
         if (response.success) {
           // setPhilhealthData(response.data);
@@ -478,7 +478,7 @@ export default function DeductionEntries() {
       return;
     }
 
-    getCrewSSS(crewCode)
+    getCrewSSS(crewCode, Number(selectedSSSYear))
       .then((response) => {
         if (response.success) {
           // Map the month names to their corresponding numbers
@@ -751,6 +751,14 @@ export default function DeductionEntries() {
     return (
       entry.Month === selectedMonth && entry.Year.toString() === selectedYear
     );
+  });
+
+  const filteredPhilhealthData = philhealthData.filter((entry) => {
+    return entry.PayrollYear.toString() === selectedPhilhealthYear;
+  });
+
+  const filteredSSSData = sssData.filter((entry) => {
+    return entry.PayrollYear.toString() === selectedSSSYear;
   });
 
   const handleSubmitHDMFUpgrade = () => {
@@ -1247,7 +1255,7 @@ export default function DeductionEntries() {
                       ) : (
                         <DataTable
                           columns={crewPhilhealthColumns()}
-                          data={philhealthData}
+                          data={filteredPhilhealthData}
                           pageSize={7}
                         />
                       )}
@@ -1308,7 +1316,7 @@ export default function DeductionEntries() {
                       ) : (
                         <DataTable
                           columns={crewSSSColumns()}
-                          data={sssData}
+                          data={filteredSSSData}
                           pageSize={7}
                         />
                       )}
