@@ -462,42 +462,52 @@ export default function Allotment() {
             <Card className="bg-blue-800 text-white py-3">
               <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
                 <p className="text-xl pt-0">Exchange rate of USD</p>
-                <h3 className="text-3xl font-bold self-end mt-4">
-                  {formatNumber(forexRate)}
-                </h3>
+                <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
+                  <p>₱</p>
+                  <p>{formatNumber(forexRate)}</p>
+                </div>
               </CardContent>
             </Card>
             <Card className="bg-blue-800 text-white py-3">
               <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
                 <p className="text-xl pt-0">Total Gross Allotment</p>
-                <h3 className="text-3xl font-bold self-end mt-4">
-                  {new Intl.NumberFormat(undefined, {
-                    maximumFractionDigits: 2,
-                    minimumFractionDigits: 2,
-                  }).format(Number(totalGross))}
-                </h3>
+                <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
+                  <p>₱</p>
+                  <p>
+                    {new Intl.NumberFormat(undefined, {
+                      maximumFractionDigits: 2,
+                      minimumFractionDigits: 2,
+                    }).format(Number(totalGross))}
+                  </p>
+                </div>
               </CardContent>
             </Card>
             <Card className="bg-blue-800 text-white py-3">
               <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
                 <p className="text-xl pt-0">Total Deduction</p>
-                <h3 className="text-3xl font-bold self-end mt-4">
-                  {new Intl.NumberFormat(undefined, {
-                    maximumFractionDigits: 2,
-                    minimumFractionDigits: 2,
-                  }).format(Number(totalDeduction))}
-                </h3>
+                <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
+                  <p>₱</p>
+                  <h3>
+                    {new Intl.NumberFormat(undefined, {
+                      maximumFractionDigits: 2,
+                      minimumFractionDigits: 2,
+                    }).format(Number(totalDeduction))}
+                  </h3>
+                </div>
               </CardContent>
             </Card>
             <Card className="bg-blue-800 text-white py-3">
               <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
                 <p className="text-xl pt-0">Total Net Allotment</p>
-                <h3 className="text-3xl font-bold self-end mt-4">
-                  {new Intl.NumberFormat(undefined, {
-                    maximumFractionDigits: 2,
-                    minimumFractionDigits: 2,
-                  }).format(Number(totalNet))}
-                </h3>
+                <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
+                  <p>₱</p>
+                  <p>
+                    {new Intl.NumberFormat(undefined, {
+                      maximumFractionDigits: 2,
+                      minimumFractionDigits: 2,
+                    }).format(Number(totalNet))}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>
