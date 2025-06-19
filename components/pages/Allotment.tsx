@@ -26,7 +26,7 @@ import {
   postPayrolls,
 } from "@/src/services/payroll/payroll.api";
 import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
-import { TfiReload } from "react-icons/tfi";
+// import { TfiReload } from "react-icons/tfi";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "../ui/use-toast";
@@ -65,6 +65,9 @@ export default function Allotment() {
   //loading states
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [printLoading, setPrintLoading] = useState(false);
+
+  //
+  // const [confirmDialog, setConfirmDialog] = useState(false);
 
   // Format numbers to two decimal places
   const formatNumber = (value: number) => value?.toFixed(2);
@@ -394,8 +397,8 @@ export default function Allotment() {
                     <AlertDialogAction
                       className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
                       onClick={handleProcessPayroll}
-                      disabled={processLoading}>
-                      {processLoading ? (
+                      disabled={payrollLoading}>
+                      {payrollLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Processing...
