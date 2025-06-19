@@ -367,6 +367,18 @@ export default function DeductionEntries() {
     [selectedYear, selectedMonth]
   );
 
+  useEffect(() => {
+    const tab = params.get("tab");
+    if (
+      tab &&
+      ["deduction-entries", "hdmf-upgrade", "philhealth", "sss"].includes(
+        tab.toString()
+      )
+    ) {
+      setActiveTab(tab.toString());
+    }
+  }, [params]);
+
   // Read the parameters from URL and fetch crew details
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

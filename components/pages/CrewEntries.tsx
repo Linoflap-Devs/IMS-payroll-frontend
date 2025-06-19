@@ -200,7 +200,7 @@ export default function Deduction() {
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
                 <DropdownMenuItem asChild className="text-xs sm:text-sm">
                   <Link
-                    href={`/home/deduction/deduction-entries?&crewCode=${encodeURIComponent(
+                    href={`/home/deduction/deduction-entries?tab=deduction-entries&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
                     )}`}>
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
@@ -209,7 +209,7 @@ export default function Deduction() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="text-xs sm:text-sm">
                   <Link
-                    href={`/home/deduction/deduction-entries?tab=hdmf-upgrade&&crewCode=${encodeURIComponent(
+                    href={`/home/deduction/deduction-entries?tab=hdmf-upgrade&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
                     )}`}>
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
@@ -218,7 +218,7 @@ export default function Deduction() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="text-xs sm:text-sm">
                   <Link
-                    href={`/home/deduction/deduction-entries?tab=philhealth&&crewCode=${encodeURIComponent(
+                    href={`/home/deduction/deduction-entries?tab=philhealth&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
                     )}`}>
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
@@ -227,7 +227,7 @@ export default function Deduction() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="text-xs sm:text-sm">
                   <Link
-                    href={`/home/deduction/deduction-entries?tab=sss&&crewCode=${encodeURIComponent(
+                    href={`/home/deduction/deduction-entries?tab=sss&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
                     )}`}>
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
