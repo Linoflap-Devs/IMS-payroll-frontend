@@ -49,83 +49,47 @@ import {
 
 const deductionDescriptionData = [
   {
+    deductionId: 0,
     deductionCode: "DED001",
     deductionName: "Deduction 1",
     deductionType: "Percentage",
     currency: "PHP",
   },
   {
+    deductionId: 1,
     deductionCode: "DED002",
     deductionName: "Deduction 2",
     deductionType: "Fixed Amount",
     currency: "PHP",
   },
   {
+    deductionId: 2,
     deductionCode: "DED003",
     deductionName: "Deduction 3",
     deductionType: "Loan Type",
     currency: "PHP",
   },
   {
+    deductionId: 3,
     deductionCode: "DED004",
     deductionName: "Deduction 4",
     deductionType: "Loan Type",
     currency: "PHP",
   },
   {
+    deductionId: 4,
     deductionCode: "DED005",
     deductionName: "Deduction 5",
     deductionType: "Loan Type",
     currency: "PHP",
   },
   {
+    deductionId: 5,
     deductionCode: "DED006",
     deductionName: "Deduction 6",
     deductionType: "Loan Type",
     currency: "PHP",
-  },
-  {
-    deductionCode: "DED007",
-    deductionName: "Deduction 7",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED008",
-    deductionName: "Deduction 8",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED009",
-    deductionName: "Deduction 9",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED010",
-    deductionName: "Deduction 10",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED011",
-    deductionName: "Deduction 11",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED012",
-    deductionName: "Deduction 12",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
-  {
-    deductionCode: "DED013",
-    deductionName: "Deduction 13",
-    deductionType: "Loan Type",
-    currency: "PHP",
-  },
+  }
 ];
 
 type CrewDeduction = {
@@ -152,6 +116,8 @@ export default function Deduction() {
   const [crewDeductionData, setCrewDeductionData] = useState<CrewDeduction[]>(
     []
   );
+
+  const [onSuccess, setOnSuccess] = useState<boolean>(false);
 
   useEffect(() => {
     getCrewDeductionList()
@@ -543,12 +509,20 @@ export default function Deduction() {
       <AddDeductionTypeDialog
         open={addDeductionTypeDialogOpen}
         onOpenChange={setAddDeductionTypeDialogOpen}
+        setOnSuccess={setOnSuccess}
       />
       {selectedDeduction && (
         <EditDeductionTypeDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
-          deduction={selectedDeduction}
+          deduction={{
+            DeductionID: selectedDeduction.deductionId,
+            DeductionCode: selectedDeduction.deductionCode,
+            DeductionName: selectedDeduction.deductionName,
+            DeductionType: Number(selectedDeduction.deductionType),
+            DeductionCurrency: Number(selectedDeduction.currency),
+          }}
+          setOnSuccess={setOnSuccess}
         />
       )}
     </>
