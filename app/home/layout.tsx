@@ -90,6 +90,8 @@ function Sidebar({
             <Image
               src="/logo.png"
               alt="Profile Logo"
+              width={50}
+              height={50}
               className="object-contain h-full w-full"
             />
           </div>
