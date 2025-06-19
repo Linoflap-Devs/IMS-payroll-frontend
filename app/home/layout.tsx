@@ -8,19 +8,11 @@ import {
   Menu,
   LayoutDashboard,
   Users,
-  CreditCard,
-  FileText,
-  Settings,
   LogOut,
-  Building2,
-  ChevronLeft,
-  ChevronRight,
-  Home,
   ChevronRight as ChevronRightIcon,
   PanelLeft,
   PanelLeftClose,
   Ship,
-  HandCoins,
   CircleMinus,
   ChevronDown,
 } from "lucide-react";
@@ -34,6 +26,7 @@ import { MdOutlinePendingActions } from "react-icons/md";
 import { PiClockCounterClockwiseBold } from "react-icons/pi";
 import { logoutUser } from "@/src/services/auth/auth.api";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 // Define the Sidebar component interface
 interface SidebarProps {
@@ -58,7 +51,7 @@ interface SidebarProps {
 function Sidebar({
   routes,
   isCollapsed,
-  onToggleCollapse,
+  // onToggleCollapse,
   userEmail,
   onLogout,
 }: SidebarProps) {
@@ -82,22 +75,19 @@ function Sidebar({
         className={cn(
           "flex h-full flex-col rounded-xl bg-background text-sidebar-foreground transition-all duration-300 gap-y-3",
           isCollapsed ? "w-18" : "w-full"
-        )}
-      >
+        )}>
         {/* Logo and Title */}
         <div
           className={cn(
             "flex h-20 items-center bg-[#F9F9F9] rounded-lg shadow-sm",
             isCollapsed ? "justify-center px-2" : "px-4"
-          )}
-        >
+          )}>
           <div
             className={cn(
               "flex h-15 w-15 items-center justify-center",
               isCollapsed ? "mr-0" : "mr-3"
-            )}
-          >
-            <img
+            )}>
+            <Image
               src="/logo.png"
               alt="Profile Logo"
               className="object-contain h-full w-full"
@@ -139,8 +129,7 @@ function Sidebar({
                           toggleDropdown(route.label);
                         }
                       }}
-                      title={isCollapsed ? route.label : ""}
-                    >
+                      title={isCollapsed ? route.label : ""}>
                       <route.icon
                         className={cn(
                           "h-6 w-6",
@@ -172,8 +161,7 @@ function Sidebar({
                               subItem.active
                                 ? "bg-white text-primary font-medium shadow-sm"
                                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                            )}
-                          >
+                            )}>
                             {subItem.label}
                           </Link>
                         ))}
@@ -194,8 +182,7 @@ function Sidebar({
                           )
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     )}
-                    title={isCollapsed ? route.label : ""}
-                  >
+                    title={isCollapsed ? route.label : ""}>
                     <route.icon
                       className={cn(
                         "h-6 w-6",
@@ -215,19 +202,16 @@ function Sidebar({
           className={cn(
             "mt-auto bg-[#F9F9F9] rounded-lg shadow-sm",
             isCollapsed ? "p-2" : "p-4"
-          )}
-        >
+          )}>
           <div
             className={cn(
               "flex items-center rounded-lg",
               isCollapsed ? "justify-center py-2" : "gap-3 px-3 py-2"
-            )}
-          >
+            )}>
             <Avatar
               className={cn(
                 isCollapsed ? "h-10 w-10 flex-shrink-0" : "flex-shrink-0"
-              )}
-            >
+              )}>
               <AvatarImage src="" />
               <AvatarFallback className="bg-primary text-primary-foreground text-base">
                 {userEmail ? userEmail.substring(0, 2).toUpperCase() : ""}
@@ -480,8 +464,7 @@ export default function HomeLayout({
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-4 top-4 z-40"
-          >
+            className="absolute left-4 top-4 z-40">
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle navigation</span>
           </Button>
@@ -503,8 +486,7 @@ export default function HomeLayout({
           "hidden md:block transition-all duration-300 mr-0",
           isSidebarCollapsed ? "md:w-20 mr-3" : "md:w-64",
           "md:p-4"
-        )}
-      >
+        )}>
         <Sidebar
           routes={routes}
           isCollapsed={isSidebarCollapsed}
@@ -527,8 +509,7 @@ export default function HomeLayout({
               onKeyDown={(e) => {
                 if (e.key === "Enter")
                   setIsSidebarCollapsed(!isSidebarCollapsed);
-              }}
-            >
+              }}>
               {isSidebarCollapsed ? (
                 <PanelLeft className="h-5 w-5 text-primary" />
               ) : (
