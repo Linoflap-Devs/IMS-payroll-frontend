@@ -51,7 +51,7 @@ export const getVesselAllotmentRegister = async (vesselId: string | number): Pro
   return response.data;
 }
 
-export interface Deductions{
+export interface Deductions {
   Name: string;
   Amount: number;
   ExchangeRate: number;
@@ -59,14 +59,14 @@ export interface Deductions{
 
 }
 
-export interface DeductionRegister{
-  CrewID:number;
+export interface DeductionRegister {
+  CrewID: number;
   CrewName: string;
   Rank: string;
   Salary: number;
   Allotment: number;
   Gross: number;
-  Deduction:number;
+  Deduction: number;
   Deductions: Deductions[];
 }
 
@@ -151,3 +151,9 @@ export const getVesselPayslip = async (vesselId: string | number, month: number,
   const response = await axiosInstance.get<PayslipResponse>(`/payroll/${vesselId}/payslip?month=${month}&year=${year}`);
   return response.data;
 }
+
+export const postPayrolls = async (month: string, year: string): Promise<PayslipResponse> => {
+  const response = await axiosInstance.post<PayslipResponse>("/payroll", { month, year });
+  return response.data;
+}
+

@@ -16,16 +16,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { Loader2, MoreHorizontal } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
-import { getPayrollList } from "@/src/services/payroll/payroll.api";
+import {
+  getPayrollList,
+  postPayrolls,
+} from "@/src/services/payroll/payroll.api";
 import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
 import { TfiReload } from "react-icons/tfi";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { useDebounce } from "@/lib/useDebounce";
+import { toast } from "../ui/use-toast";
 
 type Payroll = {
   vesselId: number;
@@ -47,6 +51,8 @@ export default function Allotment() {
   const [yearFilter, setYearFilter] = useState(
     new Date().getFullYear().toString()
   );
+
+  const [payrollLoading, setPayrollLoading] = useState(false);
 
   // Format numbers to two decimal places
   const formatNumber = (value: number) => value?.toFixed(2);
@@ -115,6 +121,40 @@ export default function Allotment() {
     0
   );
   const totalNet = payrollData.reduce((sum, p) => sum + p.netAllotment, 0);
+
+  const handleProcessPayroll = async () => {
+    console.log(
+      "Processing payroll for month:",
+      monthFilter,
+      "year:",
+      yearFilter
+    );
+
+    setPayrollLoading(true);
+    await postPayrolls(monthFilter, yearFilter)
+      .then((response) => {
+        if (response.success) {
+          toast({
+            title: "Payroll Processed",
+            description: `Payroll for ${
+              monthNames[parseInt(monthFilter) - 1]
+            } ${yearFilter} has been processed successfully.`,
+            variant: "success",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error processing payroll:", error);
+        toast({
+          title: "Error Processing Payroll",
+          description: "An error occurred while processing the payroll.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setPayrollLoading(false);
+      });
+  };
 
   const columns: ColumnDef<Payroll>[] = [
     {
@@ -281,9 +321,20 @@ export default function Allotment() {
 
               <Button
                 variant="outline"
-                className="bg-blue-200 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full">
-                <MdOutlineFileUpload className="w-4 h-4" />
-                Post Process Payroll
+                className="bg-blue-200 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
+                onClick={handleProcessPayroll}
+                disabled={payrollLoading}>
+                {payrollLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <MdOutlineFileUpload className="w-4 h-4" />
+                    Post Process Payroll
+                  </>
+                )}
               </Button>
 
               <DropdownMenu>
