@@ -68,7 +68,7 @@ export default function Allotment() {
   const [printLoading, setPrintLoading] = useState(false);
 
   //
-  const [confirmDialog, setConfirmDialog] = useState(false);
+  // const [confirmDialog, setConfirmDialog] = useState(false);
 
   // Format numbers to two decimal places
   const formatNumber = (value: number) => value?.toFixed(2);
