@@ -358,7 +358,7 @@ export default function Allotment() {
               {/* <Button className="bg-gray-300 text-gray-700 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full hover:bg-gray-400">
                 Process Vessel
               </Button> */}
-            
+
               <div></div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -415,7 +415,7 @@ export default function Allotment() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    className="whitespace-nowrap h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
+                    className="whitespace-nowrap h-9 sm:h-10 px-4 sm:px-6 text-xs sm:text-sm w-full"
                     onClick={handlePrintSummary}
                     disabled={printLoading}>
                     <AiOutlinePrinter className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
@@ -429,15 +429,21 @@ export default function Allotment() {
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+                <DropdownMenuContent className="text-xs sm:text-sm w-[200px] min-w-[100%]">
                   <DropdownMenuItem asChild>
-                    <Link href="">Allotment Register</Link>
+                    <Link href="" className="w-full">
+                      Allotment Register
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="">Deduction Register</Link>
+                    <Link href="" className="w-full">
+                      Deduction Register
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="">Allotment/Payslip</Link>
+                    <Link href="" className="w-full">
+                      Allotment/Payslip
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
