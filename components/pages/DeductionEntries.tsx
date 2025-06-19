@@ -429,7 +429,7 @@ export default function DeductionEntries() {
       const fetchCrewHDMFUpgrade = async () => {
         getCrewHDMFUpgrade(crewData.crewCode)
           .then((response) => {
-            if (response.success && response.data && response.data.length > 0) {
+            if (response.success && response.data) {
               const hdmfData = response.data[0];
 
               // Set the current values
@@ -440,7 +440,7 @@ export default function DeductionEntries() {
               setHDMFUpgradeAmount(hdmfData.HDMFAmount ?? 0);
               setIsDollar(hdmfData.DollarCurrency === 1);
             } else {
-              console.error("Failed to fetch HDMF Upgrade:", response.message);
+              console.error("Failed to fetch HDMF Upgrade:", response);
             }
           })
           .catch((error) => {
@@ -519,7 +519,6 @@ export default function DeductionEntries() {
         }
       })
       .catch((error) => {
-        console.error("Error saving HDMF Upgrade Amount:", error);
         toast({
           title: "Error saving HDMF Upgrade Amount",
           description: error.message || "An error occurred",
@@ -544,7 +543,7 @@ export default function DeductionEntries() {
             </Link>
             <h1 className="text-3xl font-semibold">Crew Deduction Entries</h1>
           </div>
-          {activeTab !== "hdmf-upgrade" && (
+          {activeTab === "deduction-entries" && (
             <Button
               className="bg-primary hover:bg-primary/90"
               onClick={() => setIsAddDeductionOpen(true)}>
@@ -706,13 +705,23 @@ export default function DeductionEntries() {
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
                       <TabsTrigger
                         value="deduction-entries"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         Deduction Entries
                       </TabsTrigger>
                       <TabsTrigger
                         value="hdmf-upgrade"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
                         HDMF Upgrade Contributions
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="philhealth"
+                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        Philhealth
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="sss"
+                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        SSS
                       </TabsTrigger>
                     </TabsList>
                   </div>
@@ -924,6 +933,18 @@ export default function DeductionEntries() {
                       </div>
                     </div>
                   </div>
+                </TabsContent>
+
+                <TabsContent
+                  value="philhealth"
+                  className="p-6 mt-0 overflow-y-auto flex-1">
+                  HELLO
+                </TabsContent>
+
+                <TabsContent
+                  value="sss"
+                  className="p-6 mt-0 overflow-y-auto flex-1">
+                  HELLO SSS
                 </TabsContent>
               </Tabs>
             </Card>
