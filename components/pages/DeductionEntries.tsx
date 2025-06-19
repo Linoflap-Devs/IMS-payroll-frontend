@@ -437,11 +437,12 @@ export default function DeductionEntries() {
               // setCurrentIsDollar(hdmfData.DollarCurrency ?? 0);
 
               // Initialize the form fields with current values
-              setHDMFUpgradeAmount(hdmfData.HDMFAmount ?? 0);
-              setIsDollar(hdmfData.DollarCurrency === 1);
+              setHDMFUpgradeAmount(hdmfData?.HDMFAmount ?? 0);
+              setIsDollar(hdmfData?.DollarCurrency === 1);
             } else {
               console.error("Failed to fetch HDMF Upgrade:", response);
             }
+            console.log(response.data);
           })
           .catch((error) => {
             console.error("Error fetching HDMF Upgrade:", error);
