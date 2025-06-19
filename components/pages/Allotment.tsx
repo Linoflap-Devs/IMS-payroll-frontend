@@ -358,7 +358,8 @@ export default function Allotment() {
               {/* <Button className="bg-gray-300 text-gray-700 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full hover:bg-gray-400">
                 Process Vessel
               </Button> */}
-
+            
+              <div></div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
