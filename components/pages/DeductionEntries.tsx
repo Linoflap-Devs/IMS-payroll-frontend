@@ -722,12 +722,12 @@ export default function DeductionEntries() {
                       <TabsTrigger
                         value="philhealth"
                         className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
-                        Philhealth
+                        Philhealth Contributions
                       </TabsTrigger>
                       <TabsTrigger
                         value="sss"
                         className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
-                        SSS
+                        SSS Contributions
                       </TabsTrigger>
                     </TabsList>
                   </div>

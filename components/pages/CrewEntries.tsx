@@ -216,12 +216,24 @@ export default function Deduction() {
                     View HDMF Upgrade Contributions
                   </Link>
                 </DropdownMenuItem>
-                {/* <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                  <Link href={`/`}>
+                <DropdownMenuItem asChild className="text-xs sm:text-sm">
+                  <Link
+                    href={`/home/deduction/deduction-entries?tab=philhealth&&crewCode=${encodeURIComponent(
+                      row.getValue("CrewCode")
+                    )}`}>
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    View Remittance
+                    View PhilHealth Contributions
                   </Link>
-                </DropdownMenuItem> */}
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="text-xs sm:text-sm">
+                  <Link
+                    href={`/home/deduction/deduction-entries?tab=sss&&crewCode=${encodeURIComponent(
+                      row.getValue("CrewCode")
+                    )}`}>
+                    <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    View SSS Contributions
+                  </Link>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
