@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, MoreHorizontal } from "lucide-react";
+import { CircleAlert, Loader2, MoreHorizontal } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
@@ -30,6 +30,16 @@ import { TfiReload } from "react-icons/tfi";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "../ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
 
 type Payroll = {
   vesselId: number;
@@ -56,6 +66,9 @@ export default function Allotment() {
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [processLoading, setProcessLoading] = useState(false);
   const [printLoading, setPrintLoading] = useState(false);
+
+  //
+  const [confirmDialog, setConfirmDialog] = useState(false);
 
   // Format numbers to two decimal places
   const formatNumber = (value: number) => value?.toFixed(2);
@@ -383,7 +396,7 @@ export default function Allotment() {
                 )}
               </Button>
 
-              <Button
+              {/* <Button
                 variant="outline"
                 className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
                 onClick={handleProcessPayroll}
@@ -398,8 +411,62 @@ export default function Allotment() {
                     <MdOutlineFileUpload className="w-4 h-4" />
                     Post Process Payrolls
                   </>
-                )}
-              </Button>
+
+                )} 
+                                                 </Button>
+
+                 */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
+                    disabled={payrollLoading}>
+                    {payrollLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <MdOutlineFileUpload className="w-4 h-4" />
+                        Post Process Payrolls
+                      </>
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+
+                <AlertDialogContent className="bg-white p-10">
+                  <AlertDialogHeader className="flex items-center">
+                    <CircleAlert size={120} strokeWidth={1} color="orange" />
+                    <AlertDialogTitle className="text-3xl">
+                      Are you sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-center text-md">
+                      This action cannot be undone. This will permanently delete
+                      your account and remove your data from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <div className="flex items-center justify-center space-x-4 px-4">
+                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white hover:text-white">
+                      No, Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
+                      onClick={handleProcessPayroll}
+                      disabled={processLoading}>
+                      {processLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Yes, Process Payroll"
+                      )}
+                    </AlertDialogAction>
+                  </div>
+                </AlertDialogContent>
+              </AlertDialog>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
