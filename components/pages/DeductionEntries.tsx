@@ -64,7 +64,6 @@ import Base64Image from "../Base64Image";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { toast } from "../ui/use-toast";
-import { PiKeyReturnLight } from "react-icons/pi";
 
 type Props = {
   crewCode: string | null;
@@ -421,10 +420,13 @@ export default function DeductionEntries() {
   const [philhealthData, setPhilhealthData] = useState<
     philhealthDeductionItem[]
   >([]);
-  const [philhealthYear, setPhilhealthYear] = useState<string>("all");
+  const [selectedPhilhealthYear, setSelectedPhilhealthYear] =
+    useState<string>("all");
+  const [philhealthYears, setPhilhealthYears] = useState<string[]>([]);
 
   const [sssData, setSSSData] = useState<sssDeductionItem[]>([]);
-  const [sssYear, setSSSYear] = useState<string>("all");
+  const [selectedSSSYear, setSelectedSSSYear] = useState<string>("all");
+  const [sssYears, setSSSYears] = useState<string[]>([]);
 
   useEffect(() => {
     if (!crewCode) {
@@ -442,8 +444,21 @@ export default function DeductionEntries() {
             Month: monthMap[item.PayrollMonth],
           }));
 
+          const years = [
+            ...new Set(
+              response.data.map((entry) => entry.PayrollYear.toString())
+            ),
+          ];
+
+          years.sort((a, b) => parseInt(b) - parseInt(a));
+
+          setPhilhealthYears(years);
+
+          if (years.length > 0 && !years.includes(selectedPhilhealthYear)) {
+            setSelectedPhilhealthYear(years[0]);
+          }
+
           setPhilhealthData(mappedData);
-          console.log("PhilHealth Data:", mappedData);
         } else {
           console.error("Failed to fetch PhilHealth data:", response.message);
         }
@@ -456,7 +471,7 @@ export default function DeductionEntries() {
           variant: "destructive",
         });
       });
-  }, [crewCode, philhealthYear, monthMap]);
+  }, [crewCode, selectedPhilhealthYear, monthMap]);
 
   useEffect(() => {
     if (!crewCode) {
@@ -472,8 +487,21 @@ export default function DeductionEntries() {
             Month: monthMap[item.PayrollMonth],
           }));
 
+          const years = [
+            ...new Set(
+              response.data.map((entry) => entry.PayrollYear.toString())
+            ),
+          ];
+
+          years.sort((a, b) => parseInt(b) - parseInt(a));
+
+          setSSSYears(years);
+
+          if (years.length > 0 && !years.includes(selectedSSSYear)) {
+            setSelectedSSSYear(years[0]);
+          }
+
           setSSSData(mappedData);
-          console.log("SSS Data:", mappedData);
         } else {
           console.error("Failed to fetch SSS data:", response.message);
         }
@@ -486,7 +514,7 @@ export default function DeductionEntries() {
           variant: "destructive",
         });
       });
-  });
+  }, [crewCode, selectedSSSYear, monthMap]);
 
   // Function to fetch deduction entries
   const fetchDeductionEntries = useCallback(
@@ -1174,8 +1202,8 @@ export default function DeductionEntries() {
                       <div className="w-1/2"></div>
                       <div className="w-1/2">
                         <Select
-                          value={selectedYear}
-                          onValueChange={setSelectedYear}>
+                          value={selectedPhilhealthYear}
+                          onValueChange={setSelectedPhilhealthYear}>
                           <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                             <div className="flex items-center w-full">
                               <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
@@ -1185,8 +1213,8 @@ export default function DeductionEntries() {
                             </div>
                           </SelectTrigger>
                           <SelectContent>
-                            {availableYears.length > 0 ? (
-                              availableYears.map((year) => (
+                            {philhealthYears.length > 0 ? (
+                              philhealthYears.map((year) => (
                                 <SelectItem key={year} value={year}>
                                   {year}
                                 </SelectItem>
@@ -1235,8 +1263,8 @@ export default function DeductionEntries() {
                       <div className="w-1/2"></div>
                       <div className="w-1/2">
                         <Select
-                          value={selectedYear}
-                          onValueChange={setSelectedYear}>
+                          value={selectedSSSYear}
+                          onValueChange={setSelectedSSSYear}>
                           <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                             <div className="flex items-center w-full">
                               <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
@@ -1246,8 +1274,8 @@ export default function DeductionEntries() {
                             </div>
                           </SelectTrigger>
                           <SelectContent>
-                            {availableYears.length > 0 ? (
-                              availableYears.map((year) => (
+                            {sssYears.length > 0 ? (
+                              sssYears.map((year) => (
                                 <SelectItem key={year} value={year}>
                                   {year}
                                 </SelectItem>
