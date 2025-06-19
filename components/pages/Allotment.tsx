@@ -220,7 +220,10 @@ export default function Allotment() {
       header: "Gross Allotment",
       cell: ({ row }) => (
         <div className="text-xs sm:text-sm text-center">
-          {formatNumber(Number(row.getValue("grossAllotment")))}
+          {new Intl.NumberFormat(undefined, {
+            maximumFractionDigits: 2,
+            minimumFractionDigits: 2,
+          }).format(Number(row.getValue("grossAllotment")))}
         </div>
       ),
     },
@@ -229,7 +232,10 @@ export default function Allotment() {
       header: "Total Deductions",
       cell: ({ row }) => (
         <div className="text-xs sm:text-sm text-center">
-          {formatNumber(Number(row.getValue("totalDeductions")))}
+          {new Intl.NumberFormat(undefined, {
+            maximumFractionDigits: 2,
+            minimumFractionDigits: 2,
+          }).format(Number(row.getValue("totalDeductions")))}
         </div>
       ),
     },
@@ -238,7 +244,10 @@ export default function Allotment() {
       header: "Net Allotment",
       cell: ({ row }) => (
         <div className="text-xs sm:text-sm text-center">
-          {formatNumber(Number(row.getValue("netAllotment")))}
+          {new Intl.NumberFormat(undefined, {
+            maximumFractionDigits: 2,
+            minimumFractionDigits: 2,
+          }).format(Number(row.getValue("netAllotment")))}
         </div>
       ),
     },
@@ -386,8 +395,7 @@ export default function Allotment() {
                       Are you sure?
                     </AlertDialogTitle>
                     <AlertDialogDescription className="text-center text-md">
-                      This action cannot be undone. This will permanently delete
-                      your account and remove your data from our servers.
+                      This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
 
@@ -463,7 +471,10 @@ export default function Allotment() {
               <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
                 <p className="text-xl pt-0">Total Gross Allotment</p>
                 <h3 className="text-3xl font-bold self-end mt-4">
-                  {formatNumber(totalGross)}
+                  {new Intl.NumberFormat(undefined, {
+                    maximumFractionDigits: 2,
+                    minimumFractionDigits: 2,
+                  }).format(Number(totalGross))}
                 </h3>
               </CardContent>
             </Card>
@@ -471,7 +482,10 @@ export default function Allotment() {
               <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
                 <p className="text-xl pt-0">Total Deduction</p>
                 <h3 className="text-3xl font-bold self-end mt-4">
-                  {formatNumber(totalDeduction)}
+                  {new Intl.NumberFormat(undefined, {
+                    maximumFractionDigits: 2,
+                    minimumFractionDigits: 2,
+                  }).format(Number(totalDeduction))}
                 </h3>
               </CardContent>
             </Card>
@@ -479,7 +493,10 @@ export default function Allotment() {
               <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
                 <p className="text-xl pt-0">Total Net Allotment</p>
                 <h3 className="text-3xl font-bold self-end mt-4">
-                  {formatNumber(totalNet)}
+                  {new Intl.NumberFormat(undefined, {
+                    maximumFractionDigits: 2,
+                    minimumFractionDigits: 2,
+                  }).format(Number(totalNet))}
                 </h3>
               </CardContent>
             </Card>
