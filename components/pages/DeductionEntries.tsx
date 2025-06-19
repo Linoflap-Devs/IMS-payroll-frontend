@@ -943,13 +943,104 @@ export default function DeductionEntries() {
                 <TabsContent
                   value="philhealth"
                   className="p-6 mt-0 overflow-y-auto flex-1">
-                  HELLO
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-center gap-6 w-full">
+                      <div className="w-1/2"></div>
+                      <div className="w-1/2">
+                        <Select
+                          value={selectedYear}
+                          onValueChange={setSelectedYear}>
+                          <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
+                            <div className="flex items-center w-full">
+                              <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
+                                Select Year
+                              </span>
+                              <SelectValue className="text-black text-base pl-3" />
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableYears.length > 0 ? (
+                              availableYears.map((year) => (
+                                <SelectItem key={year} value={year}>
+                                  {year}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <>
+                                <SelectItem value="2025">2025</SelectItem>
+                                <SelectItem value="2024">2024</SelectItem>
+                                <SelectItem value="2023">2023</SelectItem>
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
+                      {loading ? (
+                        <div className="flex justify-center items-center py-10">
+                          <p>Loading deduction entries...</p>
+                        </div>
+                      ) : error ? (
+                        <div className="flex justify-center items-center py-10 text-red-500">
+                          <p>{error}</p>
+                        </div>
+                      ) : filteredEntries.length === 0 ? (
+                        <div className="flex justify-center items-center py-10">
+                          <p>No deduction entries found for this period.</p>
+                        </div>
+                      ) : (
+                        <DataTable
+                          columns={apiDeductionColumns({
+                            crewCode,
+                            setOnSuccess,
+                          })}
+                          data={filteredEntries}
+                          pageSize={7}
+                        />
+                      )}
+                    </div> */}
+                  </div>
                 </TabsContent>
 
                 <TabsContent
                   value="sss"
                   className="p-6 mt-0 overflow-y-auto flex-1">
-                  HELLO SSS
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-center gap-6 w-full">
+                      <div className="w-1/2"></div>
+                      <div className="w-1/2">
+                        <Select
+                          value={selectedYear}
+                          onValueChange={setSelectedYear}>
+                          <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
+                            <div className="flex items-center w-full">
+                              <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
+                                Select Year
+                              </span>
+                              <SelectValue className="text-black text-base pl-3" />
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableYears.length > 0 ? (
+                              availableYears.map((year) => (
+                                <SelectItem key={year} value={year}>
+                                  {year}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <>
+                                <SelectItem value="2025">2025</SelectItem>
+                                <SelectItem value="2024">2024</SelectItem>
+                                <SelectItem value="2023">2023</SelectItem>
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
                 </TabsContent>
               </Tabs>
             </Card>
