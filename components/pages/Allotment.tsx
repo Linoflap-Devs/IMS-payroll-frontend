@@ -110,7 +110,7 @@ export default function Allotment() {
 
     fetchDashboardData();
 
-    getPayrollList()
+    getPayrollList(Number(monthFilter), Number(yearFilter))
       .then((res) => {
         if (res.success) {
           const mapped: Payroll[] = res.data.map((item) => ({
@@ -127,7 +127,7 @@ export default function Allotment() {
         }
       })
       .catch((err) => console.error("Error fetching payroll list:", err));
-  }, []);
+  }, [monthFilter, yearFilter]);
 
   // Calculate totals
   const totalGross = payrollData.reduce((sum, p) => sum + p.grossAllotment, 0);

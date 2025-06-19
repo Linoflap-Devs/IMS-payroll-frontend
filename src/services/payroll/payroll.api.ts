@@ -13,8 +13,8 @@ export interface PayrollResponse {
   data: PayrollItem[];
   message?: string;
 }
-export const getPayrollList = async (): Promise<PayrollResponse> => {
-  const response = await axiosInstance.get<PayrollResponse>("/payroll");
+export const getPayrollList = async (month: number, year: number): Promise<PayrollResponse> => {
+  const response = await axiosInstance.get<PayrollResponse>(`/payroll?month=${month}&year=${year}`);
   return response.data;
 }
 
