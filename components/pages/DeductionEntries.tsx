@@ -6,6 +6,7 @@ import {
   useCallback,
   Dispatch,
   SetStateAction,
+  useMemo,
 } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,17 +54,141 @@ import {
   updateCrewDeductionEntry,
   addHDMFUpgrade,
   getCrewHDMFUpgrade,
+  getCrewPhilhealth,
+  philhealthDeductionItem,
+  getCrewSSS,
+  sssDeductionItem,
 } from "@/src/services/deduction/crewDeduction.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { toast } from "../ui/use-toast";
+import { PiKeyReturnLight } from "react-icons/pi";
 
 type Props = {
   crewCode: string | null;
   setOnSuccess: Dispatch<SetStateAction<boolean>>;
 };
+
+interface DeductionEntriesItem extends philhealthDeductionItem {
+  Month?: string; // Month name
+}
+
+interface sssDeductionItemWithMonth extends sssDeductionItem {
+  Month?: string;
+}
+
+const crewPhilhealthColumns = ({} = {}): ColumnDef<DeductionEntriesItem>[] => [
+  {
+    accessorKey: "Month",
+    header: "Month",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.Month}</div>;
+    },
+  },
+  {
+    accessorKey: "PayrollYear",
+    header: "Year",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.PayrollYear}</div>;
+    },
+  },
+  {
+    accessorKey: "Salary",
+    header: "Salary",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.Salary}</div>;
+    },
+  },
+  {
+    accessorKey: "EEPremiumRate",
+    header: "EE Premium Rate",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.EEPremiumRate}</div>;
+    },
+  },
+  {
+    accessorKey: "EEPremium",
+    header: "EE Premium",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.EEPremium}</div>;
+    },
+  },
+];
+
+const crewSSSColumns = ({} = {}): ColumnDef<sssDeductionItemWithMonth>[] => [
+  {
+    accessorKey: "Month",
+    header: "Month",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.Month}</div>;
+    },
+  },
+  {
+    accessorKey: "PayrollYear",
+    header: "Year",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.PayrollYear}</div>;
+    },
+  },
+  {
+    accessorKey: "Salary",
+    header: "Salary",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.Salary}</div>;
+    },
+  },
+  {
+    accessorKey: "RegularSS",
+    header: "Regular SSS",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.RegularSS}</div>;
+    },
+  },
+  {
+    accessorKey: "MutualFund",
+    header: "Mutual Fund",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.MutualFund}</div>;
+    },
+  },
+  {
+    accessorKey: "ERSS",
+    header: "ER SSS",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.ERSS}</div>;
+    },
+  },
+  {
+    accessorKey: "ERMF",
+    header: "ER MF",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.ERMF}</div>;
+    },
+  },
+  {
+    accessorKey: "EC",
+    header: "EC",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.EC}</div>;
+    },
+  },
+  {
+    accessorKey: "EESS",
+    header: "EE SSS",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.EESS}</div>;
+    },
+  },
+  {
+    accessorKey: "EEMF",
+    header: "EE MF",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.EEMF}</div>;
+    },
+  },
+];
 
 const apiDeductionColumns = ({
   crewCode,
@@ -274,6 +399,95 @@ export default function DeductionEntries() {
   // const [currentIsDollar, setCurrentIsDollar] = useState<number>(0);
   const [onSuccessHDMF, setOnSuccessHDMF] = useState(false);
 
+  const monthMap = useMemo<Record<number, string>>(
+    () => ({
+      1: "January",
+      2: "February",
+      3: "March",
+      4: "April",
+      5: "May",
+      6: "June",
+      7: "July",
+      8: "August",
+      9: "September",
+      10: "October",
+      11: "November",
+      12: "December",
+    }),
+    []
+  );
+
+  // years select
+  const [philhealthData, setPhilhealthData] = useState<
+    philhealthDeductionItem[]
+  >([]);
+  const [philhealthYear, setPhilhealthYear] = useState<string>("all");
+
+  const [sssData, setSSSData] = useState<sssDeductionItem[]>([]);
+  const [sssYear, setSSSYear] = useState<string>("all");
+
+  useEffect(() => {
+    if (!crewCode) {
+      return;
+    }
+
+    getCrewPhilhealth(crewCode)
+      .then((response) => {
+        if (response.success) {
+          // setPhilhealthData(response.data);
+
+          // Map the month names to their corresponding numbers
+          const mappedData = response.data.map((item) => ({
+            ...item,
+            Month: monthMap[item.PayrollMonth],
+          }));
+
+          setPhilhealthData(mappedData);
+          console.log("PhilHealth Data:", mappedData);
+        } else {
+          console.error("Failed to fetch PhilHealth data:", response.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching PhilHealth data:", error);
+        toast({
+          title: "Error fetching PhilHealth data",
+          description: error.message || "An error occurred",
+          variant: "destructive",
+        });
+      });
+  }, [crewCode, philhealthYear, monthMap]);
+
+  useEffect(() => {
+    if (!crewCode) {
+      return;
+    }
+
+    getCrewSSS(crewCode)
+      .then((response) => {
+        if (response.success) {
+          // Map the month names to their corresponding numbers
+          const mappedData = response.data.map((item) => ({
+            ...item,
+            Month: monthMap[item.PayrollMonth],
+          }));
+
+          setSSSData(mappedData);
+          console.log("SSS Data:", mappedData);
+        } else {
+          console.error("Failed to fetch SSS data:", response.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching SSS data:", error);
+        toast({
+          title: "Error fetching SSS data",
+          description: error.message || "An error occurred",
+          variant: "destructive",
+        });
+      });
+  });
+
   // Function to fetch deduction entries
   const fetchDeductionEntries = useCallback(
     async (crewCode: string) => {
@@ -454,7 +668,6 @@ export default function DeductionEntries() {
             } else {
               console.error("Failed to fetch HDMF Upgrade:", response);
             }
-            console.log(response.data);
           })
           .catch((error) => {
             console.error("Error fetching HDMF Upgrade:", error);
@@ -990,7 +1203,7 @@ export default function DeductionEntries() {
                       </div>
                     </div>
 
-                    {/* <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
+                    <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
                       {loading ? (
                         <div className="flex justify-center items-center py-10">
                           <p>Loading deduction entries...</p>
@@ -999,21 +1212,18 @@ export default function DeductionEntries() {
                         <div className="flex justify-center items-center py-10 text-red-500">
                           <p>{error}</p>
                         </div>
-                      ) : filteredEntries.length === 0 ? (
+                      ) : philhealthData.length === 0 ? (
                         <div className="flex justify-center items-center py-10">
                           <p>No deduction entries found for this period.</p>
                         </div>
                       ) : (
                         <DataTable
-                          columns={apiDeductionColumns({
-                            crewCode,
-                            setOnSuccess,
-                          })}
-                          data={filteredEntries}
+                          columns={crewPhilhealthColumns()}
+                          data={philhealthData}
                           pageSize={7}
                         />
                       )}
-                    </div> */}
+                    </div>
                   </div>
                 </TabsContent>
 
@@ -1052,6 +1262,28 @@ export default function DeductionEntries() {
                           </SelectContent>
                         </Select>
                       </div>
+                    </div>
+
+                    <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
+                      {loading ? (
+                        <div className="flex justify-center items-center py-10">
+                          <p>Loading deduction entries...</p>
+                        </div>
+                      ) : error ? (
+                        <div className="flex justify-center items-center py-10 text-red-500">
+                          <p>{error}</p>
+                        </div>
+                      ) : philhealthData.length === 0 ? (
+                        <div className="flex justify-center items-center py-10">
+                          <p>No deduction entries found for this period.</p>
+                        </div>
+                      ) : (
+                        <DataTable
+                          columns={crewSSSColumns()}
+                          data={sssData}
+                          pageSize={7}
+                        />
+                      )}
                     </div>
                   </div>
                 </TabsContent>

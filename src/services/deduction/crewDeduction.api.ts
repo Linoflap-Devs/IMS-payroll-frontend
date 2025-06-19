@@ -93,3 +93,46 @@ export const getCrewHDMFUpgrade = async (crewCode: string): Promise<hdmfUpgradeR
   const response = await axiosInstance.get<hdmfUpgradeResponse>(`/deductions/${crewCode}/hdmf`);
   return response.data;
 }
+
+export interface philhealthDeductionItem {
+  PayrollMonth: number;
+  PayrollYear: number;
+  Salary: number;
+  EEPremiumRate: number;
+  EEPremium: number;
+}
+
+export interface philhealthDeductionResponse {
+  success: boolean;
+  data: philhealthDeductionItem[];
+  message?: string;
+}
+
+export const getCrewPhilhealth = async (crewCode: string): Promise<philhealthDeductionResponse> => {
+  const response = await axiosInstance.get<philhealthDeductionResponse>(`/deductions/${crewCode}/philhealth`);
+  return response.data;
+}
+
+export interface sssDeductionItem {
+  PayrollMonth: number;
+  PayrollYear: number;
+  Salary: number;
+  RegularSS: number;
+  MutualFund: number;
+  ERSS: number;
+  ERMF: number;
+  EC: number;
+  EESS: number;
+  EEMF: number;
+}
+
+export interface sssDeductionResponse {
+  success: boolean;
+  data: sssDeductionItem[];
+  message?: string;
+}
+
+export const getCrewSSS = async (crewCode: string): Promise<sssDeductionResponse> => {
+  const response = await axiosInstance.get<sssDeductionResponse>(`/deductions/${crewCode}/sss`);
+  return response.data;
+}
