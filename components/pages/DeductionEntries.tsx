@@ -485,6 +485,11 @@ export default function DeductionEntries() {
   // Handle tab change
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", value);
+
+    window.history.pushState({}, "", url.toString());
   };
 
   // Filter entries by selected month and year
