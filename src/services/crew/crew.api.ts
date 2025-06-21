@@ -102,8 +102,13 @@ export interface CrewMovementResponse {
   data: CrewMovement[];
   message?: string;
 }
-export const getCrewMovement = async (crewCode: string): Promise<CrewMovementResponse> => {
-  const response = await axiosInstance.get<CrewMovementResponse>(`/crew/${crewCode}/movement`);
+// export const getCrewMovement = async (crewCode: string): Promise<CrewMovementResponse> => {
+//   const response = await axiosInstance.get<CrewMovementResponse>(`/crew/${crewCode}/movement`);
+//   return response.data;
+// }
+
+export const getCrewMovementv2 = async (crewCode: string): Promise<CrewMovementResponse> => {
+  const response = await axiosInstance.get<CrewMovementResponse>(`/v2/crew/${crewCode}/movement`);
   return response.data;
 }
 
