@@ -3,6 +3,7 @@
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
+import { logoBase64Image } from "./lib/base64items";
 
 // Define types to match your data structure
 interface AllotmentDeduction {
@@ -161,12 +162,13 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     doc.rect(margin, y, pageWidth - margin * 2, 30);
 
     // Logo placeholder (replace with your actual logo when available)
-    doc.setDrawColor(200, 200, 200);
-    doc.setFillColor(240, 240, 240);
-    doc.rect(margin + 5, y + 5, 20, 20, 'FD');
-    doc.setFontSize(8);
-    doc.setTextColor(100);
-    doc.text("LOGO", margin + 15, y + 15, { align: 'center' });
+    // doc.setDrawColor(200, 200, 200);
+    // doc.setFillColor(240, 240, 240);
+    // doc.rect(margin + 5, y + 5, 20, 20);
+    // doc.setFontSize(8);
+    // doc.setTextColor(100);
+    doc.addImage(logoBase64Image, 'PNG', margin, y, 30, 30);
+    // doc.text("LOGO", margin + 15, y + 15, { align: 'center' });
 
     // Reset colors
     doc.setDrawColor(0);
