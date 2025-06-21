@@ -7,7 +7,6 @@ import {
   Dispatch,
   SetStateAction,
   useMemo,
-  useRef,
 } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -213,23 +212,6 @@ const apiDeductionColumns = ({
     accessorKey: "Status",
     header: "Status",
     cell: ({ row }) => {
-      // Map numeric status to string labels
-      // const statusMap: Record<number, string> = {
-      //   0: "Completed",
-      //   2: "Pending",
-      //   3: "Adjusted",
-      //   4: "Failed",
-      //   5: "On Hold",
-      // };
-      // console.log("Row Status:", row.original.Status);
-
-      // const statusLabel = statusMap[row.original.Status] || "Unknown";
-
-      // 0 - completed
-      // 1 - pending
-      // 2 -  declined
-      // 3 - on hold
-
       const getStatusColor = (statusCode: string) => {
         switch (statusCode) {
           case "Completed": // Completed
@@ -251,7 +233,7 @@ const apiDeductionColumns = ({
         <div className="flex justify-center">
           <span
             className={`px-2 py-1 w-full rounded-full text-xs ${getStatusColor(
-              row.original.Status.toString(10) // Convert numeric status to string for mapping
+              row.original.Status.toString(10)
             )}`}>
             {row.original.Status.toString(10)}
           </span>
@@ -273,8 +255,6 @@ const apiDeductionColumns = ({
       };
 
       const handleEdit = (status: number) => {
-        // Handle edit logic here
-
         if (!crewCode) {
           console.error(
             "Crew code is not available for updating deduction entry."
@@ -285,8 +265,6 @@ const apiDeductionColumns = ({
         const payload = {
           status,
         };
-
-        // const statusLabel = statusMap[status] || statusMap[1];
 
         updateCrewDeductionEntry(crewCode, deductionId, payload)
           .then((response) => {
@@ -341,14 +319,6 @@ const apiDeductionColumns = ({
                 <CircleDot strokeWidth={2} />
                 On Hold
               </DropdownMenuItem>
-              {/* <DropdownMenuSeparator /> */}
-
-              {/* DELETE IS NOT NEEDED AS PER SIR WENDELL */}
-
-              {/* <DropdownMenuItem className="text-red-600">
-                <Trash className="text-red-600" />
-                Delete
-              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -391,13 +361,22 @@ export default function DeductionEntries() {
   const [onSuccess, setOnSuccess] = useState(false);
   const [HDMFUpgradeAmount, setHDMFUpgradeAmount] = useState<number>(0);
   const [hdmfLoading, setHdmfLoading] = useState(false);
-
-  // HDMF Upgrade
-  // const [currentHdmfUpgradeAmount, setCurrentHdmfUpgradeAmount] = useState<
-  //   number | null
-  // >(null);
-  // const [currentIsDollar, setCurrentIsDollar] = useState<number>(0);
   const [onSuccessHDMF, setOnSuccessHDMF] = useState(false);
+
+  // PhilHealth states
+  const [philhealthData, setPhilhealthData] = useState<
+    philhealthDeductionItem[]
+  >([]);
+  const [selectedPhilhealthYear, setSelectedPhilhealthYear] =
+    useState<string>("");
+  const [philhealthYears, setPhilhealthYears] = useState<string[]>([]);
+  const [philhealthLoading, setPhilhealthLoading] = useState<boolean>(false);
+
+  // SSS states
+  const [sssData, setSSSData] = useState<sssDeductionItem[]>([]);
+  const [selectedSSSYear, setSelectedSSSYear] = useState<string>("");
+  const [sssYears, setSSSYears] = useState<string[]>([]);
+  const [sssLoading, setSSSLoading] = useState<boolean>(false);
 
   const monthMap = useMemo<Record<number, string>>(
     () => ({
@@ -417,125 +396,6 @@ export default function DeductionEntries() {
     []
   );
 
-  // years select
-  const [philhealthData, setPhilhealthData] = useState<
-    philhealthDeductionItem[]
-  >([]);
-  const [selectedPhilhealthYear, setSelectedPhilhealthYear] =
-    useState<string>("all");
-  const [philhealthYears, setPhilhealthYears] = useState<string[]>([]);
-
-  const [sssData, setSSSData] = useState<sssDeductionItem[]>([]);
-  const [selectedSSSYear, setSelectedSSSYear] = useState<string>("all");
-  const [sssYears, setSSSYears] = useState<string[]>([]);
-
-  const initialPhilhealthLoadComplete = useRef(false);
-  const initialSSSLoadComplete = useRef(false);
-
-  useEffect(() => {
-    if (!crewCode) {
-      return;
-    }
-
-    if (
-      initialPhilhealthLoadComplete.current &&
-      selectedPhilhealthYear === "initializing"
-    ) {
-      return;
-    }
-
-    getCrewPhilhealth(
-      crewCode,
-      selectedPhilhealthYear === "initializing"
-        ? 0
-        : Number(selectedPhilhealthYear)
-    )
-      .then((response) => {
-        if (response.success) {
-          const mappedData = response.data.map((item) => ({
-            ...item,
-            Month: monthMap[item.PayrollMonth],
-          }));
-
-          const years = [
-            ...new Set(
-              response.data.map((entry) => entry.PayrollYear.toString())
-            ),
-          ];
-
-          years.sort((a, b) => parseInt(b) - parseInt(a));
-          setPhilhealthYears(years);
-
-          if (years.length > 0 && !initialPhilhealthLoadComplete.current) {
-            initialPhilhealthLoadComplete.current = true;
-            setSelectedPhilhealthYear(years[0]);
-          }
-
-          setPhilhealthData(mappedData);
-        } else {
-          console.error("Failed to fetch PhilHealth data:", response.message);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching PhilHealth data:", error);
-        toast({
-          title: "Error fetching PhilHealth data",
-          description: error.message || "An error occurred",
-          variant: "destructive",
-        });
-      });
-  }, [crewCode, selectedPhilhealthYear, monthMap]);
-
-  useEffect(() => {
-    if (!crewCode) {
-      return;
-    }
-
-    if (initialSSSLoadComplete.current && selectedSSSYear === "initializing") {
-      return;
-    }
-
-    getCrewSSS(
-      crewCode,
-      selectedSSSYear === "initializing" ? 0 : Number(selectedSSSYear)
-    )
-      .then((response) => {
-        if (response.success) {
-          const mappedData = response.data.map((item) => ({
-            ...item,
-            Month: monthMap[item.PayrollMonth],
-          }));
-
-          const years = [
-            ...new Set(
-              response.data.map((entry) => entry.PayrollYear.toString())
-            ),
-          ];
-
-          years.sort((a, b) => parseInt(b) - parseInt(a));
-          setSSSYears(years);
-
-          if (years.length > 0 && !initialSSSLoadComplete.current) {
-            initialSSSLoadComplete.current = true;
-            setSelectedSSSYear(years[0]);
-          }
-
-          setSSSData(mappedData);
-        } else {
-          console.error("Failed to fetch SSS data:", response.message);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching SSS data:", error);
-        toast({
-          title: "Error fetching SSS data",
-          description: error.message || "An error occurred",
-          variant: "destructive",
-        });
-      });
-  }, [crewCode, selectedSSSYear, monthMap]);
-
-  // Function to fetch deduction entries
   const fetchDeductionEntries = useCallback(
     async (crewCode: string) => {
       if (!crewCode) return;
@@ -549,29 +409,23 @@ export default function DeductionEntries() {
         if (response.success) {
           setDeductionEntries(response.data);
 
-          // Process the years and months from the data
           if (response.data.length > 0) {
-            // Extract unique years from the data
             const years = [
               ...new Set(response.data.map((entry) => entry.Year.toString())),
             ];
 
-            // Sort years in descending order (newest first)
             years.sort((a, b) => parseInt(b) - parseInt(a));
 
             setAvailableYears(years);
 
-            // Set the default selected year to the most recent one
             if (years.length > 0 && !years.includes(selectedYear)) {
               setSelectedYear(years[0]);
             }
 
-            // Extract unique months from the data
             const months = [
               ...new Set(response.data.map((entry) => entry.Month)),
             ];
 
-            // Sort months in calendar order
             const monthOrder = [
               "January",
               "February",
@@ -592,12 +446,10 @@ export default function DeductionEntries() {
 
             setAvailableMonths(months.length > 0 ? months : monthOrder);
 
-            // Set default month if current selection isn't in the available months
             if (months.length > 0 && !months.includes(selectedMonth)) {
               setSelectedMonth(months[0]);
             }
           } else {
-            // Default values if no data
             setAvailableYears(["2025", "2024", "2023"]);
             setAvailableMonths([
               "January",
@@ -627,6 +479,111 @@ export default function DeductionEntries() {
     },
     [selectedYear, selectedMonth]
   );
+
+  const fetchPhilhealthData = useCallback(
+    async (crewCode: string, year: number = 0) => {
+      if (!crewCode) return;
+
+      setPhilhealthLoading(true);
+
+      try {
+        const response = await getCrewPhilhealth(crewCode, year);
+
+        if (response.success) {
+          const mappedData = response.data.map((item) => ({
+            ...item,
+            Month: monthMap[item.PayrollMonth],
+          }));
+
+          setPhilhealthData(mappedData);
+
+          if (year === 0) {
+            const years = [
+              ...new Set(
+                response.data.map((entry) => entry.PayrollYear.toString())
+              ),
+            ];
+            years.sort((a, b) => parseInt(b) - parseInt(a));
+
+            setPhilhealthYears(years);
+
+            if (years.length > 0 && !selectedPhilhealthYear) {
+              setSelectedPhilhealthYear(years[0]);
+            }
+          }
+        } else {
+          console.error("Failed to fetch PhilHealth data:", response.message);
+        }
+      } catch (error) {
+        console.error("Error fetching PhilHealth data:", error);
+      } finally {
+        setPhilhealthLoading(false);
+      }
+    },
+    [monthMap, selectedPhilhealthYear]
+  );
+
+  const fetchSSSData = useCallback(
+    async (crewCode: string, year: number = 0) => {
+      if (!crewCode) return;
+
+      setSSSLoading(true);
+
+      try {
+        const response = await getCrewSSS(crewCode, year);
+
+        if (response.success) {
+          const mappedData = response.data.map((item) => ({
+            ...item,
+            Month: monthMap[item.PayrollMonth],
+          }));
+
+          setSSSData(mappedData);
+
+          if (year === 0) {
+            const years = [
+              ...new Set(
+                response.data.map((entry) => entry.PayrollYear.toString())
+              ),
+            ];
+            years.sort((a, b) => parseInt(b) - parseInt(a));
+
+            setSSSYears(years);
+
+            if (years.length > 0 && !selectedSSSYear) {
+              setSelectedSSSYear(years[0]);
+            }
+          }
+        } else {
+          console.error("Failed to fetch SSS data:", response.message);
+        }
+      } catch (error) {
+        console.error("Error fetching SSS data:", error);
+      } finally {
+        setSSSLoading(false);
+      }
+    },
+    [monthMap, selectedSSSYear]
+  );
+
+  useEffect(() => {
+    if (!crewCode || !selectedPhilhealthYear) return;
+
+    fetchPhilhealthData(crewCode, parseInt(selectedPhilhealthYear));
+  }, [crewCode, selectedPhilhealthYear, fetchPhilhealthData]);
+
+  useEffect(() => {
+    if (!crewCode || !selectedSSSYear) return;
+
+    fetchSSSData(crewCode, parseInt(selectedSSSYear));
+  }, [crewCode, selectedSSSYear, fetchSSSData]);
+
+  useEffect(() => {
+    if (!crewCode) return;
+
+    fetchPhilhealthData(crewCode, 0);
+    fetchSSSData(crewCode, 0);
+  }, [crewCode, fetchPhilhealthData, fetchSSSData]);
 
   useEffect(() => {
     const tab = params.get("tab");
@@ -659,7 +616,6 @@ export default function DeductionEntries() {
         .then(([basicResponse, deductionResponse]) => {
           if (basicResponse.success) {
             const { data } = basicResponse;
-            // console.log("Crew Basic Data:", data);
 
             // Find the crew's vessel from the deduction list
             const crewVessel = deductionResponse.success
@@ -700,30 +656,25 @@ export default function DeductionEntries() {
   useEffect(() => {
     if (crewData.crewCode) {
       const fetchCrewHDMFUpgrade = async () => {
-        getCrewHDMFUpgrade(crewData.crewCode)
-          .then((response) => {
-            if (response.success && response.data) {
-              const hdmfData = response.data[0];
+        try {
+          const response = await getCrewHDMFUpgrade(crewData.crewCode);
 
-              // Set the current values
-              // setCurrentHdmfUpgradeAmount(hdmfData.HDMFAmount ?? 0);
-              // setCurrentIsDollar(hdmfData.DollarCurrency ?? 0);
-
-              // Initialize the form fields with current values
-              setHDMFUpgradeAmount(hdmfData?.HDMFAmount ?? 0);
-              setIsDollar(hdmfData?.DollarCurrency === 1);
-            } else {
-              console.error("Failed to fetch HDMF Upgrade:", response);
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching HDMF Upgrade:", error);
-            toast({
-              title: "Error fetching HDMF Upgrade",
-              description: error.message || "An error occurred",
-              variant: "destructive",
-            });
+          if (response.success && response.data) {
+            const hdmfData = response.data[0];
+            setHDMFUpgradeAmount(hdmfData?.HDMFAmount ?? 0);
+            setIsDollar(hdmfData?.DollarCurrency === 1);
+          } else {
+            console.error("Failed to fetch HDMF Upgrade:", response);
+          }
+        } catch (error: unknown) {
+          const err = error as Error;
+          console.error("Error fetching HDMF Upgrade:", error);
+          toast({
+            title: "Error fetching HDMF Upgrade",
+            description: err.message || "An error occurred",
+            variant: "destructive",
           });
+        }
       };
 
       fetchCrewHDMFUpgrade();
@@ -772,13 +723,21 @@ export default function DeductionEntries() {
     );
   });
 
-  const filteredPhilhealthData = philhealthData.filter((entry) => {
-    return entry.PayrollYear.toString() === selectedPhilhealthYear;
-  });
+  // Filter PhilHealth data by selected year
+  const filteredPhilhealthData = useMemo(() => {
+    if (!selectedPhilhealthYear) return [];
+    return philhealthData.filter(
+      (entry) => entry.PayrollYear.toString() === selectedPhilhealthYear
+    );
+  }, [philhealthData, selectedPhilhealthYear]);
 
-  const filteredSSSData = sssData.filter((entry) => {
-    return entry.PayrollYear.toString() === selectedSSSYear;
-  });
+  // Filter SSS data by selected year
+  const filteredSSSData = useMemo(() => {
+    if (!selectedSSSYear) return [];
+    return sssData.filter(
+      (entry) => entry.PayrollYear.toString() === selectedSSSYear
+    );
+  }, [sssData, selectedSSSYear]);
 
   const handleSubmitHDMFUpgrade = () => {
     setHdmfLoading(true);
@@ -794,7 +753,6 @@ export default function DeductionEntries() {
             variant: "success",
           });
           setOnSuccess(true);
-          setHDMFUpgradeAmount(0); // Reset amount after successful submission
           setOnSuccessHDMF(true);
         } else {
           toast({
@@ -1126,38 +1084,7 @@ export default function DeductionEntries() {
                   value="hdmf-upgrade"
                   className="p-6 mt-0 overflow-y-auto flex-1">
                   <div className="space-y-6">
-                    {/* Current Values Section */}
-                    {/* <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <h3 className="text-base font-medium mb-3">
-                        Current HDMF Upgrade Values
-                      </h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500">Amount</p>
-                          <p className="text-lg font-medium">
-                            {currentHdmfUpgradeAmount !== null
-                              ? `${currentHdmfUpgradeAmount.toFixed(2)} ${
-                                  currentIsDollar === 1 ? "USD" : "PHP"
-                                }`
-                              : "Not set"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Currency</p>
-                          <p className="text-lg font-medium">
-                            {currentIsDollar === 1
-                              ? "Dollar (USD)"
-                              : "Peso (PHP)"}
-                          </p>
-                        </div>
-                      </div>
-                    </div> */}
-
-                    {/* Form Section */}
                     <div className="bg-white p-4 rounded-lg border border-gray-200">
-                      {/* <h3 className="text-base font-medium mb-3">
-                        Update HDMF Upgrade Amount
-                      </h3> */}
                       <div className="space-y-6">
                         <div>
                           <div className="flex items-center justify-end mb-2">
@@ -1168,7 +1095,6 @@ export default function DeductionEntries() {
                                 className="data-[state=checked]:bg-primary"
                               />
                               <span className="text-sm text-gray-500">
-                                {/* {isDollar ? "Dollar (USD)" : "Peso (PHP)"} */}
                                 Dollar (USD)
                               </span>
                             </div>
@@ -1187,18 +1113,6 @@ export default function DeductionEntries() {
                           />
                         </div>
                         <div className="flex justify-end">
-                          {/* <Button
-                            variant="outline"
-                            onClick={() => {
-                              // Reset to current values
-                              setHDMFUpgradeAmount(
-                                currentHdmfUpgradeAmount ?? 0
-                              );
-                              setIsDollar(currentIsDollar === 1);
-                            }}
-                            disabled={hdmfLoading}>
-                            Reset
-                          </Button> */}
                           <Button
                             className="bg-primary hover:bg-primary/90"
                             onClick={handleSubmitHDMFUpgrade}
@@ -1259,17 +1173,18 @@ export default function DeductionEntries() {
                     </div>
 
                     <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
-                      {loading ? (
+                      {philhealthLoading ? (
                         <div className="flex justify-center items-center py-10">
-                          <p>Loading deduction entries...</p>
+                          <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                          <p>Loading PhilHealth data...</p>
                         </div>
                       ) : error ? (
                         <div className="flex justify-center items-center py-10 text-red-500">
                           <p>{error}</p>
                         </div>
-                      ) : philhealthData.length === 0 ? (
+                      ) : filteredPhilhealthData.length === 0 ? (
                         <div className="flex justify-center items-center py-10">
-                          <p>No deduction entries found for this period.</p>
+                          <p>No PhilHealth entries found for this year.</p>
                         </div>
                       ) : (
                         <DataTable
@@ -1320,17 +1235,18 @@ export default function DeductionEntries() {
                     </div>
 
                     <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
-                      {loading ? (
+                      {sssLoading ? (
                         <div className="flex justify-center items-center py-10">
-                          <p>Loading deduction entries...</p>
+                          <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                          <p>Loading SSS data...</p>
                         </div>
                       ) : error ? (
                         <div className="flex justify-center items-center py-10 text-red-500">
                           <p>{error}</p>
                         </div>
-                      ) : philhealthData.length === 0 ? (
+                      ) : filteredSSSData.length === 0 ? (
                         <div className="flex justify-center items-center py-10">
-                          <p>No deduction entries found for this period.</p>
+                          <p>No SSS entries found for this year.</p>
                         </div>
                       ) : (
                         <DataTable
