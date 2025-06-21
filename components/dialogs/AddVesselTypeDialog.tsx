@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import { AxiosError } from "axios";
 import { useState } from "react";
+import { Plus } from "lucide-react";
 
 // Define form schema with Zod
 const formSchema = z.object({
@@ -57,6 +58,7 @@ export function AddVesselTypeDialog({
   const [uniqueError, setUniqueError] = useState<boolean>(false);
 
   const {
+    setError,
     handleSubmit,
     reset,
     formState: { isSubmitting },
@@ -87,17 +89,14 @@ export function AddVesselTypeDialog({
           variant: "success",
         });
 
-        // Call success callback with the new vessel type if provided
         if (onSuccess && response.data) {
-          // Ensure we pass a single VesselTypeItem
           const vesselTypeData = Array.isArray(response.data)
             ? response.data[0]
             : response.data;
           onSuccess(vesselTypeData);
         }
 
-        // Close the dialog
-        handleOpenChange(false);
+        handleOpenChange(false); // close modal
       } else {
         toast({
           title: "Error",
@@ -106,24 +105,27 @@ export function AddVesselTypeDialog({
         });
       }
     } catch (error) {
-      const err = error as Error;
+      const err = error as AxiosError<{ message: string }>;
 
-      if (err instanceof AxiosError) {
-        if (err.response?.data?.message.includes("Unique constraint failed")) {
-          toast({
-            title: "Error",
-            description: "Vessel type code or name already exists.",
-            variant: "destructive",
-          });
+      if (
+        err.response?.data?.message?.includes("Unique constraint failed")
+      ) {
+        
+        setError("vesselTypeCode", {
+          type: "manual",
+          message: "Vessel code already exists.",
+        });
 
-          setUniqueError(true);
-          return;
-        }
+        setError("vesselTypeName", {
+          type: "manual",
+          message: "Vessel name already exists.",
+        });
+        return;
       }
 
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try agains.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     }
@@ -153,7 +155,7 @@ export function AddVesselTypeDialog({
                     className={`text-sm text-gray-600 ${
                       uniqueError ? "text-red-500" : ""
                     }`}>
-                    Vessel Code
+                    Vessel Type Code
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -216,7 +218,14 @@ export function AddVesselTypeDialog({
                 type="submit"
                 className="flex-1 h-10"
                 disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Vessel Type"}
+                {isSubmitting ? (
+                  "Adding..."
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Save Vessel Type
+                  </>
+                )}
               </Button>
             </div>
           </form>

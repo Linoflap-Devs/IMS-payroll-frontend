@@ -5,15 +5,18 @@ import { getHomeRoutes } from "./homeRoutes";
 export const getHomeBreadcrumb = (pathname: string) => {
   const routes = getHomeRoutes(pathname);
 
-  const match = (base: string, label: string) => (
+  const match = (base: string, baseLabel: string, currentLabel?: string) => (
     <div className="flex items-center">
-      <Link href={base} className="hover:text-foreground">{label}</Link>
+      <Link href={base} className="hover:text-foreground">{baseLabel}</Link>
       <ChevronRightIcon className="h-3 w-3 mx-2" />
-      <span className="text-primary">{pathname.split("/").pop()?.replace(/_/g, " ")}</span>
+      <span className="text-primary">
+        {currentLabel ?? pathname.split("/").pop()?.replace(/_/g, " ")}
+      </span>
     </div>
   );
 
-  if (pathname.startsWith("/home/crew/details")) return match("/home/crew", "Crew List");
+  if (pathname.startsWith("/home/crew/details")) 
+    return match("/home/crew", "Crew List", "Crew Details");
   if (pathname.startsWith("/home/crew/add-crew")) return match("/home/crew", "Crew List");
   if (pathname.startsWith("/home/vessel/crew-list")) return match("/home/vessel", "Vessel Profile");
   if (pathname.startsWith("/home/deduction/description")) return match("/home/deduction", "Deduction");

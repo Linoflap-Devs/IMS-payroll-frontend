@@ -4,6 +4,7 @@ export interface VesselTypeItem {
   VesselTypeID: number;
   VesselTypeCode: string;
   VesselTypeName: string;
+  status: string;
 }
 
 export interface VesselTypeResponse {

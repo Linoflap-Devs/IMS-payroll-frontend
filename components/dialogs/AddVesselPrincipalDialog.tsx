@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import { useState } from "react";
 import { AxiosError } from "axios"; 
+import { Plus } from "lucide-react";
 
 // Define form schema with Zod - both fields are required
 const formSchema = z.object({
@@ -55,6 +56,7 @@ export function AddVesselPrincipalDialog({
   });
 
   const {
+    setError,
     handleSubmit,
     reset,
     formState: { isSubmitting },
@@ -108,12 +110,15 @@ export function AddVesselPrincipalDialog({
 
       if (err instanceof AxiosError) {
         // if (err.response?.data?.message.includes("Unique constraint failed")) {
-        toast({
-          title: "Error",
-          description:
-            err.response?.data.message ||
-            "Vessel principal code or name already exists.",
-          variant: "destructive",
+
+        setError("principalCode", {
+          type: "manual",
+          message: "This vessel principal code is already in use.",
+        });
+
+        setError("principalName", {
+          type: "manual",
+          message: "This vessel principal name is already in use",
         });
 
         setUniqueError(true);
@@ -212,8 +217,16 @@ export function AddVesselPrincipalDialog({
               <Button
                 type="submit"
                 className="flex-1 h-10"
-                disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Principal"}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  "Adding..."
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Save Vessel Principal
+                  </>
+                )}
               </Button>
             </div>
           </form>
