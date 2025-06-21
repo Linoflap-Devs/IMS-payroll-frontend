@@ -2,6 +2,7 @@
 
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
+import { addFont } from "./lib/font";
 
 // Define types to match your data structure
 interface AllotmentDeduction {
@@ -72,9 +73,9 @@ function formatCurrency(amount: number): string {
 function formatWithCurrency(amount: number, currencyType: string): string {
     // Use text-based currency prefixes instead of symbols for better compatibility
     if (currencyType === 'PHP') {
-        return "PHP " + formatCurrency(amount);
+        return "₱ " + formatCurrency(amount);
     } else {
-        return "USD " + formatCurrency(amount);
+        return "$ " + formatCurrency(amount);
     }
 }
 
@@ -112,7 +113,7 @@ export function generatePayrollPDF(payrollData: PayrollData, currentUser: string
             format: "a4"
         });
 
-
+        addFont(doc);
 
         // Set document properties for the combined PDF
         doc.setProperties({
@@ -152,6 +153,9 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     const pageHeight = doc.internal.pageSize.height;
     const margin = 10;
     let y = margin;
+    doc.setFont('NotoSans', 'normal');
+
+
 
     // Company header section
     doc.rect(margin, y, pageWidth - margin * 2, 30);
@@ -170,13 +174,13 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
 
     // Company header text
     doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('NotoSans', 'bold');
     doc.text("IMS PHILIPPINES", margin + 35, y + 13);
     doc.text("MARITIME CORP.", margin + 35, y + 20);
 
     // Add period box on top right
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('NotoSans', 'normal');
     doc.rect(pageWidth - 60, y, 50, 15);
     doc.text(payrollData.period.formattedPeriod, pageWidth - 55, y + 9);
 
@@ -191,24 +195,24 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
 
     // Crew information
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'italic');
+    doc.setFont('NotoSans', 'italic');
     doc.setTextColor(100, 100, 100);
     doc.text("CREW", margin + 2, y + 5);
     doc.setTextColor(0, 0, 0);
 
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('NotoSans', 'bold');
     doc.text(`${crewData.rank} / ${crewData.crewName}`, margin + 2, y + 12);
 
     // Vessel information
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'italic');
+    doc.setFont('NotoSans', 'italic');
     doc.text("VESSEL", pageWidth - 24, y + 5);
 
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('NotoSans', 'bold');
     doc.text(payrollData.vesselName, pageWidth - 12, y + 12, { align: 'right' });
 
     // Horizontal gray line
@@ -222,12 +226,12 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     doc.setDrawColor(0);
     doc.setLineWidth(0.1);
     doc.rect(margin, y, pageWidth - margin * 2, 12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('NotoSans', 'bold');
     doc.text("PAYROLL DETAILS", margin + 2, y + 7.5);
 
     // Payroll items
     y += 17;
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('NotoSans', 'normal');
     doc.setFontSize(10);
 
     const payrollItems = [
@@ -253,7 +257,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     y += 8;
     doc.setFillColor(240, 240, 240);
     doc.rect(margin, y - 6, pageWidth - margin * 2, 10, 'F');
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('NotoSans', 'bold');
     doc.text("NET WAGE :", margin + 2, y);
     doc.text(formatWithCurrency(crewData.payrollDetails.netWage, "PHP"), pageWidth - 12, y, { align: 'right' });
 
@@ -265,7 +269,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
 
     // Allotment Deductions section
     y += 4;
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('NotoSans', 'bold');
     doc.setFontSize(11);
     doc.setDrawColor(0);
     doc.setLineWidth(0.1);
@@ -281,7 +285,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
 
     // Deduction items
     y += 17;
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('NotoSans', 'normal');
     doc.setFontSize(10);
 
     crewData.allotmentDeductions.forEach((deduction, index) => {
@@ -303,7 +307,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
 
     // Total deductions
     y += 5;
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('NotoSans', 'bold');
     doc.text("Total :", margin, y);
     doc.text(formatWithCurrency(crewData.payrollDetails.totalDeduction, "PHP"), pageWidth - 12, y, { align: 'right' });
 
@@ -315,7 +319,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
 
     // Allottee Distribution section
     y += 10;
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('NotoSans', 'bold');
     doc.setFontSize(11);
     doc.setDrawColor(0);
     doc.rect(margin, y, pageWidth - margin * 2, 12);
@@ -325,7 +329,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
 
     // Allottee items
     y += 17;
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('NotoSans', 'normal');
     doc.setFontSize(10);
 
     crewData.allotteeDistribution.forEach((allottee, index) => {
@@ -345,7 +349,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     // Footer
     y = pageHeight - 20;
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'italic');
+    doc.setFont('NotoSans', 'italic');
 
     // Use your specified format for date/time and user
     doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + formatDate(new Date()), margin, y);
