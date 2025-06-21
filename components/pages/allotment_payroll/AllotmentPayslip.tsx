@@ -14,6 +14,10 @@ import { AiOutlinePrinter } from "react-icons/ai";
 import { getVesselPayslip } from "@/src/services/payroll/payroll.api";
 import { useSearchParams } from "next/navigation";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
+import {
+  generateAllPayrollPDFs,
+  generatePayrollPDF,
+} from "@/components/PDFs/payrollStatementPDF";
 
 interface CrewPayroll {
   crewId: number;
@@ -37,6 +41,7 @@ export default function VesselPayslip({
   const [searchTerm, setSearchTerm] = useState("");
   const [payslipData, setPayslipData] = useState<CrewPayroll[]>([]);
   const searchParams = useSearchParams();
+  const [PayslipPDFData, setPayslipPDFData] = useState<any>({});
   const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
     initialVesselInfo
   );
@@ -69,6 +74,7 @@ export default function VesselPayslip({
       getVesselPayslip(vesselId, parseInt(month), parseInt(year))
         .then((res) => {
           if (res.success) {
+            setPayslipPDFData(res.data);
             setPayslipData(
               res.data.payrolls.map((crew) => ({
                 crewId: crew.crewId,
@@ -85,6 +91,7 @@ export default function VesselPayslip({
     }
   }, [searchParams]);
 
+  console.log("Payslip Data:", PayslipPDFData);
   const columns: ColumnDef<CrewPayroll>[] = [
     {
       accessorKey: "crewCode",
@@ -120,6 +127,11 @@ export default function VesselPayslip({
       crew.crewName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const generatePayrollPDFs = () => {
+    console.log("Generating PDF for all crew:", PayslipPDFData);
+    generatePayrollPDF(PayslipPDFData);
+  };
 
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">
@@ -193,7 +205,7 @@ export default function VesselPayslip({
               <Filter className="h-4 w-4" />
               Filter
             </Button>
-            <Button className="gap-2 h-11 px-5">
+            <Button className="gap-2 h-11 px-5" onClick={generatePayrollPDFs}>
               <AiOutlinePrinter className="h-4 w-4" />
               Print Payslip
             </Button>
