@@ -40,6 +40,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
+import { generatePayrollPDF } from "../PDFs/payrollStatementPDF";
 
 type Payroll = {
   vesselId: number;
@@ -173,7 +174,6 @@ export default function Allotment() {
 
   const handlePrintSummary = async () => {
     setPrintLoading(true);
-
     // Simulate print action
     await new Promise((resolve) => setTimeout(resolve, 2000))
       .then(() => {
@@ -194,6 +194,10 @@ export default function Allotment() {
       .finally(() => {
         setPrintLoading(false);
       });
+  };
+
+  const handlePrintPayrollPDF = () => {
+    generatePayrollPDF();
   };
 
   const columns: ColumnDef<Payroll>[] = [
@@ -438,7 +442,9 @@ export default function Allotment() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="text-xs sm:text-sm w-[200px] min-w-[100%]">
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem
+                    asChild
+                    onClick={() => handlePrintPayrollPDF()}>
                     <Link href="" className="w-full">
                       Allotment Register
                     </Link>
