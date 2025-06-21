@@ -528,7 +528,7 @@ export default function AddCrew() {
                     <div className="flex flex-col items-start">
                       <label
                         htmlFor="crewCode"
-                        className="text-sm text-gray-500"
+                        className="text-sm font-semibold text-gray-500"
                       >
                         Crew Code
                       </label>
@@ -559,7 +559,7 @@ export default function AddCrew() {
 
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col items-start flex-1 min-w-0">
-                        <label className="text-sm text-gray-500">Rank</label>
+                        <label className="text-sm font-semibold text-gray-500">Rank</label>
                         <Select
                           value={formData.rank}
                           onValueChange={(value) =>
@@ -611,7 +611,7 @@ export default function AddCrew() {
 
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col items-start flex-1 min-w-0">
-                        <label className="text-sm text-gray-500">
+                        <label className="text-sm font-semibold text-gray-500">
                           Current Vessel
                         </label>
                         <Input
@@ -642,7 +642,7 @@ export default function AddCrew() {
 
                     <div className="space-y-3 text-left">
                       <div className="flex flex-col items-start">
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm font-semibold text-gray-500">
                           Mobile Number
                         </div>
                         <Input
@@ -669,7 +669,7 @@ export default function AddCrew() {
                       </div>
 
                       <div className="flex flex-col items-start">
-                        <label className="text-sm text-gray-500">
+                        <label className="text-sm font-semibold text-gray-500">
                           Landline Number
                         </label>
                         <Input
@@ -691,7 +691,7 @@ export default function AddCrew() {
                       </div>
 
                       <div className="flex flex-col items-start">
-                        <label className="text-sm text-gray-500">
+                        <label className="text-sm font-semibold text-gray-500">
                           Email Address
                         </label>
                         <Input
@@ -739,7 +739,7 @@ export default function AddCrew() {
                               <Check className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <span className="mt-5">Personal Information</span>
+                          <span className="mt-5 fonr-bold">Personal Information</span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="movement"
@@ -750,7 +750,7 @@ export default function AddCrew() {
                               <Check className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <span className="mt-5">Government IDs</span>
+                          <span className="mt-5 font-bold">Government IDs</span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="travel"
@@ -761,7 +761,7 @@ export default function AddCrew() {
                               <Check className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <span className="mt-5">Travel Documents</span>
+                          <span className="mt-5 font-bold">Travel Documents</span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="summary"
@@ -772,7 +772,7 @@ export default function AddCrew() {
                               <Check className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <span className="mt-5">Summary</span>
+                          <span className="mt-5 font-bold">Summary</span>
                         </TabsTrigger>
                       </TabsList>
                       {/* Progress bar */}
@@ -792,12 +792,12 @@ export default function AddCrew() {
                     <div className="space-y-8">
                       {/* Personal Information Section */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Personal Information
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Last Name
                             </label>
                             <Input
@@ -832,7 +832,7 @@ export default function AddCrew() {
                               )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               First Name
                             </label>
                             <Input
@@ -868,7 +868,7 @@ export default function AddCrew() {
                           </div>
                           <div>
                             <div className="flex items-center space-x-10">
-                              <label className="text-sm text-gray-500 mb-1 block">
+                              <label className="text-sm font-semibold text-gray-500 mb-1 block">
                                 Middle Name
                               </label>
                               <div className="flex items-center space-x-2 mb-1">
@@ -903,7 +903,7 @@ export default function AddCrew() {
                             )} */}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Marital Status
                             </label>
                             <Select
@@ -942,7 +942,7 @@ export default function AddCrew() {
                               )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Sex
                             </label>
                             <Select
@@ -979,7 +979,7 @@ export default function AddCrew() {
                             )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Birthdate
                             </label>
                             <div className="relative">
@@ -1005,7 +1005,7 @@ export default function AddCrew() {
                             </div>
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Province
                             </label>
                             <Select
@@ -1062,7 +1062,7 @@ export default function AddCrew() {
                             )}
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               City
                             </label>
                             <Select
@@ -1134,12 +1134,12 @@ export default function AddCrew() {
                     <div className="space-y-8">
                       {/* Government IDs Section */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Government IDs
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               SSS Number
                             </label>
                             <Input
@@ -1162,7 +1162,7 @@ export default function AddCrew() {
                             )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Tax ID Number
                             </label>
                             <Input
@@ -1188,7 +1188,7 @@ export default function AddCrew() {
                             )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Philhealth Number
                             </label>
                             <Input
@@ -1216,7 +1216,7 @@ export default function AddCrew() {
                               )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               HDMF Number
                             </label>
                             <Input
@@ -1250,12 +1250,12 @@ export default function AddCrew() {
                     <div className="space-y-8">
                       {/* Travel Documents Section */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Travel Documents
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Number
                             </label>
                             <Input
@@ -1285,7 +1285,7 @@ export default function AddCrew() {
                               )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Issue Date
                             </label>
                             <div className="relative">
@@ -1314,7 +1314,7 @@ export default function AddCrew() {
                             </div>
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Expiration Date
                             </label>
                             <div className="relative">
@@ -1343,7 +1343,7 @@ export default function AddCrew() {
                             </div>
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book
                             </label>
                             <Input
@@ -1369,7 +1369,7 @@ export default function AddCrew() {
                             )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Issue Date
                             </label>
                             <div className="relative">
@@ -1398,7 +1398,7 @@ export default function AddCrew() {
                             </div>
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Expiration Date
                             </label>
                             <div className="relative">
@@ -1440,12 +1440,12 @@ export default function AddCrew() {
                     <div className="space-y-8">
                       {/* Personal Information Summary */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Personal Information Summary
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Last Name
                             </label>
                             <Input
@@ -1455,7 +1455,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               First Name
                             </label>
                             <Input
@@ -1465,7 +1465,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Middle Name
                             </label>
                             <Input
@@ -1475,7 +1475,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Marital Status
                             </label>
                             <Select
@@ -1498,7 +1498,7 @@ export default function AddCrew() {
                             </Select>
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Sex
                             </label>
                             <Select value={formData.sex || ""} disabled>
@@ -1518,7 +1518,7 @@ export default function AddCrew() {
                             </Select>
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Birthdate
                             </label>
                             <Input
@@ -1529,7 +1529,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               City
                             </label>
                             <Input
@@ -1544,7 +1544,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Province
                             </label>
                             <Input
@@ -1564,12 +1564,12 @@ export default function AddCrew() {
 
                       {/* Government IDs Summary */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Government IDs Summary
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               SSS Number
                             </label>
                             <Input
@@ -1579,7 +1579,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Tax ID Number
                             </label>
                             <Input
@@ -1589,7 +1589,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Philhealth Number
                             </label>
                             <Input
@@ -1599,7 +1599,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               HDMF Number
                             </label>
                             <Input
@@ -1613,12 +1613,12 @@ export default function AddCrew() {
 
                       {/* Travel Documents Summary */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Travel Documents Summary
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Number
                             </label>
                             <Input
@@ -1628,7 +1628,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Issue Date
                             </label>
                             <Input
@@ -1639,7 +1639,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Expiry Date
                             </label>
                             <Input
@@ -1650,7 +1650,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Number
                             </label>
                             <Input
@@ -1660,7 +1660,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Issue Date
                             </label>
                             <Input
@@ -1671,7 +1671,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Expiry Date
                             </label>
                             <Input
