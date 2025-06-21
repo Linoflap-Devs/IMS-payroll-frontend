@@ -279,11 +279,11 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
 
     // Column headers for deductions
     const colWidth = (pageWidth - margin * 2) / 5;
-    doc.text("ALLOTMENT DEDUCTIONS", margin + 2, y + 8);
-    doc.text("CURRENCY", margin + colWidth, y + 8);
-    doc.text("AMOUNT", margin + colWidth * 2, y + 8);
-    doc.text("FOREX", margin + colWidth * 3, y + 8);
-    doc.text("DOLLAR", margin + colWidth * 4, y + 8);
+    doc.text("ALLOTMENT DEDUCTIONS", margin + 2, y + 7.5);
+    doc.text("CURRENCY", margin + colWidth * 1.8, y + 7.5);
+    doc.text("AMOUNT", margin + colWidth * 2.8, y + 7.5);
+    doc.text("FOREX", margin + colWidth * 3.7, y + 7.5);
+    doc.text("DOLLAR", margin + colWidth * 4.5, y + 7.5);
 
     // Deduction items
     y += 17;
@@ -292,14 +292,14 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
 
     crewData.allotmentDeductions.forEach((deduction, index) => {
         doc.text(deduction.name, margin + 2, y + index * 8);
-        doc.text(deduction.currency, margin + colWidth, y + index * 8);
-        doc.text(formatCurrency(deduction.amount), margin + colWidth * 2, y + index * 8);
+        doc.text(deduction.currency, margin + colWidth * 1.8, y + index * 8);
+        doc.text(formatCurrency(deduction.amount), margin + colWidth * 2.8, y + index * 8);
 
         // Format forex with PHP instead of peso sign
         const forexText = deduction.forex ? "PHP " + formatCurrency(deduction.forex) : "";
-        doc.text(forexText, margin + colWidth * 3, y + index * 8);
+        doc.text(forexText, margin + colWidth * 3.7, y + index * 8);
 
-        doc.text(formatCurrency(deduction.dollar), pageWidth - 12, y + index * 8, { align: 'right' });
+        doc.text(formatCurrency(deduction.dollar), margin + colWidth * 4.5, y + index * 8);
     });
 
     // Horizontal line after deductions
