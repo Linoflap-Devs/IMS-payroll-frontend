@@ -218,8 +218,9 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     // Horizontal gray line
     y += 20;
     doc.setDrawColor(180);
-    doc.setLineWidth(0.1);
+    doc.setLineWidth(0.8);
     doc.line(margin, y, pageWidth - margin, y);
+    doc.setLineWidth(0.1);
 
     // Payroll Details section
     y += 5;
@@ -264,8 +265,9 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     // Horizontal gray line
     y += 8;
     doc.setDrawColor(180);
-    doc.setLineWidth(0.1);
+    doc.setLineWidth(0.8);
     doc.line(margin, y, pageWidth - margin, y);
+    doc.setLineWidth(0.1);
 
     // Allotment Deductions section
     y += 4;
@@ -289,7 +291,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     doc.setFontSize(10);
 
     crewData.allotmentDeductions.forEach((deduction, index) => {
-        doc.text(deduction.name, margin, y + index * 8);
+        doc.text(deduction.name, margin + 2, y + index * 8);
         doc.text(deduction.currency, margin + colWidth, y + index * 8);
         doc.text(formatCurrency(deduction.amount), margin + colWidth * 2, y + index * 8);
 
@@ -308,17 +310,18 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     // Total deductions
     y += 5;
     doc.setFont('NotoSans', 'bold');
-    doc.text("Total :", margin, y);
+    doc.text("Total :", margin + 2, y);
     doc.text(formatWithCurrency(crewData.payrollDetails.totalDeduction, "PHP"), pageWidth - 12, y, { align: 'right' });
 
     // Horizontal gray line
-    y += 10;
+    y += 5;
     doc.setDrawColor(180);
-    doc.setLineWidth(0.1);
+    doc.setLineWidth(0.8);
     doc.line(margin, y, pageWidth - margin, y);
+    doc.setLineWidth(0.1);
 
     // Allottee Distribution section
-    y += 10;
+    y += 5;
     doc.setFont('NotoSans', 'bold');
     doc.setFontSize(11);
     doc.setDrawColor(0);
