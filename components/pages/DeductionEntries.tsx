@@ -7,6 +7,7 @@ import {
   Dispatch,
   SetStateAction,
   useMemo,
+  useRef,
 } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -428,17 +429,29 @@ export default function DeductionEntries() {
   const [selectedSSSYear, setSelectedSSSYear] = useState<string>("all");
   const [sssYears, setSSSYears] = useState<string[]>([]);
 
+  const initialPhilhealthLoadComplete = useRef(false);
+  const initialSSSLoadComplete = useRef(false);
+
   useEffect(() => {
     if (!crewCode) {
       return;
     }
 
-    getCrewPhilhealth(crewCode, Number(selectedPhilhealthYear))
+    if (
+      initialPhilhealthLoadComplete.current &&
+      selectedPhilhealthYear === "initializing"
+    ) {
+      return;
+    }
+
+    getCrewPhilhealth(
+      crewCode,
+      selectedPhilhealthYear === "initializing"
+        ? 0
+        : Number(selectedPhilhealthYear)
+    )
       .then((response) => {
         if (response.success) {
-          // setPhilhealthData(response.data);
-
-          // Map the month names to their corresponding numbers
           const mappedData = response.data.map((item) => ({
             ...item,
             Month: monthMap[item.PayrollMonth],
@@ -451,10 +464,10 @@ export default function DeductionEntries() {
           ];
 
           years.sort((a, b) => parseInt(b) - parseInt(a));
-
           setPhilhealthYears(years);
 
-          if (years.length > 0 && !years.includes(selectedPhilhealthYear)) {
+          if (years.length > 0 && !initialPhilhealthLoadComplete.current) {
+            initialPhilhealthLoadComplete.current = true;
             setSelectedPhilhealthYear(years[0]);
           }
 
@@ -478,10 +491,16 @@ export default function DeductionEntries() {
       return;
     }
 
-    getCrewSSS(crewCode, Number(selectedSSSYear))
+    if (initialSSSLoadComplete.current && selectedSSSYear === "initializing") {
+      return;
+    }
+
+    getCrewSSS(
+      crewCode,
+      selectedSSSYear === "initializing" ? 0 : Number(selectedSSSYear)
+    )
       .then((response) => {
         if (response.success) {
-          // Map the month names to their corresponding numbers
           const mappedData = response.data.map((item) => ({
             ...item,
             Month: monthMap[item.PayrollMonth],
@@ -494,10 +513,10 @@ export default function DeductionEntries() {
           ];
 
           years.sort((a, b) => parseInt(b) - parseInt(a));
-
           setSSSYears(years);
 
-          if (years.length > 0 && !years.includes(selectedSSSYear)) {
+          if (years.length > 0 && !initialSSSLoadComplete.current) {
+            initialSSSLoadComplete.current = true;
             setSelectedSSSYear(years[0]);
           }
 
