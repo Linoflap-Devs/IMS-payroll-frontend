@@ -218,7 +218,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     // Horizontal gray line
     y += 20;
     doc.setDrawColor(180);
-    doc.setLineWidth(1);
+    doc.setLineWidth(0.1);
     doc.line(margin, y, pageWidth - margin, y);
 
     // Payroll Details section
@@ -264,7 +264,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     // Horizontal gray line
     y += 8;
     doc.setDrawColor(180);
-    doc.setLineWidth(0.8);
+    doc.setLineWidth(0.1);
     doc.line(margin, y, pageWidth - margin, y);
 
     // Allotment Deductions section
@@ -314,7 +314,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     // Horizontal gray line
     y += 10;
     doc.setDrawColor(180);
-    doc.setLineWidth(0.8);
+    doc.setLineWidth(0.1);
     doc.line(margin, y, pageWidth - margin, y);
 
     // Allottee Distribution section
@@ -324,16 +324,16 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     doc.setDrawColor(0);
     doc.rect(margin, y, pageWidth - margin * 2, 12);
 
-    doc.text("ALLOTTEE DISTRIBUTION", margin + 2, y + 8);
-    doc.text("NET ALLOTMENT", pageWidth - margin - doc.getTextWidth("NET ALLOTMENT") - 10, y + 8);
+    doc.text("ALLOTTEE DISTRIBUTION", margin + 2, y + 7.5);
+    doc.text("NET ALLOTMENT", pageWidth - 12, y + 7.5, { align: 'right' });
 
     // Allottee items
-    y += 17;
+    y += 20;
     doc.setFont('NotoSans', 'normal');
     doc.setFontSize(10);
 
     crewData.allotteeDistribution.forEach((allottee, index) => {
-        doc.text(allottee.name, margin, y + index * 8);
+        doc.text(allottee.name, margin + 2, y + index * 8);
 
         // Format currency based on type, but use text notation instead of symbols
         let currencyType = 'PHP';
