@@ -145,24 +145,26 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
         // doc.rect(margins.left, vesselInfoY, companyColWidth, 20);
         doc.rect(margins.left, vesselInfoY, headerWidth, 10); // Vessel name cell
         doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text("VESSEL", margins.left + 5, vesselInfoY + 7);
-        doc.setFontSize(10);
+        doc.setTextColor(130);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(0); // Reset to black
+        doc.text("VESSEL", margins.left + 2, vesselInfoY + 4);
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.text(data.vesselName, margins.left + 5, vesselInfoY + 15);
+        doc.text(data.vesselName, margins.left + 2, vesselInfoY + 7.5);
 
         // vertical line for right column
         doc.setDrawColor(0);
         doc.setLineWidth(0.1);
         doc.line(margins.left + companyColWidth + middleColWidth, vesselInfoY, margins.left + companyColWidth + middleColWidth, vesselInfoY + 20);
         // Add exchange rate and date
-        doc.setFontSize(10);
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.text(`EXCHANGE RATE: USD > PHP ${data.exchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 7, { align: 'right' });
+        doc.text(`EXCHANGE RATE: USD > PHP ${data.exchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 6, { align: 'right' });
 
         // date row
         doc.rect(margins.left, vesselInfoY, headerWidth, 20);
-        doc.text(data.dateGenerated, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 17, { align: 'right' });
+        doc.text(data.dateGenerated, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 16, { align: 'right' });
 
         // horizontal gray separator line
         const separatorY = vesselInfoY + 24;
