@@ -3,6 +3,7 @@
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
+import { dot } from "node:test/reporters";
 
 // Define interfaces for the data structure
 interface Allottee {
@@ -103,41 +104,46 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
         doc.setLineWidth(0.1);
         doc.setDrawColor(0);
 
-        // Left column (Company info)
-        doc.rect(margins.left, margins.top, companyColWidth, 30);
+        doc.rect(margins.left, margins.top, headerWidth, 20);
 
-        // Middle column (Empty space)
-        doc.rect(margins.left + companyColWidth, margins.top, middleColWidth, 30);
 
-        // Right column (Month/Year and Report Title)
-        doc.rect(margins.left + companyColWidth + middleColWidth, margins.top, rightColWidth, 15); // Month/Year cell
-        doc.rect(margins.left + companyColWidth + middleColWidth, margins.top + 15, rightColWidth, 15); // Report Title cell
+        // // Left column (Company info)
+        // doc.rect(margins.left, margins.top, companyColWidth, 30);
+
+        // // Middle column (Empty space)
+        // doc.rect(margins.left + companyColWidth, margins.top, middleColWidth, 30);
+
+        // // Right column (Month/Year and Report Title)
+        doc.rect(margins.left + companyColWidth + middleColWidth, margins.top, rightColWidth, 10); // Month/Year cell
+        doc.rect(margins.left + companyColWidth + middleColWidth, margins.top + 10, rightColWidth, 10); // Report Title cell
 
         // Add IMS Philippines logo (placeholder)
         doc.setFillColor(31, 184, 107); // Green color
         doc.setDrawColor(0);
-        doc.roundedRect(margins.left + 10, margins.top + 5, 20, 20, 2, 2, 'FD');
+        doc.roundedRect(margins.left, margins.top, 20, 20, 2, 2, 'FD');
         doc.setTextColor(255); // White text
         doc.setFontSize(8);
-        doc.text("IMS PHIL", margins.left + 20, margins.top + 15, { align: 'center' });
+        doc.text("IMS PHIL", margins.left + 10, margins.top + 10, { align: 'center' });
         doc.setTextColor(0); // Reset to black
 
         // Add company name text
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text("IMS PHILIPPINES", margins.left + 35, margins.top + 12);
-        doc.text("MARITIME CORP.", margins.left + 35, margins.top + 20);
+        doc.text("IMS PHILIPPINES", margins.left + 25, margins.top + 9);
+        doc.text("MARITIME CORP.", margins.left + 25, margins.top + 13.5);
 
         // Add month/year and report title
-        doc.setFontSize(10);
-        doc.text(`${data.month} ${data.year}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, margins.top + 10, { align: 'right' });
-        doc.text("ALLOTMENT PAYROLL REGISTER", margins.left + companyColWidth + middleColWidth + rightColWidth - 5, margins.top + 25, { align: 'right' });
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${data.month} ${data.year}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, margins.top + 6, { align: 'right' });
+        doc.text("ALLOTMENT PAYROLL REGISTER", margins.left + companyColWidth + middleColWidth + rightColWidth - 5, margins.top + 16, { align: 'right' });
 
         // Draw vessel information table (3-column structure matching header)
-        const vesselInfoY = margins.top + 30;
+        const vesselInfoY = margins.top + 20;
 
         // Left column (Vessel name)
-        doc.rect(margins.left, vesselInfoY, companyColWidth, 20);
+        // doc.rect(margins.left, vesselInfoY, companyColWidth, 20);
+        doc.rect(margins.left, vesselInfoY, headerWidth, 10); // Vessel name cell
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
         doc.text("VESSEL", margins.left + 5, vesselInfoY + 7);
@@ -145,21 +151,21 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
         doc.setFont('helvetica', 'bold');
         doc.text(data.vesselName, margins.left + 5, vesselInfoY + 15);
 
-        // Middle column (Empty space)
-        doc.rect(margins.left + companyColWidth, vesselInfoY, middleColWidth, 20);
-
-        // Right column (Exchange rate and date)
-        doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY, rightColWidth, 10); // Exchange rate cell
-        doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY + 10, rightColWidth, 10); // Date cell
-
+        // vertical line for right column
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.1);
+        doc.line(margins.left + companyColWidth + middleColWidth, vesselInfoY, margins.left + companyColWidth + middleColWidth, vesselInfoY + 20);
         // Add exchange rate and date
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         doc.text(`EXCHANGE RATE: USD > PHP ${data.exchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 7, { align: 'right' });
+
+        // date row
+        doc.rect(margins.left, vesselInfoY, headerWidth, 20);
         doc.text(data.dateGenerated, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 17, { align: 'right' });
 
-        // Add back the horizontal gray separator line
-        const separatorY = vesselInfoY + 28;
+        // horizontal gray separator line
+        const separatorY = vesselInfoY + 24;
         doc.setDrawColor(180); // Gray color
         doc.setLineWidth(1);
         doc.line(margins.left, separatorY, pageWidth - margins.right, separatorY);
@@ -167,7 +173,7 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
         doc.setLineWidth(0.1);
 
         // Define main table starting position
-        const mainTableY = separatorY + 8;
+        const mainTableY = separatorY + 4;
 
         // Define table column widths for the main data table
         const colWidths = [
