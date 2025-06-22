@@ -1,9 +1,10 @@
+import AccessGuard from "@/components/pages/AccessGuard";
 import VesselProfile from "@/components/pages/VesselProfile";
 
 export default function page() {
   return (
-    <div>
+    <AccessGuard allowedTypes={[3]}>
       <VesselProfile />
-    </div>
+    </AccessGuard>
   );
 }

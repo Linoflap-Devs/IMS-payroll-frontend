@@ -16,11 +16,18 @@ import { useRouter } from "next/navigation";
 import { getHomeRoutes } from "@/src/routes/homeRoutes";
 import { getHomeBreadcrumb } from "@/src/routes/getHomeBreadcrumb";
 import { Sidebar } from "@/src/routes/sidebar";
+import { useAuth } from "@/src/store/useAuthStore";
 
 // Define the Sidebar component interface
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  
+  const { user } = useAuth();
+  const userType = user?.UserType ?? -1; // fallback to -1 (unauthorized)
+
+
+
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -35,11 +42,10 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
     router.push("/");
   };
 
-  const routes = getHomeRoutes(pathname);
+  const routes = getHomeRoutes(pathname, userType);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      {/* Mobile Sidebar */}
       <Sheet>
         <SheetTrigger asChild className="md:hidden">
           <Button variant="outline" size="icon" className="absolute left-4 top-4 z-40">
@@ -87,7 +93,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
               )}
             </span>
             <div className="flex items-center text-base text-muted-foreground">
-              <div className="font-medium text-foreground text-sm">{getHomeBreadcrumb(pathname)}</div>
+              <div className="font-medium text-foreground text-sm">{getHomeBreadcrumb(pathname, userType)}</div>
             </div>
           </div>
           <main className="flex-1 overflow-auto bg-[#F9F9F9]">{children}</main>

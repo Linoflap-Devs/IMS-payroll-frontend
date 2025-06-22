@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import AppInitializer from "@/src/routes/AppInitializer";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -20,10 +21,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${montserrat.variable} antialiased`}
-        suppressHydrationWarning
-      >
+      <body className={`${montserrat.variable} antialiased`} suppressHydrationWarning>
+        <AppInitializer />
         {children}
         <Toaster />
       </body>

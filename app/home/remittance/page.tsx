@@ -1,7 +1,10 @@
-"use client";
-
+import AccessGuard from "@/components/pages/AccessGuard";
 import Remittance from "@/components/pages/Remittance";
 
 export default function page() {
-  return <Remittance />;
+  return (
+    <AccessGuard allowedTypes={[3]}>
+      <Remittance />;
+    </AccessGuard>
+  )
 }

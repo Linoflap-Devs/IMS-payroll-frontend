@@ -1,9 +1,10 @@
+import AccessGuard from "@/components/pages/AccessGuard";
 import CrewEntries from "@/components/pages/CrewEntries";
 
 export default function page() {
   return (
-    <div>
+    <AccessGuard allowedTypes={[3, 5]}>
       <CrewEntries />
-    </div>
+    </AccessGuard>
   );
 }

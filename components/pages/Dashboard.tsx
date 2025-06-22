@@ -28,6 +28,7 @@ import {
   SalaryProcessedItem,
 } from "@/src/services/dashboard/dashboard.api";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { getCurrentUser } from "@/src/services/auth/auth.api";
 
 type Dashboard = {
   TotalVessels: number;
@@ -60,6 +61,19 @@ export default function Dashboard() {
         }
       })
       .catch((err) => console.error("Error fetching dashboard data:", err));
+  }, []);
+
+  useEffect(() => {
+    const testUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        console.log('[RootLayout] getCurrentUser response:', user);
+      } catch (err) {
+        console.error('[RootLayout] Failed to fetch user:', err);
+      }
+    };
+
+    testUser();
   }, []);
 
   // const totalPerVesselAllotmentPHP = React.useMemo(() => {

@@ -1,11 +1,12 @@
 "use client";
 
+import AccessGuard from "@/components/pages/AccessGuard";
 import AuditLog from "@/components/pages/allotment_payroll/AuditLog";
 
 export default function Page() {
   return (
-    <div>
+    <AccessGuard allowedTypes={[1]}>
       <AuditLog/>
-    </div>
+    </AccessGuard>
   );
 }

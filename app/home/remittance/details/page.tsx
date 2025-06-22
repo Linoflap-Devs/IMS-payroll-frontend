@@ -1,8 +1,9 @@
+import AccessGuard from "@/components/pages/AccessGuard";
 import RemittanceDetails from "@/components/pages/RemittanceDetails";
 export default function page() {
   return (
-    <div>
+    <AccessGuard allowedTypes={[3]}>
       <RemittanceDetails />
-    </div>
+    </AccessGuard>
   );
 }

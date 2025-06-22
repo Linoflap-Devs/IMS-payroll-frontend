@@ -15,13 +15,16 @@ export interface LoginResponse {
   message: string;
 }
 
-
 export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
   const response = await axiosInstance.post<LoginResponse>("/auth/login", data);
   return response.data;
 };
 
-
 export const logoutUser = async (): Promise<void> => {
   await axiosInstance.delete("/auth/logout");
+};
+
+export const getCurrentUser = async (): Promise<{ Email: string; UserType: number }> => {
+  const response = await axiosInstance.get("/auth/current-user");
+  return response.data.data;
 };

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ChevronRight as ChevronRightIcon } from "lucide-react";
 import { getHomeRoutes } from "./homeRoutes";
 
-export const getHomeBreadcrumb = (pathname: string) => {
-  const routes = getHomeRoutes(pathname);
+export const getHomeBreadcrumb = (pathname: string, userType: number) => {
+  const routes = getHomeRoutes(pathname, userType);
 
   const match = (base: string, baseLabel: string, currentLabel?: string) => (
     <div className="flex items-center">
