@@ -475,7 +475,7 @@ export default function Allotment() {
                 <p className="text-xl pt-0">Exchange rate of USD</p>
                 <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
                   <p>₱</p>
-                  <p>{formatNumber(forexRate)}</p>
+                  <p>{formatNumber(forexRate) || 0}</p>
                 </div>
               </CardContent>
             </Card>
