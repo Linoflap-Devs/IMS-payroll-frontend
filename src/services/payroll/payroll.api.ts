@@ -26,7 +26,7 @@ export interface Allottee {
   Currency: number;
 }
 
-export interface AllotmentRegister {
+export interface AllotmentRegisterCrew {
   CrewID: number;
   CrewName: string;
   Rank: string;
@@ -40,10 +40,17 @@ export interface AllotmentRegister {
   Allottee: Allottee[];
 }
 
+export interface AllotmentRegisterData {
+  VesselID: number;
+  VesselName: string;
+  Crew: AllotmentRegisterCrew[];
+}
+
+
 export interface AllotmentRegisterResponse {
   success: boolean;
   message: string;
-  data: AllotmentRegister[];
+  data: AllotmentRegisterData[];
 }
 
 export const getVesselAllotmentRegister = async (vesselId: string | number): Promise<AllotmentRegisterResponse> => {

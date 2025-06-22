@@ -11,8 +11,11 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "../../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
-import { getVesselAllotmentRegister } from "@/src/services/payroll/payroll.api";
-import type { AllotmentRegister } from "@/src/services/payroll/payroll.api";
+import {
+  AllotmentRegisterCrew,
+  AllotmentRegisterData,
+  getVesselAllotmentRegister,
+} from "@/src/services/payroll/payroll.api";
 import { Ship } from "lucide-react";
 import {
   DropdownMenu,
@@ -41,11 +44,12 @@ export default function AllotmentRegisterComponent({
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
 
-  const [allotmentData, setAllotmentData] = useState<AllotmentRegister[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedCrew, setSelectedCrew] = useState<AllotmentRegister | null>(
-    null
+  const [allotmentData, setAllotmentData] = useState<AllotmentRegisterData[]>(
+    []
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedCrew, setSelectedCrew] =
+    useState<AllotmentRegisterCrew | null>(null);
   const [isAllotteeDialogOpen, setIsAllotteeDialogOpen] = useState(false);
   const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
     initialVesselInfo
@@ -107,7 +111,7 @@ export default function AllotmentRegisterComponent({
     return isNaN(numValue) ? "0.00" : numValue.toFixed(2);
   };
 
-  const columns: ColumnDef<AllotmentRegister>[] = [
+  const columns: ColumnDef<AllotmentRegisterCrew>[] = [
     {
       accessorKey: "CrewName",
       header: "Crew Name",
@@ -199,8 +203,9 @@ export default function AllotmentRegisterComponent({
   ];
 
   // Filter the crew data based on search term
-  const filteredData = allotmentData.filter((item) =>
-    item?.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
+  const filterCrew = allotmentData[0]?.Crew || [];
+  const filteredData = filterCrew.filter((item) =>
+    item.CrewName?.includes(debouncedSearch.toLowerCase())
   );
 
   return (
