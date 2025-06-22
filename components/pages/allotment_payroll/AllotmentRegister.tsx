@@ -205,7 +205,7 @@ export default function AllotmentRegisterComponent({
   // Filter the crew data based on search term
   const filterCrew = allotmentData[0]?.Crew || [];
   const filteredData = filterCrew.filter((item) =>
-    item.CrewName?.includes(debouncedSearch.toLowerCase())
+    item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   return (
