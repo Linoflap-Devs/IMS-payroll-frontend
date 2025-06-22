@@ -291,7 +291,7 @@ export default function AllotmentRegisterComponent({
   };
 
   const handlePrint = () => {
-    generateAllotmentPayrollRegister(testData, "lanceballicud");
+    generateAllotmentPayrollRegister(testData);
   };
 
   return (

@@ -46,19 +46,21 @@ function formatCurrency(amount: number): string {
 }
 
 // Get current UTC date and time in specified format
-function getCurrentDateTime(): string {
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(now.getUTCDate()).padStart(2, '0');
-    const hours = String(now.getUTCHours()).padStart(2, '0');
-    const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-    const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+// function getCurrentDateTime(): string {
+//     const now = new Date();
+//     const year = now.getUTCFullYear();
+//     const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+//     const day = String(now.getUTCDate()).padStart(2, '0');
+//     const hours = String(now.getUTCHours()).padStart(2, '0');
+//     const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+//     const seconds = String(now.getUTCSeconds()).padStart(2, '0');
 
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
+//     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+// }
 
-export function generateAllotmentPayrollRegister(data: PayrollRegisterData, currentUser: string = 'admin'): boolean {
+// export function generateAllotmentPayrollRegister(data: PayrollRegisterData, currentUser: string = 'admin'): boolean {
+export function generateAllotmentPayrollRegister(data: PayrollRegisterData): boolean {
+
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
         return false;
@@ -263,7 +265,8 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
 
             // If crew has allottees, draw them in subsequent rows
             if (crew.allottees && crew.allottees.length > 0) {
-                crew.allottees.forEach((allottee, idx) => {
+                // crew.allottees.forEach((allottee, idx) => {
+                crew.allottees.forEach((allottee) => {
                     // Move to next row for allottee
                     y += rowHeight;
 
