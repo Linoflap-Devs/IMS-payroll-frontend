@@ -3,7 +3,7 @@ import {
   getCrewList,
   getCrewDetails,
   getCrewBasic,
-  getCrewMovement,
+  //getCrewMovement,
   getCrewAllottee,
   getCrewRankList,
   CrewItem,
@@ -12,6 +12,7 @@ import {
   CrewMovement,
   CrewAllottee,
   CrewRankItem,
+  getCrewMovementv2,
 } from '../services/crew/crew.api';
 import { getCrewValidationDetails } from '../services/crew/crewValidation.api';
 import { ICrewValidationDetails } from "@/types/crewValidation";
@@ -158,7 +159,9 @@ export const useCrewStore = create<CrewStore>((set) => ({
   fetchCrewMovements: async (crewCode: string) => {
     set({ isLoadingMovements: true, movementsError: null });
     try {
-      const response = await getCrewMovement(crewCode);
+      const response = await getCrewMovementv2(crewCode);
+      console.log("Fetched crew movement response:", response);
+
       if (response.success) {
         set({ movements: response.data, isLoadingMovements: false });
       } else {

@@ -524,12 +524,12 @@ export default function CrewDetails() {
                   <div className="space-y-8">
                     {/* Personal Information Section */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 text-primary">
+                      <h3 className="text-lg font-bold mb-4 text-primary">
                         Personal Information
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Last Name
                           </label>
                           <Input
@@ -565,7 +565,7 @@ export default function CrewDetails() {
                             )}
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             First Name
                           </label>
                           <Input
@@ -602,7 +602,7 @@ export default function CrewDetails() {
                         </div>
 
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Middle Name
                           </label>
                           <Input
@@ -619,7 +619,7 @@ export default function CrewDetails() {
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Marital Status
                           </label>
                           <Select
@@ -660,7 +660,7 @@ export default function CrewDetails() {
                             )}
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Sex
                           </label>
                           <Select
@@ -696,7 +696,7 @@ export default function CrewDetails() {
                           )}
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Birthdate
                           </label>
                           {/* <Calendar strokeWidth={1.5} size={10} /> */}
@@ -734,7 +734,7 @@ export default function CrewDetails() {
 
                         {/* Province Select Component */}
                         <div className="md:col-span-2">
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Province
                           </label>
                           {isEditing ? (
@@ -793,7 +793,7 @@ export default function CrewDetails() {
 
                         {/* City Select Component */}
                         <div className="md:col-span-2">
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             City
                           </label>
                           {isEditing ? (
@@ -856,12 +856,12 @@ export default function CrewDetails() {
 
                     {/* Government IDs Section */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 text-primary">
+                      <h3 className="text-lg font-bold mb-4 text-primary">
                         Government IDs
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             SSS Number
                           </label>
                           <Input
@@ -903,7 +903,7 @@ export default function CrewDetails() {
                             )}
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Tax ID Number
                           </label>
                           <Input
@@ -949,7 +949,7 @@ export default function CrewDetails() {
                             )}
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Philhealth Number
                           </label>
                           <Input
@@ -997,7 +997,7 @@ export default function CrewDetails() {
                             )}
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             HDMF Number
                           </label>
                           <Input
@@ -1045,12 +1045,12 @@ export default function CrewDetails() {
 
                     {/* Travel Documents Section */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 text-primary">
+                      <h3 className="text-lg font-bold mb-4 text-primary">
                         Travel Documents
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="md:col-span-2">
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Passport Number
                           </label>
                           <Input
@@ -1101,7 +1101,7 @@ export default function CrewDetails() {
                             )}
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Passport Issue Date
                           </label>
                           <Input
@@ -1138,7 +1138,7 @@ export default function CrewDetails() {
                             )}
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Passport Expiration Date
                           </label>
                           <Input
@@ -1175,7 +1175,7 @@ export default function CrewDetails() {
                             )}
                         </div>
                         <div className="md:col-span-2">
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Seamans Book
                           </label>
                           <Input
@@ -1227,7 +1227,7 @@ export default function CrewDetails() {
                             )}
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Seamans Book Issue Date
                           </label>
                           <Input
@@ -1265,7 +1265,7 @@ export default function CrewDetails() {
                             )}
                         </div>
                         <div>
-                          <label className="text-sm text-gray-500 mb-1 block">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Seamans Book Expiration Date
                           </label>
                           <Input

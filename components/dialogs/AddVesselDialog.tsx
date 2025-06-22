@@ -201,19 +201,16 @@ export function AddVesselDialog({
                   control={form.control}
                   name="vesselCode"
                   render={({ field }) => (
-                    <FormItem className="">
-                      <FormLabel
-                        className={`${uniqueError ? "text-destructive" : ""}`}>
+                    <FormItem className="col-span-2">
+                      <FormLabel>
                         Vessel Code
                       </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter vessel code"
                           {...field}
-                          className={`w-full ${
-                            uniqueError ? "border-destructive" : ""
-                          }`}
-                          aria-invalid={uniqueError}
+                          className={`w-full border ${uniqueError ? "border-[#E24141]" : ""}`}
+                          aria-invalid={!!form.formState.errors.vesselCode}
                         />
                       </FormControl>
                       <FormMessage />
@@ -227,17 +224,15 @@ export function AddVesselDialog({
                   render={({ field }) => (
                     <FormItem className="mt-5 col-span-2">
                       <FormLabel
-                        className={`${uniqueError ? "text-destructive" : ""}`}>
+                        className={`${uniqueError ? "text-[#E24141]" : ""}`}>
                         Vessel Name
                       </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter vessel name"
                           {...field}
-                          className={`w-full ${
-                            uniqueError ? "border-destructive" : ""
-                          }`}
-                          aria-invalid={uniqueError}
+                          className={`w-full border ${uniqueError ? "border-[#E24141]" : ""}`}
+                          aria-invalid={!!form.formState.errors.vesselName}
                         />
                       </FormControl>
                       <FormMessage />
@@ -318,7 +313,7 @@ export function AddVesselDialog({
                   type="submit"
                   className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md"
                   disabled={isSubmitting}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Vessel
+                  <Plus className="mr-2 h-4 w-4" /> Save Vessel
                 </Button>
               </DialogFooter>
             </form>

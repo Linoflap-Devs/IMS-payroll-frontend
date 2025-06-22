@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Info, X } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { Input } from "../ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
@@ -15,7 +15,7 @@ import { useToast } from "../ui/use-toast";
 import Swal from "sweetalert2";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import { useCrewStore } from "@/src/store/useCrewStore";
-import { addCrew, AddCrewDataForm } from "@/src/services/crew/crew.api"; // Ensure this path is correct
+import { addCrew, AddCrewDataForm } from "@/src/services/crew/crew.api";
 import { useRef } from "react";
 import Image from "next/image";
 import { AxiosError } from "axios";
@@ -38,7 +38,6 @@ export default function AddCrew() {
   const fileInputRef = useRef<HTMLInputElement>(null); // For triggering file input
   const [duplicateError, setDuplicateError] = useState(false); // For duplicate crew code error
   const [noMiddleName, setNoMiddleName] = useState(false); // For no middle name checkbox
-
   const { fetchCrews: refreshCrewList } = useCrewStore.getState(); // To refresh list after adding
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -439,7 +438,8 @@ export default function AddCrew() {
                     activeTab === "details" ? handleCancel : handlePrevious
                   }
                   disabled={isSubmitting} // Disable when submitting
-                  className="px-4">
+                  className="px-4"
+                >
                   {activeTab === "details" ? (
                     <>
                       <X className="w-4 h-4 mr-2" />
@@ -512,7 +512,7 @@ export default function AddCrew() {
                       className="mt-2 w-60"
                       onClick={() => fileInputRef.current?.click()} // Trigger file input
                     >
-                      Add Image
+                      Upload Photo
                     </Button>
                     <input
                       type="file"
@@ -528,8 +528,9 @@ export default function AddCrew() {
                     <div className="flex flex-col items-start">
                       <label
                         htmlFor="crewCode"
-                        className="text-sm text-gray-500">
-                        Enter CrewCode
+                        className="text-sm font-semibold text-gray-500"
+                      >
+                        Crew Code
                       </label>
                       <Input
                         value={formData.crewCode}
@@ -537,20 +538,20 @@ export default function AddCrew() {
                           handleInputChange("crewCode", e.target.value)
                         }
                         className={`h-8 mt-1 text-sm ${
-                          submitted &&
-                          duplicateError &&
-                          formData.crewCode.length == 0
+                          submitted && (duplicateError || formData.crewCode.length === 0)
                             ? "border-red-500 focus:!ring-red-500/50"
                             : ""
                         }`}
                       />
                       {submitted && formData.crewCode.length == 0 && (
-                        <p className="text-red-500 text-sm">
+                        <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                          <Info className="w-4 h-4" />
                           Please enter a valid crew code.
                         </p>
                       )}
                       {duplicateError && (
-                        <p className="text-red-500 text-sm">
+                        <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                          <Info className="w-4 h-4" />
                           This Crew Code already exists.
                         </p>
                       )}
@@ -558,19 +559,21 @@ export default function AddCrew() {
 
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col items-start flex-1 min-w-0">
-                        <label className="text-sm text-gray-500">Rank</label>
+                        <label className="text-sm font-semibold text-gray-500">Rank</label>
                         <Select
                           value={formData.rank}
                           onValueChange={(value) =>
                             handleInputChange("rank", value)
-                          }>
+                          }
+                        >
                           <SelectTrigger
                             className={`w-full ${
                               submitted && formData.rank.length == 0
                                 ? "border-red-500 focus:!ring-red-500/60"
                                 : ""
-                            }`}>
-                            <SelectValue placeholder="Select a rank" />
+                            }`}
+                          >
+                            <SelectValue placeholder="Select rank" />
                           </SelectTrigger>
                           <SelectContent className="max-h-80">
                             <div className="px-2 py-2 sticky top-0 bg-white z-10">
@@ -585,7 +588,8 @@ export default function AddCrew() {
                               filteredRanks.map((rank) => (
                                 <SelectItem
                                   key={rank.RankID}
-                                  value={rank.RankID.toString()}>
+                                  value={rank.RankID.toString()}
+                                >
                                   {rank.RankName}
                                 </SelectItem>
                               ))
@@ -597,8 +601,9 @@ export default function AddCrew() {
                           </SelectContent>
                         </Select>
                         {submitted && formData.rank.length == 0 && (
-                          <p className="text-red-500 text-sm">
-                            Please enter a rank.
+                          <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                            <Info className="w-4 h-4" />
+                              Please enter a rank.
                           </p>
                         )}
                       </div>
@@ -606,7 +611,7 @@ export default function AddCrew() {
 
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col items-start flex-1 min-w-0">
-                        <label className="text-sm text-gray-500">
+                        <label className="text-sm font-semibold text-gray-500">
                           Current Vessel
                         </label>
                         <Input
@@ -637,14 +642,18 @@ export default function AddCrew() {
 
                     <div className="space-y-3 text-left">
                       <div className="flex flex-col items-start">
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm font-semibold text-gray-500">
                           Mobile Number
                         </div>
                         <Input
+                          type="tel"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           value={formData.mobileNumber}
-                          onChange={(e) =>
-                            handleInputChange("mobileNumber", e.target.value)
-                          }
+                          onChange={(e) => {
+                            const onlyNums = e.target.value.replace(/\D/g, "");
+                            handleInputChange("mobileNumber", onlyNums);
+                          }}
                           className={`h-8 text-sm ${
                             submitted && formData.mobileNumber.length == 0
                               ? "border-red-500 focus:!ring-red-500/50"
@@ -652,21 +661,23 @@ export default function AddCrew() {
                           }`}
                         />
                         {submitted && formData.mobileNumber.length == 0 && (
-                          <p className="text-red-500 text-sm">
-                            Please enter a valid mobile number.
+                          <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                            <Info className="w-4 h-4" />
+                              Please enter a valid mobile number.
                           </p>
                         )}
                       </div>
 
                       <div className="flex flex-col items-start">
-                        <label className="text-sm text-gray-500">
+                        <label className="text-sm font-semibold text-gray-500">
                           Landline Number
                         </label>
                         <Input
                           value={formData.landlineNumber}
-                          onChange={(e) =>
-                            handleInputChange("landlineNumber", e.target.value)
-                          }
+                          onChange={(e) => {
+                            const onlyNums = e.target.value.replace(/\D/g, "");
+                            handleInputChange("landlineNumber", onlyNums);
+                          }}
                           // className={`h-8 text-sm ${
                           //   !fieldsError ? "border-red-500" : ""
                           // }`}
@@ -680,7 +691,7 @@ export default function AddCrew() {
                       </div>
 
                       <div className="flex flex-col items-start">
-                        <label className="text-sm text-gray-500">
+                        <label className="text-sm font-semibold text-gray-500">
                           Email Address
                         </label>
                         <Input
@@ -695,7 +706,8 @@ export default function AddCrew() {
                           }`}
                         />
                         {submitted && formData.emailAddress.length == 0 && (
-                          <p className="text-red-500 text-sm">
+                          <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                            <Info className="w-4 h-4" />
                             Please enter a valid email address.
                           </p>
                         )}
@@ -713,49 +725,54 @@ export default function AddCrew() {
                   defaultValue={activeTab}
                   value={activeTab}
                   onValueChange={handleTabChange}
-                  className="w-full flex flex-col h-full">
+                  className="w-full flex flex-col h-full"
+                >
                   <div className="border-b">
                     <div className="px-4">
                       <TabsList className="bg-transparent p-0 h-11 w-full flex justify-between space-x-0">
                         <TabsTrigger
                           value="details"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none">
+                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
+                        >
                           {completedTabs.includes("details") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
                               <Check className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <span className="mt-5">Personal Information</span>
+                          <span className="mt-5 fonr-bold">Personal Information</span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="movement"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none">
+                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
+                        >
                           {completedTabs.includes("movement") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
                               <Check className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <span className="mt-5">Government IDs</span>
+                          <span className="mt-5 font-bold">Government IDs</span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="travel"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none">
+                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
+                        >
                           {completedTabs.includes("travel") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
                               <Check className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <span className="mt-5">Travel Documents</span>
+                          <span className="mt-5 font-bold">Travel Documents</span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="summary"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none">
+                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
+                        >
                           {completedTabs.includes("summary") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
                               <Check className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <span className="mt-5">Summary</span>
+                          <span className="mt-5 font-bold">Summary</span>
                         </TabsTrigger>
                       </TabsList>
                       {/* Progress bar */}
@@ -770,16 +787,17 @@ export default function AddCrew() {
 
                   <TabsContent
                     value="details"
-                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
+                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                  >
                     <div className="space-y-8">
                       {/* Personal Information Section */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Personal Information
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Last Name
                             </label>
                             <Input
@@ -789,19 +807,32 @@ export default function AddCrew() {
                                 handleInputChange("lastName", e.target.value)
                               }
                               className={`${
-                                submitted && formData.lastName.length == 0
+                                submitted &&
+                                (formData.lastName.length === 0 ||
+                                  !/^[a-zA-Z\s]+$/.test(formData.lastName))
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
                               }`}
                             />
-                            {submitted && formData.lastName.length == 0 && (
-                              <p className="text-red-500 text-sm">
+
+                            {submitted && formData.lastName.length === 0 && (
+                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                <Info className="w-4 h-4" />
                                 Last name must be at least 2 characters.
                               </p>
                             )}
+
+                            {submitted &&
+                              formData.lastName.length > 0 &&
+                              !/^[a-zA-Z\s]+$/.test(formData.lastName) && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  Last name should only contain letters.
+                                </p>
+                              )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               First Name
                             </label>
                             <Input
@@ -811,20 +842,33 @@ export default function AddCrew() {
                                 handleInputChange("firstName", e.target.value)
                               }
                               className={`${
-                                submitted && formData.firstName.length == 0
+                                submitted &&
+                                (formData.firstName.length === 0 ||
+                                  !/^[a-zA-Z\s]+$/.test(formData.firstName))
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
                               }`}
                             />
-                            {submitted && formData.firstName.length == 0 && (
-                              <p className="text-red-500 text-sm">
+
+                            {submitted && formData.firstName.length === 0 && (
+                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                <Info className="w-4 h-4" />
                                 First name must be at least 2 characters.
                               </p>
                             )}
+
+                            {submitted &&
+                              formData.firstName.length > 0 &&
+                              !/^[a-zA-Z\s]+$/.test(formData.firstName) && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  First name should only contain letters.
+                                </p>
+                              )}
                           </div>
                           <div>
                             <div className="flex items-center space-x-10">
-                              <label className="text-sm text-gray-500 mb-1 block">
+                              <label className="text-sm font-semibold text-gray-500 mb-1 block">
                                 Middle Name
                               </label>
                               <div className="flex items-center space-x-2 mb-1">
@@ -837,7 +881,8 @@ export default function AddCrew() {
                                 />
                                 <label
                                   htmlFor="middlename"
-                                  className="text-sm text-gray-500">
+                                  className="text-sm text-gray-500"
+                                >
                                   No Middle Name
                                 </label>
                               </div>
@@ -858,75 +903,83 @@ export default function AddCrew() {
                             )} */}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Marital Status
                             </label>
                             <Select
                               value={formData.maritalStatus}
                               onValueChange={(value) =>
                                 handleInputChange("maritalStatus", value)
-                              }>
+                              }
+                            >
                               <SelectTrigger
                                 className={`w-full ${
                                   submitted &&
                                   formData.maritalStatus.length == 0
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
-                                }`}>
+                                }`}
+                              >
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
                               <SelectContent>
                                 {maritalStatuses.map((status) => (
                                   <SelectItem
                                     key={status.value}
-                                    value={status.value}>
+                                    value={status.value}
+                                  >
                                     {status.label}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                             {submitted &&
-                              formData.maritalStatus.length == 0 && (
-                                <p className="text-red-500 text-sm">
+                              formData.maritalStatus.length === 0 && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
                                   Please enter a status.
                                 </p>
                               )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Sex
                             </label>
                             <Select
                               value={formData.sex}
                               onValueChange={(value) =>
                                 handleInputChange("sex", value)
-                              }>
+                              }
+                            >
                               <SelectTrigger
                                 className={`w-full ${
                                   submitted && formData.sex.length == 0
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
-                                }`}>
+                                }`}
+                              >
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
                               <SelectContent>
                                 {sexOptions.map((option) => (
                                   <SelectItem
                                     key={option.value}
-                                    value={option.value}>
+                                    value={option.value}
+                                  >
                                     {option.label}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                             {submitted && formData.sex.length == 0 && (
-                              <p className="text-red-500 text-sm">
+                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                <Info className="w-4 h-4" />
                                 Please enter a valid sex.
                               </p>
                             )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Birthdate
                             </label>
                             <div className="relative">
@@ -944,27 +997,30 @@ export default function AddCrew() {
                                 }`}
                               />
                               {submitted && formData.birthdate.length == 0 && (
-                                <p className="text-red-500 text-sm">
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
                                   Please enter a valid birthdate.
                                 </p>
                               )}
                             </div>
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Province
                             </label>
                             <Select
                               value={formData.province}
                               onValueChange={(value) =>
                                 handleInputChange("province", value)
-                              }>
+                              }
+                            >
                               <SelectTrigger
                                 className={`w-full ${
                                   submitted && formData.province.length == 0
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
-                                }`}>
+                                }`}
+                              >
                                 <SelectValue placeholder="Select a province" />
                               </SelectTrigger>
                               <SelectContent className="max-h-80">
@@ -986,7 +1042,8 @@ export default function AddCrew() {
                                   filteredProvinces.map((province) => (
                                     <SelectItem
                                       key={province.ProvinceID}
-                                      value={province.ProvinceID.toString()}>
+                                      value={province.ProvinceID.toString()}
+                                    >
                                       {province.ProvinceName}
                                     </SelectItem>
                                   ))
@@ -998,27 +1055,30 @@ export default function AddCrew() {
                               </SelectContent>
                             </Select>
                             {submitted && formData.province.length == 0 && (
-                              <p className="text-red-500 text-sm">
+                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                <Info className="w-4 h-4" />
                                 Please enter a province.
                               </p>
                             )}
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               City
                             </label>
                             <Select
                               value={formData.city}
                               onValueChange={(value) =>
                                 handleInputChange("city", value)
-                              }>
+                              }
+                            >
                               <SelectTrigger
                                 className={`w-full ${
                                   submitted && formData.city.length == 0
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
                                 }`}
-                                disabled={!formData.province}>
+                                disabled={!formData.province}
+                              >
                                 <SelectValue placeholder="Select a city" />
                               </SelectTrigger>
                               <SelectContent className="max-h-80">
@@ -1040,7 +1100,8 @@ export default function AddCrew() {
                                   filteredCities.map((city) => (
                                     <SelectItem
                                       key={city.CityID}
-                                      value={city.CityID.toString()}>
+                                      value={city.CityID.toString()}
+                                    >
                                       {city.CityName}
                                     </SelectItem>
                                   ))
@@ -1055,7 +1116,8 @@ export default function AddCrew() {
                               </SelectContent>
                             </Select>
                             {submitted && formData.city.length == 0 && (
-                              <p className="text-red-500 text-sm">
+                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                <Info className="w-4 h-4" />
                                 Please enter a city.
                               </p>
                             )}
@@ -1067,16 +1129,17 @@ export default function AddCrew() {
 
                   <TabsContent
                     value="movement"
-                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
+                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                  >
                     <div className="space-y-8">
                       {/* Government IDs Section */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Government IDs
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               SSS Number
                             </label>
                             <Input
@@ -1092,13 +1155,14 @@ export default function AddCrew() {
                               }`}
                             />
                             {submitted && formData.sssNumber.length !== 10 && (
-                              <p className="text-red-500 text-sm">
+                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                <Info className="w-4 h-4" />
                                 Please enter a valid SSS number.
                               </p>
                             )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Tax ID Number
                             </label>
                             <Input
@@ -1117,13 +1181,14 @@ export default function AddCrew() {
                             />
                             {((submitted && formData.taxIdNumber.length <= 8) ||
                               formData.taxIdNumber.length >= 13) && (
-                              <p className="text-red-500 text-sm">
+                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                <Info className="w-4 h-4" />
                                 Please enter a valid Tax ID number.
                               </p>
                             )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Philhealth Number
                             </label>
                             <Input
@@ -1144,13 +1209,14 @@ export default function AddCrew() {
                             />
                             {submitted &&
                               formData.philhealthNumber.length !== 12 && (
-                                <p className="text-red-500 text-sm">
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
                                   Please enter a valid Philhealth number.
                                 </p>
                               )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               HDMF Number
                             </label>
                             <Input
@@ -1166,8 +1232,9 @@ export default function AddCrew() {
                               }`}
                             />
                             {submitted && formData.hdmfNumber.length !== 12 && (
-                              <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
+                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                <Info className="w-4 h-4" />
+                                Please enter a valdi HDMF number.
                               </p>
                             )}
                           </div>
@@ -1178,16 +1245,17 @@ export default function AddCrew() {
 
                   <TabsContent
                     value="travel"
-                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
+                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                  >
                     <div className="space-y-8">
                       {/* Travel Documents Section */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Travel Documents
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Number
                             </label>
                             <Input
@@ -1210,13 +1278,14 @@ export default function AddCrew() {
                             {submitted &&
                               (formData.passportNumber.length <= 6 ||
                                 formData.passportNumber.length >= 10) && (
-                                <p className="text-red-500 text-sm">
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
                                   Please enter a valid Passport number.
                                 </p>
                               )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Issue Date
                             </label>
                             <div className="relative">
@@ -1237,14 +1306,15 @@ export default function AddCrew() {
                                 }`}
                               />
                               {submitted && !formData.passportIssueDate && (
-                                <p className="text-red-500 text-sm">
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
                                   Please enter a valid Passport Issue Date.
                                 </p>
                               )}
                             </div>
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Expiration Date
                             </label>
                             <div className="relative">
@@ -1265,14 +1335,15 @@ export default function AddCrew() {
                                 }`}
                               />
                               {submitted && !formData.passportExpiryDate && (
-                                <p className="text-red-500 text-sm">
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
                                   Please enter a valid Passport Expiration Date.
                                 </p>
                               )}
                             </div>
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book
                             </label>
                             <Input
@@ -1291,13 +1362,14 @@ export default function AddCrew() {
                             />
                             {((submitted && formData.seamansBook.length <= 6) ||
                               formData.seamansBook.length >= 10) && (
-                              <p className="text-red-500 text-sm">
-                                Please enter a valid CrewCode.
+                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                <Info className="w-4 h-4" />
+                                Please enter a Seamans Book.
                               </p>
                             )}
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Issue Date
                             </label>
                             <div className="relative">
@@ -1318,14 +1390,15 @@ export default function AddCrew() {
                                 }`}
                               />
                               {submitted && !formData.seamansBookIssueDate && (
-                                <p className="text-red-500 text-sm">
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
                                   Please enter a valid Seamans Book Issue Date.
                                 </p>
                               )}
                             </div>
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Expiration Date
                             </label>
                             <div className="relative">
@@ -1346,7 +1419,8 @@ export default function AddCrew() {
                                 }`}
                               />
                               {submitted && !formData.seamansBookExpiryDate && (
-                                <p className="text-red-500 text-sm">
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
                                   Please enter a valid Seamans Book Expiration
                                   Date.
                                 </p>
@@ -1361,16 +1435,17 @@ export default function AddCrew() {
                   {/* Add Summary Tab Content */}
                   <TabsContent
                     value="summary"
-                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
+                    className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                  >
                     <div className="space-y-8">
                       {/* Personal Information Summary */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Personal Information Summary
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Last Name
                             </label>
                             <Input
@@ -1380,7 +1455,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               First Name
                             </label>
                             <Input
@@ -1390,7 +1465,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Middle Name
                             </label>
                             <Input
@@ -1400,12 +1475,13 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Marital Status
                             </label>
                             <Select
                               value={formData.maritalStatus || ""}
-                              disabled>
+                              disabled
+                            >
                               <SelectTrigger className="w-full bg-gray-50">
                                 <SelectValue placeholder="Not specified" />
                               </SelectTrigger>
@@ -1413,7 +1489,8 @@ export default function AddCrew() {
                                 {maritalStatuses.map((status) => (
                                   <SelectItem
                                     key={status.value}
-                                    value={status.value.toString()}>
+                                    value={status.value.toString()}
+                                  >
                                     {status.label}
                                   </SelectItem>
                                 ))}
@@ -1421,7 +1498,7 @@ export default function AddCrew() {
                             </Select>
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Sex
                             </label>
                             <Select value={formData.sex || ""} disabled>
@@ -1432,7 +1509,8 @@ export default function AddCrew() {
                                 {sexOptions.map((option) => (
                                   <SelectItem
                                     key={option.value}
-                                    value={option.value}>
+                                    value={option.value}
+                                  >
                                     {option.label}
                                   </SelectItem>
                                 ))}
@@ -1440,7 +1518,7 @@ export default function AddCrew() {
                             </Select>
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Birthdate
                             </label>
                             <Input
@@ -1451,7 +1529,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               City
                             </label>
                             <Input
@@ -1466,7 +1544,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Province
                             </label>
                             <Input
@@ -1486,12 +1564,12 @@ export default function AddCrew() {
 
                       {/* Government IDs Summary */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Government IDs Summary
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               SSS Number
                             </label>
                             <Input
@@ -1501,7 +1579,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Tax ID Number
                             </label>
                             <Input
@@ -1511,7 +1589,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Philhealth Number
                             </label>
                             <Input
@@ -1521,7 +1599,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               HDMF Number
                             </label>
                             <Input
@@ -1535,12 +1613,12 @@ export default function AddCrew() {
 
                       {/* Travel Documents Summary */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-4 text-primary">
+                        <h3 className="text-lg font-bold mb-4 text-primary">
                           Travel Documents Summary
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Number
                             </label>
                             <Input
@@ -1550,7 +1628,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Issue Date
                             </label>
                             <Input
@@ -1561,7 +1639,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Expiry Date
                             </label>
                             <Input
@@ -1572,7 +1650,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Number
                             </label>
                             <Input
@@ -1582,7 +1660,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Issue Date
                             </label>
                             <Input
@@ -1593,7 +1671,7 @@ export default function AddCrew() {
                             />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-500 mb-1 block">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Expiry Date
                             </label>
                             <Input

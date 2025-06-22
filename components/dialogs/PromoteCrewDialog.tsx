@@ -8,12 +8,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  CalendarDays,
   Ship,
   MapPin,
   Check,
   ChevronDown,
   Loader2,
+  User,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { Card } from "../ui/card";
@@ -393,12 +393,19 @@ export function PromoteCrewDialog({
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-gray-500" />
+                <div>
+                  <div className="text-gray-500">Crew Code</div>
+                  <div>{crewMember.crewCode}</div>
+                </div>
+              </div>
+              {/* <div className="flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Sign-on date</div>
                   <div>{crewMember.signOnDate || "N/A"}</div>
                 </div>
-              </div>
+              </div> */}
               <div className="flex items-center gap-2">
                 <Ship className="w-4 h-4 text-gray-500" />
                 <div>

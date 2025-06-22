@@ -416,57 +416,56 @@ export default function VesselProfile() {
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const vessel = row.original;
-        const handleDelete = async (vessel: Vessel) => {
-          const swal = Swal.mixin({
-            customClass: {
-              confirmButton:
-                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-              cancelButton:
-                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            },
-            buttonsStyling: false,
-          });
-
-          try {
-            const result = await swal.fire({
-              title: "Are you sure?",
-              text: "This action cannot be undone.",
-              icon: "warning",
-              showCancelButton: true,
-              confirmButtonText: "Yes, delete it!",
-              cancelButtonText: "No, cancel!",
-              reverseButtons: true,
+          const handleDelete = async (vessel: Vessel) => {
+            const swal = Swal.mixin({
+              customClass: {
+                confirmButton:
+                  "bg-[#1F279C] hover:bg-[#151d73] text-white font-bold py-2 px-4 mx-2 rounded",
+                cancelButton:
+                  "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+              },
+              buttonsStyling: false,
             });
 
-            if (result.isConfirmed) {
-              const response = await deleteVessel(vessel.vesselId);
+            try {
+              const result = await swal.fire({
+                title: "Are you sure?",
+                text: "This action cannot be undone.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                reverseButtons: true,
+              });
 
-              if (response.success) {
-                swal.fire(
-                  "Deleted!",
-                  "The vessel has been deleted.",
-                  "success"
-                );
-                // Remove the deleted vessel from the state
-                setVesselData((prevData) =>
-                  prevData.filter((v) => v.vesselId !== vessel.vesselId)
-                );
-              } else {
-                throw new Error(response.message);
+              if (result.isConfirmed) {
+                const response = await deleteVessel(vessel.vesselId);
+
+                if (response.success) {
+                  swal.fire({
+                    title: "Deleted!",
+                    text: "The vessel has been deleted.",
+                    icon: "success",
+                    confirmButtonText: "Okay",
+                  });
+                  setVesselData((prevData) =>
+                    prevData.filter((v) => v.vesselId !== vessel.vesselId)
+                  );
+                } else {
+                  throw new Error(response.message);
+                }
               }
+            } catch (error) {
+              swal.fire({
+                title: "Error",
+                text: "Failed to delete vessel",
+                icon: "error",
+                confirmButtonText: "Okay",
+              });
             }
-          } catch (error) {
-            swal.fire(
-              "Error",
-              error instanceof Error
-                ? error.message
-                : "Failed to delete vessel",
-              "error"
-            );
-          }
-        };
+          };
 
-        console.log(vesselData);
+        //console.log(vesselData);
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -745,7 +744,7 @@ export default function VesselProfile() {
                           <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="all">Filter by Status</SelectItem>
                           <SelectItem value="Active">Active</SelectItem>
                           <SelectItem value="Inactive">Inactive</SelectItem>
                         </SelectContent>

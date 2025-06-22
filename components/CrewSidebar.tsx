@@ -13,6 +13,7 @@ interface CrewSidebarProps {
 }
 
 export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
+  //console.log('CREW:', crew);
   return (
     <div className="md:col-span-1">
       <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
