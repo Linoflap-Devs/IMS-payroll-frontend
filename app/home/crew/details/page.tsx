@@ -1,9 +1,13 @@
+import AccessGuard from "@/components/pages/AccessGuard";
 import CrewDetails from "@/components/pages/CrewDetails";
 import { Suspense } from "react";
 
 export default function CrewDetailsPage() {
-    return  <Suspense fallback={<div>Loading...</div>}>
-              <CrewDetails />;
-
-            </Suspense>
+  return (
+    <AccessGuard allowedTypes={[3]}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <CrewDetails />;
+      </Suspense>
+    </AccessGuard>
+  );
 }

@@ -1,5 +1,10 @@
+import AccessGuard from "@/components/pages/AccessGuard";
 import CrewList from "@/components/pages/CrewList";
 
-export default function CrewPage() {
-  return <CrewList />;
+export default function Page() {
+  return (
+    <AccessGuard allowedTypes={[3]}>
+      <CrewList/>
+    </AccessGuard>
+  );
 }

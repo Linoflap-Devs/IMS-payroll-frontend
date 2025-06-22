@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import { loginUser, LoginResponse } from "../src/services/auth/auth.api";
+import { loginUser, LoginResponse, getCurrentUser } from "../src/services/auth/auth.api";
 import Link from "next/link";
 import { PiEye, PiEyeSlash } from "react-icons/pi";
 
@@ -30,6 +30,7 @@ import {
 import { DialogClose } from "@radix-ui/react-dialog";
 import Image from "next/image";
 import { AxiosError } from "axios";
+import { useAuth } from "@/src/store/useAuthStore";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -56,23 +57,24 @@ export default function Login() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    setErrorMessage(""); // reset any previous error
+    setErrorMessage("");
 
     try {
-      // Call the login API with email and password
       const response: LoginResponse = await loginUser(values);
-      console.log("Login response:", response);
 
       if (response.success) {
-        setIsLoading(false);
         localStorage.setItem("userEmail", response.data.email);
+
+        const currentUser = await getCurrentUser();
+        if (currentUser) {
+          useAuth.getState().setUser(currentUser);
+        }
 
         router.push("/home/dashboard");
       } else {
         setErrorMessage(
           response.message || "Invalid credentials, please try again."
         );
-        console.error("Error during login:", response.message);
       }
     } catch (error: unknown) {
       const axiosError = error as AxiosError;
@@ -90,8 +92,6 @@ export default function Login() {
           "An unexpected error occurred. Please try again later."
         );
       }
-
-      console.log("Error during login:", axiosError.message);
     } finally {
       setIsLoading(false);
     }
