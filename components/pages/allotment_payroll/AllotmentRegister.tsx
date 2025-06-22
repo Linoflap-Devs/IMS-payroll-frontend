@@ -187,7 +187,7 @@ export default function AllotmentRegisterComponent({
   ];
 
   const filteredData = allotmentData.filter((item) =>
-    item.CrewName.toLowerCase().includes(debouncedSearch.toLowerCase())
+    item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   return (
