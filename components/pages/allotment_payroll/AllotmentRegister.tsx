@@ -26,6 +26,7 @@ import {
 import { AllotteeDistributionDialog } from "../../dialogs/AllotteeDistributionDialog";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { useDebounce } from "@/lib/useDebounce";
+import { generateAllotmentPayrollRegister } from "@/components/PDFs/payrollAllotmentRegisterPDF";
 
 interface VesselInfo {
   code: string;
@@ -208,6 +209,91 @@ export default function AllotmentRegisterComponent({
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
+  const testData = {
+    month: "FEBRUARY",
+    year: 2025,
+    vesselName: "YODOHIME",
+    exchangeRate: 57.53,
+    dateGenerated: "04/14/25 9:55 AM",
+    currentPage: 1,
+    totalPages: 20,
+    crewMembers: [
+      {
+        name: "KURAIS, BEN-ASAL",
+        rank: "CAPT,",
+        basicWage: 2172.0,
+        fixedOT: 0.0,
+        guarOT: 0.0,
+        dollarGross: 2172.0,
+        pesoGross: 124520.76,
+        totalDeduction: 4450.0,
+        netPay: 120070.26,
+        allottees: [
+          {
+            name: "KURAIS,MUNIRA B.",
+            accountNumber: "1234-5678-910",
+            bank: "BPI- ZAMBOANGA MAIN",
+            allotmentAmount: 48026.49,
+          },
+          {
+            name: "KURAIS,LINDSAY JHEN M.",
+            accountNumber: "1234-5678-910",
+            bank: "BPI- ZAMBOANGA MAIN",
+            allotmentAmount: 12153.96,
+          },
+          {
+            name: "KURAIS,BEN-ASAL B.",
+            accountNumber: "1234-5678-910",
+            bank: "BPI- DEWEY",
+            allotmentAmount: 59890.31,
+          },
+        ],
+      },
+      {
+        name: "PENIERO, HENRY",
+        rank: "BSN",
+        basicWage: 620.0,
+        fixedOT: 0.0,
+        guarOT: 461.6,
+        dollarGross: 1081.6,
+        pesoGross: 62008.13,
+        totalDeduction: 3038.62,
+        netPay: 58969.51,
+        allottees: [
+          {
+            name: "PENIERO, LOTUS E.",
+            accountNumber: "1234-5678-910",
+            bank: "BPI- CEBU MAIN",
+            allotmentAmount: 58969.51,
+          },
+        ],
+      },
+      {
+        name: "PENIERO, HENRY",
+        rank: "BSN",
+        basicWage: 620.0,
+        fixedOT: 0.0,
+        guarOT: 461.6,
+        dollarGross: 1081.6,
+        pesoGross: 62008.13,
+        totalDeduction: 3038.62,
+        netPay: 58969.51,
+        allottees: [
+          {
+            name: "PENIERO, LOTUS E.",
+            accountNumber: "1234-5678-910",
+            bank: "BPI- CEBU MAIN",
+            allotmentAmount: 58969.51,
+          },
+        ],
+      },
+    ],
+  };
+
+  const handlePrint = () => {
+    generateAllotmentPayrollRegister(testData, "lanceballicud");
+  };
+
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">
       <style jsx global>{`
@@ -288,7 +374,10 @@ export default function AllotmentRegisterComponent({
             />
           </div>
           <div className="flex gap-4">
-            <Button className="gap-2 h-11 px-5" disabled={isLoading}>
+            <Button
+              className="gap-2 h-11 px-5"
+              disabled={isLoading}
+              onClick={handlePrint}>
               {isLoading ? (
                 <>
                   <Loader2 className="animate-spin" />
