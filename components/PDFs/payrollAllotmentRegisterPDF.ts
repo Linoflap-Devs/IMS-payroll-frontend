@@ -133,7 +133,7 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
         doc.text("MARITIME CORP.", margins.left + 25, margins.top + 13.5);
 
         // Add month/year and report title
-        doc.setFontSize(8);
+        doc.setFontSize(7);
         doc.setFont('helvetica', 'normal');
         doc.text(`${data.month} ${data.year}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, margins.top + 6, { align: 'right' });
         doc.text("ALLOTMENT PAYROLL REGISTER", margins.left + companyColWidth + middleColWidth + rightColWidth - 5, margins.top + 16, { align: 'right' });
@@ -144,12 +144,12 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
         // Left column (Vessel name)
         // doc.rect(margins.left, vesselInfoY, companyColWidth, 20);
         doc.rect(margins.left, vesselInfoY, headerWidth, 10); // Vessel name cell
-        doc.setFontSize(8);
+        doc.setFontSize(7);
         doc.setTextColor(130);
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(0); // Reset to black
         doc.text("VESSEL", margins.left + 2, vesselInfoY + 4);
-        doc.setFontSize(8);
+        doc.setFontSize(7);
         doc.setFont('helvetica', 'bold');
         doc.text(data.vesselName, margins.left + 2, vesselInfoY + 7.5);
 
@@ -158,7 +158,7 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
         doc.setLineWidth(0.1);
         doc.line(margins.left + companyColWidth + middleColWidth, vesselInfoY, margins.left + companyColWidth + middleColWidth, vesselInfoY + 20);
         // Add exchange rate and date
-        doc.setFontSize(8);
+        doc.setFontSize(7);
         doc.setFont('helvetica', 'normal');
         doc.text(`EXCHANGE RATE: USD > PHP ${data.exchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 6, { align: 'right' });
 
@@ -208,11 +208,13 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
         colPositions.push(runningPosition); // Add end position
 
         // Draw table headers (horizontal line only at bottom of header row)
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
 
         // Draw top border of header row
         doc.line(margins.left, mainTableY, pageWidth - margins.right, mainTableY);
+        doc.setFillColor(235, 235, 235); // Light gray background
+        doc.rect(margins.left, mainTableY, pageWidth - 20, 10, "FD"); // Header row background
 
         // Draw header text
         const headers = [
@@ -229,6 +231,7 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
         // Draw horizontal line after headers
         doc.line(margins.left, mainTableY + 10, pageWidth - margins.right, mainTableY + 10);
 
+
         // Track the starting position for left vertical line
         const tableStartY = mainTableY;
         let tableEndY = mainTableY;
@@ -239,19 +242,19 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
 
         data.crewMembers.forEach(crew => {
             // Set font for data
-            doc.setFontSize(9);
+            doc.setFontSize(7);
             doc.setFont('helvetica', 'normal');
 
             // Draw crew data
-            doc.text(crew.name, colPositions[0] + 2, y + 5, { align: 'left' });
-            doc.text(crew.rank, colPositions[1] + 2, y + 5, { align: 'left' });
-            doc.text(formatCurrency(crew.basicWage), colPositions[2] + colWidths[2] * scaleFactor - 2, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.fixedOT), colPositions[3] + colWidths[3] * scaleFactor - 2, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.guarOT), colPositions[4] + colWidths[4] * scaleFactor - 2, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.dollarGross), colPositions[5] + colWidths[5] * scaleFactor - 2, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.pesoGross), colPositions[6] + colWidths[6] * scaleFactor - 2, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.totalDeduction), colPositions[7] + colWidths[7] * scaleFactor - 2, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.netPay), colPositions[8] + colWidths[8] * scaleFactor - 2, y + 5, { align: 'right' });
+            doc.text(crew.name, colPositions[0] + 6, y + 5, { align: 'left' });
+            doc.text(crew.rank, colPositions[1] + 6, y + 5, { align: 'left' });
+            doc.text(formatCurrency(crew.basicWage), colPositions[2] + colWidths[2] * scaleFactor - 5, y + 5, { align: 'right' });
+            doc.text(formatCurrency(crew.fixedOT), colPositions[3] + colWidths[3] * scaleFactor - 5, y + 5, { align: 'right' });
+            doc.text(formatCurrency(crew.guarOT), colPositions[4] + colWidths[4] * scaleFactor - 5, y + 5, { align: 'right' });
+            doc.text(formatCurrency(crew.dollarGross), colPositions[5] + colWidths[5] * scaleFactor - 5, y + 5, { align: 'right' });
+            doc.text(formatCurrency(crew.pesoGross), colPositions[6] + colWidths[6] * scaleFactor - 5, y + 5, { align: 'right' });
+            doc.text(formatCurrency(crew.totalDeduction), colPositions[7] + colWidths[7] * scaleFactor - 5, y + 5, { align: 'right' });
+            doc.text(formatCurrency(crew.netPay), colPositions[8] + colWidths[8] * scaleFactor - 5, y + 5, { align: 'right' });
 
             // Draw horizontal line at bottom of crew row
             doc.line(margins.left, y + rowHeight, pageWidth - margins.right, y + rowHeight);
@@ -264,16 +267,16 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
                     y += rowHeight;
 
                     // Add allottee details (no vertical lines)
-                    doc.text(allottee.name, colPositions[9] + 2, y + 5, { align: 'left' });
-                    doc.text(allottee.accountNumber, colPositions[10] + 2, y + 5, { align: 'left' });
-                    doc.text(allottee.bank, colPositions[11] + 2, y + 5, { align: 'left' });
-                    doc.text(formatCurrency(allottee.allotmentAmount), colPositions[12] + colWidths[12] * scaleFactor - 2, y + 5, { align: 'right' });
+                    doc.text(allottee.name, colPositions[9] + 4, y + 5, { align: 'left' });
+                    doc.text(allottee.accountNumber, colPositions[10] + 6, y + 5, { align: 'left' });
+                    doc.text(allottee.bank, colPositions[11] + 4, y + 5, { align: 'left' });
+                    doc.text(formatCurrency(allottee.allotmentAmount), colPositions[12] + colWidths[12] * scaleFactor - 6, y + 5, { align: 'right' });
 
-                    // Draw horizontal line at bottom of row
-                    doc.line(margins.left, y + rowHeight, pageWidth - margins.right, y + rowHeight);
                     tableEndY = y + rowHeight;
                 });
             }
+            // Draw horizontal line at bottom of row
+            doc.line(margins.left, y + rowHeight, pageWidth - margins.right, y + rowHeight);
 
             // Move to next crew row (after all allottees)
             y += rowHeight;
@@ -284,15 +287,15 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData, curr
         doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, tableEndY); // Right vertical line
 
         // Draw page number box at bottom
-        doc.rect(margins.left, pageHeight - margins.bottom - 10, pageWidth - margins.left - margins.right, 10);
-        doc.setFontSize(9);
-        doc.text(`Page ${data.currentPage} out of ${data.totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 3, { align: 'right' });
+        doc.rect(margins.left, pageHeight - margins.bottom - 8, pageWidth - margins.left - margins.right, 8);
+        doc.setFontSize(7);
+        doc.text(`Page ${data.currentPage} out of ${data.totalPages}`, pageWidth - margins.right - 6, pageHeight - margins.bottom - 3, { align: 'right' });
 
         // Add footer with current date/time and user
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
-        doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
+        // doc.setFontSize(8);
+        // doc.setFont('helvetica', 'italic');
+        // doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
+        // doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
 
         // Save the PDF
         const fileName = `allotment-payroll-register-${data.vesselName.toLowerCase()}-${data.month.toLowerCase()}-${data.year}.pdf`;
