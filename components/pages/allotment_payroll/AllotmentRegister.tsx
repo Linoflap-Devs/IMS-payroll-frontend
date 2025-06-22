@@ -58,11 +58,20 @@ export default function AllotmentRegisterComponent({
       setIsLoading(true);
       try {
         const response = await getVesselAllotmentRegister(vesselId);
-        if (response.success) {
+
+        if (response.success && Array.isArray(response.data)) {
+          // When using vesselId, we expect a single vessel in the array
+          // but we keep the array structure for the DataTable
           setAllotmentData(response.data);
+
+          console.log("Fetched vessel data:", response.data);
+        } else {
+          console.error("Unexpected API response format:", response);
+          setAllotmentData([]);
         }
       } catch (error) {
         console.error("Error fetching allotment data:", error);
+        setAllotmentData([]);
       } finally {
         setIsLoading(false);
       }
@@ -70,7 +79,10 @@ export default function AllotmentRegisterComponent({
 
     fetchAllotmentData();
   }, [vesselId]);
+
   useEffect(() => {
+    if (!vesselId) return;
+
     getVesselList().then((response) => {
       if (response.success) {
         const vessel = response.data.find(
@@ -186,8 +198,9 @@ export default function AllotmentRegisterComponent({
     },
   ];
 
+  // Filter the crew data based on search term
   const filteredData = allotmentData.filter((item) =>
-    item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
+    item?.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   return (
@@ -287,7 +300,18 @@ export default function AllotmentRegisterComponent({
         </div>
 
         <div className="rounded-md border pb-3">
-          <DataTable columns={columns} data={filteredData} pageSize={6} />
+          {isLoading ? (
+            <div className="flex justify-center items-center p-10">
+              <Loader2 className="h-8 w-8 animate-spin mr-2" />
+              <p>Loading allotment data...</p>
+            </div>
+          ) : filteredData.length > 0 ? (
+            <DataTable columns={columns} data={filteredData} pageSize={6} />
+          ) : (
+            <div className="flex justify-center items-center p-10">
+              <p>No allotment data available for this vessel</p>
+            </div>
+          )}
         </div>
       </div>
 

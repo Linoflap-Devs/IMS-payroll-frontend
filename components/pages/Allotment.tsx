@@ -270,7 +270,11 @@ export default function Allotment() {
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
               <DropdownMenuItem asChild>
                 <Link
-                  href={`/home/allotment/allotment_register?vesselId=${row.original.vesselId}`}>
+                  href={`/home/allotment/allotment_register?vesselId=${
+                    row.original.vesselId
+                  }&month=${parseInt(monthFilter)}&year=${parseInt(
+                    yearFilter
+                  )}`}>
                   Allotment Register
                 </Link>
               </DropdownMenuItem>
