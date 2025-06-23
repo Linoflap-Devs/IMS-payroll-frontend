@@ -353,7 +353,7 @@ export default function Allotment() {
                     row.original.vesselId
                   }&month=${parseInt(monthFilter)}&year=${parseInt(
                     yearFilter
-                  )}`}>
+                  )}&forex=${forexRate || 0}`}>
                   Allotment Register
                 </Link>
               </DropdownMenuItem>
@@ -363,7 +363,7 @@ export default function Allotment() {
                     row.original.vesselId
                   }&month=${parseInt(monthFilter)}&year=${parseInt(
                     yearFilter
-                  )}`}>
+                  )}&forex=${forexRate || 0}`}>
                   Deduction Register
                 </Link>
               </DropdownMenuItem>
@@ -373,7 +373,7 @@ export default function Allotment() {
                     row.original.vesselId
                   }&month=${parseInt(monthFilter)}&year=${parseInt(
                     yearFilter
-                  )}`}>
+                  )}&forex=${forexRate || 0}`}>
                   Pay Slip
                 </Link>
               </DropdownMenuItem>

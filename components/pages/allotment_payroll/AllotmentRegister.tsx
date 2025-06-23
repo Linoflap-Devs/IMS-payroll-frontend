@@ -56,6 +56,33 @@ export default function AllotmentRegisterComponent({
     initialVesselInfo
   );
 
+  function getCurrentDateTime(): string {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(now.getUTCDate()).padStart(2, "0");
+    const hours = String(now.getUTCHours()).padStart(2, "0");
+    const minutes = String(now.getUTCMinutes()).padStart(2, "0");
+    const seconds = String(now.getUTCSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+  const mapMonth: Record<number, string> = {
+    1: "JANUARY",
+    2: "FEBRUARY",
+    3: "MARCH",
+    4: "APRIL",
+    5: "MAY",
+    6: "JUNE",
+    7: "JULY",
+    8: "AUGUST",
+    9: "SEPTEMBER",
+    10: "OCTOBER",
+    11: "NOVEMBER",
+    12: "DECEMBER",
+  };
+
   useEffect(() => {
     const fetchAllotmentData = async () => {
       if (!vesselId) return;
@@ -214,11 +241,18 @@ export default function AllotmentRegisterComponent({
   );
 
   const testData = {
-    month: "FEBRUARY",
-    year: 2025,
+    month:
+      mapMonth[
+        searchParams.get("month")
+          ? Number(searchParams.get("month"))
+          : new Date().getMonth() + 1
+      ],
+    year: searchParams.get("year")
+      ? Number(searchParams.get("year"))
+      : new Date().getFullYear(),
     vesselName: "YODOHIME",
-    exchangeRate: 57.53,
-    dateGenerated: "04/14/25 9:55 AM",
+    exchangeRate: searchParams.get("forex"),
+    dateGenerated: getCurrentDateTime(),
     currentPage: 1,
     totalPages: 20,
     crewMembers: [
