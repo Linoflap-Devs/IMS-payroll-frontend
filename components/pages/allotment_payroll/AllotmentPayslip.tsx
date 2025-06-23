@@ -14,10 +14,7 @@ import { AiOutlinePrinter } from "react-icons/ai";
 import { getVesselPayslip } from "@/src/services/payroll/payroll.api";
 import { useSearchParams } from "next/navigation";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
-import {
-  generateAllPayrollPDFs,
-  generatePayrollPDF,
-} from "@/components/PDFs/payrollStatementPDF";
+import { generatePayrollPDF } from "@/components/PDFs/payrollStatementPDF";
 
 interface CrewPayroll {
   crewId: number;
