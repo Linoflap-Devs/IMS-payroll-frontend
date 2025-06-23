@@ -120,6 +120,8 @@ export default function Allotment() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+
   const formatNumber = (value: number) => value?.toFixed(2);
 
   const monthNames = [
@@ -137,8 +139,8 @@ export default function Allotment() {
     "December",
   ];
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 6 }, (_, i) =>
-    (currentYear - 2 + i).toString()
+  const years = Array.from({ length: 20 }, (_, i) =>
+    (currentYear - 15 + i).toString()
   );
 
   // // Load data from URL parameters on initial load
@@ -193,6 +195,7 @@ export default function Allotment() {
             totalDeductions: item.TotalDeduction,
             netAllotment: item.NetAllotment,
           }));
+
           setPayrollData(mapped);
         } else {
           console.error("Failed to fetch payroll list:", res.message);
@@ -440,7 +443,7 @@ export default function Allotment() {
                     </span>
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-92 overflow-y-auto">
                   {years.map((yr, idx) => (
                     <SelectItem key={idx} value={yr}>
                       {yr}
