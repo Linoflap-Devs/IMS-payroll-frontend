@@ -151,10 +151,10 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData): boo
         doc.setTextColor(130);
         doc.setFont('NotoSans', 'italic');
         doc.setTextColor(0); // Reset to black
-        doc.text("VESSEL", margins.left + 2, vesselInfoY + 4);
+        doc.text("VESSEL", margins.left + 2, vesselInfoY + 3);
         doc.setFontSize(7);
         doc.setFont('NotoSans', 'bold');
-        doc.text(data.vesselName, margins.left + 2, vesselInfoY + 7.5);
+        doc.text(data.vesselName, margins.left + 2, vesselInfoY + 6.5);
 
         // vertical line for right column
         doc.setDrawColor(0);
@@ -163,7 +163,7 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData): boo
         // Add exchange rate and date
         doc.setFontSize(7);
         doc.setFont('NotoSans', 'normal');
-        doc.text(`EXCHANGE RATE: USD > PHP ${data.exchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 6, { align: 'right' });
+        doc.text(`EXCHANGE RATE: USD > PHP ${data.exchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 5, { align: 'right' });
 
         // date row
         doc.rect(margins.left, vesselInfoY, headerWidth, 16);
