@@ -62,7 +62,11 @@ export default function AllotmentRegisterComponent({
 
       setIsLoading(true);
       try {
-        const response = await getVesselAllotmentRegister(vesselId);
+        const response = await getVesselAllotmentRegister(
+          vesselId,
+          Number(searchParams.get("month")),
+          Number(searchParams.get("year"))
+        );
 
         if (response.success && Array.isArray(response.data)) {
           // When using vesselId, we expect a single vessel in the array

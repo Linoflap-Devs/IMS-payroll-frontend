@@ -53,8 +53,8 @@ export interface AllotmentRegisterResponse {
   data: AllotmentRegisterData[];
 }
 
-export const getVesselAllotmentRegister = async (vesselId: string | number): Promise<AllotmentRegisterResponse> => {
-  const response = await axiosInstance.get<AllotmentRegisterResponse>(`/payroll/${vesselId}/allotment`);
+export const getVesselAllotmentRegister = async (vesselId: string | number, month: number | null, year: number | null): Promise<AllotmentRegisterResponse> => {
+  const response = await axiosInstance.get<AllotmentRegisterResponse>(`/payroll/${vesselId}/allotment?month=${month}&year=${year}`);
   return response.data;
 }
 
