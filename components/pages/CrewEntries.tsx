@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,95 +17,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreHorizontal, Filter } from "lucide-react";
+import { Search, MoreHorizontal, Filter, Loader2 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { PiUserListFill } from "react-icons/pi";
-// import { AddDeductionTypeDialog } from "@/components/dialogs/AddDeductionTypeDialog";
-// import { EditDeductionTypeDialog } from "@/components/dialogs/EditDeductionTypeDialog";
-// import Swal from "sweetalert2";
 import { getCrewDeductionList } from "@/src/services/deduction/crewDeduction.api";
-
-// const deductionDescriptionData = [
-//   {
-//     deductionCode: "DED001",
-//     deductionName: "Deduction 1",
-//     deductionType: "Percentage",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED002",
-//     deductionName: "Deduction 2",
-//     deductionType: "Fixed Amount",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED003",
-//     deductionName: "Deduction 3",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED004",
-//     deductionName: "Deduction 4",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED005",
-//     deductionName: "Deduction 5",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED006",
-//     deductionName: "Deduction 6",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED007",
-//     deductionName: "Deduction 7",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED008",
-//     deductionName: "Deduction 8",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED009",
-//     deductionName: "Deduction 9",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED010",
-//     deductionName: "Deduction 10",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED011",
-//     deductionName: "Deduction 11",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED012",
-//     deductionName: "Deduction 12",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-//   {
-//     deductionCode: "DED013",
-//     deductionName: "Deduction 13",
-//     deductionType: "Loan Type",
-//     currency: "PHP",
-//   },
-// ];
+import { CrewRankItem, getCrewRankList } from "@/src/services/crew/crew.api";
+import { getVesselList, VesselItem } from "@/src/services/vessel/vessel.api";
 
 type CrewDeduction = {
   CrewCode: string;
@@ -116,43 +34,96 @@ type CrewDeduction = {
   VesselName: string;
   crewName: string;
 };
-// type DeductionDescription = (typeof deductionDescriptionData)[number];
 
 export default function Deduction() {
-  // const [activeTab, setActiveTab] = useState("crew-deduction");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  // const [editDialogOpen, setEditDialogOpen] = useState(false);
-  // const [addDeductionTypeDialogOpen, setAddDeductionTypeDialogOpen] =
-  //   useState(false);
-  // const [selectedDeduction, setSelectedDeduction] =
-  //   useState<DeductionDescription | null>(null);
-
+  const [rankFilter, setRankFilter] = useState("all");
+  const [vesselFilter, setVesselFilter] = useState("all");
+  const [ranks, setRanks] = useState<CrewRankItem[]>([]);
+  const [vessels, setVessels] = useState<VesselItem[]>([]);
   const [crewDeductionData, setCrewDeductionData] = useState<CrewDeduction[]>(
     []
   );
+  const [isLoading, setIsLoading] = useState({
+    crew: true,
+    ranks: true,
+    vessels: true,
+  });
 
+  // Load crew deduction data
   useEffect(() => {
+    setIsLoading((prev) => ({ ...prev, crew: true }));
     getCrewDeductionList()
       .then((res) => {
         if (res.success) {
           const mapped: CrewDeduction[] = res.data.map((item) => ({
-            ...item, // Spread all the original properties
-            crewName: `${item.FirstName} ${item.MiddleName} ${item.LastName}`, // Add the computed property
+            ...item,
+            crewName: `${item.FirstName} ${item.MiddleName} ${item.LastName}`,
           }));
           setCrewDeductionData(mapped);
         } else {
           console.error("Failed to fetch crew deduction:", res.message);
         }
       })
-      .catch((err) => console.error("Error fetching crew deduction:", err));
-  }, []); // Add empty dependency array to run only once on mount
+      .catch((err) => console.error("Error fetching crew deduction:", err))
+      .finally(() => setIsLoading((prev) => ({ ...prev, crew: false })));
+  }, []);
 
-  // Handle tab change
-  // const handleTabChange = (value: string) => {
-  //   setActiveTab(value);
-  // };
+  // Load ranks with loading state
+  useEffect(() => {
+    setIsLoading((prev) => ({ ...prev, ranks: true }));
+    getCrewRankList()
+      .then((response) => {
+        if (response.success) {
+          // Pre-filter valid ranks to avoid doing it during render
+          const validRanks = response.data.filter(
+            (rank) => rank.RankName && rank.RankName.trim() !== ""
+          );
+          setRanks(validRanks);
+        } else {
+          console.error("Failed to fetch crew ranks:", response.message);
+        }
+      })
+      .catch((error) => console.error("Error fetching crew ranks:", error))
+      .finally(() => setIsLoading((prev) => ({ ...prev, ranks: false })));
+  }, []);
 
+  // Load vessels with loading state
+  useEffect(() => {
+    setIsLoading((prev) => ({ ...prev, vessels: true }));
+    getVesselList()
+      .then((response) => {
+        if (response.success) {
+          // Pre-filter valid vessels to avoid doing it during render
+          const validVessels = response.data.filter(
+            (vessel) => vessel.VesselName && vessel.VesselName.trim() !== ""
+          );
+          setVessels(validVessels);
+        } else {
+          console.error("Failed to fetch vessels:", response.message);
+        }
+      })
+      .catch((error) => console.error("Error fetching vessels:", error))
+      .finally(() => setIsLoading((prev) => ({ ...prev, vessels: false })));
+  }, []);
+
+  // Memoize filtered data to prevent unnecessary recalculations
+  const filteredCrewDeduction = useMemo(() => {
+    return crewDeductionData.filter((item) => {
+      const matchesSearch =
+        item.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.crewName.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesRank = rankFilter === "all" || item.Rank === rankFilter;
+
+      const matchesVessel =
+        vesselFilter === "all" || item.VesselName === vesselFilter;
+
+      return matchesSearch && matchesRank && matchesVessel;
+    });
+  }, [crewDeductionData, searchTerm, rankFilter, vesselFilter]);
+
+  // Columns definition
   const crewDeductionColumns: ColumnDef<CrewDeduction>[] = [
     {
       accessorKey: "CrewCode",
@@ -182,12 +153,10 @@ export default function Deduction() {
         <div className="text-center">{row.getValue("Rank")}</div>
       ),
     },
-
     {
       accessorKey: "actions",
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
-        // const vessel = row.original;
         return (
           <div className="text-center">
             <DropdownMenu>
@@ -242,131 +211,6 @@ export default function Deduction() {
     },
   ];
 
-  // const deductionDescriptionColumns: ColumnDef<DeductionDescription>[] = [
-  //   {
-  //     accessorKey: "deductionCode",
-  //     header: ({ column }) => (
-  //       <div className="text-justify">Deduction Code</div>
-  //     ),
-  //     cell: ({ row }) => {
-  //       const deduction = row.original;
-  //       return <div className="text-justify">{deduction.deductionCode}</div>;
-  //     },
-  //   },
-  //   {
-  //     accessorKey: "deductionName",
-  //     header: ({ column }) => (
-  //       <div className="text-justify">Deduction Name</div>
-  //     ),
-  //     cell: ({ row }) => {
-  //       const deduction = row.original;
-  //       return <div className="text-justify">{deduction.deductionName}</div>;
-  //     },
-  //   },
-  //   {
-  //     accessorKey: "deductionType",
-  //     header: ({ column }) => (
-  //       <div className="text-justify">Deduction Type</div>
-  //     ),
-  //     cell: ({ row }) => {
-  //       const deduction = row.original;
-  //       return <div className="text-justify">{deduction.deductionType}</div>;
-  //     },
-  //   },
-  //   {
-  //     accessorKey: "currency",
-  //     header: ({ column }) => <div className="text-justify">Currency</div>,
-  //     cell: ({ row }) => {
-  //       const deduction = row.original;
-  //       return <div className="text-justify">{deduction.currency}</div>;
-  //     },
-  //   },
-  //   {
-  //     id: "actions",
-  //     header: "Actions",
-  //     cell: ({ row }) => {
-  //       const deduction = row.original;
-  //       const handleDelete = (vesselCode: string) => {
-  //         const swalWithBootstrapButtons = Swal.mixin({
-  //           customClass: {
-  //             confirmButton:
-  //               "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-  //             cancelButton:
-  //               "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-  //           },
-  //           buttonsStyling: false,
-  //         });
-
-  //         swalWithBootstrapButtons
-  //           .fire({
-  //             title: "Are you sure?",
-  //             text: "Are you sure you want to delete this crew in the deduction? This action cannot be undone.",
-  //             icon: "warning",
-  //             showCancelButton: true,
-  //             confirmButtonText: "Yes, delete it!",
-  //             cancelButtonText: "No, cancel!",
-  //             reverseButtons: true,
-  //           })
-  //           .then((result) => {
-  //             if (result.isConfirmed) {
-  //               // Place your delete logic here, for example, API call or state update
-  //               swalWithBootstrapButtons.fire({
-  //                 title: "Deleted!",
-  //                 text: "The deduction has been successfully deleted.",
-  //                 icon: "success",
-  //               });
-  //             } else if (result.dismiss === Swal.DismissReason.cancel) {
-  //               swalWithBootstrapButtons.fire({
-  //                 title: "Cancelled",
-  //                 text: "Your deduction is safe :)",
-  //                 icon: "error",
-  //               });
-  //             }
-  //           });
-  //       };
-  //       return (
-  //         <div className="text-center">
-  //           <DropdownMenu>
-  //             <DropdownMenuTrigger asChild>
-  //               <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-  //                 <span className="sr-only">Open menu</span>
-  //                 <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-  //               </Button>
-  //             </DropdownMenuTrigger>
-  //             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-  //               <DropdownMenuItem
-  //                 onClick={() => {
-  //                   setSelectedDeduction(deduction);
-  //                   setEditDialogOpen(true);
-  //                 }}
-  //                 className="text-xs sm:text-sm">
-  //                 <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-  //                 Edit
-  //               </DropdownMenuItem>
-  //               <DropdownMenuSeparator />
-  //               <DropdownMenuItem
-  //                 className="text-destructive text-xs sm:text-sm"
-  //                 onClick={() => handleDelete(deduction.deductionCode)}>
-  //                 <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-  //                 Delete
-  //               </DropdownMenuItem>
-  //             </DropdownMenuContent>
-  //           </DropdownMenu>
-  //         </div>
-  //       );
-  //     },
-  //   },
-  // ];
-
-  const filteredCrewDeduction = crewDeductionData.filter(
-    (item) =>
-      item.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.crewName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  // const filteredDeductionDescription = deductionDescriptionData.filter((item) =>
-  //   item.deductionName.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
-
   return (
     <>
       <div className="h-full w-full p-3 pt-3 overflow-hidden">
@@ -416,41 +260,77 @@ export default function Deduction() {
                   />
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Select
+                    value={vesselFilter}
+                    onValueChange={setVesselFilter}
+                    disabled={isLoading.vessels}>
                     <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                      <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
-                      <SelectValue placeholder="Filter by status" />
+                      {isLoading.vessels ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
+                      )}
+                      <SelectValue
+                        defaultValue="all"
+                        placeholder="All Vessels"
+                      />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Rank</SelectItem>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectContent className="max-h-60 overflow-y-auto">
+                      <SelectItem value="all">All Vessels</SelectItem>
+                      {vessels.map((vessel) => (
+                        <SelectItem
+                          key={vessel.VesselID}
+                          value={vessel.VesselName || ""}>
+                          {vessel.VesselName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+                  <Select
+                    value={rankFilter}
+                    onValueChange={setRankFilter}
+                    disabled={isLoading.ranks}>
+                    <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                      {isLoading.ranks ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
+                      )}
+                      <SelectValue defaultValue="all" placeholder="All Ranks" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60 overflow-y-auto">
+                      <SelectItem value="all">All Ranks</SelectItem>
+                      {ranks.map((rank) => (
+                        <SelectItem
+                          key={rank.RankID}
+                          value={rank.RankName || ""}>
+                          {rank.RankName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               {/* DataTable with custom styling */}
               <div className="bg-[#F9F9F9] rounded-md border pb-3">
-                <DataTable
-                  columns={crewDeductionColumns}
-                  data={filteredCrewDeduction}
-                  pageSize={8}
-                />
+                {isLoading.crew ? (
+                  <div className="flex justify-center items-center h-48">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <DataTable
+                    columns={crewDeductionColumns}
+                    data={filteredCrewDeduction}
+                    pageSize={8}
+                  />
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* <AddDeductionTypeDialog
-        open={addDeductionTypeDialogOpen}
-        onOpenChange={setAddDeductionTypeDialogOpen}
-      /> */}
-      {/* <EditDeductionTypeDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        deduction={selectedDeduction}
-      /> */}
     </>
   );
 }
