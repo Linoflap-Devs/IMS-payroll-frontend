@@ -48,13 +48,25 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
           active:
             pathname === "/home/deduction" ||
             pathname === "/home/deduction/deduction-entries",
-          allowedUserTypes: [3, 5],
+          allowedUserTypes: [3],
         },
         {
           label: "Description",
           href: "/home/deduction/description",
           active: pathname === "/home/deduction/description",
-          allowedUserTypes: [3, 5],
+          allowedUserTypes: [3],
+        },
+        {
+          label: "Government",
+          href: "/home/deduction/government",
+          active: pathname === "/home/deduction/government",
+          allowedUserTypes: [5],
+        },
+        {
+          label: "Reports",
+          href: "/home/deduction/reports",
+          active: pathname === "/home/deduction/reports",
+          allowedUserTypes: [5],
         },
       ],
     },
