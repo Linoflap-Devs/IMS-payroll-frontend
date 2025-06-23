@@ -87,7 +87,7 @@ export default function AllotmentRegisterComponent({
     };
 
     fetchAllotmentData();
-  }, [vesselId]);
+  }, [vesselId, searchParams]);
 
   useEffect(() => {
     if (!vesselId) return;

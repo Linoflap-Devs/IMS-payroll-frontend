@@ -66,7 +66,7 @@ export interface Deductions {
 
 }
 
-export interface DeductionRegister {
+export interface DeductionRegisterCrew {
   CrewID: number;
   CrewName: string;
   Rank: string;
@@ -77,11 +77,19 @@ export interface DeductionRegister {
   Deductions: Deductions[];
 }
 
+export interface DeductionRegisterData {
+  VesselID: number;
+  VesselName: string;
+  Crew: DeductionRegisterCrew[];
+}
+
 export interface DeductionRegisterResponse {
   success: boolean;
   message: string;
-  data: DeductionRegister[];
+  data: DeductionRegisterData[];
 }
+
+
 
 export const getVesselDeductionRegister = async (vesselId: string | number, month: number, year: number): Promise<DeductionRegisterResponse> => {
   const response = await axiosInstance.get<DeductionRegisterResponse>(`/payroll/${vesselId}/deduction?month=${month}&year=${year}`);

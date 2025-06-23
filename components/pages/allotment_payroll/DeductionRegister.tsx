@@ -12,7 +12,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "../../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
 import { getVesselDeductionRegister } from "@/src/services/payroll/payroll.api";
-import type { DeductionRegister } from "@/src/services/payroll/payroll.api";
+import type {
+  DeductionRegisterCrew,
+  DeductionRegisterData,
+} from "@/src/services/payroll/payroll.api";
 import { Ship } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DeductionDistributionDialog } from "../../dialogs/DeductionDistributionDialog";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
+import { useDebounce } from "@/lib/useDebounce";
 
 interface VesselInfo {
   code: string;
@@ -40,11 +44,14 @@ export default function DeductionRegisterComponent({
   const month = searchParams.get("month");
   const year = searchParams.get("year");
   const [searchTerm, setSearchTerm] = useState("");
-  const [allotmentData, setAllotmentData] = useState<DeductionRegister[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedCrew, setSelectedCrew] = useState<DeductionRegister | null>(
-    null
+  const debouncedSearch = useDebounce(searchTerm, 300);
+
+  const [allotmentData, setAllotmentData] = useState<DeductionRegisterData[]>(
+    []
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedCrew, setSelectedCrew] =
+    useState<DeductionRegisterCrew | null>(null);
   const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
   const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
     initialVesselInfo
@@ -87,10 +94,12 @@ export default function DeductionRegisterComponent({
       } finally {
         setIsLoading(false);
       }
-    };  
+    };
 
     fetchAllotmentData();
   }, [vesselId, month, year]);
+
+  console.log("Allotment Data:", allotmentData);
 
   // Format numbers to two decimal places with null checking
   const formatNumber = (value: string | number | null | undefined) => {
@@ -99,7 +108,7 @@ export default function DeductionRegisterComponent({
     return isNaN(numValue) ? "0.00" : numValue?.toFixed(2);
   };
 
-  const columns: ColumnDef<DeductionRegister>[] = [
+  const columns: ColumnDef<DeductionRegisterCrew>[] = [
     {
       accessorKey: "CrewName",
       header: "Crew Name",
@@ -170,8 +179,9 @@ export default function DeductionRegisterComponent({
     },
   ];
 
-  const filteredData = allotmentData.filter((item) =>
-    item.CrewName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filterCrew = allotmentData[0]?.Crew || [];
+  const filteredData = filterCrew.filter((item) =>
+    item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   return (
