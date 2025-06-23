@@ -40,6 +40,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 // import { generatePayrollPDF } from "../PDFs/payrollStatementPDF";
 
 type Payroll = {
@@ -67,8 +68,11 @@ export default function Allotment() {
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [printLoading, setPrintLoading] = useState(false);
 
-  //
-  // const [confirmDialog, setConfirmDialog] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {});
 
   // Format numbers to two decimal places
   const formatNumber = (value: number) => value?.toFixed(2);
@@ -129,6 +133,14 @@ export default function Allotment() {
       })
       .catch((err) => console.error("Error fetching payroll list:", err));
   }, [monthFilter, yearFilter]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("month", monthFilter);
+    params.set("year", yearFilter);
+
+    router.push(`${pathname}?${params.toString()}`);
+  }, [monthFilter, yearFilter, pathname, searchParams, router]);
 
   // Calculate totals
   const totalGross = payrollData.reduce((sum, p) => sum + p.grossAllotment, 0);
