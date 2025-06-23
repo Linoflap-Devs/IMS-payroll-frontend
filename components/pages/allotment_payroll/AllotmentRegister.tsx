@@ -251,7 +251,7 @@ export default function AllotmentRegisterComponent({
       ? Number(searchParams.get("year"))
       : new Date().getFullYear(),
     vesselName: "YODOHIME",
-    exchangeRate: searchParams.get("forex"),
+    exchangeRate: Number(searchParams.get("forex")),
     dateGenerated: getCurrentDateTime(),
     currentPage: 1,
     totalPages: 20,
