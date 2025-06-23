@@ -26,7 +26,7 @@ import {
 import { AllotteeDistributionDialog } from "../../dialogs/AllotteeDistributionDialog";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { useDebounce } from "@/lib/useDebounce";
-import { generateAllotmentPayrollRegister } from "@/components/PDFs/payrollAllotmentRegisterPDF";
+import { generateAllotmentPDF } from "@/components/PDFs/payrollAllotmentRegisterPDF";
 
 interface VesselInfo {
   code: string;
@@ -56,32 +56,9 @@ export default function AllotmentRegisterComponent({
     initialVesselInfo
   );
 
-  function getCurrentDateTime(): string {
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = String(now.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(now.getUTCDate()).padStart(2, "0");
-    const hours = String(now.getUTCHours()).padStart(2, "0");
-    const minutes = String(now.getUTCMinutes()).padStart(2, "0");
-    const seconds = String(now.getUTCSeconds()).padStart(2, "0");
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  }
-
-  const mapMonth: Record<number, string> = {
-    1: "JANUARY",
-    2: "FEBRUARY",
-    3: "MARCH",
-    4: "APRIL",
-    5: "MAY",
-    6: "JUNE",
-    7: "JULY",
-    8: "AUGUST",
-    9: "SEPTEMBER",
-    10: "OCTOBER",
-    11: "NOVEMBER",
-    12: "DECEMBER",
-  };
+  const month = searchParams.get("month");
+  const year = searchParams.get("year");
+  const forexRate = searchParams.get("forex") || "0";
 
   useEffect(() => {
     const fetchAllotmentData = async () => {
@@ -240,96 +217,35 @@ export default function AllotmentRegisterComponent({
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
-  const testData = {
-    month:
-      mapMonth[
-        searchParams.get("month")
-          ? Number(searchParams.get("month"))
-          : new Date().getMonth() + 1
-      ],
-    year: searchParams.get("year")
-      ? Number(searchParams.get("year"))
-      : new Date().getFullYear(),
-    vesselName: "YODOHIME",
-    exchangeRate: Number(searchParams.get("forex")),
-    dateGenerated: getCurrentDateTime(),
-    currentPage: 1,
-    totalPages: 20,
-    crewMembers: [
-      {
-        name: "KURAIS, BEN-ASAL",
-        rank: "CAPT,",
-        basicWage: 2172.0,
-        fixedOT: 0.0,
-        guarOT: 0.0,
-        dollarGross: 2172.0,
-        pesoGross: 124520.76,
-        totalDeduction: 4450.0,
-        netPay: 120070.26,
-        allottees: [
-          {
-            name: "KURAIS,MUNIRA B.",
-            accountNumber: "1234-5678-910",
-            bank: "BPI- ZAMBOANGA MAIN",
-            allotmentAmount: 48026.49,
-          },
-          {
-            name: "KURAIS,LINDSAY JHEN M.",
-            accountNumber: "1234-5678-910",
-            bank: "BPI- ZAMBOANGA MAIN",
-            allotmentAmount: 12153.96,
-          },
-          {
-            name: "KURAIS,BEN-ASAL B.",
-            accountNumber: "1234-5678-910",
-            bank: "BPI- DEWEY",
-            allotmentAmount: 59890.31,
-          },
-        ],
-      },
-      {
-        name: "PENIERO, HENRY",
-        rank: "BSN",
-        basicWage: 620.0,
-        fixedOT: 0.0,
-        guarOT: 461.6,
-        dollarGross: 1081.6,
-        pesoGross: 62008.13,
-        totalDeduction: 3038.62,
-        netPay: 58969.51,
-        allottees: [
-          {
-            name: "PENIERO, LOTUS E.",
-            accountNumber: "1234-5678-910",
-            bank: "BPI- CEBU MAIN",
-            allotmentAmount: 58969.51,
-          },
-        ],
-      },
-      {
-        name: "PENIERO, HENRY",
-        rank: "BSN",
-        basicWage: 620.0,
-        fixedOT: 0.0,
-        guarOT: 461.6,
-        dollarGross: 1081.6,
-        pesoGross: 62008.13,
-        totalDeduction: 3038.62,
-        netPay: 58969.51,
-        allottees: [
-          {
-            name: "PENIERO, LOTUS E.",
-            accountNumber: "1234-5678-910",
-            bank: "BPI- CEBU MAIN",
-            allotmentAmount: 58969.51,
-          },
-        ],
-      },
-    ],
-  };
-
   const handlePrint = () => {
-    generateAllotmentPayrollRegister(testData);
+    if (allotmentData && allotmentData.length > 0) {
+      // Get month name from month number
+      const monthNames = [
+        "JANUARY",
+        "FEBRUARY",
+        "MARCH",
+        "APRIL",
+        "MAY",
+        "JUNE",
+        "JULY",
+        "AUGUST",
+        "SEPTEMBER",
+        "OCTOBER",
+        "NOVEMBER",
+        "DECEMBER",
+      ];
+
+      // const monthName = monthNames[selectedMonth - 1];
+
+      generateAllotmentPDF(
+        allotmentData,
+        monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
+        year ? parseInt(year) : new Date().getFullYear(),
+        Number(forexRate)
+      );
+    } else {
+      console.error("No allotment register data available");
+    }
   };
 
   return (
