@@ -19,17 +19,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-
 import { Card } from "../ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Swal from "sweetalert2";
-
-import { DeductionType, getDeductionGovtRates, PHILHEALTHDeductionRate, SSSDeductionRate } from "@/src/services/deduction/governmentDeduction.api";
+import { 
+  DeductionType, 
+  getDeductionGovtRates, 
+  PHILHEALTHDeductionRate, 
+  SSSDeductionRate 
+} from "@/src/services/deduction/governmentDeduction.api";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Goverment() {
   const [statusFilter, setStatusFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("vessel");
-  const [deductionType, setDeductionType] = useState<string | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState("PHILHEALTH");
+  const [deductionType, setDeductionType] = useState<DeductionType>("PHILHEALTH");
 
   const [sssData, setSSSData] = useState<SSSDeductionRate[]>([]);
   const [philhealthData, setPhilhealthData] = useState<PHILHEALTHDeductionRate[]>([]);
@@ -44,7 +53,7 @@ export default function Goverment() {
 
   // Fetch data
   useEffect(() => {
-    const validTypes: DeductionType[] = ["SSS", "PHILHEALTH"];
+    const validTypes: DeductionType[] = ["PHILHEALTH", "SSS"];
     if (!yearFilter || !deductionType || !validTypes.includes(deductionType as DeductionType)) return;
 
     const type = deductionType as DeductionType;
@@ -55,8 +64,18 @@ export default function Goverment() {
           console.warn("No data returned for", type, yearFilter);
           return;
         }
+        if (type === "PHILHEALTH") {
+          const mapped: PHILHEALTHDeductionRate[] = res.data.map((item: any) => ({
+            contributionID: item.contributionID,
+            salaryFrom: item.salaryFrom,
+            salaryTo: item.salaryTo,
+            premium: item.premium,
+            premiumRate: item.premiumRate,
+            Year: item.Year,
+          }));
+          setPhilhealthData(mapped);
 
-        if (type === "SSS") {
+        } else if (type === "SSS") {
           const mapped: SSSDeductionRate[] = res.data.map((item: any) => ({
             contributionId: item.contributionId,
             salaryFrom: item.salaryFrom,
@@ -75,16 +94,6 @@ export default function Goverment() {
             Year: item.Year,
           }));
           setSSSData(mapped);
-        } else if (type === "PHILHEALTH") {
-          const mapped: PHILHEALTHDeductionRate[] = res.data.map((item: any) => ({
-            contributionID: item.contributionID,
-            salaryFrom: item.salaryFrom,
-            salaryTo: item.salaryTo,
-            premium: item.premium,
-            premiumRate: item.premiumRate,
-            Year: item.Year,
-          }));
-          setPhilhealthData(mapped);
         }
       })
       .catch((err) => {
@@ -93,6 +102,37 @@ export default function Goverment() {
   }, [yearFilter, deductionType]);
   
   const getDeductionColumns = (type: string): ColumnDef<any>[] => {
+    if (type === "PHILHEALTH") {
+      return [
+        { accessorKey: "salaryFrom", header: "Salary From" },
+        { accessorKey: "salaryTo", header: "Salary To" },
+        { accessorKey: "premium", header: "Premium" },
+        { accessorKey: "premiumRate", header: "Premium Rate (%)" },
+        { accessorKey: "Year", header: "Year" },
+        {
+          id: "actions",
+          header: "Actions",
+          cell: ({ row }) => (
+            <div className="text-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+                  <DropdownMenuItem asChild>
+                    <Link href={``}>Edit Description</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )
+        }
+      ];
+    }
+
     if (type === "SSS") {
       return [
         { accessorKey: "salaryFrom", header: "Salary From" },
@@ -103,22 +143,33 @@ export default function Goverment() {
         { accessorKey: "errate", header: "ER Rate" },
         { accessorKey: "ec", header: "EC" },
         { accessorKey: "Year", header: "Year" },
-      ];
-    } else if (type === "PHILHEALTH") {
-      return [
-        { accessorKey: "contributionID", header: "ID" },
-        { accessorKey: "salaryFrom", header: "Salary From" },
-        { accessorKey: "salaryTo", header: "Salary To" },
-        { accessorKey: "premium", header: "Premium" },
-        { accessorKey: "premiumRate", header: "Premium Rate (%)" },
-        { accessorKey: "Year", header: "Year" },
+        {
+          id: "actions",
+          header: "Actions",
+          cell: ({ row }) => (
+            <div className="text-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+                  <DropdownMenuItem asChild>
+                    <Link href={``}>Edit Description</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )
+        }
       ];
     }
 
     return [];
   };
 
-  // Make sure deductionType is one of the expected values
   const isValidDeductionType = (val: any): val is DeductionType =>
     val === "SSS" || val === "PHILHEALTH";
 
