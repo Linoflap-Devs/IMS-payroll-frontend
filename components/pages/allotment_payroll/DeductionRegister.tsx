@@ -26,6 +26,7 @@ import {
 import { DeductionDistributionDialog } from "../../dialogs/DeductionDistributionDialog";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { useDebounce } from "@/lib/useDebounce";
+import { generateDeductionRegister } from "@/components/PDFs/allotmentDeductionRegister";
 
 interface VesselInfo {
   code: string;
@@ -269,7 +270,10 @@ export default function DeductionRegisterComponent({
             />
           </div>
           <div className="flex gap-4">
-            <Button className="gap-2 h-11 px-5" disabled={isLoading}>
+            <Button
+              className="gap-2 h-11 px-5"
+              disabled={isLoading}
+              onClick={generateDeductionRegister}>
               <AiOutlinePrinter className="h-4 w-4" />
               Print Register
             </Button>
