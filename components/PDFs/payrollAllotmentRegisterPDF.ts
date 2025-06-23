@@ -72,7 +72,6 @@ function getFormattedDate(): string {
  * @param month Month name in uppercase (e.g., "JANUARY")
  * @param year Year (e.g., 2025)
  * @param exchangeRate Exchange rate for USD to PHP
- * @param currentUser Current user's login name
  * @returns boolean indicating if PDF generation was successful
  */
 export function generateAllotmentPayrollRegister(
@@ -80,7 +79,6 @@ export function generateAllotmentPayrollRegister(
     month: string,
     year: number,
     exchangeRate: number,
-    // currentUser: string = 'lanceballicud'
 ): boolean {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
@@ -120,8 +118,7 @@ export function generateAllotmentPayrollRegister(
         // Page dimensions and constants
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
-        const margins = { left: 10, right: 10, top: 10, bottom: 30 };
-        // const maxContentHeight = pageHeight - margins.top - margins.bottom;
+        const margins = { left: 10, right: 10, top: 10, bottom: 20 }; // Reduced bottom margin
 
         // Define table column widths for the main data table
         const colWidths = [
@@ -166,10 +163,10 @@ export function generateAllotmentPayrollRegister(
         // Variables to track current position
         let currentY = margins.top;
         let isFirstPage = true;
-        // Function to add headers to a page (company info, vessel info, table headers)
-        function addPageHeaders(vessel: AllotmentRegisterData, isNewVessel: boolean = false): void {
 
-            // If not the first page of the first vessel, add a new page
+        // Function to add headers to a page
+        function addPageHeaders(vessel: AllotmentRegisterData): void {
+            // If not the first page, add a new page
             if (!isFirstPage) {
                 doc.addPage();
                 currentPage++;
@@ -244,33 +241,14 @@ export function generateAllotmentPayrollRegister(
 
             currentY += vesselInfoHeight;
 
-            // Add "VESSEL: [VesselName]" header if this is a new vessel (not for continued pages)
-            if (isNewVessel) {
-                // Horizontal gray separator line
-                doc.setDrawColor(180); // Gray color
-                doc.setLineWidth(1);
-                doc.line(margins.left, currentY + 4, pageWidth - margins.right, currentY + 4);
-                doc.setDrawColor(0); // Reset to black
-                doc.setLineWidth(0.1);
+            // Add gray separator line (simplified - no vessel header)
+            doc.setDrawColor(180);
+            doc.setLineWidth(1);
+            doc.line(margins.left, currentY + 4, pageWidth - margins.right, currentY + 4);
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.1);
 
-                // Add vessel header
-                doc.setFillColor(220, 220, 220); // Light gray background
-                doc.rect(margins.left, currentY + 8, headerWidth, 8, "FD");
-                doc.setFontSize(8);
-                doc.setFont('NotoSans', 'bold');
-                doc.text(`VESSEL: ${vessel.VesselName} (ID: ${vessel.VesselID})`, margins.left + 4, currentY + 13);
-
-                currentY += 16; // Space for separator + vessel header
-            } else {
-                // Just add the gray separator
-                doc.setDrawColor(180);
-                doc.setLineWidth(1);
-                doc.line(margins.left, currentY + 4, pageWidth - margins.right, currentY + 4);
-                doc.setDrawColor(0);
-                doc.setLineWidth(0.1);
-
-                currentY += 8; // Space for separator only
-            }
+            currentY += 8; // Just space for the separator
 
             // Draw table header
             doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
@@ -297,20 +275,20 @@ export function generateAllotmentPayrollRegister(
             currentY += tableHeaderHeight;
         }
 
-        // Function to add a footer to the current page
+        // Function to add a footer to the current pages
         function addPageFooter(): void {
             // Draw page number box at bottom
-            doc.rect(margins.left, pageHeight - margins.bottom + 13, pageWidth - margins.left - margins.right, 8);
+            doc.rect(margins.left, pageHeight - margins.bottom + 3, pageWidth - margins.left - margins.right, 8);
             doc.setFontSize(7);
-            doc.text(`Page ${currentPage} out of #{TOTAL_PAGES}#`, pageWidth - margins.right - 6, pageHeight - margins.bottom + 18, { align: 'right' });
-
-            // No more footer text with date/time and user as requested
+            doc.text(`Page ${currentPage} out of #{TOTAL_PAGES}#`, pageWidth - margins.right - 6, pageHeight - margins.bottom + 8, { align: 'right' });
         }
 
-        // Process each vessel
+        // Process each vessel - without adding vessel header between vessels
         vesselData.forEach((vessel, vesselIndex) => {
-            // Add headers for first page or when continuing to a new vessel
-            addPageHeaders(vessel, true);
+            // On new vessel, always start with headers
+            if (vesselIndex === 0 || !isFirstPage) {
+                addPageHeaders(vessel);
+            }
 
             // Draw table data rows
             let y = currentY;
@@ -331,8 +309,8 @@ export function generateAllotmentPayrollRegister(
                     // Add footer to current page
                     addPageFooter();
 
-                    // Start a new page with headers (but not as new vessel)
-                    addPageHeaders(vessel, false);
+                    // Start a new page with headers
+                    addPageHeaders(vessel);
 
                     // Reset table position trackers for new page
                     y = currentY;
@@ -373,7 +351,7 @@ export function generateAllotmentPayrollRegister(
                             addPageFooter();
 
                             // Start a new page with headers
-                            addPageHeaders(vessel, false);
+                            addPageHeaders(vessel);
 
                             // Reset table position trackers for new page
                             y = currentY;
@@ -386,15 +364,11 @@ export function generateAllotmentPayrollRegister(
                         doc.text(allottee.Bank, colPositions[11] + 4, y + 5, { align: 'left' });
                         doc.text(formatCurrency(allottee.NetAllotment), colPositions[12] + colWidths[12] * scaleFactor - 6, y + 5, { align: 'right' });
 
-                        // Draw horizontal line at bottom of allottee row
-
                         // Move to next row
                         y += rowHeight;
                     });
-
                 }
                 doc.line(margins.left, y, pageWidth - margins.right, y);
-
             });
 
             // Draw vertical lines on left and right sides of the table for the last section
@@ -404,7 +378,7 @@ export function generateAllotmentPayrollRegister(
             // Add footer to the last page of this vessel
             addPageFooter();
 
-            // If there are more vessels, prepare for the next one
+            // If there are more vessels, prepare for the next vessel (forcing new page)
             if (vesselIndex < vesselData.length - 1) {
                 isFirstPage = false;
             }
