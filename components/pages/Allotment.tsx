@@ -23,7 +23,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
 import {
+  AllotmentRegisterData,
   getPayrollList,
+  getVesselAllotmentRegister,
   postPayrolls,
 } from "@/src/services/payroll/payroll.api";
 import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
@@ -41,6 +43,7 @@ import {
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
 
 type Payroll = {
   vesselId: number;
@@ -141,24 +144,38 @@ export default function Allotment() {
     (currentYear - 15 + i).toString()
   );
 
-  // // Load data from URL parameters on initial load
-  // useEffect(() => {
-  //   const month = searchParams.get("month");
-  //   const year = searchParams.get("year");
+  // Payroll ALlotment Regsiter Data
 
-  //   if (month) {
-  //     const monthIndex = monthNames.findIndex(
-  //       (m) => m.toLowerCase() === month.toLowerCase()
-  //     );
-  //     if (monthIndex !== -1) {
-  //       setMonthFilter((monthIndex + 1).toString());
-  //     }
-  //   }
+  // Allotment Register Data
+  const [allotmentRegisterData, setAllotmentRegisterData] = useState<
+    AllotmentRegisterData[]
+  >([]);
 
-  //   if (year) {
-  //     setYearFilter(year);
-  //   }
-  // }, []); // Only run once on initial load
+  const month = searchParams.get("month");
+  const year = searchParams.get("year");
+  const vesselId = searchParams.get("vesselId");
+
+  useEffect(() => {
+    getVesselAllotmentRegister(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    )
+      .then((response) => {
+        if (response.success && Array.isArray(response.data)) {
+          setAllotmentRegisterData(response.data);
+        } else {
+          console.error("Unexpected API response format:", response);
+          setAllotmentRegisterData([]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching allotment register data:", error);
+        setAllotmentRegisterData([]);
+      });
+  }, [vesselId, month, year]);
+
+  console.log("Allotment Register Data:", allotmentRegisterData);
 
   // Fetch data when filters change
   useEffect(() => {
@@ -388,6 +405,37 @@ export default function Allotment() {
     p.vesselName.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
+  const handleGeneratePDF = () => {
+    if (allotmentRegisterData && allotmentRegisterData.length > 0) {
+      // Get month name from month number
+      const monthNames = [
+        "JANUARY",
+        "FEBRUARY",
+        "MARCH",
+        "APRIL",
+        "MAY",
+        "JUNE",
+        "JULY",
+        "AUGUST",
+        "SEPTEMBER",
+        "OCTOBER",
+        "NOVEMBER",
+        "DECEMBER",
+      ];
+
+      // const monthName = monthNames[selectedMonth - 1];
+
+      generateAllotmentPDF(
+        allotmentRegisterData,
+        monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
+        year ? parseInt(year) : new Date().getFullYear(),
+        Number(forexRate)
+      );
+    } else {
+      console.error("No allotment register data available");
+    }
+  };
+
   return (
     <div className="h-full w-full p-4 pt-2">
       <style jsx global>{`
@@ -520,10 +568,8 @@ export default function Allotment() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="text-xs sm:text-sm w-[200px] min-w-[100%]">
-                  <DropdownMenuItem asChild>
-                    <Link href="" className="w-full">
-                      Allotment Register
-                    </Link>
+                  <DropdownMenuItem asChild onClick={handleGeneratePDF}>
+                    <label>Allotment Register</label>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="" className="w-full">

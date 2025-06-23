@@ -5,73 +5,99 @@ import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
 
-// Define interfaces for the data structure
-interface Allottee {
-    name: string;
-    accountNumber: string;
-    bank: string;
-    allotmentAmount: number;
+// Define interfaces based on your updated data structure
+export interface Allottee {
+    AllotteeName: string;
+    AccountNumber: string;
+    Bank: string;
+    NetAllotment: number;
+    Currency: number;
 }
 
-interface CrewMember {
-    name: string;
-    rank: string;
-    basicWage: number;
-    fixedOT: number;
-    guarOT: number;
-    dollarGross: number;
-    pesoGross: number;
-    totalDeduction: number;
-    netPay: number;
-    allottees: Allottee[];
+export interface AllotmentRegisterCrew {
+    CrewID: number;
+    CrewName: string;
+    Rank: string;
+    BasicWage: string;
+    FixedOT: string;
+    GuarOT: string;
+    DollarGross: string;
+    PesoGross: number;
+    TotalDeduction: number;
+    Net: number;
+    Allottee: Allottee[];
 }
 
-interface PayrollRegisterData {
-    month: string;
-    year: number;
-    vesselName: string;
-    exchangeRate: number;
-    dateGenerated: string;
-    crewMembers: CrewMember[];
-    totalPages: number;
-    currentPage: number;
+export interface AllotmentRegisterData {
+    VesselID: number;
+    VesselName: string;
+    Crew: AllotmentRegisterCrew[];
+}
+
+export interface AllotmentRegisterResponse {
+    success: boolean;
+    message: string;
+    data: AllotmentRegisterData[];
 }
 
 // Format currency values with commas and 2 decimal places
-function formatCurrency(amount: number): string {
+function formatCurrency(amount: number | string): string {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-    }).format(amount);
+    }).format(numAmount);
 }
 
-// Get current UTC date and time in specified format
-// function getCurrentDateTime(): string {
-//     const now = new Date();
-//     const year = now.getUTCFullYear();
-//     const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-//     const day = String(now.getUTCDate()).padStart(2, '0');
-//     const hours = String(now.getUTCHours()).padStart(2, '0');
-//     const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-//     const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+// Get formatted date string (MM/DD/YY H:MM AM/PM)
+function getFormattedDate(): string {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
 
-//     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-// }
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
 
-// export function generateAllotmentPayrollRegister(data: PayrollRegisterData, currentUser: string = 'admin'): boolean {
-export function generateAllotmentPayrollRegister(data: PayrollRegisterData): boolean {
+    hours = hours % 12;
+    hours = hours ? hours : 12; // Convert 0 to 12
 
+    return `${month}/${day}/${year} ${hours}:${minutes} ${ampm}`;
+}
+
+/**
+ * Generate allotment payroll register PDF directly from AllotmentRegisterData array
+ * @param vesselData Array of vessel data
+ * @param month Month name in uppercase (e.g., "JANUARY")
+ * @param year Year (e.g., 2025)
+ * @param exchangeRate Exchange rate for USD to PHP
+ * @param currentUser Current user's login name
+ * @returns boolean indicating if PDF generation was successful
+ */
+export function generateAllotmentPayrollRegister(
+    vesselData: AllotmentRegisterData[],
+    month: string,
+    year: number,
+    exchangeRate: number,
+    // currentUser: string = 'lanceballicud'
+): boolean {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
         return false;
     }
 
+    if (!vesselData || vesselData.length === 0) {
+        console.error('Invalid or empty data for allotment register');
+        return false;
+    }
+
     try {
-        // Create a new PDF document in landscape orientation with LEGAL size
+        // Create a single PDF document for all vessels
         const doc = new jsPDF({
             orientation: "landscape",
             unit: "mm",
-            format: "legal" // Legal size (8.5" × 14") - longer than A4
+            format: "legal" // Legal size (8.5" × 14")
         });
 
         // Add the custom font with peso symbol support
@@ -80,105 +106,22 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData): boo
             doc.setFont('NotoSans', 'normal');
         } catch (error) {
             console.warn("Could not load custom font, using default", error);
-            doc.setFont('NotoSans', 'normal');
+            doc.setFont('helvetica', 'normal');
         }
 
         // Set document properties
         doc.setProperties({
-            title: `Allotment Payroll Register - ${data.vesselName} - ${data.month} ${data.year}`,
-            subject: `Allotment Payroll Register for ${data.vesselName}`,
+            title: `Allotment Payroll Register - ${month} ${year}`,
+            subject: `Allotment Payroll Register`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
 
-        // Get page dimensions
+        // Page dimensions and constants
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
-        const margins = { left: 10, right: 10, top: 10, bottom: 10 };
-
-        // Draw header table (3-column structure)
-        const headerWidth = pageWidth - margins.left - margins.right;
-        const companyColWidth = 90;  // Width for company info
-        const middleColWidth = headerWidth - companyColWidth - 100;  // Middle empty space
-        const rightColWidth = 100;  // Width for month/year and report title
-
-        // Draw header table borders
-        doc.setLineWidth(0.1);
-        doc.setDrawColor(0);
-
-        doc.rect(margins.left, margins.top, headerWidth, 16);
-
-
-        // // Left column (Company info)
-        // doc.rect(margins.left, margins.top, companyColWidth, 30);
-
-        // // Middle column (Empty space)
-        // doc.rect(margins.left + companyColWidth, margins.top, middleColWidth, 30);
-
-        // // Right column (Month/Year and Report Title)
-        doc.rect(margins.left + companyColWidth + middleColWidth, margins.top, rightColWidth, 8); // Month/Year cell
-        doc.rect(margins.left + companyColWidth + middleColWidth, margins.top + 8, rightColWidth, 8); // Report Title cell
-
-        // Add IMS Philippines logo (placeholder)
-        // doc.setFillColor(31, 184, 107); // Green color
-        // doc.setDrawColor(0);
-        // doc.roundedRect(margins.left, margins.top, 20, 20, 2, 2, 'FD');
-        // doc.setTextColor(255); // White text
-        // doc.setFontSize(8);
-        // doc.text("IMS PHIL", margins.left + 10, margins.top + 10, { align: 'center' });
-        // doc.setTextColor(0); // Reset to black
-        doc.addImage(logoBase64Image, 'PNG', margins.left, margins.top, 16, 16); // Adjust path and size as needed
-
-        // Add company name text
-        doc.setFontSize(9);
-        doc.setFont('NotoSans', 'bold');
-        doc.text("IMS PHILIPPINES", margins.left + 23, margins.top + 7.5);
-        doc.text("MARITIME CORP.", margins.left + 23, margins.top + 11.5);
-
-        // Add month/year and report title
-        doc.setFontSize(7);
-        doc.setFont('NotoSans', 'normal');
-        doc.text(`${data.month} ${data.year}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, margins.top + 5, { align: 'right' });
-        doc.text("ALLOTMENT PAYROLL REGISTER", margins.left + companyColWidth + middleColWidth + rightColWidth - 5, margins.top + 13, { align: 'right' });
-
-        // Draw vessel information table (3-column structure matching header)
-        const vesselInfoY = margins.top + 16;
-
-        // Left column (Vessel name)
-        // doc.rect(margins.left, vesselInfoY, companyColWidth, 20);
-        doc.rect(margins.left, vesselInfoY, headerWidth, 8); // Vessel name cell
-        doc.setFontSize(7);
-        doc.setTextColor(130);
-        doc.setFont('NotoSans', 'italic');
-        doc.setTextColor(0); // Reset to black
-        doc.text("VESSEL", margins.left + 2, vesselInfoY + 3);
-        doc.setFontSize(7);
-        doc.setFont('NotoSans', 'bold');
-        doc.text(data.vesselName, margins.left + 2, vesselInfoY + 6.5);
-
-        // vertical line for right column
-        doc.setDrawColor(0);
-        doc.setLineWidth(0.1);
-        doc.line(margins.left + companyColWidth + middleColWidth, vesselInfoY, margins.left + companyColWidth + middleColWidth, vesselInfoY + 16);
-        // Add exchange rate and date
-        doc.setFontSize(7);
-        doc.setFont('NotoSans', 'normal');
-        doc.text(`EXCHANGE RATE: USD > PHP ${data.exchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 5, { align: 'right' });
-
-        // date row
-        doc.rect(margins.left, vesselInfoY, headerWidth, 16);
-        doc.text(data.dateGenerated, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 13, { align: 'right' });
-
-        // horizontal gray separator line
-        const separatorY = vesselInfoY + 20;
-        doc.setDrawColor(180); // Gray color
-        doc.setLineWidth(1);
-        doc.line(margins.left, separatorY, pageWidth - margins.right, separatorY);
-        doc.setDrawColor(0); // Reset to black
-        doc.setLineWidth(0.1);
-
-        // Define main table starting position
-        const mainTableY = separatorY + 4;
+        const margins = { left: 10, right: 10, top: 10, bottom: 30 };
+        // const maxContentHeight = pageHeight - margins.top - margins.bottom;
 
         // Define table column widths for the main data table
         const colWidths = [
@@ -201,7 +144,7 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData): boo
         const totalWidth = colWidths.reduce((a, b) => a + b, 0);
         const scaleFactor = (pageWidth - margins.left - margins.right) / totalWidth;
 
-        // Calculate column positions (without drawing vertical lines)
+        // Calculate column positions
         const colPositions: number[] = [];
         let runningPosition = margins.left;
         colWidths.forEach(width => {
@@ -210,104 +153,309 @@ export function generateAllotmentPayrollRegister(data: PayrollRegisterData): boo
         });
         colPositions.push(runningPosition); // Add end position
 
-        // Draw table headers (horizontal line only at bottom of header row)
-        doc.setFontSize(7);
-        doc.setFont('NotoSans', 'normal');
-
-        // Draw top border of header row
-        doc.line(margins.left, mainTableY, pageWidth - margins.right, mainTableY);
-        doc.setFillColor(235, 235, 235); // Light gray background
-        doc.rect(margins.left, mainTableY, pageWidth - 20, 10, "FD"); // Header row background
-
-        // Draw header text
-        const headers = [
-            "CREW NAME", "RANK", "BASIC WAGE", "FIXED OT", "GUAR OT", "DOLLAR GROSS",
-            "PESO GROSS", "TOTAL DED.", "NET", "ALLOTTEE NAME", "ACCOUNT NUMBER", "BANK", "ALLOTMENT"
-        ];
-
-        headers.forEach((header, index) => {
-            const colWidth = colWidths[index] * scaleFactor;
-            const colX = colPositions[index];
-            doc.text(header, colX + colWidth / 2, mainTableY + 6, { align: 'center' });
-        });
-
-        // Draw horizontal line after headers
-        doc.line(margins.left, mainTableY + 10, pageWidth - margins.right, mainTableY + 10);
-
-
-        // Track the starting position for left vertical line
-        const tableStartY = mainTableY;
-        let tableEndY = mainTableY;
-
-        // Draw table data rows
-        let y = mainTableY + 10;
+        // Define heights
+        const headerHeight = 16;
+        const vesselInfoHeight = 16;
+        const tableHeaderHeight = 10;
         const rowHeight = 8;
 
-        data.crewMembers.forEach(crew => {
-            // Set font for data
+        // Keep track of pagination
+        let currentPage = 1;
+        let totalPages = 0; // Will calculate after processing
+
+        // Variables to track current position
+        let currentY = margins.top;
+        let isFirstPage = true;
+        // Function to add headers to a page (company info, vessel info, table headers)
+        function addPageHeaders(vessel: AllotmentRegisterData, isNewVessel: boolean = false): void {
+
+            // If not the first page of the first vessel, add a new page
+            if (!isFirstPage) {
+                doc.addPage();
+                currentPage++;
+                currentY = margins.top;
+            } else {
+                isFirstPage = false;
+            }
+
+            // Draw header table (3-column structure)
+            const headerWidth = pageWidth - margins.left - margins.right;
+            const companyColWidth = 90;
+            const middleColWidth = headerWidth - companyColWidth - 100;
+            const rightColWidth = 100;
+
+            // Draw header table borders
+            doc.setLineWidth(0.1);
+            doc.setDrawColor(0);
+
+            // Header rect for company info
+            doc.rect(margins.left, currentY, headerWidth, headerHeight);
+
+            // Right column boxes for month/year and report title
+            doc.rect(margins.left + companyColWidth + middleColWidth, currentY, rightColWidth, 8); // Month/Year cell
+            doc.rect(margins.left + companyColWidth + middleColWidth, currentY + 8, rightColWidth, 8); // Report Title cell
+
+            // Add IMS Philippines logo
+            doc.addImage(logoBase64Image, 'PNG', margins.left, currentY, 16, 16);
+
+            // Add company name text
+            doc.setFontSize(9);
+            doc.setFont('NotoSans', 'bold');
+            doc.text("IMS PHILIPPINES", margins.left + 23, currentY + 7.5);
+            doc.text("MARITIME CORP.", margins.left + 23, currentY + 11.5);
+
+            // Add month/year and report title
             doc.setFontSize(7);
             doc.setFont('NotoSans', 'normal');
+            doc.text(`${month} ${year}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, currentY + 5, { align: 'right' });
+            doc.text("ALLOTMENT PAYROLL REGISTER", margins.left + companyColWidth + middleColWidth + rightColWidth - 5, currentY + 13, { align: 'right' });
 
-            // Draw crew data
-            doc.text(crew.name, colPositions[0] + 6, y + 5, { align: 'left' });
-            doc.text(crew.rank, colPositions[1] + 6, y + 5, { align: 'left' });
-            doc.text(formatCurrency(crew.basicWage), colPositions[2] + colWidths[2] * scaleFactor - 5, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.fixedOT), colPositions[3] + colWidths[3] * scaleFactor - 5, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.guarOT), colPositions[4] + colWidths[4] * scaleFactor - 5, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.dollarGross), colPositions[5] + colWidths[5] * scaleFactor - 5, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.pesoGross), colPositions[6] + colWidths[6] * scaleFactor - 5, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.totalDeduction), colPositions[7] + colWidths[7] * scaleFactor - 5, y + 5, { align: 'right' });
-            doc.text(formatCurrency(crew.netPay), colPositions[8] + colWidths[8] * scaleFactor - 5, y + 5, { align: 'right' });
+            currentY += headerHeight;
 
-            // Draw horizontal line at bottom of crew row
-            doc.line(margins.left, y + rowHeight, pageWidth - margins.right, y + rowHeight);
-            tableEndY = y + rowHeight;
+            // Draw vessel information table
+            const vesselInfoY = currentY;
 
-            // If crew has allottees, draw them in subsequent rows
-            if (crew.allottees && crew.allottees.length > 0) {
-                // crew.allottees.forEach((allottee, idx) => {
-                crew.allottees.forEach((allottee) => {
-                    // Move to next row for allottee
-                    y += rowHeight;
+            // Main rectangle for vessel info
+            doc.rect(margins.left, vesselInfoY, headerWidth, vesselInfoHeight);
 
-                    // Add allottee details (no vertical lines)
-                    doc.text(allottee.name, colPositions[9] + 4, y + 5, { align: 'left' });
-                    doc.text(allottee.accountNumber, colPositions[10] + 6, y + 5, { align: 'left' });
-                    doc.text(allottee.bank, colPositions[11] + 4, y + 5, { align: 'left' });
-                    doc.text(formatCurrency(allottee.allotmentAmount), colPositions[12] + colWidths[12] * scaleFactor - 6, y + 5, { align: 'right' });
+            // Vessel name info
+            doc.setFontSize(7);
+            doc.setTextColor(130);
+            doc.setFont('NotoSans', 'italic');
+            doc.setTextColor(0);
+            doc.text("VESSEL", margins.left + 2, vesselInfoY + 3);
+            doc.setFontSize(7);
+            doc.setFont('NotoSans', 'bold');
+            doc.text(vessel.VesselName, margins.left + 2, vesselInfoY + 6.5);
 
-                    tableEndY = y + rowHeight;
-                });
+            // Vertical line for right column
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.1);
+            doc.line(margins.left + companyColWidth + middleColWidth, vesselInfoY, margins.left + companyColWidth + middleColWidth, vesselInfoY + vesselInfoHeight);
+
+            // IMPORTANT: Add horizontal line between exchange rate and date
+            doc.line(margins.left + companyColWidth + middleColWidth, vesselInfoY + 8, margins.left + companyColWidth + middleColWidth + rightColWidth, vesselInfoY + 8);
+
+            // Add exchange rate and date
+            doc.setFontSize(7);
+            doc.setFont('NotoSans', 'normal');
+            doc.text(`EXCHANGE RATE: USD > PHP ${exchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 5, { align: 'right' });
+            doc.text(getFormattedDate(), margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 13, { align: 'right' });
+
+            currentY += vesselInfoHeight;
+
+            // Add "VESSEL: [VesselName]" header if this is a new vessel (not for continued pages)
+            if (isNewVessel) {
+                // Horizontal gray separator line
+                doc.setDrawColor(180); // Gray color
+                doc.setLineWidth(1);
+                doc.line(margins.left, currentY + 4, pageWidth - margins.right, currentY + 4);
+                doc.setDrawColor(0); // Reset to black
+                doc.setLineWidth(0.1);
+
+                // Add vessel header
+                doc.setFillColor(220, 220, 220); // Light gray background
+                doc.rect(margins.left, currentY + 8, headerWidth, 8, "FD");
+                doc.setFontSize(8);
+                doc.setFont('NotoSans', 'bold');
+                doc.text(`VESSEL: ${vessel.VesselName} (ID: ${vessel.VesselID})`, margins.left + 4, currentY + 13);
+
+                currentY += 16; // Space for separator + vessel header
+            } else {
+                // Just add the gray separator
+                doc.setDrawColor(180);
+                doc.setLineWidth(1);
+                doc.line(margins.left, currentY + 4, pageWidth - margins.right, currentY + 4);
+                doc.setDrawColor(0);
+                doc.setLineWidth(0.1);
+
+                currentY += 8; // Space for separator only
             }
-            // Draw horizontal line at bottom of row
-            doc.line(margins.left, y + rowHeight, pageWidth - margins.right, y + rowHeight);
 
-            // Move to next crew row (after all allottees)
-            y += rowHeight;
+            // Draw table header
+            doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
+            doc.setFillColor(235, 235, 235); // Light gray background
+            doc.rect(margins.left, currentY, pageWidth - 20, tableHeaderHeight, "FD"); // Header row background
+
+            // Draw header text
+            const headers = [
+                "CREW NAME", "RANK", "BASIC WAGE", "FIXED OT", "GUAR OT", "DOLLAR GROSS",
+                "PESO GROSS", "TOTAL DED.", "NET", "ALLOTTEE NAME", "ACCOUNT NUMBER", "BANK", "ALLOTMENT"
+            ];
+
+            doc.setFontSize(7);
+            doc.setFont('NotoSans', 'normal');
+            headers.forEach((header, index) => {
+                const colWidth = colWidths[index] * scaleFactor;
+                const colX = colPositions[index];
+                doc.text(header, colX + colWidth / 2, currentY + 6, { align: 'center' });
+            });
+
+            // Draw horizontal line after headers
+            doc.line(margins.left, currentY + tableHeaderHeight, pageWidth - margins.right, currentY + tableHeaderHeight);
+
+            currentY += tableHeaderHeight;
+        }
+
+        // Function to add a footer to the current page
+        function addPageFooter(): void {
+            // Draw page number box at bottom
+            doc.rect(margins.left, pageHeight - margins.bottom + 13, pageWidth - margins.left - margins.right, 8);
+            doc.setFontSize(7);
+            doc.text(`Page ${currentPage} out of #{TOTAL_PAGES}#`, pageWidth - margins.right - 6, pageHeight - margins.bottom + 18, { align: 'right' });
+
+            // No more footer text with date/time and user as requested
+        }
+
+        // Process each vessel
+        vesselData.forEach((vessel, vesselIndex) => {
+            // Add headers for first page or when continuing to a new vessel
+            addPageHeaders(vessel, true);
+
+            // Draw table data rows
+            let y = currentY;
+            let tableStartY = currentY; // Start of current table section
+
+            // Process each crew member
+            vessel.Crew.forEach((crew) => {
+                // Calculate how much space this crew entry will need
+                const allotteeCount = crew.Allottee ? crew.Allottee.length : 0;
+                const crewEntryHeight = rowHeight + (allotteeCount * rowHeight);
+
+                // Check if we need a new page
+                if (y + crewEntryHeight > pageHeight - margins.bottom - 8) {
+                    // Draw vertical lines on left and right sides of the table for this page
+                    doc.line(margins.left, tableStartY, margins.left, y); // Left vertical line
+                    doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, y); // Right vertical line
+
+                    // Add footer to current page
+                    addPageFooter();
+
+                    // Start a new page with headers (but not as new vessel)
+                    addPageHeaders(vessel, false);
+
+                    // Reset table position trackers for new page
+                    y = currentY;
+                    tableStartY = currentY;
+                }
+
+                // Set font for data
+                doc.setFontSize(7);
+                doc.setFont('NotoSans', 'normal');
+
+                // Draw crew data
+                doc.text(crew.CrewName, colPositions[0] + 6, y + 5, { align: 'left' });
+                doc.text(crew.Rank, colPositions[1] + 6, y + 5, { align: 'left' });
+                doc.text(formatCurrency(crew.BasicWage), colPositions[2] + colWidths[2] * scaleFactor - 5, y + 5, { align: 'right' });
+                doc.text(formatCurrency(crew.FixedOT), colPositions[3] + colWidths[3] * scaleFactor - 5, y + 5, { align: 'right' });
+                doc.text(formatCurrency(crew.GuarOT), colPositions[4] + colWidths[4] * scaleFactor - 5, y + 5, { align: 'right' });
+                doc.text(formatCurrency(crew.DollarGross), colPositions[5] + colWidths[5] * scaleFactor - 5, y + 5, { align: 'right' });
+                doc.text(formatCurrency(crew.PesoGross), colPositions[6] + colWidths[6] * scaleFactor - 5, y + 5, { align: 'right' });
+                doc.text(formatCurrency(crew.TotalDeduction), colPositions[7] + colWidths[7] * scaleFactor - 5, y + 5, { align: 'right' });
+                doc.text(formatCurrency(crew.Net), colPositions[8] + colWidths[8] * scaleFactor - 5, y + 5, { align: 'right' });
+
+                // Draw horizontal line at bottom of crew row
+                doc.line(margins.left, y + rowHeight, pageWidth - margins.right, y + rowHeight);
+
+                // Move to next row
+                y += rowHeight;
+
+                // If crew has allottees, draw them in subsequent rows
+                if (crew.Allottee && crew.Allottee.length > 0) {
+                    crew.Allottee.forEach(allottee => {
+                        // Check if we need a new page for this allottee
+                        if (y + rowHeight > pageHeight - margins.bottom - 8) {
+                            // Draw vertical lines on left and right sides of the table for this page
+                            doc.line(margins.left, tableStartY, margins.left, y); // Left vertical line
+                            doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, y); // Right vertical line
+
+                            // Add footer to current page
+                            addPageFooter();
+
+                            // Start a new page with headers
+                            addPageHeaders(vessel, false);
+
+                            // Reset table position trackers for new page
+                            y = currentY;
+                            tableStartY = currentY;
+                        }
+
+                        // Add allottee details - using the updated property names
+                        doc.text(allottee.AllotteeName, colPositions[9] + 4, y + 5, { align: 'left' });
+                        doc.text(allottee.AccountNumber, colPositions[10] + 6, y + 5, { align: 'left' });
+                        doc.text(allottee.Bank, colPositions[11] + 4, y + 5, { align: 'left' });
+                        doc.text(formatCurrency(allottee.NetAllotment), colPositions[12] + colWidths[12] * scaleFactor - 6, y + 5, { align: 'right' });
+
+                        // Draw horizontal line at bottom of allottee row
+                        doc.line(margins.left, y + rowHeight, pageWidth - margins.right, y + rowHeight);
+
+                        // Move to next row
+                        y += rowHeight;
+                    });
+                }
+            });
+
+            // Draw vertical lines on left and right sides of the table for the last section
+            doc.line(margins.left, tableStartY, margins.left, y); // Left vertical line
+            doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, y); // Right vertical line
+
+            // Add footer to the last page of this vessel
+            addPageFooter();
+
+            // If there are more vessels, prepare for the next one
+            if (vesselIndex < vesselData.length - 1) {
+                isFirstPage = false;
+            }
         });
 
-        // Draw vertical lines on left and right sides of the table
-        doc.line(margins.left, tableStartY, margins.left, tableEndY); // Left vertical line
-        doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, tableEndY); // Right vertical line
+        // Set total pages count (replace placeholder)
+        totalPages = currentPage;
+        const pdfText = doc.output('datauristring');
+        const updatedPdfText = pdfText.replace(/#{TOTAL_PAGES}#/g, totalPages.toString());
 
-        // Draw page number box at bottom
-        doc.rect(margins.left, pageHeight - margins.bottom - 8, pageWidth - margins.left - margins.right, 8);
-        doc.setFontSize(7);
-        doc.text(`Page ${data.currentPage} out of ${data.totalPages}`, pageWidth - margins.right - 6, pageHeight - margins.bottom - 3, { align: 'right' });
+        // Save the final PDF
+        const fileName = `allotment-payroll-register-multiple-vessels-${month.toLowerCase()}-${year}.pdf`;
 
-        // Add footer with current date/time and user
-        // doc.setFontSize(8);
-        // doc.setFont('NotoSans', 'italic');
-        // doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
-        // doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
+        // Save the PDF using the updated content with correct page numbers
+        const blob = dataURItoBlob(updatedPdfText);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
 
-        // Save the PDF
-        const fileName = `allotment-payroll-register-${data.vesselName.toLowerCase()}-${data.month.toLowerCase()}-${data.year}.pdf`;
-        doc.save(fileName);
+        // Clean up
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+        }, 100);
 
         return true;
     } catch (error) {
         console.error("Error generating PDF:", error);
         return false;
     }
+}
+
+// Helper function to convert data URI to Blob
+function dataURItoBlob(dataURI: string): Blob {
+    const byteString = atob(dataURI.split(',')[1]);
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([ab], { type: mimeString });
+}
+
+// Example usage function
+export function generateAllotmentPDF(
+    allotmentData: AllotmentRegisterData[],
+    month: string,
+    year: number,
+    exchangeRate: number,
+): void {
+    generateAllotmentPayrollRegister(allotmentData, month, year, exchangeRate);
 }
