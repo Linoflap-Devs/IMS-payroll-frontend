@@ -45,17 +45,17 @@ function formatCurrency(amount: number): string {
 }
 
 // Get formatted date string for the header
-function getCurrentDateTime(): string {
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(now.getUTCDate()).padStart(2, '0');
-    const hours = String(now.getUTCHours()).padStart(2, '0');
-    const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-    const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+// function getCurrentDateTime(): string {
+//     const now = new Date();
+//     const year = now.getUTCFullYear();
+//     const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+//     const day = String(now.getUTCDate()).padStart(2, '0');
+//     const hours = String(now.getUTCHours()).padStart(2, '0');
+//     const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+//     const seconds = String(now.getUTCSeconds()).padStart(2, '0');
 
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
+//     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+// }
 
 // Function to convert month number to name
 function getMonthName(monthNum: number): string {
@@ -88,7 +88,7 @@ export function generateDeductionRegisterPDF(
     data: DeductionRegisterData,
     exchangeRate: number = 57.53,
     dateGenerated: string = "04/14/25 9:55 AM",
-    currentUser: string = 'lanceballicud'
+    // currentUser: string = 'lanceballicud'
 ): boolean {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
@@ -137,7 +137,7 @@ export function generateDeductionRegisterPDF(
         const margins = { left: 10, right: 10, top: 10, bottom: 10 };
 
         // Define maximum content height per page (leave room for page number at bottom)
-        const maxContentHeight = pageHeight - margins.top - margins.bottom - 10;
+        // const maxContentHeight = pageHeight - margins.top - margins.bottom - 10;
 
         // Initialize paging variables
         let currentPage = 1;
@@ -152,9 +152,9 @@ export function generateDeductionRegisterPDF(
         // Define columns for the main table
         const colWidths = [
             mainTableWidth * 0.16, // CREW NAME
-            mainTableWidth * 0.08, // RANK
-            mainTableWidth * 0.08, // SALARY
-            mainTableWidth * 0.08, // BASIC WAGE
+            mainTableWidth * 0.09, // RANK
+            mainTableWidth * 0.09, // SALARY
+            mainTableWidth * 0.09, // BASIC WAGE
             mainTableWidth * 0.10, // GROSS
             mainTableWidth * 0.50  // Deduction details
         ];
@@ -297,7 +297,7 @@ export function generateDeductionRegisterPDF(
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                doc.text(header, colX + colWidth / 2, currentY + tableHeaderHeight / 2 + 1, { align: 'center' });
+                doc.text(header, colX + colWidth / 2 + 12, currentY + tableHeaderHeight / 2 + 1, { align: 'center' });
             });
 
             currentY += tableHeaderHeight;
@@ -334,13 +334,7 @@ export function generateDeductionRegisterPDF(
                 doc.setFontSize(9);
                 doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 3, { align: 'right' });
 
-                // Add footer with current date/time and user
-                // doc.setFontSize(8);
-                // doc.setFont('helvetica', 'italic');
-                // doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
-                // doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
 
-                // Start a new page
                 addNewPage();
             }
 
@@ -359,10 +353,10 @@ export function generateDeductionRegisterPDF(
 
             // Draw crew data
             doc.text(crew.CrewName, colPositions[0] + 5, currentY + rowHeight / 2 + 1);
-            doc.text(crew.Rank, colPositions[1] + colWidths[1] / 2, currentY + rowHeight / 2 + 1, { align: 'center' });
-            doc.text(formatCurrency(crew.Salary), colPositions[2] + colWidths[2] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-            doc.text(formatCurrency(crew.Salary), colPositions[3] + colWidths[3] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-            doc.text(formatCurrency(crew.Gross), colPositions[4] + colWidths[4] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+            doc.text(crew.Rank, colPositions[1] + colWidths[1] / 2 + 15, currentY + rowHeight / 2 + 1, { align: 'center' });
+            doc.text(formatCurrency(crew.Salary), colPositions[2] + colWidths[2] - 5 + 10, currentY + rowHeight / 2 + 1, { align: 'right' });
+            doc.text(formatCurrency(crew.Salary), colPositions[3] + colWidths[3] - 5 + 10, currentY + rowHeight / 2 + 1, { align: 'right' });
+            doc.text(formatCurrency(crew.Gross), colPositions[4] + colWidths[4] - 5 + 10, currentY + rowHeight / 2 + 1, { align: 'right' });
 
             // Draw horizontal line at the bottom of crew row
             doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
@@ -372,7 +366,7 @@ export function generateDeductionRegisterPDF(
 
             // Process deductions for this crew
             if (crew.Deductions && crew.Deductions.length > 0) {
-                crew.Deductions.forEach((deduction, idx) => {
+                crew.Deductions.forEach((deduction) => {
                     // Check if we need a new page
                     if (currentY + rowHeight > pageHeight - margins.bottom - 10) {
                         // Draw page number box at bottom of current page
@@ -380,11 +374,6 @@ export function generateDeductionRegisterPDF(
                         doc.setFontSize(9);
                         doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 3, { align: 'right' });
 
-                        // // Add footer with current date/time and user
-                        // doc.setFontSize(8);
-                        // doc.setFont('helvetica', 'italic');
-                        // doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
-                        // doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
 
                         // Start a new page
                         addNewPage();
@@ -410,9 +399,9 @@ export function generateDeductionRegisterPDF(
                     const amountPosition = margins.left + mainTableWidth * 0.8; // Amount/rate position
 
                     // Draw deduction details using fixed positions
-                    doc.text(deduction.Name, namePosition, currentY + rowHeight / 2 + 1);
-                    doc.text(currencyLabel, currencyPosition, currentY + rowHeight / 2 + 1);
-                    doc.text(amountWithRate, amountPosition, currentY + rowHeight / 2 + 1);
+                    doc.text(deduction.Name, namePosition + 20, currentY + rowHeight / 2 + 1);
+                    doc.text(currencyLabel, currencyPosition + 12, currentY + rowHeight / 2 + 1);
+                    doc.text(amountWithRate, amountPosition + 6, currentY + rowHeight / 2 + 1);
                     doc.text(formatCurrency(dollarAmount), pageWidth - margins.right - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
 
                     // Move to next row without drawing horizontal line
@@ -711,7 +700,7 @@ export function generateDeductionRegister() {
         realData,
         57.53, // Exchange rate
         "04/14/25 9:55 AM", // Date generated
-        "lanceballicud" // Current user
+        // "lanceballicud" // Current user
     );
 }
 
