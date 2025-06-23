@@ -331,8 +331,9 @@ export function generateDeductionRegisterPDF(
             if (currentY + totalEntryHeight > pageHeight - margins.bottom - 10) {
                 // Draw page number box at bottom of current page
                 doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
+                doc.setFont('helvetica', 'italic');
                 doc.setFontSize(9);
-                doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 3, { align: 'right' });
+                doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 4, { align: 'right' });
 
 
                 addNewPage();
@@ -358,7 +359,7 @@ export function generateDeductionRegisterPDF(
             doc.text(formatCurrency(crew.Salary), colPositions[3] + colWidths[3] - 5 + 10, currentY + rowHeight / 2 + 1, { align: 'right' });
             doc.text(formatCurrency(crew.Gross), colPositions[4] + colWidths[4] - 5 + 10, currentY + rowHeight / 2 + 1, { align: 'right' });
 
-            // Draw horizontal line at the bottom of crew row
+            // Draw horizontal line at the bottom of crew rowaa
             doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
 
             // Move to next row
@@ -371,8 +372,9 @@ export function generateDeductionRegisterPDF(
                     if (currentY + rowHeight > pageHeight - margins.bottom - 10) {
                         // Draw page number box at bottom of current page
                         doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
+                        doc.setFont('helvetica', 'italic');
                         doc.setFontSize(9);
-                        doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 3, { align: 'right' });
+                        doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 4, { align: 'right' });
 
 
                         // Start a new page
@@ -415,8 +417,9 @@ export function generateDeductionRegisterPDF(
 
         // Draw page number box at bottom of last page
         doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
+        doc.setFont('helvetica', 'italic');
         doc.setFontSize(9);
-        doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 3, { align: 'right' });
+        doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 4, { align: 'right' });
 
         // Add footer with current date/time and user on last page
         // doc.setFontSize(8);
