@@ -125,13 +125,13 @@ export function generateAllotmentPayrollRegister(
 
         // Define table column widths for the main data table
         const colWidths = [
-            48,  // CREW NAME
-            25,  // RANK
+            55,  // CREW NAME
+            30,  // RANK
             28,  // BASIC WAGE
-            28,  // FIXED OT
-            28,  // GUAR OT
-            35,  // DOLLAR GROSS
-            35,  // PESO GROSS
+            22,  // FIXED OT
+            24,  // GUAR OT
+            28,  // DOLLAR GROSS
+            28,  // PESO GROSS
             30,  // TOTAL DED
             30,  // NET
             48,  // ALLOTTEE NAME
@@ -234,7 +234,7 @@ export function generateAllotmentPayrollRegister(
             doc.line(margins.left + companyColWidth + middleColWidth, vesselInfoY, margins.left + companyColWidth + middleColWidth, vesselInfoY + vesselInfoHeight);
 
             // IMPORTANT: Add horizontal line between exchange rate and date
-            doc.line(margins.left + companyColWidth + middleColWidth, vesselInfoY + 8, margins.left + companyColWidth + middleColWidth + rightColWidth, vesselInfoY + 8);
+            doc.line(margins.left, vesselInfoY + 8, margins.left + companyColWidth + middleColWidth + rightColWidth, vesselInfoY + 8);
 
             // Add exchange rate and date
             doc.setFontSize(7);
@@ -345,8 +345,8 @@ export function generateAllotmentPayrollRegister(
 
                 // Draw crew data
                 doc.text(crew.CrewName, colPositions[0] + 6, y + 5, { align: 'left' });
-                doc.text(crew.Rank, colPositions[1] + 6, y + 5, { align: 'left' });
-                doc.text(formatCurrency(crew.BasicWage), colPositions[2] + colWidths[2] * scaleFactor - 5, y + 5, { align: 'right' });
+                doc.text(crew.Rank, colPositions[1] + 9, y + 5, { align: 'left' });
+                doc.text(formatCurrency(crew.BasicWage), colPositions[2] + colWidths[2] * scaleFactor, y + 5, { align: 'right' });
                 doc.text(formatCurrency(crew.FixedOT), colPositions[3] + colWidths[3] * scaleFactor - 5, y + 5, { align: 'right' });
                 doc.text(formatCurrency(crew.GuarOT), colPositions[4] + colWidths[4] * scaleFactor - 5, y + 5, { align: 'right' });
                 doc.text(formatCurrency(crew.DollarGross), colPositions[5] + colWidths[5] * scaleFactor - 5, y + 5, { align: 'right' });
@@ -382,17 +382,19 @@ export function generateAllotmentPayrollRegister(
 
                         // Add allottee details - using the updated property names
                         doc.text(allottee.AllotteeName, colPositions[9] + 4, y + 5, { align: 'left' });
-                        doc.text(allottee.AccountNumber, colPositions[10] + 6, y + 5, { align: 'left' });
+                        doc.text(allottee.AccountNumber, colPositions[10] + 9, y + 5, { align: 'left' });
                         doc.text(allottee.Bank, colPositions[11] + 4, y + 5, { align: 'left' });
                         doc.text(formatCurrency(allottee.NetAllotment), colPositions[12] + colWidths[12] * scaleFactor - 6, y + 5, { align: 'right' });
 
                         // Draw horizontal line at bottom of allottee row
-                        doc.line(margins.left, y + rowHeight, pageWidth - margins.right, y + rowHeight);
 
                         // Move to next row
                         y += rowHeight;
                     });
+
                 }
+                doc.line(margins.left, y, pageWidth - margins.right, y);
+
             });
 
             // Draw vertical lines on left and right sides of the table for the last section
