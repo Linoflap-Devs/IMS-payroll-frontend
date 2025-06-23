@@ -120,8 +120,6 @@ export default function Allotment() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [availableYears, setAvailableYears] = useState<number[]>([]);
-
   const formatNumber = (value: number) => value?.toFixed(2);
 
   const monthNames = [
