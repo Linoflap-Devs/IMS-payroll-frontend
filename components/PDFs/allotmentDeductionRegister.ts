@@ -284,8 +284,13 @@ export function generateDeductionRegisterPDF(
             doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
 
-            // Draw header row border
-            doc.rect(margins.left, currentY, mainTableWidth, tableHeaderHeight);
+            // Draw horizontal borders for header row only
+            doc.line(margins.left, currentY, pageWidth - margins.right, currentY); // Top border
+            doc.line(margins.left, currentY + tableHeaderHeight, pageWidth - margins.right, currentY + tableHeaderHeight); // Bottom border
+
+            // Draw left and right borders
+            doc.line(margins.left, currentY, margins.left, currentY + tableHeaderHeight); // Left border
+            doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
             const headers = ["CREW NAME", "RANK", "SALARY", "BASIC WAGE", "GROSS"];
@@ -294,11 +299,6 @@ export function generateDeductionRegisterPDF(
                 const colWidth = colWidths[index];
                 doc.text(header, colX + colWidth / 2, currentY + tableHeaderHeight / 2 + 1, { align: 'center' });
             });
-
-            // Draw vertical lines for header columns
-            for (let i = 0; i <= colPositions.length - 1; i++) {
-                doc.line(colPositions[i], currentY, colPositions[i], currentY + tableHeaderHeight);
-            }
 
             currentY += tableHeaderHeight;
         };
@@ -335,7 +335,10 @@ export function generateDeductionRegisterPDF(
                 doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 3, { align: 'right' });
 
                 // Add footer with current date/time and user
-
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'italic');
+                doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
+                doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
 
                 // Start a new page
                 addNewPage();
@@ -345,8 +348,14 @@ export function generateDeductionRegisterPDF(
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
 
-            // Draw crew row border
-            doc.rect(margins.left, currentY, mainTableWidth, rowHeight);
+            // Draw horizontal line at the top of crew row
+            if (crewIndex > 0) {
+                doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
+            }
+
+            // Draw left and right borders only
+            doc.line(margins.left, currentY, margins.left, currentY + rowHeight); // Left border
+            doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight); // Right border
 
             // Draw crew data
             doc.text(crew.CrewName, colPositions[0] + 5, currentY + rowHeight / 2 + 1);
@@ -355,10 +364,8 @@ export function generateDeductionRegisterPDF(
             doc.text(formatCurrency(crew.Salary), colPositions[3] + colWidths[3] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
             doc.text(formatCurrency(crew.Gross), colPositions[4] + colWidths[4] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
 
-            // Draw vertical lines for crew row
-            for (let i = 0; i <= colPositions.length - 1; i++) {
-                doc.line(colPositions[i], currentY, colPositions[i], currentY + rowHeight);
-            }
+            // Draw horizontal line at the bottom of crew row
+            doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
 
             // Move to next row
             currentY += rowHeight;
@@ -383,21 +390,11 @@ export function generateDeductionRegisterPDF(
                         addNewPage();
                     }
 
-                    // Draw deduction row border (full width)
-                    doc.rect(margins.left, currentY, mainTableWidth, rowHeight);
+                    // Draw left and right borders only (no horizontal borders between deduction rows)
+                    doc.line(margins.left, currentY, margins.left, currentY + rowHeight); // Left border
+                    doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight); // Right border
 
-                    // Left and right borders
-                    doc.line(margins.left, currentY, margins.left, currentY + rowHeight);
-                    doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight);
-
-                    // Separator between crew data area and deduction details
-                    // doc.line(colPositions[5], currentY, colPositions[5], currentY + rowHeight);
-
-                    // Calculate positions for deduction details
-                    const deductionAreaStart = colPositions[5];
-                    const deductionAreaWidth = mainTableWidth - colPositions[5] + margins.left;
-
-                    // Format the deduction details
+                    // Format the deduction details - important to use fixed positions that match the image
                     const currencyLabel = deduction.Currency === 1 ? "Usd" : "PhP";
                     const amountWithRate = `${formatCurrency(deduction.Amount)}/${formatCurrency(deduction.ExchangeRate)}`;
 
@@ -406,22 +403,26 @@ export function generateDeductionRegisterPDF(
                         ? deduction.Amount
                         : deduction.Amount / deduction.ExchangeRate;
 
-                    // Draw deduction details
-                    doc.text(deduction.Name, deductionAreaStart + deductionAreaWidth * 0.15, currentY + rowHeight / 2 + 1, { align: 'left' });
-                    doc.text(currencyLabel, deductionAreaStart + deductionAreaWidth * 0.35, currentY + rowHeight / 2 + 1, { align: 'left' });
-                    doc.text(amountWithRate, deductionAreaStart + deductionAreaWidth * 0.60, currentY + rowHeight / 2 + 1, { align: 'left' });
-                    doc.text(formatCurrency(dollarAmount), deductionAreaStart + deductionAreaWidth - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                    // Define fixed positions for deduction details based on the sample image
+                    // These positions are what we need to fix to display the details correctly
+                    const namePosition = margins.left + mainTableWidth * 0.5; // Deduction name position
+                    const currencyPosition = margins.left + mainTableWidth * 0.7; // Currency label position
+                    const amountPosition = margins.left + mainTableWidth * 0.8; // Amount/rate position
 
-                    // Move to next row
+                    // Draw deduction details using fixed positions
+                    doc.text(deduction.Name, namePosition, currentY + rowHeight / 2 + 1);
+                    doc.text(currencyLabel, currencyPosition, currentY + rowHeight / 2 + 1);
+                    doc.text(amountWithRate, amountPosition, currentY + rowHeight / 2 + 1);
+                    doc.text(formatCurrency(dollarAmount), pageWidth - margins.right - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+
+                    // Move to next row without drawing horizontal line
                     currentY += rowHeight;
                 });
+
+                // Draw horizontal line after last deduction for this crew
+                doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
             }
         });
-
-        // doc.setFontSize(8);
-        // doc.setFont('helvetica', 'italic');
-        // doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
-        // doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
 
         // Draw page number box at bottom of last page
         doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
