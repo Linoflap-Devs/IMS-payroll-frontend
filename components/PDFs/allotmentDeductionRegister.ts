@@ -3,6 +3,7 @@
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
+import { logoBase64Image } from "./lib/base64items";
 
 // Define interfaces based on your JSON data structure
 interface Deduction {
@@ -110,7 +111,7 @@ export function generateDeductionRegisterPDF(
         const doc = new jsPDF({
             orientation: "landscape",
             unit: "mm",
-            format: "legal" // Legal size (8.5" × 14")
+            format: "letter" // Legal size (8.5" × 14")
         });
 
         // Add custom font with peso symbol support
@@ -185,94 +186,93 @@ export function generateDeductionRegisterPDF(
         doc.setLineWidth(0.1);
         doc.setDrawColor(0);
 
-        // Left column (Company info)
-        doc.rect(margins.left, currentY, companyColWidth, 30);
+        // CrewHeader
+        doc.rect(margins.left, currentY, pageWidth - margins.right - 10, 40)
 
-        // Middle column (Empty space)
-        doc.rect(margins.left + companyColWidth, currentY, middleColWidth, 30);
-
-        // Right column (Month/Year and Report Title)
-        doc.rect(margins.left + companyColWidth + middleColWidth, currentY, rightColWidth, 15);
-        doc.rect(margins.left + companyColWidth + middleColWidth, currentY + 15, rightColWidth, 15);
-
-        // Add IMS Philippines logo (placeholder)
-        doc.setFillColor(31, 184, 107);
-        doc.setDrawColor(0);
-        doc.roundedRect(margins.left + 10, currentY + 5, 20, 20, 2, 2, 'FD');
-        doc.setTextColor(255);
-        doc.setFontSize(8);
-        doc.text("IMS PHIL", margins.left + 20, currentY + 15, { align: 'center' });
-        doc.setTextColor(0);
+        //logo
+        doc.addImage(logoBase64Image, 'PNG', margins.left, currentY, 20, 20);
 
         // Add company name text
-        doc.setFontSize(12);
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text("IMS PHILIPPINES", margins.left + 35, currentY + 12);
-        doc.text("MARITIME CORP.", margins.left + 35, currentY + 20);
+        doc.text("IMS PHILIPPINES", margins.left + 25, currentY + 9);
+        doc.text("MARITIME CORP.", margins.left + 25, currentY + 14);
 
         // Add month/year and report title
-        doc.setFontSize(10);
+        doc.rect(margins.left + companyColWidth + middleColWidth, currentY, rightColWidth, 10);
+        doc.rect(margins.left + companyColWidth + middleColWidth, currentY + 10, rightColWidth, 10);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
         doc.text(
             `${period.month} ${period.year}`,
             margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            currentY + 10,
+            currentY + 6.5,
             { align: 'right' }
         );
         doc.text(
             "ALLOTMENT DEDUCTION REGISTER",
             margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            currentY + 25,
+            currentY + 16,
             { align: 'right' }
         );
 
-        currentY += 30;
+        currentY += 20;
 
         // Draw vessel information table
         const vesselInfoY = currentY;
 
         // Left column (Vessel name)
-        doc.rect(margins.left, vesselInfoY, companyColWidth, 20);
+        // doc.rect(margins.left, vesselInfoY, pageWidth - 20, 10);
+        doc.line(margins.left, vesselInfoY, pageWidth - margins.right, vesselInfoY);
         doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text("VESSEL", margins.left + 5, vesselInfoY + 7);
-        doc.setFontSize(10);
+        //text Gray
+        doc.setTextColor(150, 150, 150);
+        doc.setFont('helvetica', 'italic');
+        doc.text("VESSEL", margins.left + 2, vesselInfoY + 4.5);
+        doc.setTextColor(0);
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.text(vesselData.VesselName, margins.left + 5, vesselInfoY + 15);
+        doc.text(vesselData.VesselName, margins.left + 2, vesselInfoY + 7.5);
+        doc.line(margins.left, vesselInfoY + 10, pageWidth - margins.right, vesselInfoY + 10);
+
 
         // Middle column (Empty space)
-        doc.rect(margins.left + companyColWidth, vesselInfoY, middleColWidth, 20);
+        // doc.rect(margins.left + companyColWidth, vesselInfoY, middleColWidth, 20);
 
         // Right column (Exchange rate and date)
-        doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY, rightColWidth, 10);
-        doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY + 10, rightColWidth, 10);
-
+        // doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY, rightColWidth, 10);
+        // doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY + 10, rightColWidth, 10);
+        doc.line(margins.left + companyColWidth + middleColWidth, 30, margins.left + companyColWidth + middleColWidth, 40);
+        // doc.line(margins.left, margins.top + 30, margins.left, margins.right - 20)
         // Add exchange rate and date
-        doc.setFontSize(10);
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
         doc.text(
             `EXCHANGE RATE: USD > PHP ${exchangeRate}`,
             margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            vesselInfoY + 7,
+            vesselInfoY + 6,
             { align: 'right' }
         );
+        doc.setFont('helvetica', 'italic');
+
         doc.text(
             dateGenerated,
             margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            vesselInfoY + 17,
+            vesselInfoY + 16,
             { align: 'right' }
         );
 
         currentY += 20;
 
         // Gray separator line
-        const separatorY = currentY + 8;
+        const separatorY = currentY + 4;
         doc.setDrawColor(180);
         doc.setLineWidth(1);
         doc.line(margins.left, separatorY, pageWidth - margins.right, separatorY);
         doc.setDrawColor(0);
         doc.setLineWidth(0.1);
 
-        currentY = separatorY + 8;
+        currentY = separatorY + 4;
 
         // -------------------------------------------------
         // TABLE HEADER - Draw on first page and any new pages
@@ -335,10 +335,10 @@ export function generateDeductionRegisterPDF(
                 doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 3, { align: 'right' });
 
                 // Add footer with current date/time and user
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'italic');
-                doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
-                doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
+                // doc.setFontSize(8);
+                // doc.setFont('helvetica', 'italic');
+                // doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
+                // doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
 
                 // Start a new page
                 addNewPage();
@@ -380,11 +380,11 @@ export function generateDeductionRegisterPDF(
                         doc.setFontSize(9);
                         doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 3, { align: 'right' });
 
-                        // Add footer with current date/time and user
-                        doc.setFontSize(8);
-                        doc.setFont('helvetica', 'italic');
-                        doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
-                        doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
+                        // // Add footer with current date/time and user
+                        // doc.setFontSize(8);
+                        // doc.setFont('helvetica', 'italic');
+                        // doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
+                        // doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
 
                         // Start a new page
                         addNewPage();
@@ -430,10 +430,10 @@ export function generateDeductionRegisterPDF(
         doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 3, { align: 'right' });
 
         // Add footer with current date/time and user on last page
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
-        doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
+        // doc.setFontSize(8);
+        // doc.setFont('helvetica', 'italic');
+        // doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
+        // doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
 
         // Save the PDF
         const fileName = `deduction-register-${vesselData.VesselName.toLowerCase()}-${period.month.toLowerCase()}-${period.year}.pdf`;
