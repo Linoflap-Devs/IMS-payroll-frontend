@@ -17,8 +17,6 @@ export interface VesselResponse {
   message?: string;
 }
 
-
-
 export const getVesselList = async (): Promise<VesselResponse> => {
   const response = await axiosInstance.get<VesselResponse>("/vessels");
   return response.data;

@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 export default function page() {
   return (
-    <AccessGuard allowedTypes={[3, 5]}>
+    <AccessGuard allowedTypes={[3]}>
       <Suspense fallback={<div>Loading...</div>}>
         <DeductionEntries />;
       </Suspense>

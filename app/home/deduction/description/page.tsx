@@ -3,7 +3,7 @@ import DeductionDescription from "@/components/pages/DeductionDescription";
 
 export default function page() {
   return (
-    <AccessGuard allowedTypes={[3, 5]}>
+    <AccessGuard allowedTypes={[3]}>
       <DeductionDescription />
     </AccessGuard>
   );
