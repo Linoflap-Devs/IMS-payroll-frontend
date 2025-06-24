@@ -26,6 +26,7 @@ import {
   DeductionType, 
   getDeductionGovtRates, 
   PHILHEALTHDeductionRate, 
+  PhilHealthDeductionRequest, 
   SSSDeductionRate 
 } from "@/src/services/deduction/governmentDeduction.api";
 import {
@@ -34,14 +35,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AddSSSRateDialog } from "../dialogs/AddSSSRateDialog";
+import { AddPhilhealthRateDialog } from "../dialogs/AddPhilhealthRateDialog";
 
 export default function Goverment() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("PHILHEALTH");
   const [deductionType, setDeductionType] = useState<DeductionType>("PHILHEALTH");
-
   const [sssData, setSSSData] = useState<SSSDeductionRate[]>([]);
   const [philhealthData, setPhilhealthData] = useState<PHILHEALTHDeductionRate[]>([]);
+  const [isAddSSSRateDialogOpen, setAddSSSRateDialogOpen] = useState(false);
+  const [isAddPhilhealthRateDialogOpen, setAddPhilhealthRateDialogOpen] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 6 }, (_, i) =>
@@ -202,6 +206,19 @@ export default function Goverment() {
     }
   };
 
+  const handlePhilhealthRateAdded = (newRate: PhilHealthDeductionRequest) => {
+    const formattedRate: PHILHEALTHDeductionRate = {
+      contributionID: Date.now(), // or any placeholder / generated ID
+      salaryFrom: newRate.salaryFrom,
+      salaryTo: newRate.salaryTo,
+      premium: newRate.eePremium,
+      premiumRate: newRate.eePremiumRate,
+      Year: newRate.year,
+    };
+
+    setPhilhealthData((prevRates) => [...prevRates, formattedRate]);
+  };
+
   return (
     <div className="h-full w-full p-3 pt-3 overflow-hidden">
       <style jsx global>{`
@@ -303,7 +320,7 @@ export default function Goverment() {
                       <Button
                         className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
                         size="default"
-                        //onClick={() => setAddVesselDialogOpen(true)}
+                        onClick={() => setAddPhilhealthRateDialogOpen(true)}
                       >
                         <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
                         Insert New Rate
@@ -337,7 +354,6 @@ export default function Goverment() {
                 className="p-2 mt-0 overflow-y-auto flex-1"
               >
                 <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
-                  {/* Search and Filters */}
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
                     <div className="w-full md:w-auto">
                       <Select value={yearFilter} onValueChange={setYearFilter}>
@@ -349,7 +365,6 @@ export default function Goverment() {
                             <span className="text-foreground text-base px-4">{yearFilter}</span>
                           </div>
                         </SelectTrigger>
-
                         <SelectContent className="w-[280px]">
                           {years.map((yr, idx) => (
                             <SelectItem key={idx} value={yr}>
@@ -364,7 +379,7 @@ export default function Goverment() {
                       <Button
                         className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
                         size="default"
-                        //onClick={() => setAddVesselDialogOpen(true)}
+                        onClick={() => setAddSSSRateDialogOpen(true)}
                       >
                         <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
                         Insert New Rate
@@ -444,8 +459,8 @@ export default function Goverment() {
                   {/* DataTable with custom styling */}
                   <div className="bg-[#F9F9F9] rounded-md border pb-3">
                     <DataTable
-                      columns={columns}
-                      data={filteredDeductionGovtData}
+                      columns={[]}
+                      data={[]}
                       pageSize={7}
                     />
                   </div>
@@ -455,6 +470,20 @@ export default function Goverment() {
           </Card>
         </div>
       </div>
+
+      <AddSSSRateDialog
+        open={isAddSSSRateDialogOpen}
+        onOpenChange={setAddSSSRateDialogOpen} onSuccess={function (): void {
+          throw new Error("Function not implemented.");
+        } }      />
+
+      <AddPhilhealthRateDialog
+        open={isAddPhilhealthRateDialogOpen}
+        onOpenChange={setAddPhilhealthRateDialogOpen} 
+          onSuccess={(newRate) => {
+          setPhilhealthData((prev) => [...prev, newRate]);
+        }}
+      />
     </div>
   );
 }

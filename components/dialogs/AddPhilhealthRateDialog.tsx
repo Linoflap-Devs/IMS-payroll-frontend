@@ -1,0 +1,330 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Plus } from "lucide-react";
+import { useEffect } from "react";
+import { toast } from "../ui/use-toast";
+import { addDeductionGovtRates, PHILHEALTHDeductionRate } from "@/src/services/deduction/governmentDeduction.api";
+
+interface PHILHEALTHDeductionFormValues {
+  year: string | number;
+  salaryFrom: string | number;
+  salaryTo: string | number;
+  eePremium: string | number;
+  eePremiumRate: string | number;
+}
+
+const formSchema = z.object({
+  allotteeID: z.string().min(1, "Please select an allottee"),
+  amount: z
+    .string()
+    .min(1, "Please enter an amount")
+    .refine(
+      (val) => {
+        const num = parseFloat(val);
+        return !isNaN(num) && num > 0;
+      },
+      { message: "Please enter a valid amount greater than 0" }
+    ),
+  remarks: z.string().min(1, "Please enter remarks"),
+  status: z.string().min(1, "Please select a status"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+interface AddPhilhealthRateDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: (newRate: PHILHEALTHDeductionRate) => void;
+}
+
+export function AddPhilhealthRateDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+}: AddPhilhealthRateDialogProps) {
+  const form = useForm<PHILHEALTHDeductionFormValues>({
+    defaultValues: {
+      year: "",
+      salaryFrom: "",
+      salaryTo: "",
+      eePremium: "",
+      eePremiumRate: "",
+    },
+  });
+
+  const { reset, formState } = form;
+  const { isSubmitting } = formState;
+  const years = Array.from({ length: 8 }, (_, i) => new Date().getFullYear() - i);
+
+  useEffect(() => {
+    if (!open) {
+      reset();
+    }
+  }, [open, reset]);
+
+  const onSubmit = async (data: PHILHEALTHDeductionFormValues) => {
+    try {
+      const payload = {
+        type: "PHILHEALTH" as const,
+        data: {
+          year: Number(data.year) || 0,
+          salaryFrom: Number(data.salaryFrom) || 0,
+          salaryTo: Number(data.salaryTo) || 0,
+          eePremium: Number(data.eePremium) || 0,
+          eePremiumRate: Number(data.eePremiumRate) || 0,
+        },
+      };
+      console.log("Submitting payload:", payload, typeof payload.data.year);
+      const response = await addDeductionGovtRates(payload);
+
+      if (response && response.success) {
+        const newRate: PHILHEALTHDeductionRate = {
+          salaryFrom: Number(data.salaryFrom),
+          salaryTo: Number(data.salaryTo),
+          premium: Number(data.eePremium),
+          premiumRate: Number(data.eePremiumRate),
+          Year: Number(data.year),
+        };
+
+        onSuccess?.(newRate);
+        onOpenChange(false);
+        reset();
+
+        toast({
+          title: "PhilHealth Deduction Added",
+          description: "The PhilHealth deduction rate has been successfully added.",
+          variant: "success",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response?.message || "Failed to add PhilHealth deduction",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding PhilHealth deduction:", error);
+      const err = error as Error;
+      toast({
+        title: "Error",
+        description: err.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">
+        <DialogHeader>
+          <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
+            Add New Contribution Rate
+          </DialogTitle>
+          {/* <DialogDescription className="text-center text-sm text-gray-600">
+            Add a new remittance entry for the selected allottee
+          </DialogDescription> */}
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className=" space-y-4">
+            <FormField
+              control={form.control}
+              name="year"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel className="text-sm text-gray-600 font-medium">
+                    Select Year
+                  </FormLabel>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value?.toString() || ""}
+                    >
+                      <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-10">
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent className="w-full">
+                        {years.map((year) => (
+                          <SelectItem key={year} value={String(year)}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex flex-col sm:flex-row gap-4 my-6">
+              <FormField
+                control={form.control}
+                name="salaryFrom"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="text-sm text-gray-600 font-medium">
+                      Salary From
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value?.toString() || ""}
+                      >
+                        <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-10">
+                          <SelectValue placeholder="Select starting year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {years.map((year) => (
+                            <SelectItem key={year} value={String(year)}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="salaryTo"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="text-sm text-gray-600 font-medium">
+                      Salary To
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value?.toString() || ""}
+                      >
+                        <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-10">
+                          <SelectValue placeholder="Select ending year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {years.map((year) => (
+                            <SelectItem key={year} value={String(year)}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 my-6">
+              <FormField
+                control={form.control}
+                name="eePremium"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="text-sm text-gray-600 font-medium">
+                      EE Premium
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="Enter EE Premium"
+                        className="border border-[#E0E0E0] rounded-md"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="eePremiumRate"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="text-sm text-gray-600 font-medium">
+                      EE Premium Rate
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="Enter EE Premium Rate"
+                        className="border border-[#E0E0E0] rounded-md"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 text-sm"
+                onClick={() => {
+                  onOpenChange(false);
+                  reset();
+                }}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 text-sm bg-[#2E37A4] hover:bg-[#2E37A4]/90"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  "Adding..."
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Philhealth year
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}

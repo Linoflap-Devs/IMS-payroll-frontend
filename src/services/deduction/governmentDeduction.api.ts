@@ -21,7 +21,7 @@ export interface SSSDeductionRate {
 }
 
 export interface PHILHEALTHDeductionRate {
-  contributionID: number;
+  contributionID?: number;
   salaryFrom: number;
   salaryTo: number;
   premium: number;
@@ -40,10 +40,48 @@ interface DeductionGovtRatesBaseResponse<T> {
   message?: string;
 }
 
-export const getDeductionGovtRates = async <T extends DeductionType>(
-  year: number,
-  type: T
-): Promise<DeductionGovtRatesBaseResponse<DeductionRateMap[T]>> => {
+export const getDeductionGovtRates = async <T extends DeductionType>(year: number, type: T): Promise<DeductionGovtRatesBaseResponse<DeductionRateMap[T]>> => {
   const response = await axiosInstance.get(`/deductions/gov-rates?year=${year}&type=${type}`);
   return response.data;
 };
+
+interface SSSDeductionRequest {
+  year: number;
+  salaryFrom: number;
+  salaryTo: number;
+  eePremium: number;
+  eePremiumRate: number;
+  regularSS: number;
+  mutualFund: number;
+  ec: number;
+  eess: number;
+  erss: number;
+  eemf: number;
+  ermf: number;
+}
+
+export interface PhilHealthDeductionRequest {
+  year: number;
+  salaryFrom: number;
+  salaryTo: number;
+  eePremium: number;
+  eePremiumRate: number;
+}
+
+type DeductionRequestMap = {
+  SSS: SSSDeductionRequest;
+  PHILHEALTH: PhilHealthDeductionRequest;
+};
+
+interface DeductionGovtRatesBaseRequest<T extends DeductionType> {
+  type: T;
+  data: DeductionRequestMap[T];
+}
+
+export const addDeductionGovtRates = async <T extends DeductionType>(
+  payload: DeductionGovtRatesBaseRequest<T>): Promise<DeductionGovtRatesBaseResponse<DeductionRateMap[T]>> => {
+  const response = await axiosInstance.post("/deductions/gov-rates", payload);
+  return response.data;
+};
+
+
