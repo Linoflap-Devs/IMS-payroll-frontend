@@ -350,35 +350,21 @@ export function generateSSSRegisterPDF(
                 "Total"
             ]
 
-            // for(let i = 0; i <= columnKeys.length; i++) {
-            //     if(i == 0){
-            //         // Initial row
-            //         const key = columnKeys[i]
-            //         doc.text(crew[key as keyof CrewMember].toString(), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
-            //     }
-            //     else if (columnKeys[i] == 'Total')  {
-            //         console.log(i)
-            //         const value = Number(crew.EESS) + Number(crew.ERSS) + Number(crew.EEMF) + Number(crew.ERMF)
-            //         doc.text(formatCurrency(value || 0), colPositions[i] + colWidths[i] - 5 + 10, currentY + rowHeight / 2 + 1, { align: 'right' });
-            //     }
-            //     else {
-            //         const key = columnKeys[i]
-            //         doc.text(formatCurrency(crew[key as keyof CrewMember]), colPositions[i] + colWidths[i] - 5 + 10, currentY + rowHeight / 2 + 1, { align: 'right' });
-            //     }
-            // }
+            columnKeys.forEach((key, i) => {
+                if(i === 0) {
+                    // Crew Name
+                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                }
+                else if (key === 'Total') {
+                    const value = Number(crew.EESS) + Number(crew.ERSS) + Number(crew.EEMF) + Number(crew.ERMF) + Number(crew.EC);
+                    doc.text(formatCurrency(value || 0), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                }
+                else {
+                    const value = crew[key as keyof CrewMember];
+                    doc.text(formatCurrency(Number(value) || 0), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                }
+            });
 
-
-            doc.text(truncateText(crew.CrewName, 22), colPositions[0] + 5, currentY + rowHeight / 2 + 1);
-            doc.text(formatCurrency(crew.Gross), colPositions[1] + colWidths[1] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-            doc.text(formatCurrency(crew.RegularSS), colPositions[2] + colWidths[2] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-            doc.text(formatCurrency(crew.MutualFund), colPositions[3] + colWidths[3] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-            doc.text(formatCurrency(crew.EESS), colPositions[4] + colWidths[4] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-            doc.text(formatCurrency(crew.ERSS), colPositions[5] + colWidths[5] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-            doc.text(formatCurrency(crew.EEMF), colPositions[6] + colWidths[6] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-            doc.text(formatCurrency(crew.ERMF), colPositions[7] + colWidths[7] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-            doc.text(formatCurrency(crew.EC), colPositions[8] + colWidths[8] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-            doc.text(formatCurrency(crew.EESS + crew.ERSS + crew.EEMF + crew.ERMF + crew.EC), colPositions[9] + colWidths[9] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
- 
             // Draw horizontal line at the bottom of crew rowaa
             doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
 
