@@ -31,6 +31,7 @@ import { Plus } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "../ui/use-toast";
 import { addDeductionGovtRates, PHILHEALTHDeductionRate } from "@/src/services/deduction/governmentDeduction.api";
+import { cn } from "@/lib/utils";
 
 interface PHILHEALTHDeductionFormValues {
   year: string | number;
@@ -40,23 +41,41 @@ interface PHILHEALTHDeductionFormValues {
   eePremiumRate: string | number;
 }
 
-const formSchema = z.object({
-  allotteeID: z.string().min(1, "Please select an allottee"),
-  amount: z
+export const formSchema = z.object({
+  year: z
     .string()
-    .min(1, "Please enter an amount")
-    .refine(
-      (val) => {
-        const num = parseFloat(val);
-        return !isNaN(num) && num > 0;
-      },
-      { message: "Please enter a valid amount greater than 0" }
-    ),
-  remarks: z.string().min(1, "Please enter remarks"),
-  status: z.string().min(1, "Please select a status"),
-});
+    .min(1, "Please enter the year")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Year must be a valid number",
+    }),
 
-type FormValues = z.infer<typeof formSchema>;
+  salaryFrom: z
+    .string()
+    .min(1, "Please enter salary from")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Salary From must be a number greater than 0",
+    }),
+
+  salaryTo: z
+    .string()
+    .min(1, "Please enter salary to")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Salary To must be a number greater than 0",
+    }),
+
+  eePremium: z
+    .string()
+    .min(1, "Please enter EE Premium")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "EE Premium must be a number",
+    }),
+  eePremiumRate: z
+    .string()
+    .min(1, "Please enter EE Premium Rate")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "EE Premium Rate must be a number",
+    }),
+});
 
 interface AddPhilhealthRateDialogProps {
   open: boolean;
@@ -70,6 +89,7 @@ export function AddPhilhealthRateDialog({
   onSuccess,
 }: AddPhilhealthRateDialogProps) {
   const form = useForm<PHILHEALTHDeductionFormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       year: "",
       salaryFrom: "",
@@ -79,6 +99,7 @@ export function AddPhilhealthRateDialog({
     },
   });
 
+  type PHILHEALTHDeductionFormValues = z.infer<typeof formSchema>;
   const { reset, formState } = form;
   const { isSubmitting } = formState;
   const years = Array.from({ length: 8 }, (_, i) => new Date().getFullYear() - i);
@@ -91,17 +112,14 @@ export function AddPhilhealthRateDialog({
 
   const onSubmit = async (data: PHILHEALTHDeductionFormValues) => {
     try {
-      const payload = {
-        type: "PHILHEALTH" as const,
-        data: {
+        const payload = {
+          type: "PHILHEALTH" as const,
           year: Number(data.year) || 0,
           salaryFrom: Number(data.salaryFrom) || 0,
           salaryTo: Number(data.salaryTo) || 0,
           eePremium: Number(data.eePremium) || 0,
           eePremiumRate: Number(data.eePremiumRate) || 0,
-        },
-      };
-      console.log("Submitting payload:", payload, typeof payload.data.year);
+        };
       const response = await addDeductionGovtRates(payload);
 
       if (response && response.success) {
@@ -157,7 +175,7 @@ export function AddPhilhealthRateDialog({
             <FormField
               control={form.control}
               name="year"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem className="w-full">
                   <FormLabel className="text-sm text-gray-600 font-medium">
                     Select Year
@@ -167,7 +185,14 @@ export function AddPhilhealthRateDialog({
                       onValueChange={field.onChange}
                       value={field.value?.toString() || ""}
                     >
-                      <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-10">
+                      <SelectTrigger
+                        className={cn(
+                          "w-full rounded-md h-10",
+                          fieldState.invalid
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-[#E0E0E0]"
+                        )}
+                      >
                         <SelectValue placeholder="Select year" />
                       </SelectTrigger>
                       <SelectContent className="w-full">
@@ -188,7 +213,7 @@ export function AddPhilhealthRateDialog({
               <FormField
                 control={form.control}
                 name="salaryFrom"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem className="w-full">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary From
@@ -198,7 +223,14 @@ export function AddPhilhealthRateDialog({
                         onValueChange={field.onChange}
                         value={field.value?.toString() || ""}
                       >
-                        <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-10">
+                        <SelectTrigger
+                          className={cn(
+                            "w-full rounded-md h-10",
+                            fieldState.invalid
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-[#E0E0E0]"
+                          )}
+                        >
                           <SelectValue placeholder="Select starting year" />
                         </SelectTrigger>
                         <SelectContent>
@@ -218,7 +250,7 @@ export function AddPhilhealthRateDialog({
               <FormField
                 control={form.control}
                 name="salaryTo"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem className="w-full">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary To
@@ -228,7 +260,14 @@ export function AddPhilhealthRateDialog({
                         onValueChange={field.onChange}
                         value={field.value?.toString() || ""}
                       >
-                        <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-10">
+                        <SelectTrigger
+                          className={cn(
+                            "w-full rounded-md h-10", 
+                            fieldState.invalid
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-[#E0E0E0]"
+                          )}
+                        >
                           <SelectValue placeholder="Select ending year" />
                         </SelectTrigger>
                         <SelectContent>

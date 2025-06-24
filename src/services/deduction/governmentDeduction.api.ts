@@ -3,20 +3,20 @@ import axiosInstance from "@/src/lib/axios";
 export type DeductionType = "SSS" | "PHILHEALTH";
 
 export interface SSSDeductionRate {
-  contributionId: number;
+  contributionId?: number;
   salaryFrom: number;
   salaryTo: number;
   regularSS: number;
   mutualFund: number;
-  eerate: number;
-  errate: number;
+  eerate?: number;
+  errate?: number;
   erss: number;
   ermf: number;
   ec: number;
   eess: number;
   eemf: number;
-  ss: number;
-  mf: number;
+  ss?: number;
+  mf?: number;
   Year: number;
 }
 
@@ -49,8 +49,8 @@ interface SSSDeductionRequest {
   year: number;
   salaryFrom: number;
   salaryTo: number;
-  eePremium: number;
-  eePremiumRate: number;
+  eePremium?: number;
+  eePremiumRate?: number;
   regularSS: number;
   mutualFund: number;
   ec: number;
@@ -73,10 +73,8 @@ type DeductionRequestMap = {
   PHILHEALTH: PhilHealthDeductionRequest;
 };
 
-interface DeductionGovtRatesBaseRequest<T extends DeductionType> {
-  type: T;
-  data: DeductionRequestMap[T];
-}
+type DeductionGovtRatesBaseRequest<T extends DeductionType = DeductionType> =
+  { type: T } & DeductionRequestMap[T];
 
 export const addDeductionGovtRates = async <T extends DeductionType>(
   payload: DeductionGovtRatesBaseRequest<T>): Promise<DeductionGovtRatesBaseResponse<DeductionRateMap[T]>> => {

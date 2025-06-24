@@ -473,9 +473,11 @@ export default function Goverment() {
 
       <AddSSSRateDialog
         open={isAddSSSRateDialogOpen}
-        onOpenChange={setAddSSSRateDialogOpen} onSuccess={function (): void {
-          throw new Error("Function not implemented.");
-        } }      />
+        onOpenChange={setAddSSSRateDialogOpen} 
+          onSuccess={(newRate) => {
+          setSSSData((prev) => [...prev, newRate]);
+        }}    
+        />
 
       <AddPhilhealthRateDialog
         open={isAddPhilhealthRateDialogOpen}

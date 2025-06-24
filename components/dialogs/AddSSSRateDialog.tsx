@@ -29,20 +29,17 @@ import {
 } from "@/components/ui/form";
 import { Plus } from "lucide-react";
 import { useEffect } from "react";
-import {
-  addCrewRemittance,
-  type AddCrewRemittanceData,
-  type AllotteeOption,
-} from "@/src/services/remittance/crewRemittance.api";
 import { toast } from "../ui/use-toast";
-import { addDeductionGovtRates } from "@/src/services/deduction/governmentDeduction.api";
+import {
+  addDeductionGovtRates,
+  SSSDeductionRate,
+} from "@/src/services/deduction/governmentDeduction.api";
+import { cn } from "@/lib/utils";
 
 interface SSSDeductionFormValues {
   year: string | number;
   salaryFrom: string | number;
   salaryTo: string | number;
-  eePremium: string | number;
-  eePremiumRate: string | number;
   regularSS: string | number;
   mutualFund: string | number;
   ec: string | number;
@@ -52,29 +49,82 @@ interface SSSDeductionFormValues {
   ermf: string | number;
 }
 
-const formSchema = z.object({
-  allotteeID: z.string().min(1, "Please select an allottee"),
-  amount: z
+export const formSchema = z.object({
+  year: z
     .string()
-    .min(1, "Please enter an amount")
-    .refine(
-      (val) => {
-        const num = parseFloat(val);
-        return !isNaN(num) && num > 0;
-      },
-      { message: "Please enter a valid amount greater than 0" }
-    ),
-  remarks: z.string().min(1, "Please enter remarks"),
-  status: z.string().min(1, "Please select a status"),
-});
+    .min(1, "Please enter the year")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Year must be a valid number",
+    }),
 
-type FormValues = z.infer<typeof formSchema>;
+  salaryFrom: z
+    .string()
+    .min(1, "Please enter salary from")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Salary From must be a number greater than 0",
+    }),
+
+  salaryTo: z
+    .string()
+    .min(1, "Please enter salary to")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Salary To must be a number greater than 0",
+    }),
+
+  regularSS: z
+    .string()
+    .min(1, "Please enter Regular SS")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Regular SS must be a number",
+    }),
+
+  mutualFund: z
+    .string()
+    .min(1, "Please enter Mutual Fund")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Mutual Fund must be a number",
+    }),
+
+  ec: z
+    .string()
+    .min(1, "Please enter EC")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "EC must be a number",
+    }),
+
+  eess: z
+    .string()
+    .min(1, "Please enter EE SS")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "EE SS must be a number",
+    }),
+
+  erss: z
+    .string()
+    .min(1, "Please enter ER SS")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "ER SS must be a number",
+    }),
+
+  eemf: z
+    .string()
+    .min(1, "Please enter EE MF")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "EE MF must be a number",
+    }),
+
+  ermf: z
+    .string()
+    .min(1, "Please enter ER MF")
+    .refine((val) => !isNaN(Number(val)), {
+      message: "ER MF must be a number",
+    }),
+});
 
 interface AddSSSRateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-
-  onSuccess: () => void;
+  onSuccess: (newRate: SSSDeductionRate) => void;
 }
 
 export function AddSSSRateDialog({
@@ -83,12 +133,11 @@ export function AddSSSRateDialog({
   onSuccess,
 }: AddSSSRateDialogProps) {
   const form = useForm<SSSDeductionFormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       year: "",
       salaryFrom: "",
       salaryTo: "",
-      eePremium: "",
-      eePremiumRate: "",
       regularSS: "",
       mutualFund: "",
       ec: "",
@@ -99,9 +148,13 @@ export function AddSSSRateDialog({
     },
   });
 
+  type SSSDeductionFormValues = z.infer<typeof formSchema>;
   const { reset, formState } = form;
   const { isSubmitting } = formState;
-  const years = Array.from({ length: 8 }, (_, i) => new Date().getFullYear() - i);
+  const years = Array.from(
+    { length: 8 },
+    (_, i) => new Date().getFullYear() - i
+  );
 
   useEffect(() => {
     if (!open) {
@@ -110,16 +163,28 @@ export function AddSSSRateDialog({
   }, [open, reset]);
 
   const onSubmit = async (data: SSSDeductionFormValues) => {
-    console.log("Submitted Form Data:", data);
     try {
       const payload = {
         type: "SSS" as const,
-        data: {
-          year: Number(data.year),
+        year: Number(data.year),
+        salaryFrom: Number(data.salaryFrom),
+        salaryTo: Number(data.salaryTo),
+        regularSS: Number(data.regularSS),
+        mutualFund: Number(data.mutualFund),
+        ec: Number(data.ec),
+        eess: Number(data.eess),
+        erss: Number(data.erss),
+        eemf: Number(data.eemf),
+        ermf: Number(data.ermf),
+      };
+
+      const response = await addDeductionGovtRates(payload);
+
+      if (response && response.success) {
+        const newRate: SSSDeductionRate = {
+          Year: Number(data.year),
           salaryFrom: Number(data.salaryFrom),
           salaryTo: Number(data.salaryTo),
-          eePremium: Number(data.eePremium),
-          eePremiumRate: Number(data.eePremiumRate),
           regularSS: Number(data.regularSS),
           mutualFund: Number(data.mutualFund),
           ec: Number(data.ec),
@@ -127,14 +192,9 @@ export function AddSSSRateDialog({
           erss: Number(data.erss),
           eemf: Number(data.eemf),
           ermf: Number(data.ermf),
-        },
-      };
-      console.log("Payload to API:", payload);
+        };
 
-      const response = await addDeductionGovtRates(payload);
-
-      if (response && response.success) {
-        onSuccess?.();      // Optional callback
+        onSuccess?.(newRate);
         onOpenChange(false);
         reset();
 
@@ -177,7 +237,7 @@ export function AddSSSRateDialog({
             <FormField
               control={form.control}
               name="year"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem className="w-full">
                   <FormLabel className="text-sm text-gray-600 font-medium">
                     Select Year
@@ -185,9 +245,16 @@ export function AddSSSRateDialog({
                   <FormControl>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value?.toString() || ""}
+                      value={field.value || ""}
                     >
-                      <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-10">
+                      <SelectTrigger
+                        className={cn(
+                          "w-full rounded-md h-10",
+                          fieldState.invalid
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-[#E0E0E0]"
+                        )}
+                      >
                         <SelectValue placeholder="Select year" />
                       </SelectTrigger>
                       <SelectContent className="w-full">
@@ -208,7 +275,7 @@ export function AddSSSRateDialog({
               <FormField
                 control={form.control}
                 name="salaryFrom"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem className="w-full">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary From
@@ -218,7 +285,14 @@ export function AddSSSRateDialog({
                         onValueChange={field.onChange}
                         value={field.value?.toString() || ""}
                       >
-                        <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-10">
+                        <SelectTrigger
+                          className={cn(
+                            "w-full rounded-md h-10",
+                            fieldState.invalid
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-[#E0E0E0]"
+                          )}
+                        >
                           <SelectValue placeholder="Select starting year" />
                         </SelectTrigger>
                         <SelectContent>
@@ -238,7 +312,7 @@ export function AddSSSRateDialog({
               <FormField
                 control={form.control}
                 name="salaryTo"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem className="w-full">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary To
@@ -248,7 +322,14 @@ export function AddSSSRateDialog({
                         onValueChange={field.onChange}
                         value={field.value?.toString() || ""}
                       >
-                        <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md h-10">
+                        <SelectTrigger
+                          className={cn(
+                            "w-full rounded-md h-10",
+                            fieldState.invalid
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-[#E0E0E0]"
+                          )}
+                        >
                           <SelectValue placeholder="Select ending year" />
                         </SelectTrigger>
                         <SelectContent>
