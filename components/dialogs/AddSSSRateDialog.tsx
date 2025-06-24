@@ -233,12 +233,12 @@ export function AddSSSRateDialog({
           </DialogDescription> */}
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className=" space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className=" space-y-1">
             <FormField
               control={form.control}
               name="year"
               render={({ field, fieldState }) => (
-                <FormItem className="w-full">
+                <FormItem className="w-full gap-1">
                   <FormLabel className="text-sm text-gray-600 font-medium">
                     Select Year
                   </FormLabel>
@@ -276,7 +276,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="salaryFrom"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary From
                     </FormLabel>
@@ -299,7 +299,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="salaryTo"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary To
                     </FormLabel>
@@ -324,7 +324,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="regularSS"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Regular SS
                     </FormLabel>
@@ -347,7 +347,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="mutualFund"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Mutual Fund
                     </FormLabel>
@@ -372,7 +372,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="erss"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       ERSS
                     </FormLabel>
@@ -395,7 +395,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="ermf"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       ERMF
                     </FormLabel>
@@ -420,7 +420,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="ec"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       EC
                     </FormLabel>
@@ -443,7 +443,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="eess"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       EESS
                     </FormLabel>
@@ -468,7 +468,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="eemf"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       EEMF
                     </FormLabel>

@@ -38,7 +38,7 @@ import {
 import { AddSSSRateDialog } from "../dialogs/AddSSSRateDialog";
 import { AddPhilhealthRateDialog } from "../dialogs/AddPhilhealthRateDialog";
 
-export default function Goverment() {
+export default function GovermentDeductions() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("PHILHEALTH");
   const [deductionType, setDeductionType] = useState<DeductionType>("PHILHEALTH");

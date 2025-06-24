@@ -176,7 +176,7 @@ export function AddPhilhealthRateDialog({
               control={form.control}
               name="year"
               render={({ field, fieldState }) => (
-                <FormItem className="w-full">
+                <FormItem className="w-full gap-1">
                   <FormLabel className="text-sm text-gray-600 font-medium">
                     Select Year
                   </FormLabel>
@@ -214,7 +214,7 @@ export function AddPhilhealthRateDialog({
                 control={form.control}
                 name="salaryFrom"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary From
                     </FormLabel>
@@ -237,7 +237,7 @@ export function AddPhilhealthRateDialog({
                 control={form.control}
                 name="salaryTo"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary To
                     </FormLabel>
@@ -262,7 +262,7 @@ export function AddPhilhealthRateDialog({
                 control={form.control}
                 name="eePremium"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       EE Premium
                     </FormLabel>
@@ -285,7 +285,7 @@ export function AddPhilhealthRateDialog({
                 control={form.control}
                 name="eePremiumRate"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       EE Premium Rate
                     </FormLabel>
