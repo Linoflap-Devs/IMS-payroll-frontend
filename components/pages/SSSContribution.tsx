@@ -17,7 +17,6 @@ import {
   getSSSDeductionList,
   SSSDeductionCrew,
   DeductionItem,
-  PhilhealthDeductionCrew,
 } from "@/src/services/deduction/governmentReports.api";
 
 export default function SSSContribution() {

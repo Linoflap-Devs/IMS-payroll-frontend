@@ -17,31 +17,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CircleAlert, Loader2, MoreHorizontal, Printer } from "lucide-react";
+import { Loader2, MoreHorizontal, Printer } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { Card, CardContent } from "../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
 import {
   AllotmentRegisterData,
   getPayrollList,
-  getVesselAllotmentRegister,
-  postPayrolls,
 } from "@/src/services/payroll/payroll.api";
 import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
-import { MdOutlineFileUpload } from "react-icons/md";
 import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "../ui/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "../ui/alert-dialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
 
@@ -52,25 +38,6 @@ type Payroll = {
   grossAllotment: number;
   totalDeductions: number;
   netAllotment: number;
-};
-
-// Skeleton component for the cards
-const CardsSkeleton = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <Card key={index} className="bg-blue-800 text-white py-3">
-          <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
-            <Skeleton className="h-6 w-3/4 bg-blue-700" />
-            <div className="flex justify-between w-full">
-              <Skeleton className="h-8 w-[10%] bg-blue-700" />
-              <Skeleton className="h-8 w-[50%] bg-blue-700" />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
 };
 
 // Table skeleton component
@@ -108,12 +75,8 @@ export default function GovernmentReports() {
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [payrollData, setPayrollData] = useState<Payroll[]>([]);
   const [forexRate, setForexRate] = useState<number>(0);
-  const [monthFilter, setMonthFilter] = useState(
-    (new Date().getMonth() + 1).toString()
-  );
-  const [yearFilter, setYearFilter] = useState(
-    new Date().getFullYear().toString()
-  );
+  const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString());
+  const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
   const [printLoading, setPrintLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
 
@@ -150,28 +113,6 @@ export default function GovernmentReports() {
   const month = searchParams.get("month");
   const year = searchParams.get("year");
   const vesselId = searchParams.get("vesselId");
-
-  useEffect(() => {
-    getVesselAllotmentRegister(
-      vesselId ? vesselId : null,
-      month ? parseInt(month) : null,
-      year ? parseInt(year) : null
-    )
-      .then((response) => {
-        if (response.success && Array.isArray(response.data)) {
-          setAllotmentRegisterData(response.data);
-        } else {
-          console.error("Unexpected API response format:", response);
-          setAllotmentRegisterData([]);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching allotment register data:", error);
-        setAllotmentRegisterData([]);
-      });
-  }, [vesselId, month, year]);
-
-  console.log("Allotment Register Data:", allotmentRegisterData);
 
   // Fetch data when filters change
   useEffect(() => {
@@ -341,7 +282,7 @@ export default function GovernmentReports() {
                     className="flex items-center gap-2"
                   >
                   <Printer className="w-3.5 h-3.5" />
-                  HMDF Contributions
+                  HDMF Contributions
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -468,16 +409,16 @@ export default function GovernmentReports() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="text-sm w-[200px] min-w-[100%]">
                   <DropdownMenuItem asChild onClick={handleGeneratePDF}>
-                    <label>Allotment Register</label>
+                    <label>Philhealth Contributions</label>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="" className="w-full">
-                      Deduction Register
+                      SSS Contributions
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="" className="w-full">
-                      Allotment/Payslip
+                      HDMF Contributions
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
