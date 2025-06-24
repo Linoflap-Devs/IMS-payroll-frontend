@@ -11,8 +11,11 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "../../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
-import { getVesselAllotmentRegister } from "@/src/services/payroll/payroll.api";
-import type { AllotmentRegister } from "@/src/services/payroll/payroll.api";
+import {
+  AllotmentRegisterCrew,
+  AllotmentRegisterData,
+  getVesselAllotmentRegister,
+} from "@/src/services/payroll/payroll.api";
 import { Ship } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,35 +24,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AllotteeDistributionDialog } from "../../dialogs/AllotteeDistributionDialog";
-import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { useDebounce } from "@/lib/useDebounce";
+import { generateAllotmentPDF } from "@/components/PDFs/payrollAllotmentRegisterPDF";
 
-interface VesselInfo {
-  code: string;
-  name: string;
-  type: string;
-  principalName: string;
-}
-
-export default function AllotmentRegisterComponent({
-  vesselInfo: initialVesselInfo,
-}: {
-  vesselInfo?: VesselInfo;
-}) {
+export default function AllotmentRegisterComponent() {
   const searchParams = useSearchParams();
   const vesselId = searchParams.get("vesselId");
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
 
-  const [allotmentData, setAllotmentData] = useState<AllotmentRegister[]>([]);
+  const [allotmentData, setAllotmentData] = useState<AllotmentRegisterData[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCrew, setSelectedCrew] = useState<AllotmentRegister | null>(
-    null
-  );
+  const [selectedCrew, setSelectedCrew] =
+    useState<AllotmentRegisterCrew | null>(null);
   const [isAllotteeDialogOpen, setIsAllotteeDialogOpen] = useState(false);
-  const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
-    initialVesselInfo
-  );
+
+  const month = searchParams.get("month");
+  const year = searchParams.get("year");
+  const forexRate = searchParams.get("forex") || "0";
 
   useEffect(() => {
     const fetchAllotmentData = async () => {
@@ -57,45 +51,41 @@ export default function AllotmentRegisterComponent({
 
       setIsLoading(true);
       try {
-        const response = await getVesselAllotmentRegister(vesselId);
-        if (response.success) {
+        const response = await getVesselAllotmentRegister(
+          vesselId,
+          Number(searchParams.get("month")),
+          Number(searchParams.get("year"))
+        );
+
+        if (response.success && Array.isArray(response.data)) {
+          // When using vesselId, we expect a single vessel in the array
+          // but we keep the array structure for the DataTable
           setAllotmentData(response.data);
+
+          console.log("Fetched vessel data:", response.data);
+        } else {
+          console.error("Unexpected API response format:", response);
+          setAllotmentData([]);
         }
       } catch (error) {
         console.error("Error fetching allotment data:", error);
+        setAllotmentData([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchAllotmentData();
-  }, [vesselId]);
-  useEffect(() => {
-    getVesselList().then((response) => {
-      if (response.success) {
-        const vessel = response.data.find(
-          (v) => v.VesselID === Number(vesselId)
-        );
-        if (vessel) {
-          setVesselInfo({
-            code: vessel.VesselCode,
-            name: vessel.VesselName,
-            type: vessel.VesselType,
-            principalName: vessel.Principal,
-          });
-        }
-      }
-    });
-  }, [vesselId]);
+  }, [vesselId, searchParams]);
 
   // Format numbers to two decimal places with null checking
   const formatNumber = (value: string | number | null | undefined) => {
     if (value === null || value === undefined) return "0.00";
     const numValue = typeof value === "string" ? parseFloat(value) : value;
-    return isNaN(numValue) ? "0.00" : numValue.toFixed(2);
+    return isNaN(numValue) ? "0.00" : numValue?.toFixed(2);
   };
 
-  const columns: ColumnDef<AllotmentRegister>[] = [
+  const columns: ColumnDef<AllotmentRegisterCrew>[] = [
     {
       accessorKey: "CrewName",
       header: "Crew Name",
@@ -186,9 +176,42 @@ export default function AllotmentRegisterComponent({
     },
   ];
 
-  const filteredData = allotmentData.filter((item) =>
+  // Filter the crew data based on search term
+  const filterCrew = allotmentData[0]?.Crew || [];
+  const filteredData = filterCrew.filter((item) =>
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
+
+  const handlePrint = () => {
+    if (allotmentData && allotmentData.length > 0) {
+      // Get month name from month number
+      const monthNames = [
+        "JANUARY",
+        "FEBRUARY",
+        "MARCH",
+        "APRIL",
+        "MAY",
+        "JUNE",
+        "JULY",
+        "AUGUST",
+        "SEPTEMBER",
+        "OCTOBER",
+        "NOVEMBER",
+        "DECEMBER",
+      ];
+
+      // const monthName = monthNames[selectedMonth - 1];
+
+      generateAllotmentPDF(
+        allotmentData,
+        monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
+        year ? parseInt(year) : new Date().getFullYear(),
+        Number(forexRate)
+      );
+    } else {
+      console.error("No allotment register data available");
+    }
+  };
 
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">
@@ -231,9 +254,11 @@ export default function AllotmentRegisterComponent({
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <div className="text-xl text-gray-500 uppercase">
-                {vesselInfo?.code}
+                {allotmentData[0]?.VesselCode}
               </div>
-              <h2 className="text-2xl font-semibold">{vesselInfo?.name}</h2>
+              <h2 className="text-2xl font-semibold">
+                {allotmentData[0]?.VesselName}
+              </h2>
               <Badge
                 variant="secondary"
                 className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]">
@@ -243,12 +268,12 @@ export default function AllotmentRegisterComponent({
             <div className="text-right">
               <div className="text-lg flex items-center gap-2">
                 <Ship className="h-4 w-4" />
-                {vesselInfo?.type}
+                {allotmentData[0]?.VesselType || "N/A"}
               </div>
               <Card className="p-1 bg-[#FDFDFD] mt-2">
                 <div className="text-sm text-center">
                   <p className="flex items-center justify-center font-semibold">
-                    {vesselInfo?.principalName}
+                    {allotmentData[0]?.Principal || "N/A"}
                   </p>
                   <div className="text-gray-500 text-xs flex items-center justify-center">
                     Principal Name
@@ -270,7 +295,10 @@ export default function AllotmentRegisterComponent({
             />
           </div>
           <div className="flex gap-4">
-            <Button className="gap-2 h-11 px-5" disabled={isLoading}>
+            <Button
+              className="gap-2 h-11 px-5"
+              disabled={isLoading}
+              onClick={handlePrint}>
               {isLoading ? (
                 <>
                   <Loader2 className="animate-spin" />
@@ -287,7 +315,18 @@ export default function AllotmentRegisterComponent({
         </div>
 
         <div className="rounded-md border pb-3">
-          <DataTable columns={columns} data={filteredData} pageSize={6} />
+          {isLoading ? (
+            <div className="flex justify-center items-center p-10">
+              <Loader2 className="h-8 w-8 animate-spin mr-2" />
+              <p>Loading allotment data...</p>
+            </div>
+          ) : filteredData.length > 0 ? (
+            <DataTable columns={columns} data={filteredData} pageSize={6} />
+          ) : (
+            <div className="flex justify-center items-center p-10">
+              <p>No allotment data available for this vessel</p>
+            </div>
+          )}
         </div>
       </div>
 

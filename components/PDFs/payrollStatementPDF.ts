@@ -4,6 +4,7 @@ import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
+import { toast } from "../ui/use-toast";
 
 // Define types to match your data structure
 interface AllotmentDeduction {
@@ -100,7 +101,11 @@ export function generatePayrollPDF(payrollData: PayrollData, currentUser: string
     }
 
     if (!payrollData || !payrollData.payrolls || !payrollData.payrolls.length) {
-        console.error('Invalid payroll data');
+        toast({
+            title: 'Error',
+            description: 'No payroll data available to generate PDF.',
+            variant: 'destructive'
+        })
         return false;
     }
 

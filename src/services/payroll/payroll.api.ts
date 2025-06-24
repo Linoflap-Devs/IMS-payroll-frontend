@@ -26,7 +26,7 @@ export interface Allottee {
   Currency: number;
 }
 
-export interface AllotmentRegister {
+export interface AllotmentRegisterCrew {
   CrewID: number;
   CrewName: string;
   Rank: string;
@@ -40,14 +40,25 @@ export interface AllotmentRegister {
   Allottee: Allottee[];
 }
 
+export interface AllotmentRegisterData {
+  VesselID: number;
+  VesselName: string;
+  VesselCode: string;
+  VesselType: string;
+  Principal: string;
+  IsActive: number;
+  Crew: AllotmentRegisterCrew[];
+}
+
+
 export interface AllotmentRegisterResponse {
   success: boolean;
   message: string;
-  data: AllotmentRegister[];
+  data: AllotmentRegisterData[];
 }
 
-export const getVesselAllotmentRegister = async (vesselId: string | number): Promise<AllotmentRegisterResponse> => {
-  const response = await axiosInstance.get<AllotmentRegisterResponse>(`/payroll/${vesselId}/allotment`);
+export const getVesselAllotmentRegister = async (vesselId: string | number | null, month: number | null, year: number | null): Promise<AllotmentRegisterResponse> => {
+  const response = await axiosInstance.get<AllotmentRegisterResponse>(`/payroll/${vesselId}/allotment?month=${month}&year=${year}`);
   return response.data;
 }
 
@@ -59,7 +70,7 @@ export interface Deductions {
 
 }
 
-export interface DeductionRegister {
+export interface DeductionRegisterCrew {
   CrewID: number;
   CrewName: string;
   Rank: string;
@@ -70,11 +81,19 @@ export interface DeductionRegister {
   Deductions: Deductions[];
 }
 
+export interface DeductionRegisterData {
+  VesselID: number;
+  VesselName: string;
+  Crew: DeductionRegisterCrew[];
+}
+
 export interface DeductionRegisterResponse {
   success: boolean;
   message: string;
-  data: DeductionRegister[];
+  data: DeductionRegisterData[];
 }
+
+
 
 export const getVesselDeductionRegister = async (vesselId: string | number, month: number, year: number): Promise<DeductionRegisterResponse> => {
   const response = await axiosInstance.get<DeductionRegisterResponse>(`/payroll/${vesselId}/deduction?month=${month}&year=${year}`);

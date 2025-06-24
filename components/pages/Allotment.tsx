@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton"; // Import shadcn Skeleton
 import {
   Select,
   SelectContent,
@@ -22,11 +23,12 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
 import {
+  AllotmentRegisterData,
   getPayrollList,
+  getVesselAllotmentRegister,
   postPayrolls,
 } from "@/src/services/payroll/payroll.api";
 import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
-// import { TfiReload } from "react-icons/tfi";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "../ui/use-toast";
@@ -40,7 +42,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
-// import { generatePayrollPDF } from "../PDFs/payrollStatementPDF";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
 
 type Payroll = {
   vesselId: number;
@@ -51,11 +54,59 @@ type Payroll = {
   netAllotment: number;
 };
 
+// Skeleton component for the cards
+const CardsSkeleton = () => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Card key={index} className="bg-blue-800 text-white py-3">
+          <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
+            <Skeleton className="h-6 w-3/4 bg-blue-700" />
+            <div className="flex justify-between w-full">
+              <Skeleton className="h-8 w-[10%] bg-blue-700" />
+              <Skeleton className="h-8 w-[50%] bg-blue-700" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+// Table skeleton component
+const TableSkeleton = () => {
+  return (
+    <div className="w-full">
+      {/* Header skeleton */}
+      <div className="flex py-3 bg-gray-50 border-b">
+        {Array.from({ length: 6 }).map((_, idx) => (
+          <div key={idx} className="flex-1 px-3 text-center">
+            <Skeleton className="h-6 w-[80%] mx-auto" />
+          </div>
+        ))}
+      </div>
+
+      {/* Row skeletons */}
+      {Array.from({ length: 7 }).map((_, rowIdx) => (
+        <div key={rowIdx} className="flex py-4 border-b">
+          {Array.from({ length: 6 }).map((_, colIdx) => (
+            <div
+              key={`${rowIdx}-${colIdx}`}
+              className="flex-1 px-3 text-center">
+              <Skeleton className="h-5 w-[80%] mx-auto" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default function Allotment() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [payrollData, setPayrollData] = useState<Payroll[]>([]);
-  const [forexRate, setForexRate] = useState<number>(0); // State for Forex rate
+  const [forexRate, setForexRate] = useState<number>(0);
   const [monthFilter, setMonthFilter] = useState(
     (new Date().getMonth() + 1).toString()
   );
@@ -66,11 +117,12 @@ export default function Allotment() {
   //loading states
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [printLoading, setPrintLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
 
-  //
-  // const [confirmDialog, setConfirmDialog] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Format numbers to two decimal places
   const formatNumber = (value: number) => value?.toFixed(2);
 
   const monthNames = [
@@ -88,11 +140,47 @@ export default function Allotment() {
     "December",
   ];
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 6 }, (_, i) =>
-    (currentYear - 2 + i).toString()
+  const years = Array.from({ length: 20 }, (_, i) =>
+    (currentYear - 15 + i).toString()
   );
 
+  // Payroll ALlotment Regsiter Data
+
+  // Allotment Register Data
+  const [allotmentRegisterData, setAllotmentRegisterData] = useState<
+    AllotmentRegisterData[]
+  >([]);
+
+  const month = searchParams.get("month");
+  const year = searchParams.get("year");
+  const vesselId = searchParams.get("vesselId");
+
   useEffect(() => {
+    getVesselAllotmentRegister(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    )
+      .then((response) => {
+        if (response.success && Array.isArray(response.data)) {
+          setAllotmentRegisterData(response.data);
+        } else {
+          console.error("Unexpected API response format:", response);
+          setAllotmentRegisterData([]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching allotment register data:", error);
+        setAllotmentRegisterData([]);
+      });
+  }, [vesselId, month, year]);
+
+  console.log("Allotment Register Data:", allotmentRegisterData);
+
+  // Fetch data when filters change
+  useEffect(() => {
+    setIsDataLoading(true); // Set loading to true when filters change
+
     const fetchDashboardData = async () => {
       try {
         const dashboardResponse = await getDashboardList();
@@ -122,13 +210,25 @@ export default function Allotment() {
             totalDeductions: item.TotalDeduction,
             netAllotment: item.NetAllotment,
           }));
+
           setPayrollData(mapped);
         } else {
           console.error("Failed to fetch payroll list:", res.message);
         }
       })
-      .catch((err) => console.error("Error fetching payroll list:", err));
+      .catch((err) => console.error("Error fetching payroll list:", err))
+      .finally(() => {
+        setIsDataLoading(false);
+      });
   }, [monthFilter, yearFilter]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("month", monthFilter);
+    params.set("year", yearFilter);
+
+    router.push(`${pathname}?${params.toString()}`);
+  }, [monthFilter, yearFilter, pathname, searchParams, router]);
 
   // Calculate totals
   const totalGross = payrollData.reduce((sum, p) => sum + p.grossAllotment, 0);
@@ -195,10 +295,6 @@ export default function Allotment() {
         setPrintLoading(false);
       });
   };
-
-  // const handlePrintPayrollPDF = () => {
-  //   generatePayrollPDF();
-  // };
 
   const columns: ColumnDef<Payroll>[] = [
     {
@@ -270,7 +366,11 @@ export default function Allotment() {
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
               <DropdownMenuItem asChild>
                 <Link
-                  href={`/home/allotment/allotment_register?vesselId=${row.original.vesselId}`}>
+                  href={`/home/allotment/allotment_register?vesselId=${
+                    row.original.vesselId
+                  }&month=${parseInt(monthFilter)}&year=${parseInt(
+                    yearFilter
+                  )}&forex=${forexRate || 0}`}>
                   Allotment Register
                 </Link>
               </DropdownMenuItem>
@@ -280,7 +380,7 @@ export default function Allotment() {
                     row.original.vesselId
                   }&month=${parseInt(monthFilter)}&year=${parseInt(
                     yearFilter
-                  )}`}>
+                  )}&forex=${forexRate || 0}`}>
                   Deduction Register
                 </Link>
               </DropdownMenuItem>
@@ -290,7 +390,7 @@ export default function Allotment() {
                     row.original.vesselId
                   }&month=${parseInt(monthFilter)}&year=${parseInt(
                     yearFilter
-                  )}`}>
+                  )}&forex=${forexRate || 0}`}>
                   Pay Slip
                 </Link>
               </DropdownMenuItem>
@@ -304,6 +404,37 @@ export default function Allotment() {
   const filteredAllotment = payrollData.filter((p) =>
     p.vesselName.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
+
+  const handleGeneratePDF = () => {
+    if (allotmentRegisterData && allotmentRegisterData.length > 0) {
+      // Get month name from month number
+      const monthNames = [
+        "JANUARY",
+        "FEBRUARY",
+        "MARCH",
+        "APRIL",
+        "MAY",
+        "JUNE",
+        "JULY",
+        "AUGUST",
+        "SEPTEMBER",
+        "OCTOBER",
+        "NOVEMBER",
+        "DECEMBER",
+      ];
+
+      // const monthName = monthNames[selectedMonth - 1];
+
+      generateAllotmentPDF(
+        allotmentRegisterData,
+        monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
+        year ? parseInt(year) : new Date().getFullYear(),
+        Number(forexRate)
+      );
+    } else {
+      console.error("No allotment register data available");
+    }
+  };
 
   return (
     <div className="h-full w-full p-4 pt-2">
@@ -358,7 +489,7 @@ export default function Allotment() {
                     </span>
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-92 overflow-y-auto">
                   {years.map((yr, idx) => (
                     <SelectItem key={idx} value={yr}>
                       {yr}
@@ -367,17 +498,12 @@ export default function Allotment() {
                 </SelectContent>
               </Select>
 
-              {/* DONE REMOVE THIS COMMENT BELOW. THIS IS TEMPORARILY COMMENTED */}
-              {/* <Button className="bg-gray-300 text-gray-700 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full hover:bg-gray-400">
-                Process Vessel
-              </Button> */}
-
               <div></div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
                     className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
-                    disabled={payrollLoading}>
+                    disabled={payrollLoading || isDataLoading}>
                     {payrollLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -429,7 +555,7 @@ export default function Allotment() {
                   <Button
                     className="whitespace-nowrap h-9 sm:h-10 px-4 sm:px-6 text-xs sm:text-sm w-full"
                     onClick={handlePrintSummary}
-                    disabled={printLoading}>
+                    disabled={printLoading || isDataLoading}>
                     <AiOutlinePrinter className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
                     {printLoading ? (
                       <>
@@ -442,13 +568,8 @@ export default function Allotment() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="text-xs sm:text-sm w-[200px] min-w-[100%]">
-                  <DropdownMenuItem
-                    asChild
-                    // onClick={() => handlePrintPayrollPDF()}>
-                  >
-                    <Link href="" className="w-full">
-                      Allotment Register
-                    </Link>
+                  <DropdownMenuItem asChild onClick={handleGeneratePDF}>
+                    <label>Allotment Register</label>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="" className="w-full">
@@ -465,59 +586,65 @@ export default function Allotment() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <Card className="bg-blue-800 text-white py-3">
-              <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
-                <p className="text-xl pt-0">Exchange rate of USD</p>
-                <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
-                  <p>₱</p>
-                  <p>{formatNumber(forexRate)}</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-blue-800 text-white py-3">
-              <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
-                <p className="text-xl pt-0">Total Gross Allotment</p>
-                <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
-                  <p>₱</p>
-                  <p>
-                    {new Intl.NumberFormat(undefined, {
-                      maximumFractionDigits: 2,
-                      minimumFractionDigits: 2,
-                    }).format(Number(totalGross))}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-blue-800 text-white py-3">
-              <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
-                <p className="text-xl pt-0">Total Deduction</p>
-                <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
-                  <p>₱</p>
-                  <h3>
-                    {new Intl.NumberFormat(undefined, {
-                      maximumFractionDigits: 2,
-                      minimumFractionDigits: 2,
-                    }).format(Number(totalDeduction))}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-blue-800 text-white py-3">
-              <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
-                <p className="text-xl pt-0">Total Net Allotment</p>
-                <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
-                  <p>₱</p>
-                  <p>
-                    {new Intl.NumberFormat(undefined, {
-                      maximumFractionDigits: 2,
-                      minimumFractionDigits: 2,
-                    }).format(Number(totalNet))}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Render either skeleton or actual cards */}
+          {isDataLoading ? (
+            <CardsSkeleton />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <Card className="bg-blue-800 text-white py-3">
+                <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
+                  <p className="text-xl pt-0">Exchange rate of USD</p>
+                  <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
+                    <p>₱</p>
+                    <p>{formatNumber(forexRate) || 0}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-blue-800 text-white py-3">
+                <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
+                  <p className="text-xl pt-0">Total Gross Allotment</p>
+                  <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
+                    <p>₱</p>
+                    <p>
+                      {new Intl.NumberFormat(undefined, {
+                        maximumFractionDigits: 2,
+                        minimumFractionDigits: 2,
+                      }).format(Number(totalGross))}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-blue-800 text-white py-3">
+                <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
+                  <p className="text-xl pt-0">Total Deduction</p>
+                  <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
+                    <p>₱</p>
+                    <h3>
+                      {new Intl.NumberFormat(undefined, {
+                        maximumFractionDigits: 2,
+                        minimumFractionDigits: 2,
+                      }).format(Number(totalDeduction))}
+                    </h3>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-blue-800 text-white py-3">
+                <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
+                  <p className="text-xl pt-0">Total Net Allotment</p>
+                  <div className="text-3xl font-bold self-end mt-4 flex justify-between w-full">
+                    <p>₱</p>
+                    <p>
+                      {new Intl.NumberFormat(undefined, {
+                        maximumFractionDigits: 2,
+                        minimumFractionDigits: 2,
+                      }).format(Number(totalNet))}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           <Input
             placeholder="Search Vessel Name..."
             value={searchTerm}
@@ -525,11 +652,15 @@ export default function Allotment() {
           />
 
           <div className="bg-white rounded-md border pb-3">
-            <DataTable
-              columns={columns}
-              data={filteredAllotment}
-              pageSize={7}
-            />
+            {isDataLoading ? (
+              <TableSkeleton />
+            ) : (
+              <DataTable
+                columns={columns}
+                data={filteredAllotment}
+                pageSize={7}
+              />
+            )}
           </div>
         </div>
       </div>
