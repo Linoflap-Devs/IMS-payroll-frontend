@@ -24,3 +24,11 @@ export function formatCurrency(amount: number | string): string {
         maximumFractionDigits: 2
     }).format(amount);
 }
+
+export function getMonthName(monthNum: number): string {
+    const months = [
+        'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+        'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+    ];
+    return months[monthNum - 1];
+}
