@@ -24,22 +24,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AllotteeDistributionDialog } from "../../dialogs/AllotteeDistributionDialog";
-import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { useDebounce } from "@/lib/useDebounce";
 import { generateAllotmentPDF } from "@/components/PDFs/payrollAllotmentRegisterPDF";
 
-interface VesselInfo {
-  code: string;
-  name: string;
-  type: string;
-  principalName: string;
-}
-
-export default function AllotmentRegisterComponent({
-  vesselInfo: initialVesselInfo,
-}: {
-  vesselInfo?: VesselInfo;
-}) {
+export default function AllotmentRegisterComponent() {
   const searchParams = useSearchParams();
   const vesselId = searchParams.get("vesselId");
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,9 +40,6 @@ export default function AllotmentRegisterComponent({
   const [selectedCrew, setSelectedCrew] =
     useState<AllotmentRegisterCrew | null>(null);
   const [isAllotteeDialogOpen, setIsAllotteeDialogOpen] = useState(false);
-  const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
-    initialVesselInfo
-  );
 
   const month = searchParams.get("month");
   const year = searchParams.get("year");
@@ -92,26 +77,6 @@ export default function AllotmentRegisterComponent({
 
     fetchAllotmentData();
   }, [vesselId, searchParams]);
-
-  useEffect(() => {
-    if (!vesselId) return;
-
-    getVesselList().then((response) => {
-      if (response.success) {
-        const vessel = response.data.find(
-          (v) => v.VesselID === Number(vesselId)
-        );
-        if (vessel) {
-          setVesselInfo({
-            code: vessel.VesselCode,
-            name: vessel.VesselName,
-            type: vessel.VesselType,
-            principalName: vessel.Principal,
-          });
-        }
-      }
-    });
-  }, [vesselId]);
 
   // Format numbers to two decimal places with null checking
   const formatNumber = (value: string | number | null | undefined) => {
@@ -289,9 +254,11 @@ export default function AllotmentRegisterComponent({
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <div className="text-xl text-gray-500 uppercase">
-                {vesselInfo?.code}
+                {allotmentData[0]?.VesselCode}
               </div>
-              <h2 className="text-2xl font-semibold">{vesselInfo?.name}</h2>
+              <h2 className="text-2xl font-semibold">
+                {allotmentData[0]?.VesselName}
+              </h2>
               <Badge
                 variant="secondary"
                 className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]">
@@ -301,12 +268,12 @@ export default function AllotmentRegisterComponent({
             <div className="text-right">
               <div className="text-lg flex items-center gap-2">
                 <Ship className="h-4 w-4" />
-                {vesselInfo?.type}
+                {allotmentData[0]?.VesselType || "N/A"}
               </div>
               <Card className="p-1 bg-[#FDFDFD] mt-2">
                 <div className="text-sm text-center">
                   <p className="flex items-center justify-center font-semibold">
-                    {vesselInfo?.principalName}
+                    {allotmentData[0]?.Principal || "N/A"}
                   </p>
                   <div className="text-gray-500 text-xs flex items-center justify-center">
                     Principal Name

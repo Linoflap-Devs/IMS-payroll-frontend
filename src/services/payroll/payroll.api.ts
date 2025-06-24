@@ -43,6 +43,10 @@ export interface AllotmentRegisterCrew {
 export interface AllotmentRegisterData {
   VesselID: number;
   VesselName: string;
+  VesselCode: string;
+  VesselType: string;
+  Principal: string;
+  IsActive: number;
   Crew: AllotmentRegisterCrew[];
 }
 
