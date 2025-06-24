@@ -50,6 +50,7 @@ interface SSSDeductionFormValues {
 }
 
 export const formSchema = z.object({
+  contributionId: z.number().optional(),
   year: z
     .string()
     .min(1, "Please enter the year")
@@ -60,6 +61,7 @@ export const formSchema = z.object({
   salaryFrom: z
     .string()
     .min(1, "Please enter salary from")
+    .min(0, "Salary From must be a positive number")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Salary From must be a number greater than 0",
     }),
@@ -67,6 +69,7 @@ export const formSchema = z.object({
   salaryTo: z
     .string()
     .min(1, "Please enter salary to")
+    .min(0, "Salary To must be a positive number")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Salary To must be a number greater than 0",
     }),
@@ -119,7 +122,11 @@ export const formSchema = z.object({
     .refine((val) => !isNaN(Number(val)), {
       message: "ER MF must be a number",
     }),
-});
+})
+  .refine((data) => data.salaryFrom <= data.salaryTo, {
+    message: "Salary From must be less than or equal to Salary To",
+    path: ["salaryFrom"],
+  });
 
 interface AddSSSRateDialogProps {
   open: boolean;
@@ -165,6 +172,7 @@ export function AddSSSRateDialog({
   const onSubmit = async (data: SSSDeductionFormValues) => {
     try {
       const payload = {
+        contributionId: Number(data.contributionId),
         type: "SSS" as const,
         year: Number(data.year),
         salaryFrom: Number(data.salaryFrom),
@@ -182,6 +190,7 @@ export function AddSSSRateDialog({
 
       if (response && response.success) {
         const newRate: SSSDeductionRate = {
+          contributionId: Number(data.contributionId),
           Year: Number(data.year),
           salaryFrom: Number(data.salaryFrom),
           salaryTo: Number(data.salaryTo),

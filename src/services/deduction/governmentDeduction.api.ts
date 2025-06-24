@@ -22,6 +22,7 @@ export interface SSSDeductionRate {
 
 export interface PHILHEALTHDeductionRate {
   contributionID?: number;
+  contributionId?: number;
   salaryFrom: number;
   salaryTo: number;
   premium: number;
@@ -61,6 +62,7 @@ interface SSSDeductionRequest {
 }
 
 export interface PhilHealthDeductionRequest {
+  contributionId: number;
   year: number;
   salaryFrom: number;
   salaryTo: number;
@@ -81,5 +83,45 @@ export const addDeductionGovtRates = async <T extends DeductionType>(
   const response = await axiosInstance.post("/deductions/gov-rates", payload);
   return response.data;
 };
+
+export interface UpdateDeductionGovtRatesPayload {
+  contributionID?: number;
+  contributionId?: number;
+  type: DeductionType;
+  data: Partial<SSSDeductionRequest | PhilHealthDeductionRequest>;
+}
+export const updateDeductionGovtRates = async (
+  payload: UpdateDeductionGovtRatesPayload
+): Promise<DeductionGovtRatesBaseResponse<DeductionRateMap[typeof payload.type]>> => {
+  const { contributionId, type, data } = payload;
+
+  try {
+  const response = await axiosInstance.patch<
+    DeductionGovtRatesBaseResponse<DeductionRateMap[typeof type]>
+  >(`/deductions/gov-rates/${contributionId}`, {
+    contributionId, // ✅ include this explicitly in body
+    type,
+    ...data,
+  });
+
+    console.log("✅ Backend response:", response);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      // Server responded with a status outside 2xx
+      console.error("❌ Backend error response:", error.response.data);
+      console.error("❌ Status:", error.response.status);
+      console.error("❌ Headers:", error.response.headers);
+    } else if (error.request) {
+      // Request was made but no response received
+      console.error("❌ No response received:", error.request);
+    } else {
+      // Other errors
+      console.error("❌ Error setting up request:", error.message);
+    }
+    throw error; // rethrow so caller still catches it
+  }
+};
+
 
 

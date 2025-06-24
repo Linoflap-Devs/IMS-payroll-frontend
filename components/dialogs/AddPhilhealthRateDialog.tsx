@@ -42,6 +42,7 @@ interface PHILHEALTHDeductionFormValues {
 }
 
 export const formSchema = z.object({
+  contributionId: z.number().optional(),
   year: z
     .string()
     .min(1, "Please enter the year")
@@ -52,6 +53,7 @@ export const formSchema = z.object({
   salaryFrom: z
     .string()
     .min(1, "Please enter salary from")
+    .min(0, "Salary From must be a positive number")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Salary From must be a number greater than 0",
     }),
@@ -59,6 +61,7 @@ export const formSchema = z.object({
   salaryTo: z
     .string()
     .min(1, "Please enter salary to")
+    .min(0, "Salary To must be a positive number")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Salary To must be a number greater than 0",
     }),
@@ -75,7 +78,11 @@ export const formSchema = z.object({
     .refine((val) => !isNaN(Number(val)), {
       message: "EE Premium Rate must be a number",
     }),
-});
+})
+  .refine((data) => data.salaryFrom <= data.salaryTo, {
+    message: "Salary From must be less than or equal to Salary To",
+    path: ["salaryFrom"],
+  });
 
 interface AddPhilhealthRateDialogProps {
   open: boolean;
@@ -113,6 +120,7 @@ export function AddPhilhealthRateDialog({
   const onSubmit = async (data: PHILHEALTHDeductionFormValues) => {
     try {
         const payload = {
+          contributionId: Number(data.contributionId),
           type: "PHILHEALTH" as const,
           year: Number(data.year) || 0,
           salaryFrom: Number(data.salaryFrom) || 0,

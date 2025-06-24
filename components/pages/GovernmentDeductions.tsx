@@ -15,6 +15,7 @@ import {
   Plus,
   MoreHorizontal,
   DownloadIcon,
+  Pencil,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
@@ -26,7 +27,6 @@ import {
   DeductionType, 
   getDeductionGovtRates, 
   PHILHEALTHDeductionRate, 
-  PhilHealthDeductionRequest, 
   SSSDeductionRate 
 } from "@/src/services/deduction/governmentDeduction.api";
 import {
@@ -37,6 +37,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AddSSSRateDialog } from "../dialogs/AddSSSRateDialog";
 import { AddPhilhealthRateDialog } from "../dialogs/AddPhilhealthRateDialog";
+import { EditSSSRateDialog } from "../dialogs/EditSSSRateDialog";
+import { EditPhilHealthRateDialog } from "../dialogs/EditPhilhealthDialog";
 
 export default function GovermentDeductions() {
   const [statusFilter, setStatusFilter] = useState("all");
@@ -46,6 +48,10 @@ export default function GovermentDeductions() {
   const [philhealthData, setPhilhealthData] = useState<PHILHEALTHDeductionRate[]>([]);
   const [isAddSSSRateDialogOpen, setAddSSSRateDialogOpen] = useState(false);
   const [isAddPhilhealthRateDialogOpen, setAddPhilhealthRateDialogOpen] = useState(false);
+  const [selectedSSSData , setSelectedSSSData] = useState<SSSDeductionRate | null>(null);
+  const [editselectedSSSDialogOpen, setEditselectedSSSDialogOpen] = useState(false);
+  const [selectedPhilHealthData , setSelectedPhilHealthData] = useState<PHILHEALTHDeductionRate | null>(null);
+  const [editselectedPhilHealthDialogOpen, setEditselectedPhilHealthDialogOpen] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 6 }, (_, i) =>
@@ -70,7 +76,7 @@ export default function GovermentDeductions() {
         }
         if (type === "PHILHEALTH") {
           const mapped: PHILHEALTHDeductionRate[] = res.data.map((item: any) => ({
-            contributionID: item.contributionID,
+            contributionId: item.contributionID, // normalize id
             salaryFrom: item.salaryFrom,
             salaryTo: item.salaryTo,
             premium: item.premium,
@@ -126,9 +132,15 @@ export default function GovermentDeductions() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                  <DropdownMenuItem asChild>
-                    <Link href={``}>Edit Description</Link>
-                  </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-xs sm:text-sm"
+                    onClick={() => {
+                      setSelectedPhilHealthData(row.original);
+                      setEditselectedPhilHealthDialogOpen(true);
+                    }}>
+                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Edit Deduction
+                </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -160,9 +172,15 @@ export default function GovermentDeductions() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                  <DropdownMenuItem asChild>
-                    <Link href={``}>Edit Description</Link>
-                  </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-xs sm:text-sm"
+                    onClick={() => {
+                      setSelectedSSSData(row.original);
+                      setEditselectedSSSDialogOpen(true);
+                    }}>
+                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Edit SSS Deduction
+                </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -173,6 +191,7 @@ export default function GovermentDeductions() {
 
     return [];
   };
+  console.log(selectedPhilHealthData);
 
   const isValidDeductionType = (val: any): val is DeductionType =>
     val === "SSS" || val === "PHILHEALTH";
@@ -206,19 +225,21 @@ export default function GovermentDeductions() {
     }
   };
 
-  const handlePhilhealthRateAdded = (newRate: PhilHealthDeductionRequest) => {
-    const formattedRate: PHILHEALTHDeductionRate = {
-      contributionID: Date.now(), // or any placeholder / generated ID
-      salaryFrom: newRate.salaryFrom,
-      salaryTo: newRate.salaryTo,
-      premium: newRate.eePremium,
-      premiumRate: newRate.eePremiumRate,
-      Year: newRate.year,
-    };
-
-    setPhilhealthData((prevRates) => [...prevRates, formattedRate]);
+  const handleSSSDeductionUpdated = (updatedRate: SSSDeductionRate) => {
+    setSSSData((prev) =>
+      prev.map((item) =>
+        item.contributionId === updatedRate.contributionId ? updatedRate : item
+      )
+    );
   };
 
+  const handlePhilHealthDeductionUpdated = (updatedRate: PHILHEALTHDeductionRate) => {
+    setPhilhealthData((prev) =>
+      prev.map((item) =>
+        item.contributionId === updatedRate.contributionId ? updatedRate : item
+      )
+    );
+  };
   return (
     <div className="h-full w-full p-3 pt-3 overflow-hidden">
       <style jsx global>{`
@@ -470,7 +491,6 @@ export default function GovermentDeductions() {
           </Card>
         </div>
       </div>
-
       <AddSSSRateDialog
         open={isAddSSSRateDialogOpen}
         onOpenChange={setAddSSSRateDialogOpen} 
@@ -486,6 +506,24 @@ export default function GovermentDeductions() {
           setPhilhealthData((prev) => [...prev, newRate]);
         }}
       />
+
+        {selectedSSSData && editselectedSSSDialogOpen && (
+          <EditSSSRateDialog
+            open={editselectedSSSDialogOpen}
+            onOpenChange={setEditselectedSSSDialogOpen}
+            SSSvesselTypeData={selectedSSSData}
+            onSuccess={handleSSSDeductionUpdated}
+          />
+        )}
+
+        {selectedPhilHealthData && editselectedPhilHealthDialogOpen && (
+          <EditPhilHealthRateDialog
+            open={editselectedPhilHealthDialogOpen}
+            onOpenChange={setEditselectedPhilHealthDialogOpen}
+            PhilHealthvesselTypeData={selectedPhilHealthData}
+            onSuccess={handlePhilHealthDeductionUpdated}
+          />
+        )}
     </div>
   );
 }
