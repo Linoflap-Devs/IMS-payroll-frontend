@@ -9,6 +9,7 @@ import { formatCurrency, getMonthName, truncateText } from "@/lib/utils";
 interface CrewMember {
     CrewID: number;
     CrewName: string;
+    PHNumber: string;
     Rank: string;
     Salary: number;
     Allotment: number;
@@ -120,8 +121,9 @@ export function generatePHRegisterPDF(
 
         // Define columns for the main table
         const colWidths = [
-            mainTableWidth * 0.30, // CREW NAME
-            mainTableWidth * 0.25, // GROSS
+            mainTableWidth * 0.25, // CREW NAME
+            mainTableWidth * 0.15, // PH Number
+            mainTableWidth * 0.15, // GROSS
             mainTableWidth * 0.15, // EE
             mainTableWidth * 0.15, // ER
             mainTableWidth * 0.15, // Total  
@@ -261,11 +263,11 @@ export function generatePHRegisterPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
-            const headers = ["CREW NAME", "GROSS", "EE", "ER", "Total"];
+            const headers = ["CREW NAME", "Philhealth No.","GROSS", "EE", "ER", "Total"];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                if (index === 0) {
+                if (index === 0 || index === 1) {
                     // Left align crew name header (same as data)
                     doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
                 } else {
@@ -330,6 +332,7 @@ export function generatePHRegisterPDF(
 
             const columnKeys: string[] = [
                 "CrewName",
+                "PHNumber",
                 "Gross",
                 "EE",
                 "ER",
@@ -339,7 +342,10 @@ export function generatePHRegisterPDF(
             columnKeys.forEach((key, i) => {
                 if(i === 0) {
                     // Crew Name
-                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 33), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 27), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                }
+                else if (key === 'PHNumber'){
+                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'Total') {
                     const value = Number(crew.EEPremium);
@@ -405,6 +411,7 @@ const realData: PHRegisterData = {
 					"CrewID": 194,
 					"CrewName": "RODILLO LAGANAS NIALLA",
 					"Rank": "BSN",
+					"PHNumber": "N/A",
 					"Salary": 620,
 					"Allotment": 40541.9,
 					"Gross": 62538.11,
@@ -417,6 +424,7 @@ const realData: PHRegisterData = {
 					"CrewID": 1437,
 					"CrewName": "JEROLD ONG ESPLANADA",
 					"Rank": "3RD OFFICER",
+					"PHNumber": "N/A",
 					"Salary": 860,
 					"Allotment": 64386.87,
 					"Gross": 86730,
@@ -429,6 +437,7 @@ const realData: PHRegisterData = {
 					"CrewID": 1674,
 					"CrewName": "CRIS JOHN PACINIO GARCIA",
 					"Rank": "C/CK",
+					"PHNumber": "N/A",
 					"Salary": 620,
 					"Allotment": 40341.9,
 					"Gross": 62538.11,
@@ -441,6 +450,7 @@ const realData: PHRegisterData = {
 					"CrewID": 2288,
 					"CrewName": "GERALD GARCIA DESCUTIDO",
 					"Rank": "MMAN",
+					"PHNumber": "N/A",
 					"Salary": 415.2,
 					"Allotment": 20161.51,
 					"Gross": 41861.68,
@@ -453,6 +463,7 @@ const realData: PHRegisterData = {
 					"CrewID": 403,
 					"CrewName": "ALBERT TEODOSIO ARCILLA",
 					"Rank": "OLR1",
+					"PHNumber": "N/A",
 					"Salary": 620,
 					"Allotment": 40541.9,
 					"Gross": 62538.11,
@@ -465,6 +476,7 @@ const realData: PHRegisterData = {
 					"CrewID": 892,
 					"CrewName": "JEFFREY MATURAN MIRANDE",
 					"Rank": "2ND ENGINEER",
+					"PHNumber": "N/A",
 					"Salary": 968,
 					"Allotment": 74722.72,
 					"Gross": 97600.16,
@@ -477,6 +489,7 @@ const realData: PHRegisterData = {
 					"CrewID": 1663,
 					"CrewName": "JEREMIAS TAMPEPE SALGADO",
 					"Rank": "A/B",
+					"PHNumber": "N/A",
 					"Salary": 557.6,
 					"Allotment": 34041.29,
 					"Gross": 56247.3,
