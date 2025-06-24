@@ -9,6 +9,7 @@ import { formatCurrency, getMonthName, truncateText } from "@/lib/utils";
 interface CrewMember {
     CrewID: number;
     CrewName: string;
+    SSNumber: string;
     Rank: string;
     Salary: number;
     Allotment: number;
@@ -123,10 +124,9 @@ export function generateSSSRegisterPDF(
 
         // Define columns for the main table
         const colWidths = [
-            mainTableWidth * 0.2125, // CREW NAME
+            mainTableWidth * 0.2625, // CREW NAME
+            mainTableWidth * 0.2125, // SS Number
             mainTableWidth * 0.0875, // GROSS
-            mainTableWidth * 0.0875, // Regular SS
-            mainTableWidth * 0.0875, // Mutual Fund 
             mainTableWidth * 0.0875, // EESS
             mainTableWidth * 0.0875, // ERSS 
             mainTableWidth * 0.0875, // EEMF 
@@ -270,11 +270,11 @@ export function generateSSSRegisterPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
-            const headers = ["CREW NAME", "GROSS", "Reg. SS", "Mtl. Fund", "EESS", "ERSS", "EEMF", "ERMF", "EC", "Total"];
+            const headers = ["CREW NAME", "SSS No.", "Gross", "EESS", "ERSS", "EEMF", "ERMF", "EC", "Total"];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                if (index === 0) {
+                if (index === 0 || index === 1) {
                     // Left align crew name header (same as data)
                     doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
                 } else {
@@ -339,9 +339,8 @@ export function generateSSSRegisterPDF(
 
             const columnKeys: string[] = [
                 "CrewName",
+                "SSNumber",
                 "Gross",
-                "RegularSS",
-                "MutualFund",
                 "EESS",
                 "ERSS",
                 "EEMF",
@@ -354,6 +353,9 @@ export function generateSSSRegisterPDF(
                 if(i === 0) {
                     // Crew Name
                     doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                }
+                else if (key === 'SSNumber'){
+                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'Total') {
                     const value = Number(crew.EESS) + Number(crew.ERSS) + Number(crew.EEMF) + Number(crew.ERMF) + Number(crew.EC);
@@ -410,29 +412,31 @@ const realData: SSSRegisterData = {
 		{
 			"VesselID": 9,
 			"VesselName": "CHEMROAD ECHO",
-			"VesselCode": "CECO",
-			"VesselType": "TANKER",
+			"VesselCode": "AMAK",
+			"VesselType": "Bulk-Jap. Flag",
 			"Principal": "IINO MARINE",
 			"IsActive": 1,
 			"Crew": [
 				{
 					"CrewID": 194,
 					"CrewName": "RODILLO LAGANAS NIALLA",
+					"SSNumber": "33-3455369-9",
 					"Rank": "BSN",
 					"Salary": 620,
 					"Allotment": 40292.65,
 					"Gross": 62386.69,
 					"RegularSS": 20000,
 					"MutualFund": 1000,
-					"EESS": 5000,
-					"ERSS": 15000,
-					"EEMF": 200,
-					"ERMF": 800,
-					"EC": 30
+					"EESS": 0,
+					"ERSS": 0,
+					"EEMF": 0,
+					"ERMF": 0,
+					"EC": 0
 				},
 				{
 					"CrewID": 1437,
 					"CrewName": "JEROLD ONG ESPLANADA",
+					"SSNumber": "33-7972908-0",
 					"Rank": "3RD OFFICER",
 					"Salary": 860,
 					"Allotment": 64079.88,
@@ -448,6 +452,7 @@ const realData: SSSRegisterData = {
 				{
 					"CrewID": 1674,
 					"CrewName": "CRIS JOHN PACINIO GARCIA",
+					"SSNumber": "34-0164480-0",
 					"Rank": "C/CK",
 					"Salary": 620,
 					"Allotment": 40092.65,
@@ -463,6 +468,7 @@ const realData: SSSRegisterData = {
 				{
 					"CrewID": 2288,
 					"CrewName": "GERALD GARCIA DESCUTIDO",
+					"SSNumber": "07-2293659-1",
 					"Rank": "MMAN",
 					"Salary": 415.2,
 					"Allotment": 19961.6,
@@ -478,6 +484,7 @@ const realData: SSSRegisterData = {
 				{
 					"CrewID": 403,
 					"CrewName": "ALBERT TEODOSIO ARCILLA",
+					"SSNumber": "03-9158526-3",
 					"Rank": "OLR1",
 					"Salary": 620,
 					"Allotment": 40292.65,
@@ -493,6 +500,7 @@ const realData: SSSRegisterData = {
 				{
 					"CrewID": 892,
 					"CrewName": "JEFFREY MATURAN MIRANDE",
+					"SSNumber": "07-1748847-8",
 					"Rank": "2ND ENGINEER",
 					"Salary": 968,
 					"Allotment": 74391.18,
@@ -508,6 +516,7 @@ const realData: SSSRegisterData = {
 				{
 					"CrewID": 1663,
 					"CrewName": "JEREMIAS TAMPEPE SALGADO",
+					"SSNumber": "33-9346129-8",
 					"Rank": "A/B",
 					"Salary": 557.6,
 					"Allotment": 33807.04,
@@ -526,11 +535,19 @@ const realData: SSSRegisterData = {
 }
 
 // Function to generate the PDF with real data
-export function generateSSSRegister(data: SSSRegisterData = realData, exchangeRate: number = 57.53, dateGenerated: string = "04/14/25 9:55 AM", currentUser: string = 'lanceballicud'): boolean {
+// export function generateSSSRegister(data: SSSRegisterData = realData, exchangeRate: number = 57.53, dateGenerated: string = "04/14/25 9:55 AM", currentUser: string = 'lanceballicud'): boolean {
+//     return generateSSSRegisterPDF(
+//         data,
+//         exchangeRate, 
+//         dateGenerated
+//     );
+// }
+
+export function generateSSSRegister(): boolean {
     return generateSSSRegisterPDF(
-        data,
-        exchangeRate, 
-        dateGenerated
+       realData,
+       57.76,
+       new Date().toString()
     );
 }
 
