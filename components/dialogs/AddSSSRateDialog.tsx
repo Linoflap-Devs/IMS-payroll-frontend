@@ -50,6 +50,7 @@ interface SSSDeductionFormValues {
 }
 
 export const formSchema = z.object({
+  contributionId: z.number().optional(),
   year: z
     .string()
     .min(1, "Please enter the year")
@@ -60,6 +61,7 @@ export const formSchema = z.object({
   salaryFrom: z
     .string()
     .min(1, "Please enter salary from")
+    .min(0, "Salary From must be a positive number")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Salary From must be a number greater than 0",
     }),
@@ -67,6 +69,7 @@ export const formSchema = z.object({
   salaryTo: z
     .string()
     .min(1, "Please enter salary to")
+    .min(0, "Salary To must be a positive number")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Salary To must be a number greater than 0",
     }),
@@ -119,7 +122,11 @@ export const formSchema = z.object({
     .refine((val) => !isNaN(Number(val)), {
       message: "ER MF must be a number",
     }),
-});
+})
+  .refine((data) => data.salaryFrom <= data.salaryTo, {
+    message: "Salary From must be less than or equal to Salary To",
+    path: ["salaryFrom"],
+  });
 
 interface AddSSSRateDialogProps {
   open: boolean;
@@ -165,6 +172,7 @@ export function AddSSSRateDialog({
   const onSubmit = async (data: SSSDeductionFormValues) => {
     try {
       const payload = {
+        contributionId: Number(data.contributionId),
         type: "SSS" as const,
         year: Number(data.year),
         salaryFrom: Number(data.salaryFrom),
@@ -182,6 +190,7 @@ export function AddSSSRateDialog({
 
       if (response && response.success) {
         const newRate: SSSDeductionRate = {
+          contributionId: Number(data.contributionId),
           Year: Number(data.year),
           salaryFrom: Number(data.salaryFrom),
           salaryTo: Number(data.salaryTo),
@@ -233,12 +242,12 @@ export function AddSSSRateDialog({
           </DialogDescription> */}
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className=" space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className=" space-y-1">
             <FormField
               control={form.control}
               name="year"
               render={({ field, fieldState }) => (
-                <FormItem className="w-full">
+                <FormItem className="w-full gap-1">
                   <FormLabel className="text-sm text-gray-600 font-medium">
                     Select Year
                   </FormLabel>
@@ -275,34 +284,20 @@ export function AddSSSRateDialog({
               <FormField
                 control={form.control}
                 name="salaryFrom"
-                render={({ field, fieldState }) => (
-                  <FormItem className="w-full">
+                render={({ field }) => (
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary From
                     </FormLabel>
                     <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value?.toString() || ""}
-                      >
-                        <SelectTrigger
-                          className={cn(
-                            "w-full rounded-md h-10",
-                            fieldState.invalid
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-[#E0E0E0]"
-                          )}
-                        >
-                          <SelectValue placeholder="Select starting year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {years.map((year) => (
-                            <SelectItem key={year} value={String(year)}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        type="text"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="Enter Salary From"
+                        className="border border-[#E0E0E0] rounded-md"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -312,47 +307,33 @@ export function AddSSSRateDialog({
               <FormField
                 control={form.control}
                 name="salaryTo"
-                render={({ field, fieldState }) => (
-                  <FormItem className="w-full">
+                render={({ field }) => (
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary To
                     </FormLabel>
                     <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value?.toString() || ""}
-                      >
-                        <SelectTrigger
-                          className={cn(
-                            "w-full rounded-md h-10",
-                            fieldState.invalid
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-[#E0E0E0]"
-                          )}
-                        >
-                          <SelectValue placeholder="Select ending year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {years.map((year) => (
-                            <SelectItem key={year} value={String(year)}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        type="text"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="Enter Salary To"
+                        className="border border-[#E0E0E0] rounded-md"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-
+            
             <div className="flex flex-col sm:flex-row gap-4 my-6">
               <FormField
                 control={form.control}
                 name="regularSS"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Regular SS
                     </FormLabel>
@@ -375,7 +356,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="mutualFund"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Mutual Fund
                     </FormLabel>
@@ -400,7 +381,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="erss"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       ERSS
                     </FormLabel>
@@ -423,7 +404,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="ermf"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       ERMF
                     </FormLabel>
@@ -448,7 +429,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="ec"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       EC
                     </FormLabel>
@@ -471,7 +452,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="eess"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       EESS
                     </FormLabel>
@@ -496,7 +477,7 @@ export function AddSSSRateDialog({
                 control={form.control}
                 name="eemf"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       EEMF
                     </FormLabel>

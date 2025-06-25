@@ -42,6 +42,7 @@ interface PHILHEALTHDeductionFormValues {
 }
 
 export const formSchema = z.object({
+  contributionId: z.number().optional(),
   year: z
     .string()
     .min(1, "Please enter the year")
@@ -52,6 +53,7 @@ export const formSchema = z.object({
   salaryFrom: z
     .string()
     .min(1, "Please enter salary from")
+    .min(0, "Salary From must be a positive number")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Salary From must be a number greater than 0",
     }),
@@ -59,6 +61,7 @@ export const formSchema = z.object({
   salaryTo: z
     .string()
     .min(1, "Please enter salary to")
+    .min(0, "Salary To must be a positive number")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Salary To must be a number greater than 0",
     }),
@@ -75,7 +78,11 @@ export const formSchema = z.object({
     .refine((val) => !isNaN(Number(val)), {
       message: "EE Premium Rate must be a number",
     }),
-});
+})
+  .refine((data) => data.salaryFrom <= data.salaryTo, {
+    message: "Salary From must be less than or equal to Salary To",
+    path: ["salaryFrom"],
+  });
 
 interface AddPhilhealthRateDialogProps {
   open: boolean;
@@ -113,6 +120,7 @@ export function AddPhilhealthRateDialog({
   const onSubmit = async (data: PHILHEALTHDeductionFormValues) => {
     try {
         const payload = {
+          contributionId: Number(data.contributionId),
           type: "PHILHEALTH" as const,
           year: Number(data.year) || 0,
           salaryFrom: Number(data.salaryFrom) || 0,
@@ -176,7 +184,7 @@ export function AddPhilhealthRateDialog({
               control={form.control}
               name="year"
               render={({ field, fieldState }) => (
-                <FormItem className="w-full">
+                <FormItem className="w-full gap-1">
                   <FormLabel className="text-sm text-gray-600 font-medium">
                     Select Year
                   </FormLabel>
@@ -213,34 +221,20 @@ export function AddPhilhealthRateDialog({
               <FormField
                 control={form.control}
                 name="salaryFrom"
-                render={({ field, fieldState }) => (
-                  <FormItem className="w-full">
+                render={({ field }) => (
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary From
                     </FormLabel>
                     <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value?.toString() || ""}
-                      >
-                        <SelectTrigger
-                          className={cn(
-                            "w-full rounded-md h-10",
-                            fieldState.invalid
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-[#E0E0E0]"
-                          )}
-                        >
-                          <SelectValue placeholder="Select starting year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {years.map((year) => (
-                            <SelectItem key={year} value={String(year)}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        type="text"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="Enter Salary From"
+                        className="border border-[#E0E0E0] rounded-md"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -250,34 +244,20 @@ export function AddPhilhealthRateDialog({
               <FormField
                 control={form.control}
                 name="salaryTo"
-                render={({ field, fieldState }) => (
-                  <FormItem className="w-full">
+                render={({ field }) => (
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       Salary To
                     </FormLabel>
                     <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value?.toString() || ""}
-                      >
-                        <SelectTrigger
-                          className={cn(
-                            "w-full rounded-md h-10", 
-                            fieldState.invalid
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-[#E0E0E0]"
-                          )}
-                        >
-                          <SelectValue placeholder="Select ending year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {years.map((year) => (
-                            <SelectItem key={year} value={String(year)}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        type="text"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="Enter Salary To"
+                        className="border border-[#E0E0E0] rounded-md"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -290,7 +270,7 @@ export function AddPhilhealthRateDialog({
                 control={form.control}
                 name="eePremium"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       EE Premium
                     </FormLabel>
@@ -313,7 +293,7 @@ export function AddPhilhealthRateDialog({
                 control={form.control}
                 name="eePremiumRate"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-full gap-1">
                     <FormLabel className="text-sm text-gray-600 font-medium">
                       EE Premium Rate
                     </FormLabel>
