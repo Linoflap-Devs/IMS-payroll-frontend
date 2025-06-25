@@ -30,6 +30,10 @@ import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "../ui/use-toast";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
+import { DeductionResponse, getAllPhilhealthDeductionList, getAllSSSDeductionList, HDMFDeductionCrew, PhilhealthDeductionCrew, SSSDeductionCrew } from "@/src/services/deduction/governmentReports.api";
+import generateSSSRegister from "../PDFs/deductionsSSSRegister";
+import generatePHRegister from "../PDFs/deductionsPHRegister";
+import { format } from "date-fns";
 
 type Payroll = {
   vesselId: number;
@@ -167,27 +171,52 @@ export default function GovernmentReports() {
     router.push(`${pathname}?${params.toString()}`);
   }, [monthFilter, yearFilter, pathname, searchParams, router]);
 
-  const handlePrintSummary = async () => {
+  const handlePH = async () => {
+    await handlePrintSummary("philhealth")
+  }
+  const handleSSS = async () => {
+    await handlePrintSummary("sss")
+  }
+  const handleHDMF = async () => {
+    await handlePrintSummary("hdmf")
+  }
+
+  const handlePrintSummary = async (mode: "sss" | "philhealth" | "hdmf") => {
     setPrintLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-      .then(() => {
-        toast({
-          title: "Print Summary",
-          description: "The summary has been sent to the printer.",
-          variant: "success",
-        });
-      })
-      .catch((error) => {
-        console.error("Error printing summary:", error);
-        toast({
-          title: "Error Printing Summary",
-          description: "An error occurred while printing the summary.",
-          variant: "destructive",
-        });
-      })
-      .finally(() => {
-        setPrintLoading(false);
-      });
+    // await new Promise((resolve) => setTimeout(resolve, 2000))
+    //   .then(() => {
+    //     toast({
+    //       title: "Print Summary",
+    //       description: "The summary has been sent to the printer.",
+    //       variant: "success",
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error printing summary:", error);
+    //     toast({
+    //       title: "Error Printing Summary",
+    //       description: "An error occurred while printing the summary.",
+    //       variant: "destructive",
+    //     });
+    //   })
+    //   .finally(() => {
+    //     setPrintLoading(false);
+    //   });
+
+    if(mode === "philhealth"){
+      const data = await getAllPhilhealthDeductionList(Number(monthFilter), Number(yearFilter));
+      const result = generatePHRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"))
+    }
+    if(mode === "sss"){
+      const data = await getAllSSSDeductionList(Number(monthFilter), Number(yearFilter));
+      const result = generateSSSRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"))
+    }
+    if(mode === "hdmf"){
+      const data = await getAllPhilhealthDeductionList(Number(monthFilter), Number(yearFilter));
+      const result = generatePHRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"))
+    }
+
+    setPrintLoading(false)
   };
 
   const columns: ColumnDef<Payroll>[] = [
@@ -393,7 +422,7 @@ export default function GovernmentReports() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     className="whitespace-nowrap h-9 sm:h-10 px-4 sm:px-6 text-xs sm:text-sm min-w-[220px] md:min-w-[250px] w-full md:w-auto"
-                    onClick={handlePrintSummary}
+                    //onClick={handlePrintSummary}
                     disabled={printLoading || isDataLoading}
                   >
                     <AiOutlinePrinter className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
@@ -408,15 +437,15 @@ export default function GovernmentReports() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="text-sm w-[200px] min-w-[100%]">
-                  <DropdownMenuItem asChild onClick={handleGeneratePDF}>
+                  <DropdownMenuItem asChild onClick={handlePH}>
                     <label>Philhealth Contributions</label>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild onClick={handleSSS}>
                     <Link href="" className="w-full">
                       SSS Contributions
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild onClick={handleHDMF}>
                     <Link href="" className="w-full">
                       HDMF Contributions
                     </Link>

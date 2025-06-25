@@ -84,6 +84,36 @@ export const getPhilhealthDeductionList = async (
   return response.data;
 };
 
+export const getAllPhilhealthDeductionList = async (
+  month: number,
+  year: number
+): Promise<DeductionResponse<PhilhealthDeductionCrew>> => {
+  const response = await axiosInstance.get<DeductionResponse<PhilhealthDeductionCrew>>(
+    `/deductions/vessel/philhealth?month=${month}&year=${year}`
+  );
+  return response.data;
+}
+
+export const getAllSSSDeductionList = async (
+  month: number,
+  year: number
+): Promise<DeductionResponse<SSSDeductionCrew>> => {
+  const response = await axiosInstance.get<DeductionResponse<SSSDeductionCrew>>(
+    `/deductions/vessel/sss?month=${month}&year=${year}`
+  );
+  return response.data;
+}
+
+export const getAllHDMFDeductionList = async (
+  month: number,
+  year: number
+): Promise<DeductionResponse<HDMFDeductionCrew>> => {
+  const response = await axiosInstance.get<DeductionResponse<HDMFDeductionCrew>>(
+    `/deductions/vessel/hdmf?month=${month}&year=${year}`
+  );
+  return response.data;
+}
+
 export const getHMDFDeductionList = async (
   vesselId: string | number,
   month: number,
