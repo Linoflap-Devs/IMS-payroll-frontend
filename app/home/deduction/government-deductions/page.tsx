@@ -1,10 +1,10 @@
 import AccessGuard from "@/components/pages/AccessGuard";
-import Government from "@/components/pages/Government";
+import GovermentDeductions from "@/components/pages/GovernmentDeductions";
 
 export default function page() {
   return (
     <AccessGuard allowedTypes={[5]}>
-      <Government />
+      <GovermentDeductions />
     </AccessGuard>
   );
 }

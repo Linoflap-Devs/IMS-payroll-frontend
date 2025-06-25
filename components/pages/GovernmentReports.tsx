@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -16,29 +17,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CircleAlert, Loader2, MoreHorizontal } from "lucide-react";
+import { Loader2, MoreHorizontal, Printer } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { Card, CardContent } from "../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
 import {
+  AllotmentRegisterData,
   getPayrollList,
-  postPayrolls,
 } from "@/src/services/payroll/payroll.api";
 import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
-import { MdOutlineFileUpload } from "react-icons/md";
 import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "../ui/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "../ui/alert-dialog";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
 
 type Payroll = {
   vesselId: number;
@@ -49,26 +40,50 @@ type Payroll = {
   netAllotment: number;
 };
 
+// Table skeleton component
+const TableSkeleton = () => {
+  return (
+    <div className="w-full">
+      {/* Header skeleton */}
+      <div className="flex py-3 bg-gray-50 border-b">
+        {Array.from({ length: 6 }).map((_, idx) => (
+          <div key={idx} className="flex-1 px-3 text-center">
+            <Skeleton className="h-6 w-[80%] mx-auto" />
+          </div>
+        ))}
+      </div>
+
+      {/* Row skeletons */}
+      {Array.from({ length: 7 }).map((_, rowIdx) => (
+        <div key={rowIdx} className="flex py-4 border-b">
+          {Array.from({ length: 6 }).map((_, colIdx) => (
+            <div
+              key={`${rowIdx}-${colIdx}`}
+              className="flex-1 px-3 text-center"
+            >
+              <Skeleton className="h-5 w-[80%] mx-auto" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default function GovernmentReports() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [payrollData, setPayrollData] = useState<Payroll[]>([]);
-  const [forexRate, setForexRate] = useState<number>(0); // State for Forex rate
-  const [monthFilter, setMonthFilter] = useState(
-    (new Date().getMonth() + 1).toString()
-  );
-  const [yearFilter, setYearFilter] = useState(
-    new Date().getFullYear().toString()
-  );
-
-  //loading states
-  const [payrollLoading, setPayrollLoading] = useState(false);
+  const [forexRate, setForexRate] = useState<number>(0);
+  const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString());
+  const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
   const [printLoading, setPrintLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
 
-  //
-  // const [confirmDialog, setConfirmDialog] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Format numbers to two decimal places
   const formatNumber = (value: number) => value?.toFixed(2);
 
   const monthNames = [
@@ -86,11 +101,23 @@ export default function GovernmentReports() {
     "December",
   ];
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 6 }, (_, i) =>
-    (currentYear - 2 + i).toString()
+  const years = Array.from({ length: 20 }, (_, i) =>
+    (currentYear - 15 + i).toString()
   );
 
+  // Allotment Register Data
+  const [allotmentRegisterData, setAllotmentRegisterData] = useState<
+    AllotmentRegisterData[]
+  >([]);
+
+  const month = searchParams.get("month");
+  const year = searchParams.get("year");
+  const vesselId = searchParams.get("vesselId");
+
+  // Fetch data when filters change
   useEffect(() => {
+    setIsDataLoading(true); // Set loading to true when filters change
+
     const fetchDashboardData = async () => {
       try {
         const dashboardResponse = await getDashboardList();
@@ -120,51 +147,28 @@ export default function GovernmentReports() {
             totalDeductions: item.TotalDeduction,
             netAllotment: item.NetAllotment,
           }));
+
           setPayrollData(mapped);
         } else {
           console.error("Failed to fetch payroll list:", res.message);
         }
       })
-      .catch((err) => console.error("Error fetching payroll list:", err));
+      .catch((err) => console.error("Error fetching payroll list:", err))
+      .finally(() => {
+        setIsDataLoading(false);
+      });
   }, [monthFilter, yearFilter]);
 
-  const handleProcessPayroll = async () => {
-    console.log(
-      "Processing payroll for month:",
-      monthFilter,
-      "year:",
-      yearFilter
-    );
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("month", monthFilter);
+    params.set("year", yearFilter);
 
-    setPayrollLoading(true);
-    await postPayrolls(monthFilter, yearFilter)
-      .then((response) => {
-        if (response.success) {
-          toast({
-            title: "Payroll Processed",
-            description: `Payroll for ${
-              monthNames[parseInt(monthFilter) - 1]
-            } ${yearFilter} has been processed successfully.`,
-            variant: "success",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error processing payroll:", error);
-        toast({
-          title: "Error Processing Payroll",
-          description: "An error occurred while processing the payroll.",
-          variant: "destructive",
-        });
-      })
-      .finally(() => {
-        setPayrollLoading(false);
-      });
-  };
+    router.push(`${pathname}?${params.toString()}`);
+  }, [monthFilter, yearFilter, pathname, searchParams, router]);
 
   const handlePrintSummary = async () => {
     setPrintLoading(true);
-    // Simulate print action
     await new Promise((resolve) => setTimeout(resolve, 2000))
       .then(() => {
         toast({
@@ -255,29 +259,30 @@ export default function GovernmentReports() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
               <DropdownMenuItem asChild>
-                <Link
-                  href={`/home/allotment/allotment_register?vesselId=${row.original.vesselId}`}>
-                  Allotment Register
+                  <Link
+                    href={`/home/deduction/reports/philhealth-contribution?vesselId=${row.original.vesselId}&year=${yearFilter}&month=${monthFilter}`}
+                    className="flex items-center gap-2"
+                  >
+                  <Printer className="w-3.5 h-3.5" />
+                  Philhealth Contributions
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link
-                  href={`/home/allotment/deduction_register?vesselId=${
-                    row.original.vesselId
-                  }&month=${parseInt(monthFilter)}&year=${parseInt(
-                    yearFilter
-                  )}`}>
-                  Deduction Register
+                  <Link
+                    href={`/home/deduction/reports/sss-contribution?vesselId=${row.original.vesselId}&year=${yearFilter}&month=${monthFilter}`}
+                    className="flex items-center gap-2"
+                  >
+                  <Printer className="w-3.5 h-3.5" />
+                  SSS Contributions
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link
-                  href={`/home/allotment/payslip?vesselId=${
-                    row.original.vesselId
-                  }&month=${parseInt(monthFilter)}&year=${parseInt(
-                    yearFilter
-                  )}`}>
-                  Pay Slip
+                  <Link
+                    href={`/home/deduction/reports/hdmf-contribution?vesselId=${row.original.vesselId}&year=${yearFilter}&month=${monthFilter}`}
+                    className="flex items-center gap-2"
+                  >
+                  <Printer className="w-3.5 h-3.5" />
+                  HDMF Contributions
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -290,6 +295,34 @@ export default function GovernmentReports() {
   const filteredAllotment = payrollData.filter((p) =>
     p.vesselName.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
+
+  const handleGeneratePDF = () => {
+    if (allotmentRegisterData && allotmentRegisterData.length > 0) {
+      const monthNames = [
+        "JANUARY",
+        "FEBRUARY",
+        "MARCH",
+        "APRIL",
+        "MAY",
+        "JUNE",
+        "JULY",
+        "AUGUST",
+        "SEPTEMBER",
+        "OCTOBER",
+        "NOVEMBER",
+        "DECEMBER",
+      ];
+
+      generateAllotmentPDF(
+        allotmentRegisterData,
+        monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
+        year ? parseInt(year) : new Date().getFullYear(),
+        Number(forexRate)
+      );
+    } else {
+      console.error("No allotment register data available");
+    }
+  };
 
   return (
     <div className="h-full w-full p-4 pt-2">
@@ -305,13 +338,13 @@ export default function GovernmentReports() {
       <div className="h-full overflow-y-auto scrollbar-hide">
         <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-semibold mb-0">Goverment Reports</h1>
+            <h1 className="text-3xl font-semibold mb-0">Government Reports</h1>
           </div>
-          
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-5 items-start sm:items-center gap-3 sm:gap-4 w-full">
+
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full">
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="bg-white h-full sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[220px] w-full sm:w-auto">
+                <SelectTrigger className="bg-white h-10 px-4 text-sm flex items-center min-w-[290px] w-full">
                   <div className="flex items-center justify-between w-full -mx-4">
                     <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md">
                       <span className="text-muted-foreground text-base">
@@ -331,8 +364,9 @@ export default function GovernmentReports() {
                   ))}
                 </SelectContent>
               </Select>
+
               <Select value={yearFilter} onValueChange={setYearFilter}>
-                <SelectTrigger className="bg-white h-full sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[220px] w-full sm:w-auto">
+                <SelectTrigger className="bg-white h-10 px-4 text-sm flex items-center min-w-[290px] w-full">
                   <div className="flex items-center justify-between w-full -mx-4">
                     <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md">
                       <span className="text-muted-foreground text-base">
@@ -344,7 +378,7 @@ export default function GovernmentReports() {
                     </span>
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-92 overflow-y-auto">
                   {years.map((yr, idx) => (
                     <SelectItem key={idx} value={yr}>
                       {yr}
@@ -352,70 +386,16 @@ export default function GovernmentReports() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
 
-              {/* DONE REMOVE THIS COMMENT BELOW. THIS IS TEMPORARILY COMMENTED */}
-              {/* <Button className="bg-gray-300 text-gray-700 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full hover:bg-gray-400">
-                Process Vessel
-              </Button> */}
-
-              <div></div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
-                    disabled={payrollLoading}>
-                    {payrollLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <MdOutlineFileUpload className="w-4 h-4" />
-                        Post Process Payrolls
-                      </>
-                    )}
-                  </Button>
-                </AlertDialogTrigger>
-
-                <AlertDialogContent className="bg-white p-10">
-                  <AlertDialogHeader className="flex items-center">
-                    <CircleAlert size={120} strokeWidth={1} color="orange" />
-                    <AlertDialogTitle className="text-3xl">
-                      Are you sure?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="text-center text-md">
-                      This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-
-                  <div className="flex items-center justify-center space-x-4 px-4">
-                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white hover:text-white">
-                      No, Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
-                      onClick={handleProcessPayroll}
-                      disabled={payrollLoading}>
-                      {payrollLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        "Yes, Process Payroll"
-                      )}
-                    </AlertDialogAction>
-                  </div>
-                </AlertDialogContent>
-              </AlertDialog>
-
+            <div className="w-full md:w-auto md:ml-auto">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    className="whitespace-nowrap h-9 sm:h-10 px-4 sm:px-6 text-xs sm:text-sm w-full"
+                    className="whitespace-nowrap h-9 sm:h-10 px-4 sm:px-6 text-xs sm:text-sm min-w-[220px] md:min-w-[250px] w-full md:w-auto"
                     onClick={handlePrintSummary}
-                    disabled={printLoading}>
+                    disabled={printLoading || isDataLoading}
+                  >
                     <AiOutlinePrinter className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
                     {printLoading ? (
                       <>
@@ -427,23 +407,18 @@ export default function GovernmentReports() {
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="text-xs sm:text-sm w-[200px] min-w-[100%]">
-                  <DropdownMenuItem
-                    asChild
-                    // onClick={() => handlePrintPayrollPDF()}>
-                  >
+                <DropdownMenuContent className="text-sm w-[200px] min-w-[100%]">
+                  <DropdownMenuItem asChild onClick={handleGeneratePDF}>
+                    <label>Philhealth Contributions</label>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="" className="w-full">
-                      Allotment Register
+                      SSS Contributions
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="" className="w-full">
-                      Deduction Register
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="" className="w-full">
-                      Allotment/Payslip
+                      HDMF Contributions
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -458,11 +433,15 @@ export default function GovernmentReports() {
           />
 
           <div className="bg-white rounded-md border pb-3">
-            <DataTable
-              columns={columns}
-              data={filteredAllotment}
-              pageSize={7}
-            />
+            {isDataLoading ? (
+              <TableSkeleton />
+            ) : (
+              <DataTable
+                columns={columns}
+                data={filteredAllotment}
+                pageSize={7}
+              />
+            )}
           </div>
         </div>
       </div>
