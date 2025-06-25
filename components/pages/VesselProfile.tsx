@@ -654,6 +654,7 @@ export default function VesselProfile() {
   // Handle tab change
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    setSearchTerm(""); 
   };
 
   return (

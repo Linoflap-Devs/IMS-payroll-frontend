@@ -391,7 +391,7 @@ export default function CrewList() {
                   <SelectValue placeholder="Filter by validation" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="all">All Account Validations</SelectItem>
                   <SelectItem value="verified">Verified</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="not registered">Not Registered</SelectItem>
