@@ -15,9 +15,12 @@ import { useDebounce } from "@/lib/useDebounce";
 import { Card } from "@/components/ui/card";
 import {
   DeductionItem,
+  DeductionResponse,
   HDMFDeductionCrew,
   getHMDFDeductionList,
 } from "@/src/services/deduction/governmentReports.api";
+import { format } from "date-fns";
+import generateHDMFRegister from "../PDFs/deductionsHDMFRegister";
 
 export default function HMDFContribution() {
   const searchParams = useSearchParams();
@@ -29,6 +32,7 @@ export default function HMDFContribution() {
   const [HMDFDeductionData, setHMDFDeductionData] = useState<
     HDMFDeductionCrew[]
   >([]);
+  const [HDMFDeductionResponse, setHDMFDeductionResponse] = useState<DeductionResponse<HDMFDeductionCrew>>({} as DeductionResponse<HDMFDeductionCrew>);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -48,6 +52,7 @@ export default function HMDFContribution() {
           if (vesselData) {
             setVesselInfo(vesselData); // vessel-level info
             setHMDFDeductionData(vesselData.Crew || []); // crew-level info
+            setHDMFDeductionResponse(response);
           } else {
             setVesselInfo(null);
             setHMDFDeductionData([]);
@@ -136,11 +141,14 @@ export default function HMDFContribution() {
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
-  //   const handlePrint = () => {
-  //     if (!vesselInfo || !vesselInfo.Crew || vesselInfo.Crew.length === 0) {
-  //       console.error("No allotment register data available");
-  //       return;
-  //     }
+    const handlePrint = () => {
+      if (!vesselInfo || !vesselInfo.Crew || vesselInfo.Crew.length === 0) {
+        console.error("No allotment register data available");
+        return;
+      }
+
+      const result = generateHDMFRegister(HDMFDeductionResponse, format(new Date(), "MMM dd, yyyy hh:mm aa").toString())
+    }
 
   //     const monthNames = [
   //       "JANUARY",
@@ -251,7 +259,7 @@ export default function HMDFContribution() {
             <Button
               className="gap-2 h-11 px-5"
               disabled={isLoading}
-              //onClick={handlePrint}
+              onClick={handlePrint}
             >
               {isLoading ? (
                 <>
