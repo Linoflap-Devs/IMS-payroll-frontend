@@ -386,7 +386,7 @@ export default function Wages() {
               } else if (result.dismiss === Swal.DismissReason.cancel) {
                 swalWithBootstrapButtons.fire(
                   "Cancelled",
-                  "Item is safe :)",
+                  "Item is safe.",
                   "error"
                 );
               }
@@ -741,22 +741,25 @@ export default function Wages() {
                 <div className="border-b">
                   <div className="px-4 pt-1">
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
-                      {["salary", "wage-description", "forex"].map(
-                        (tabValue) => (
+                      {["salary", "wage-description", "forex"].map((tabValue) => {
+                        const label =
+                          tabValue === "salary"
+                            ? "Salary Scale"
+                            : tabValue
+                                .split("-")
+                                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(" ");
+
+                        return (
                           <TabsTrigger
                             key={tabValue}
                             value={tabValue}
-                            className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
-                            {tabValue
-                              .split("-")
-                              .map(
-                                (word) =>
-                                  word.charAt(0).toUpperCase() + word.slice(1)
-                              )
-                              .join(" ")}
+                            className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                          >
+                            {label}
                           </TabsTrigger>
-                        )
-                      )}
+                        );
+                      })}
                     </TabsList>
                   </div>
                 </div>

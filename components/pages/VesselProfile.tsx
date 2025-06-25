@@ -617,7 +617,8 @@ export default function VesselProfile() {
     const matchesSearch =
       v.vesselCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.vesselName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.vesselTypeName.toLowerCase().includes(searchTerm.toLowerCase());
+      v.vesselTypeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.principalName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" ||
       v.status.toLowerCase() === statusFilter.toLowerCase();
@@ -638,7 +639,12 @@ export default function VesselProfile() {
 
   const filteredVesselPrincipal = vesselPrincipalData.filter(
     (vesselPrincipal) => {
-      const matchesSearch = vesselPrincipal.vesselPrincipalName
+      const matchesSearch = 
+      
+      vesselPrincipal.vesselPrincipalName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      vesselPrincipal.vesselPrincipalCode
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
 
