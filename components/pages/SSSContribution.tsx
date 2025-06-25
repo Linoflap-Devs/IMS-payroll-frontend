@@ -17,7 +17,10 @@ import {
   getSSSDeductionList,
   SSSDeductionCrew,
   DeductionItem,
+  DeductionResponse,
 } from "@/src/services/deduction/governmentReports.api";
+import generateSSSRegister from "../PDFs/deductionsSSSRegister";
+import { format } from "date-fns";
 
 export default function SSSContribution() {
   const searchParams = useSearchParams();
@@ -25,6 +28,7 @@ export default function SSSContribution() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [vesselInfo, setVesselInfo] = useState<DeductionItem<SSSDeductionCrew> | null>(null);
+  const [SSSDeductionResponse, setSSSDeductionResponse] = useState<DeductionResponse<SSSDeductionCrew>>({} as DeductionResponse<SSSDeductionCrew>);
   const [SSSDeductionData, setSSSDeductionData] = useState<SSSDeductionCrew[]>(
     []
   );
@@ -47,6 +51,7 @@ export default function SSSContribution() {
           if (vesselData) {
             setVesselInfo(vesselData); // vessel-level info
             setSSSDeductionData(vesselData.Crew || []); // crew-level info
+            setSSSDeductionResponse(response);
           } else {
             setVesselInfo(null);
             setSSSDeductionData([]);
@@ -174,11 +179,15 @@ export default function SSSContribution() {
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
-//   const handlePrint = () => {
-//     if (!vesselInfo || !vesselInfo.Crew || vesselInfo.Crew.length === 0) {
-//       console.error("No allotment register data available");
-//       return;
-//     }
+  const handlePrint = () => {
+    if (!vesselInfo || !vesselInfo.Crew || vesselInfo.Crew.length === 0) {
+      console.error("No allotment register data available");
+      return;
+    }
+
+    const result = generateSSSRegister(SSSDeductionResponse, format(new Date(), "MMM dd, yyyy hh:mm aa").toString())
+  }
+  
 
 //     const monthNames = [
 //       "JANUARY",
@@ -289,7 +298,7 @@ export default function SSSContribution() {
             <Button
               className="gap-2 h-11 px-5"
               disabled={isLoading}
-              //onClick={handlePrint}
+              onClick={handlePrint}
             >
               {isLoading ? (
                 <>
