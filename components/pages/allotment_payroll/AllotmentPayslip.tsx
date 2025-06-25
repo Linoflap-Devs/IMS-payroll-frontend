@@ -11,17 +11,14 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "../../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
-import { getVesselPayslipV2 } from "@/src/services/payroll/payroll.api";
+import {
+  CrewPayroll,
+  getVesselPayslipV2,
+  PayslipData,
+} from "@/src/services/payroll/payroll.api";
 import { useSearchParams } from "next/navigation";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { generatePayrollPDF } from "@/components/PDFs/payrollStatementPDF";
-
-interface CrewPayroll {
-  crewId: number;
-  crewCode: string;
-  crewName: string;
-  rank: string;
-}
 
 interface VesselInfo {
   code: string;
@@ -36,9 +33,10 @@ export default function VesselPayslip({
   vesselInfo?: VesselInfo;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [payslipData, setPayslipData] = useState<CrewPayroll[]>([]);
+  const [payslipData, setPayslipData] = useState<PayslipData>();
   const searchParams = useSearchParams();
   const [PayslipPDFData, setPayslipPDFData] = useState<any>({});
+  const [payslipCrewData, setPayslipCrewData] = useState<CrewPayroll[]>([]);
   const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
     initialVesselInfo
   );
@@ -72,14 +70,16 @@ export default function VesselPayslip({
         .then((res) => {
           if (res.success) {
             setPayslipPDFData(res.data);
-            setPayslipData(
-              res.data.vessels.map((crew) => ({
-                crewId: crew.payrolls[0].crewId,
-                crewCode: crew.payrolls[0].crewCode,
-                crewName: crew.payrolls[0].crewName,
-                rank: crew.payrolls[0].rank,
-              }))
-            );
+            // setPayslipData(
+            //   res.data.vessels.map((crew) => ({
+            //     crewId: crew.payrolls.crewId
+            //     crewCode: crew.payroll.crewCode,
+            //     crewName: crew.payrolls.crewName,
+            //     rank: crew.payrolls,
+            //   }))
+            // );
+            setPayslipData(res.data);
+            setPayslipCrewData(res.data.vessels[0]?.payrolls || []);
           } else {
             console.error("Failed to fetch payslip data:", res.message);
           }
@@ -89,6 +89,8 @@ export default function VesselPayslip({
   }, [searchParams]);
 
   console.log("Payslip Data:", payslipData);
+  console.log("Payslip Crew Data:", payslipCrewData);
+
   const columns: ColumnDef<CrewPayroll>[] = [
     {
       accessorKey: "crewCode",
@@ -119,7 +121,7 @@ export default function VesselPayslip({
     },
   ];
 
-  const filteredCrew = payslipData.filter(
+  const filteredCrew = payslipCrewData.filter(
     (crew) =>
       crew.crewName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase())
