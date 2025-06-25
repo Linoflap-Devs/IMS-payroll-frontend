@@ -16,7 +16,11 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import { loginUser, LoginResponse, getCurrentUser } from "../src/services/auth/auth.api";
+import {
+  loginUser,
+  LoginResponse,
+  getCurrentUser,
+} from "../src/services/auth/auth.api";
 import Link from "next/link";
 import { PiEye, PiEyeSlash } from "react-icons/pi";
 
@@ -37,7 +41,7 @@ const formSchema = z.object({
     message: "Please enter a valid email address.",
   }),
   password: z.string().min(1, {
-    message: "Password must be at least 1 character.",
+    message: "Please enter a password.",
   }),
 });
 
