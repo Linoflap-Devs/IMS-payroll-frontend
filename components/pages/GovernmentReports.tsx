@@ -205,15 +205,15 @@ export default function GovernmentReports() {
 
     if(mode === "philhealth"){
       const data = await getAllPhilhealthDeductionList(Number(monthFilter), Number(yearFilter));
-      const result = generatePHRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"))
+      const result = generatePHRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), 'all')
     }
     if(mode === "sss"){
       const data = await getAllSSSDeductionList(Number(monthFilter), Number(yearFilter));
-      const result = generateSSSRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"))
+      const result = generateSSSRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), 'all')
     }
     if(mode === "hdmf"){
       const data = await getAllPhilhealthDeductionList(Number(monthFilter), Number(yearFilter));
-      const result = generatePHRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"))
+      const result = generatePHRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), 'all')
     }
 
     setPrintLoading(false)

@@ -56,6 +56,7 @@ function extractPeriod(message: string): { month: string, year: number } {
 export function generateHDMFRegisterPDF(
     data: DeductionResponse<HDMFDeductionCrew>,
     dateGenerated: string = "04/14/25 9:55 AM",
+    mode: 'all' | 'vessel' = 'vessel'
     // currentUser: string = 'lanceballicud'
 ): boolean {
     if (typeof window === 'undefined') {
@@ -93,8 +94,8 @@ export function generateHDMFRegisterPDF(
 
         // Set document properties
         doc.setProperties({
-            title: `HDMF Contribution Register - ${vesselData.VesselName} - ${period.month} ${period.year}`,
-            subject: `HDMF Contribution Register for ${vesselData.VesselName}`,
+            title: `HDMF Contribution Register - ${mode === 'vessel' ? vesselData.VesselName: 'All Vessels'} - ${period.month} ${period.year}`,
+            subject: `HDMF Contribution Register for ${mode === 'vessel' ? vesselData.VesselName: 'All Vessels'}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
@@ -200,7 +201,7 @@ export function generateHDMFRegisterPDF(
         doc.setTextColor(0);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.text(vesselData.VesselName, margins.left + 2, vesselInfoY + 7.5);
+        doc.text(mode === 'vessel' ? vesselData.VesselName: 'All Vessels', margins.left + 2, vesselInfoY + 7.5);
         doc.line(margins.left, vesselInfoY + 10, pageWidth - margins.right, vesselInfoY + 10);
 
 
@@ -394,10 +395,11 @@ export function generateHDMFRegisterPDF(
 	
 
 //Function to generate the PDF with real data
-export function generateHDMFRegister(data: DeductionResponse<HDMFDeductionCrew>, dateGenerated: string): boolean {
+export function generateHDMFRegister(data: DeductionResponse<HDMFDeductionCrew>, dateGenerated: string, mode: 'all' | 'vessel' = 'vessel'): boolean {
     return generateHDMFRegisterPDF(
         data,
-        dateGenerated
+        dateGenerated,
+        mode
     );
 }
 

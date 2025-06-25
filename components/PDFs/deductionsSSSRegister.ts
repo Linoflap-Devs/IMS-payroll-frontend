@@ -61,6 +61,7 @@ function extractPeriod(message: string): { month: string, year: number } {
 export function generateSSSRegisterPDF(
     data: DeductionResponse<SSSDeductionCrew>,
     dateGenerated: string = "04/14/25 9:55 AM",
+    mode: 'all' | 'vessel' = 'vessel'
     // currentUser: string = 'lanceballicud'
 ): boolean {
     if (typeof window === 'undefined') {
@@ -98,8 +99,8 @@ export function generateSSSRegisterPDF(
 
         // Set document properties
         doc.setProperties({
-            title: `SSS Remittance Register - ${vesselData.VesselName} - ${period.month} ${period.year}`,
-            subject: `SSS Remittance Register for ${vesselData.VesselName}`,
+            title: `SSS Remittance Register - ${mode === 'vessel' ? vesselData.VesselName : 'All Vessels'} - ${period.month} ${period.year}`,
+            subject: `SSS Remittance Register for ${mode === 'vessel' ? vesselData.VesselName : 'All Vessels'}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
@@ -209,7 +210,7 @@ export function generateSSSRegisterPDF(
         doc.setTextColor(0);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.text(vesselData.VesselName, margins.left + 2, vesselInfoY + 7.5);
+        doc.text( mode === 'vessel' ? vesselData.VesselName : 'All Vessels', margins.left + 2, vesselInfoY + 7.5);
         doc.line(margins.left, vesselInfoY + 10, pageWidth - margins.right, vesselInfoY + 10);
 
 
@@ -405,10 +406,11 @@ export function generateSSSRegisterPDF(
 }
 
 //Function to generate the PDF with real data
-export function generateSSSRegister(data: DeductionResponse<SSSDeductionCrew>, dateGenerated: string = "04/14/25 9:55 AM"): boolean {
+export function generateSSSRegister(data: DeductionResponse<SSSDeductionCrew>, dateGenerated: string, mode: 'all' | 'vessel' = 'vessel'): boolean {
     return generateSSSRegisterPDF(
         data,
-        dateGenerated
+        dateGenerated,
+        mode
     );
 }
 

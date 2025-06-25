@@ -58,6 +58,7 @@ function extractPeriod(message: string): { month: string, year: number } {
 export function generatePHRegisterPDF(
     data: DeductionResponse<PhilhealthDeductionCrew>,
     dateGenerated: string = "04/14/25 9:55 AM",
+    mode: 'all' | 'vessel' = 'vessel'
 ): boolean {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
@@ -94,8 +95,8 @@ export function generatePHRegisterPDF(
 
         // Set document properties
         doc.setProperties({
-            title: `Philhealth Contribution Register - ${vesselData.VesselName} - ${period.month} ${period.year}`,
-            subject: `Philhealth Contribution Register for ${vesselData.VesselName}`,
+            title: `Philhealth Contribution Register - ${mode === 'vessel' ? vesselData.VesselName: 'All Vessels'} - ${period.month} ${period.year}`,
+            subject: `Philhealth Contribution Register for ${mode === 'vessel' ? vesselData.VesselName: 'All Vessels'}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
@@ -201,7 +202,7 @@ export function generatePHRegisterPDF(
         doc.setTextColor(0);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.text(vesselData.VesselName, margins.left + 2, vesselInfoY + 7.5);
+        doc.text(mode === 'vessel' ? vesselData.VesselName: 'All Vessels', margins.left + 2, vesselInfoY + 7.5);
         doc.line(margins.left, vesselInfoY + 10, pageWidth - margins.right, vesselInfoY + 10);
 
 
@@ -395,10 +396,11 @@ export function generatePHRegisterPDF(
 	
 
 //Function to generate the PDF with real data
-export function generatePHRegister(data: DeductionResponse<PhilhealthDeductionCrew>, dateGenerated: string): boolean {
+export function generatePHRegister(data: DeductionResponse<PhilhealthDeductionCrew>, dateGenerated: string, mode: 'all' | 'vessel' = 'vessel'): boolean {
     return generatePHRegisterPDF(
         data,
-        dateGenerated
+        dateGenerated,
+        mode
     );
 }
 
