@@ -84,6 +84,10 @@ export interface DeductionRegisterCrew {
 export interface DeductionRegisterData {
   VesselID: number;
   VesselName: string;
+  VesselCode: string;
+  VesselType: string;
+  Principal: string;
+  IsActive: number;
   Crew: DeductionRegisterCrew[];
 }
 
