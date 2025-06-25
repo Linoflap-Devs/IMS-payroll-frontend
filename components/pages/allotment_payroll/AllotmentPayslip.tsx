@@ -17,48 +17,14 @@ import {
   PayslipData,
 } from "@/src/services/payroll/payroll.api";
 import { useSearchParams } from "next/navigation";
-import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { generatePayrollPDF } from "@/components/PDFs/payrollStatementPDF";
 
-interface VesselInfo {
-  code: string;
-  name: string;
-  type: string;
-  principalName: string;
-}
-
-export default function VesselPayslip({
-  vesselInfo: initialVesselInfo,
-}: {
-  vesselInfo?: VesselInfo;
-}) {
+export default function VesselPayslip() {
   const [searchTerm, setSearchTerm] = useState("");
   const [payslipData, setPayslipData] = useState<PayslipData>();
   const searchParams = useSearchParams();
   const [PayslipPDFData, setPayslipPDFData] = useState<any>({});
   const [payslipCrewData, setPayslipCrewData] = useState<CrewPayroll[]>([]);
-  const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
-    initialVesselInfo
-  );
-  const vesselId = searchParams.get("vesselId");
-
-  useEffect(() => {
-    getVesselList().then((response) => {
-      if (response.success) {
-        const vessel = response.data.find(
-          (v) => v.VesselID === Number(vesselId)
-        );
-        if (vessel) {
-          setVesselInfo({
-            code: vessel.VesselCode,
-            name: vessel.VesselName,
-            type: vessel.VesselType,
-            principalName: vessel.Principal,
-          });
-        }
-      }
-    });
-  }, [vesselId]);
 
   useEffect(() => {
     const vesselId = searchParams.get("vesselId");
@@ -70,14 +36,6 @@ export default function VesselPayslip({
         .then((res) => {
           if (res.success) {
             setPayslipPDFData(res.data);
-            // setPayslipData(
-            //   res.data.vessels.map((crew) => ({
-            //     crewId: crew.payrolls.crewId
-            //     crewCode: crew.payroll.crewCode,
-            //     crewName: crew.payrolls.crewName,
-            //     rank: crew.payrolls,
-            //   }))
-            // );
             setPayslipData(res.data);
             setPayslipCrewData(res.data.vessels[0]?.payrolls || []);
           } else {
@@ -159,10 +117,10 @@ export default function VesselPayslip({
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <div className="text-xl text-gray-500 uppercase">
-                {vesselInfo?.code || "AMAK"}
+                {payslipData?.vessels[0]?.vesselCode || "N/A"}
               </div>
               <h2 className="text-2xl font-semibold">
-                {vesselInfo?.name || "Amakus Island"}
+                {payslipData?.vessels[0]?.vesselName || "N/A"}
               </h2>
               <Badge
                 variant="secondary"
@@ -173,12 +131,12 @@ export default function VesselPayslip({
             <div className="text-right">
               <div className="text-lg flex items-center gap-2">
                 <Ship className="h-4 w-4" />
-                {vesselInfo?.type || "Bulk Jap, Flag"}
+                {payslipData?.vessels[0].vesselType || "Bulk Jap, Flag"}
               </div>
               <Card className="p-1 bg-[#FDFDFD] mt-2">
                 <div className="text-sm text-center">
                   <p className="flex items-center justify-center font-semibold">
-                    {vesselInfo?.principalName || "Iino Marine"}
+                    {payslipData?.vessels[0]?.principal || "Iino Marine"}
                   </p>
                   <div className="text-gray-500 text-xs flex items-center justify-center">
                     Principal Name

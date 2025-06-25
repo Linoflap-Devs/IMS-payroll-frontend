@@ -163,6 +163,10 @@ export interface PayrollSummary {
 export interface Payroll {
   vesselId: number;
   vesselName: string;
+  vesselCode: string;
+  vesselType: string;
+  principal: string;
+  isActive: number;
   summary: PayrollSummary;
   payrolls: CrewPayroll[];
 }
