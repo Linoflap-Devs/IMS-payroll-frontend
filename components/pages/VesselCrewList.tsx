@@ -361,7 +361,7 @@ export default function VesselCrewList() {
               className="gap-2 h-11 px-5"
               onClick={() => setSearchCrewDialogOpen(true)}>
               <Plus className="h-4 w-4" />
-              Add Crew
+              Join Crew
             </Button>
           </div>
         </div>
