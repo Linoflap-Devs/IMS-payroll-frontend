@@ -122,10 +122,12 @@ export function generateHDMFRegisterPDF(
         const colWidths = [
             mainTableWidth * 0.25, // CREW NAME
             mainTableWidth * 0.15, // HDMF Number
-            mainTableWidth * 0.15, // GROSS
-            mainTableWidth * 0.15, // EE
-            mainTableWidth * 0.15, // ER
-            mainTableWidth * 0.15, // Total  
+            mainTableWidth * 0.1, // DOB
+            mainTableWidth * 0.1, // YYYYMMDD
+            mainTableWidth * 0.1, // GROSS
+            mainTableWidth * 0.1, // EE
+            mainTableWidth * 0.1, // ER
+            mainTableWidth * 0.1, // Total  
         ];
 
         // Calculate column positions
@@ -262,11 +264,11 @@ export function generateHDMFRegisterPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
-            const headers = ["CREW NAME", "HDMF No.", "Gross", "EE", "ER", "Total"];
+            const headers = ["CREW NAME", "HDMF No.", "DOB", "YYYYMMDD", "Gross", "EE", "ER", "Total"];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                if (index === 0 || index === 1) {
+                if (index <= 3) {
                     // Left align crew name header (same as data)
                     doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
                 } else {
@@ -332,6 +334,8 @@ export function generateHDMFRegisterPDF(
             const columnKeys: string[] = [
                 "CrewName",
                 "HDMFNumber",
+                "DateOfBirth",
+                "YYYYMMDD",
                 "Gross",
                 "EE",
                 "ER",
@@ -343,7 +347,7 @@ export function generateHDMFRegisterPDF(
                     // Crew Name
                     doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
-                else if (key === 'HDMFNumber'){
+                else if (key === 'HDMFNumber' || key === 'DateOfBirth' || key === 'YYYYMMDD') {
                     doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'Total') {
