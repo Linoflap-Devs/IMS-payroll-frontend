@@ -27,6 +27,8 @@ import {
   getPayrollList,
   getVesselAllotmentRegister,
   getVesselDeductionRegister,
+  getVesselPayslipV2,
+  PayslipData,
   postPayrolls,
 } from "@/src/services/payroll/payroll.api";
 import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
@@ -48,6 +50,7 @@ import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
 import generateDeductionRegister, {
   DeductionRegisterData,
 } from "../PDFs/allotmentDeductionRegister";
+import { generatePayrollPDF } from "../PDFs/payrollStatementPDF";
 
 type Payroll = {
   vesselId: number;
@@ -155,9 +158,14 @@ export default function Allotment() {
     AllotmentRegisterData[]
   >([]);
 
+  // Allotment Deduction Register Data
   const [allotmentDeductionData, setAllotmentDeductionData] = useState<
     DeductionRegisterData[]
   >([]);
+
+  // Allotment Payslip Statement
+  const [allotmentPayslipData, setAllotmentPayslipData] =
+    useState<PayslipData>();
 
   const month = searchParams.get("month");
   const year = searchParams.get("year");
@@ -173,7 +181,7 @@ export default function Allotment() {
         if (response.success && Array.isArray(response.data)) {
           setAllotmentRegisterData(response.data);
         } else {
-          console.error("Unexpected API response format:", response);
+          console.log("Unexpected API response format:", response);
           setAllotmentRegisterData([]);
         }
       })
@@ -193,7 +201,7 @@ export default function Allotment() {
         if (response.success && Array.isArray(response.data)) {
           setAllotmentDeductionData(response.data);
         } else {
-          console.error("Unexpected API response format:", response);
+          console.log("Unexpected API response format:", response);
           setAllotmentRegisterData([]);
         }
       })
@@ -203,7 +211,27 @@ export default function Allotment() {
       });
   }, [vesselId, month, year]);
 
-  console.log("Allotment Deduction Data:", allotmentDeductionData);
+  useEffect(() => {
+    getVesselPayslipV2(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    )
+      .then((response) => {
+        if (response.success) {
+          setAllotmentPayslipData(response.data);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to fetch payslip data.",
+            variant: "destructive",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching payslip data:", error);
+      });
+  }, [vesselId, month, year]);
 
   // Fetch data when filters change
   useEffect(() => {
@@ -267,13 +295,6 @@ export default function Allotment() {
   const totalNet = payrollData.reduce((sum, p) => sum + p.netAllotment, 0);
 
   const handleProcessPayroll = async () => {
-    console.log(
-      "Processing payroll for month:",
-      monthFilter,
-      "year:",
-      yearFilter
-    );
-
     setPayrollLoading(true);
     await postPayrolls(monthFilter, yearFilter)
       .then((response) => {
@@ -473,6 +494,18 @@ export default function Allotment() {
     );
   };
 
+  const handleGeneratePayslipPDF = () => {
+    if (!allotmentPayslipData) {
+      console.error("No payslip data available for PDF generation.");
+      return;
+    }
+    generatePayrollPDF(
+      allotmentPayslipData,
+      undefined,
+      vesselId ? parseInt(vesselId) : undefined
+    );
+  };
+
   return (
     <div className="h-full w-full p-4 pt-2">
       <style jsx global>{`
@@ -615,10 +648,8 @@ export default function Allotment() {
                     onClick={handleGenerateDeductionRegisterPDF}>
                     <label>Deduction Register</label>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="" className="w-full">
-                      Allotment/Payslip
-                    </Link>
+                  <DropdownMenuItem asChild onClick={handleGeneratePayslipPDF}>
+                    <label>Allotment/Payslip</label>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

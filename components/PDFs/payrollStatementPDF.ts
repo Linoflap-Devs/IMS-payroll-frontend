@@ -5,80 +5,81 @@ import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
 import { toast } from "../ui/use-toast";
+import { CrewPayroll, PayslipPeriod, Payroll, PayslipData } from "@/src/services/payroll/payroll.api";
 
 
 // Define types to match your updated data structure
-export interface AllotteeDistribution {
-    name: string;
-    amount: number;
-    currency: string | number;
-}
+// export interface AllotteeDistribution {
+//     name: string;
+//     amount: number;
+//     currency: string | number;
+// }
 
-export interface AllotmentDeduction {
-    name: string;
-    currency: string;
-    amount: number;
-    forex: number;
-    dollar: number;
-}
+// export interface AllotmentDeduction {
+//     name: string;
+//     currency: string;
+//     amount: number;
+//     forex: number;
+//     dollar: number;
+// }
 
-export interface PayrollDetails {
-    basicWage: number;
-    fixedOT: number;
-    guaranteedOT: number;
-    dollarGross: number;
-    pesoGross: number;
-    totalDeduction: number;
-    netWage: number;
-}
+// export interface PayrollDetails {
+//     basicWage: number;
+//     fixedOT: number;
+//     guaranteedOT: number;
+//     dollarGross: number;
+//     pesoGross: number;
+//     totalDeduction: number;
+//     netWage: number;
+// }
 
-export interface CrewPayroll {
-    crewId: number;
-    crewCode: string;
-    crewName: string;
-    rank: string;
-    vesselId: number;
-    vesselName: string;
-    payrollDetails: PayrollDetails;
-    allotmentDeductions: AllotmentDeduction[];
-    allotteeDistribution: AllotteeDistribution[];
-}
+// export interface CrewPayroll {
+//     crewId: number;
+//     crewCode: string;
+//     crewName: string;
+//     rank: string;
+//     vesselId: number;
+//     vesselName: string;
+//     payrollDetails: PayrollDetails;
+//     allotmentDeductions: AllotmentDeduction[];
+//     allotteeDistribution: AllotteeDistribution[];
+// }
 
-export interface PayslipPeriod {
-    month: number;
-    year: number;
-    startDate: string;
-    endDate: string;
-    formattedPeriod: string;
-}
+// export interface PayslipPeriod {
+//     month: number;
+//     year: number;
+//     startDate: string;
+//     endDate: string;
+//     formattedPeriod: string;
+// }
 
-export interface PayrollSummary {
-    crewCount: number;
-    totalBasicWage: number;
-    totalFOT: number;
-    totalGOT: number;
-    totalDollarGross: number;
-    totalPesoGross: number;
-    totalDeductions: number;
-    totalNetAllotment: number;
-}
+// export interface PayrollSummary {
+//     crewCount: number;
+//     totalBasicWage: number;
+//     totalFOT: number;
+//     totalGOT: number;
+//     totalDollarGross: number;
+//     totalPesoGross: number;
+//     totalDeductions: number;
+//     totalNetAllotment: number;
+// }
 
-export interface Payroll {
-    vesselId: number;
-    vesselName: string;
-    vesselCode: string;
-    vesselType: string;
-    principal: string;
-    isActive: number;
-    summary: PayrollSummary;
-    payrolls: CrewPayroll[];
-}
+// export interface Payroll {
+//     vesselId: number;
+//     vesselName: string;
+//     vesselCode: string;
+//     vesselType: string;
+//     principal: string;
+//     isActive: number;
+//     summary: PayrollSummary;
+//     payrolls: CrewPayroll[];
+// }
 
-export interface PayslipData {
-    period: PayslipPeriod;
-    overallSummary: PayrollSummary;
-    vessels: Payroll[];
-}
+// export interface PayslipData {
+//     period: PayslipPeriod;
+//     overallSummary: PayrollSummary;
+//     vessels: Payroll[];
+// }
 
 // Format currency with commas and 2 decimal places
 function formatCurrency(amount: number): string {
