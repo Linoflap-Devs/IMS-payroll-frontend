@@ -5,6 +5,7 @@ import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
 import { formatCurrency, getMonthName, truncateText } from "@/lib/utils";
+import { DeductionResponse, SSSDeductionCrew } from "@/src/services/deduction/governmentReports.api";
 
 interface CrewMember {
     CrewID: number;
@@ -58,8 +59,7 @@ function extractPeriod(message: string): { month: string, year: number } {
 }
 
 export function generateSSSRegisterPDF(
-    data: SSSRegisterData,
-    exchangeRate: number = 57.53,
+    data: DeductionResponse<SSSDeductionCrew>,
     dateGenerated: string = "04/14/25 9:55 AM",
     // currentUser: string = 'lanceballicud'
 ): boolean {
@@ -124,15 +124,15 @@ export function generateSSSRegisterPDF(
 
         // Define columns for the main table
         const colWidths = [
-            mainTableWidth * 0.2625, // CREW NAME
-            mainTableWidth * 0.2125, // SS Number
-            mainTableWidth * 0.0875, // GROSS
-            mainTableWidth * 0.0875, // EESS
-            mainTableWidth * 0.0875, // ERSS 
-            mainTableWidth * 0.0875, // EEMF 
-            mainTableWidth * 0.0875, // ERMF 
-            mainTableWidth * 0.0875, // EC
-            mainTableWidth * 0.0875, // Total 
+            mainTableWidth * 0.2, // CREW NAME
+            mainTableWidth * 0.1, // SS Number
+            mainTableWidth * 0.1, // GROSS
+            mainTableWidth * 0.1, // EESS
+            mainTableWidth * 0.1, // ERSS 
+            mainTableWidth * 0.1, // EEMF 
+            mainTableWidth * 0.1, // ERMF 
+            mainTableWidth * 0.1, // EC
+            mainTableWidth * 0.1, // Total 
             
         ];
 
@@ -225,7 +225,7 @@ export function generateSSSRegisterPDF(
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
         doc.text(
-            `EXCHANGE RATE: USD > PHP ${exchangeRate}`,
+            `EXCHANGE RATE: USD > PHP ${data.data[0].ExchangeRate}`,
             margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
             vesselInfoY + 6,
             { align: 'right' }
@@ -404,150 +404,11 @@ export function generateSSSRegisterPDF(
     }
 }
 
-// Real data from the user's JSON
-const realData: SSSRegisterData = {
-	"success": true,
-	"message": "List of SSS deduction register for Vessel ID 9 for 6/2025",
-	"data": [
-		{
-			"VesselID": 9,
-			"VesselName": "CHEMROAD ECHO",
-			"VesselCode": "AMAK",
-			"VesselType": "Bulk-Jap. Flag",
-			"Principal": "IINO MARINE",
-			"IsActive": 1,
-			"Crew": [
-				{
-					"CrewID": 194,
-					"CrewName": "RODILLO LAGANAS NIALLA",
-					"SSNumber": "33-3455369-9",
-					"Rank": "BSN",
-					"Salary": 620,
-					"Allotment": 40292.65,
-					"Gross": 62386.69,
-					"RegularSS": 20000,
-					"MutualFund": 1000,
-					"EESS": 0,
-					"ERSS": 0,
-					"EEMF": 0,
-					"ERMF": 0,
-					"EC": 0
-				},
-				{
-					"CrewID": 1437,
-					"CrewName": "JEROLD ONG ESPLANADA",
-					"SSNumber": "33-7972908-0",
-					"Rank": "3RD OFFICER",
-					"Salary": 860,
-					"Allotment": 64079.88,
-					"Gross": 86520,
-					"RegularSS": 20000,
-					"MutualFund": 1000,
-					"EESS": 0,
-					"ERSS": 0,
-					"EEMF": 0,
-					"ERMF": 0,
-					"EC": 0
-				},
-				{
-					"CrewID": 1674,
-					"CrewName": "CRIS JOHN PACINIO GARCIA",
-					"SSNumber": "34-0164480-0",
-					"Rank": "C/CK",
-					"Salary": 620,
-					"Allotment": 40092.65,
-					"Gross": 62386.69,
-					"RegularSS": 20000,
-					"MutualFund": 1000,
-					"EESS": 0,
-					"ERSS": 0,
-					"EEMF": 0,
-					"ERMF": 0,
-					"EC": 0
-				},
-				{
-					"CrewID": 2288,
-					"CrewName": "GERALD GARCIA DESCUTIDO",
-					"SSNumber": "07-2293659-1",
-					"Rank": "MMAN",
-					"Salary": 415.2,
-					"Allotment": 19961.6,
-					"Gross": 41760.32,
-					"RegularSS": 20000,
-					"MutualFund": 1000,
-					"EESS": 0,
-					"ERSS": 0,
-					"EEMF": 0,
-					"ERMF": 0,
-					"EC": 0
-				},
-				{
-					"CrewID": 403,
-					"CrewName": "ALBERT TEODOSIO ARCILLA",
-					"SSNumber": "03-9158526-3",
-					"Rank": "OLR1",
-					"Salary": 620,
-					"Allotment": 40292.65,
-					"Gross": 62386.69,
-					"RegularSS": 20000,
-					"MutualFund": 1000,
-					"EESS": 0,
-					"ERSS": 0,
-					"EEMF": 0,
-					"ERMF": 0,
-					"EC": 0
-				},
-				{
-					"CrewID": 892,
-					"CrewName": "JEFFREY MATURAN MIRANDE",
-					"SSNumber": "07-1748847-8",
-					"Rank": "2ND ENGINEER",
-					"Salary": 968,
-					"Allotment": 74391.18,
-					"Gross": 97363.84,
-					"RegularSS": 20000,
-					"MutualFund": 1000,
-					"EESS": 0,
-					"ERSS": 0,
-					"EEMF": 0,
-					"ERMF": 0,
-					"EC": 0
-				},
-				{
-					"CrewID": 1663,
-					"CrewName": "JEREMIAS TAMPEPE SALGADO",
-					"SSNumber": "33-9346129-8",
-					"Rank": "A/B",
-					"Salary": 557.6,
-					"Allotment": 33807.04,
-					"Gross": 56111.1,
-					"RegularSS": 20000,
-					"MutualFund": 1000,
-					"EESS": 0,
-					"ERSS": 0,
-					"EEMF": 0,
-					"ERMF": 0,
-					"EC": 0
-				}
-			]
-		}
-	]
-}
-
-// Function to generate the PDF with real data
-// export function generateSSSRegister(data: SSSRegisterData = realData, exchangeRate: number = 57.53, dateGenerated: string = "04/14/25 9:55 AM", currentUser: string = 'lanceballicud'): boolean {
-//     return generateSSSRegisterPDF(
-//         data,
-//         exchangeRate, 
-//         dateGenerated
-//     );
-// }
-
-export function generateSSSRegister(): boolean {
+//Function to generate the PDF with real data
+export function generateSSSRegister(data: DeductionResponse<SSSDeductionCrew>, dateGenerated: string = "04/14/25 9:55 AM"): boolean {
     return generateSSSRegisterPDF(
-       realData,
-       57.76,
-       new Date().toString()
+        data,
+        dateGenerated
     );
 }
 
