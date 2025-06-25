@@ -1291,13 +1291,9 @@ export default function AddCrew() {
                             <div className="relative">
                               <Input
                                 type="date"
-                                placeholder="Pick a date"
                                 value={formData.passportIssueDate}
                                 onChange={(e) =>
-                                  handleInputChange(
-                                    "passportIssueDate",
-                                    e.target.value
-                                  )
+                                  handleInputChange("passportIssueDate", e.target.value)
                                 }
                                 className={`${
                                   submitted && !formData.passportIssueDate
@@ -1311,8 +1307,17 @@ export default function AddCrew() {
                                   Please enter a valid Passport Issue Date.
                                 </p>
                               )}
+                              {formData.passportIssueDate === formData.passportExpiryDate &&
+                                formData.passportIssueDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Issue Date and Expiration Date cannot be the same.
+                                  </p>
+                                )}
                             </div>
                           </div>
+
+
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Expiration Date
@@ -1320,13 +1325,9 @@ export default function AddCrew() {
                             <div className="relative">
                               <Input
                                 type="date"
-                                placeholder="Pick a date"
                                 value={formData.passportExpiryDate}
                                 onChange={(e) =>
-                                  handleInputChange(
-                                    "passportExpiryDate",
-                                    e.target.value
-                                  )
+                                  handleInputChange("passportExpiryDate", e.target.value)
                                 }
                                 className={`${
                                   submitted && !formData.passportExpiryDate
@@ -1340,8 +1341,16 @@ export default function AddCrew() {
                                   Please enter a valid Passport Expiration Date.
                                 </p>
                               )}
+                              {formData.passportIssueDate === formData.passportExpiryDate &&
+                                formData.passportIssueDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Issue Date and Expiration Date cannot be the same.
+                                  </p>
+                                )}
                             </div>
                           </div>
+
                           <div className="md:col-span-2">
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book
@@ -1395,6 +1404,13 @@ export default function AddCrew() {
                                   Please enter a valid Seamans Book Issue Date.
                                 </p>
                               )}
+                              {formData.seamansBookIssueDate === formData.seamansBookExpiryDate &&
+                                formData.seamansBookIssueDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Issue Date and Expiration Date cannot be the same.
+                                  </p>
+                              )}
                             </div>
                           </div>
                           <div>
@@ -1421,9 +1437,15 @@ export default function AddCrew() {
                               {submitted && !formData.seamansBookExpiryDate && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
-                                  Please enter a valid Seamans Book Expiration
-                                  Date.
+                                  Please enter a valid Seamans Book Expiration Date.
                                 </p>
+                              )}
+                              {formData.seamansBookIssueDate === formData.seamansBookExpiryDate &&
+                                formData.seamansBookIssueDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Issue Date and Expiration Date cannot be the same.
+                                  </p>
                               )}
                             </div>
                           </div>
