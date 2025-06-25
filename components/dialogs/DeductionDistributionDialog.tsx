@@ -34,28 +34,27 @@ export function DeductionDistributionDialog({
       header: "Deduction Name",
     },
     {
-      accessorKey: "Amount",
-      header: "Amount",
+      accessorKey: "Currency",
+      header: "Currency",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Amount"))}</div>
+        <div className="">
+          {row.getValue<number>("Currency") === 1 ? "USD" : "PHP"}
+        </div>
       ),
     },
+
     {
       accessorKey: "ExchangeRate",
       header: "Exchange Rate",
       cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("ExchangeRate"))}
-        </div>
+        <div>{formatNumber(row.getValue("ExchangeRate"))}</div>
       ),
     },
     {
-      accessorKey: "Currency",
-      header: "Currency",
+      accessorKey: "Amount",
+      header: "Amount",
       cell: ({ row }) => (
-        <div className="text-right">
-          {row.getValue<number>("Currency") === 1 ? "USD" : "PHP"}
-        </div>
+        <div className="">{formatNumber(row.getValue("Amount"))}</div>
       ),
     },
   ];
