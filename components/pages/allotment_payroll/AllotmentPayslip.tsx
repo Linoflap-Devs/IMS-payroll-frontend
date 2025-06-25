@@ -18,12 +18,13 @@ import {
 } from "@/src/services/payroll/payroll.api";
 import { useSearchParams } from "next/navigation";
 import { generatePayrollPDF } from "@/components/PDFs/payrollStatementPDF";
+import { toast } from "@/components/ui/use-toast";
 
 export default function VesselPayslip() {
   const [searchTerm, setSearchTerm] = useState("");
   const [payslipData, setPayslipData] = useState<PayslipData>();
   const searchParams = useSearchParams();
-  const [PayslipPDFData, setPayslipPDFData] = useState<any>({});
+  const [PayslipPDFData, setPayslipPDFData] = useState<PayslipData>();
   const [payslipCrewData, setPayslipCrewData] = useState<CrewPayroll[]>([]);
 
   useEffect(() => {
@@ -86,7 +87,15 @@ export default function VesselPayslip() {
   );
 
   const generatePayrollPDFs = () => {
-    console.log("Generating PDF for all crew:", PayslipPDFData);
+    if (!PayslipPDFData) {
+      console.error("No payslip data available for PDF generation.");
+      toast({
+        title: "Error",
+        description: "No payslip data available for PDF generation.",
+        variant: "destructive",
+      });
+      return;
+    }
     generatePayrollPDF(PayslipPDFData);
   };
 

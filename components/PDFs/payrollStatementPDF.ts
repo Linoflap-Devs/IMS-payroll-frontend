@@ -6,8 +6,15 @@ import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
 import { toast } from "../ui/use-toast";
 
-// Define types to match your data structure
-interface AllotmentDeduction {
+
+// Define types to match your updated data structure
+export interface AllotteeDistribution {
+    name: string;
+    amount: number;
+    currency: string | number;
+}
+
+export interface AllotmentDeduction {
     name: string;
     currency: string;
     amount: number;
@@ -15,13 +22,7 @@ interface AllotmentDeduction {
     dollar: number;
 }
 
-interface AllotteeDistribution {
-    name: string;
-    amount: number;
-    currency: string | number;
-}
-
-interface PayrollDetail {
+export interface PayrollDetails {
     basicWage: number;
     fixedOT: number;
     guaranteedOT: number;
@@ -31,36 +32,52 @@ interface PayrollDetail {
     netWage: number;
 }
 
-interface CrewPayroll {
+export interface CrewPayroll {
     crewId: number;
     crewCode: string;
     crewName: string;
     rank: string;
-    payrollDetails: PayrollDetail;
+    vesselId: number;
+    vesselName: string;
+    payrollDetails: PayrollDetails;
     allotmentDeductions: AllotmentDeduction[];
     allotteeDistribution: AllotteeDistribution[];
 }
 
-interface PayrollData {
+export interface PayslipPeriod {
+    month: number;
+    year: number;
+    startDate: string;
+    endDate: string;
+    formattedPeriod: string;
+}
+
+export interface PayrollSummary {
+    crewCount: number;
+    totalBasicWage: number;
+    totalFOT: number;
+    totalGOT: number;
+    totalDollarGross: number;
+    totalPesoGross: number;
+    totalDeductions: number;
+    totalNetAllotment: number;
+}
+
+export interface Payroll {
+    vesselId: number;
     vesselName: string;
-    period: {
-        month: number;
-        year: number;
-        startDate: string;
-        endDate: string;
-        formattedPeriod: string;
-    };
-    summary: {
-        crewCount: number;
-        totalBasicWage: number;
-        totalFOT: number;
-        totalGOT: number;
-        totalDollarGross: number;
-        totalPesoGross: number;
-        totalDeductions: number;
-        totalNetAllotment: number;
-    };
+    vesselCode: string;
+    vesselType: string;
+    principal: string;
+    isActive: number;
+    summary: PayrollSummary;
     payrolls: CrewPayroll[];
+}
+
+export interface PayslipData {
+    period: PayslipPeriod;
+    overallSummary: PayrollSummary;
+    vessels: Payroll[];
 }
 
 // Format currency with commas and 2 decimal places
@@ -93,24 +110,52 @@ function formatDate(date: Date): string {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-// Main function that generates a single PDF with all crew members
-export function generatePayrollPDF(payrollData: PayrollData, currentUser: string = 'admin') {
+/**
+ * Main function that generates a single PDF with all crew members from all vessels
+ * @param payslipData The payslip data containing all vessels and crew members
+ * @param currentUser Current user login name
+ * @param vesselFilter Optional vessel ID to filter for a specific vessel only
+ * @returns boolean indicating success
+ */
+export function generatePayrollPDF(
+    payslipData: PayslipData,
+    currentUser: string = 'admin',
+    vesselFilter?: number
+): boolean {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
         return false;
     }
 
-    if (!payrollData || !payrollData.payrolls || !payrollData.payrolls.length) {
+    if (!payslipData || !payslipData.vessels || !payslipData.vessels.length) {
         toast({
             title: 'Error',
             description: 'No payroll data available to generate PDF.',
             variant: 'destructive'
-        })
+        });
         return false;
     }
 
     try {
-        console.log(`Generating PDF with ${payrollData.payrolls.length} crew members`);
+        // Filter vessels if vesselFilter is provided
+        const vesselsToProcess = vesselFilter
+            ? payslipData.vessels.filter(v => v.vesselId === vesselFilter)
+            : payslipData.vessels;
+
+        if (vesselsToProcess.length === 0) {
+            toast({
+                title: 'Error',
+                description: 'No vessel found with the specified ID.',
+                variant: 'destructive'
+            });
+            return false;
+        }
+
+        // Count total crew members across all vessels for logging
+        const totalCrewCount = vesselsToProcess.reduce((total, vessel) =>
+            total + (vessel.payrolls ? vessel.payrolls.length : 0), 0);
+
+        console.log(`Generating PDF with ${totalCrewCount} crew members from ${vesselsToProcess.length} vessels`);
 
         // Create a single PDF document for all crew members
         const doc = new jsPDF({
@@ -122,38 +167,90 @@ export function generatePayrollPDF(payrollData: PayrollData, currentUser: string
         addFont(doc);
 
         // Set document properties for the combined PDF
+        const pdfTitle = vesselsToProcess.length === 1
+            ? `Payroll Statement - ${vesselsToProcess[0].vesselName} - ${payslipData.period.formattedPeriod}`
+            : `Payroll Statement - Multiple Vessels - ${payslipData.period.formattedPeriod}`;
+
         doc.setProperties({
-            title: `Payroll Statement - ${payrollData.vesselName} - ${payrollData.period.formattedPeriod}`,
-            subject: `Payroll Statements for ${payrollData.vesselName}`,
+            title: pdfTitle,
+            subject: `Payroll Statements for ${vesselsToProcess.length} Vessels`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
 
-        // Generate each crew member's page in the same PDF
-        payrollData.payrolls.forEach((crew, index) => {
-            // Add a new page for each crew member after the first one
-            if (index > 0) {
-                doc.addPage();
+        // Track if we've added any pages yet
+        let firstPage = true;
+
+        // Process each vessel
+        vesselsToProcess.forEach((vessel) => {
+            // Skip vessels with no payroll data
+            if (!vessel.payrolls || vessel.payrolls.length === 0) {
+                return;
             }
 
-            // Generate the page for this crew member
-            generateCrewPayrollPage(doc, payrollData, crew, currentUser);
+            // Generate each crew member's page in the same PDF
+            vessel.payrolls.forEach((crew) => {
+                // Add a new page for each crew member after the first one
+                if (!firstPage) {
+                    doc.addPage();
+                } else {
+                    firstPage = false;
+                }
+
+                // Generate the page for this crew member
+                generateCrewPayrollPage(doc, payslipData.period, vessel, crew, currentUser);
+            });
         });
 
+        // If no pages were generated, return false
+        if (firstPage) {
+            toast({
+                title: 'Error',
+                description: 'No crew members found in the selected vessel(s).',
+                variant: 'destructive'
+            });
+            return false;
+        }
+
+        // Generate filename based on selected vessels
+        let fileName: string;
+        if (vesselsToProcess.length === 1) {
+            fileName = `payroll-${vesselsToProcess[0].vesselName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${payslipData.period.formattedPeriod.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+        } else {
+            fileName = `payroll-multiple-vessels-${payslipData.period.formattedPeriod.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+        }
+
         // Save the combined PDF
-        const fileName = `payroll-${payrollData.vesselName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${payrollData.period.formattedPeriod.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
         doc.save(fileName);
 
-        console.log(`Successfully generated combined PDF with ${payrollData.payrolls.length} crew members`);
+        console.log(`Successfully generated combined PDF with ${totalCrewCount} crew members from ${vesselsToProcess.length} vessels`);
         return true;
     } catch (error) {
         console.error("Error in PDF generation process:", error);
+        toast({
+            title: 'Error',
+            description: 'Failed to generate PDF. Please try again.',
+            variant: 'destructive'
+        });
         return false;
     }
 }
 
-// Generate a single page for a crew member
-function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData: CrewPayroll, currentUser: string) {
+/**
+ * Generate a single page for a crew member
+ * @param doc The jsPDF document
+ * @param period The period information
+ * @param vessel The vessel information
+ * @param crewData The crew member's payroll data
+ * @param currentUser Current user login name
+ */
+function generateCrewPayrollPage(
+    doc: jsPDF,
+    period: PayslipPeriod,
+    vessel: Payroll,
+    crewData: CrewPayroll,
+    currentUser: string
+) {
     // Define page dimensions
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
@@ -161,19 +258,11 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     let y = margin;
     doc.setFont('NotoSans', 'normal');
 
-
-
     // Company header section
     doc.rect(margin, y, pageWidth - margin * 2, 30);
 
-    // Logo placeholder (replace with your actual logo when available)
-    // doc.setDrawColor(200, 200, 200);
-    // doc.setFillColor(240, 240, 240);
-    // doc.rect(margin + 5, y + 5, 20, 20);
-    // doc.setFontSize(8);
-    // doc.setTextColor(100);
+    // Logo
     doc.addImage(logoBase64Image, 'PNG', margin, y, 30, 30);
-    // doc.text("LOGO", margin + 15, y + 15, { align: 'center' });
 
     // Reset colors
     doc.setDrawColor(0);
@@ -189,7 +278,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     doc.setFontSize(10);
     doc.setFont('NotoSans', 'normal');
     doc.rect(pageWidth - 60, y, 50, 15);
-    doc.text(payrollData.period.formattedPeriod, pageWidth - 55, y + 9);
+    doc.text(period.formattedPeriod, pageWidth - 55, y + 9);
 
     // Add payroll statement box
     doc.rect(pageWidth - 60, y + 15, 50, 15);
@@ -220,7 +309,7 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(11);
     doc.setFont('NotoSans', 'bold');
-    doc.text(payrollData.vesselName, pageWidth - 12, y + 12, { align: 'right' });
+    doc.text(vessel.vesselName, pageWidth - 12, y + 12, { align: 'right' });
 
     // Horizontal gray line
     y += 20;
@@ -297,20 +386,28 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     doc.setFont('NotoSans', 'normal');
     doc.setFontSize(10);
 
-    crewData.allotmentDeductions.forEach((deduction, index) => {
-        doc.text(deduction.name, margin + 2, y + index * 8);
-        doc.text(deduction.currency, margin + colWidth * 1.8, y + index * 8);
-        doc.text(formatCurrency(deduction.amount), margin + colWidth * 2.8, y + index * 8);
+    if (crewData.allotmentDeductions && crewData.allotmentDeductions.length > 0) {
+        crewData.allotmentDeductions.forEach((deduction, index) => {
+            doc.text(deduction.name, margin + 2, y + index * 8);
+            doc.text(deduction.currency, margin + colWidth * 1.8, y + index * 8);
+            doc.text(formatCurrency(deduction.amount), margin + colWidth * 2.8, y + index * 8);
 
-        // Format forex with PHP instead of peso sign
-        const forexText = deduction.forex ? "PHP " + formatCurrency(deduction.forex) : "";
-        doc.text(forexText, margin + colWidth * 3.7, y + index * 8);
+            // Format forex with PHP instead of peso sign
+            const forexText = deduction.forex ? "PHP " + formatCurrency(deduction.forex) : "";
+            doc.text(forexText, margin + colWidth * 3.7, y + index * 8);
 
-        doc.text(formatCurrency(deduction.dollar), margin + colWidth * 4.5, y + index * 8);
-    });
+            doc.text(formatCurrency(deduction.dollar), margin + colWidth * 4.5, y + index * 8);
+        });
 
-    // Horizontal line after deductions
-    y += crewData.allotmentDeductions.length * 8 + 5;
+        // Horizontal line after deductions
+        y += crewData.allotmentDeductions.length * 8 + 5;
+    } else {
+        // No deductions - show a message
+        y += 8;
+        doc.text("No deductions found", margin + 2, y);
+        y += 13; // Move down a bit
+    }
+
     doc.setLineWidth(0.1);
     doc.line(margin, y, pageWidth - margin, y);
 
@@ -342,19 +439,24 @@ function generateCrewPayrollPage(doc: jsPDF, payrollData: PayrollData, crewData:
     doc.setFont('NotoSans', 'normal');
     doc.setFontSize(10);
 
-    crewData.allotteeDistribution.forEach((allottee, index) => {
-        doc.text(allottee.name, margin + 2, y + index * 8);
+    if (crewData.allotteeDistribution && crewData.allotteeDistribution.length > 0) {
+        crewData.allotteeDistribution.forEach((allottee, index) => {
+            doc.text(allottee.name, margin + 2, y + index * 8);
 
-        // Format currency based on type, but use text notation instead of symbols
-        let currencyType = 'PHP';
-        if (typeof allottee.currency === 'string' && allottee.currency === 'USD') {
-            currencyType = 'USD';
-        } else if (allottee.currency === 1) {
-            currencyType = 'USD';
-        }
+            // Format currency based on type, but use text notation instead of symbols
+            let currencyType = 'PHP';
+            if (typeof allottee.currency === 'string' && allottee.currency === 'USD') {
+                currencyType = 'USD';
+            } else if (allottee.currency === 1) {
+                currencyType = 'USD';
+            }
 
-        doc.text(formatWithCurrency(allottee.amount, currencyType), pageWidth - 12, y + index * 8, { align: 'right' });
-    });
+            doc.text(formatWithCurrency(allottee.amount, currencyType), pageWidth - 12, y + index * 8, { align: 'right' });
+        });
+    } else {
+        // No allottees - show a message
+        doc.text("No allottee distributions found", margin + 2, y);
+    }
 
     // Footer
     y = pageHeight - 20;
