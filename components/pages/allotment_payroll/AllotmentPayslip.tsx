@@ -11,7 +11,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "../../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
-import { getVesselPayslip } from "@/src/services/payroll/payroll.api";
+import { getVesselPayslipV2 } from "@/src/services/payroll/payroll.api";
 import { useSearchParams } from "next/navigation";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { generatePayrollPDF } from "@/components/PDFs/payrollStatementPDF";
@@ -68,16 +68,16 @@ export default function VesselPayslip({
     const year = searchParams.get("year");
 
     if (vesselId && month && year) {
-      getVesselPayslip(vesselId, parseInt(month), parseInt(year))
+      getVesselPayslipV2(vesselId, parseInt(month), parseInt(year))
         .then((res) => {
           if (res.success) {
             setPayslipPDFData(res.data);
             setPayslipData(
-              res.data.payrolls.map((crew) => ({
-                crewId: crew.crewId,
-                crewCode: crew.crewCode,
-                crewName: crew.crewName,
-                rank: crew.rank,
+              res.data.vessels.map((crew) => ({
+                crewId: crew.payrolls[0].crewId,
+                crewCode: crew.payrolls[0].crewCode,
+                crewName: crew.payrolls[0].crewName,
+                rank: crew.payrolls[0].rank,
               }))
             );
           } else {
@@ -88,7 +88,7 @@ export default function VesselPayslip({
     }
   }, [searchParams]);
 
-  console.log("Payslip Data:", PayslipPDFData);
+  console.log("Payslip Data:", payslipData);
   const columns: ColumnDef<CrewPayroll>[] = [
     {
       accessorKey: "crewCode",
