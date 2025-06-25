@@ -43,6 +43,7 @@ export default function DeductionRegisterComponent() {
     useState<DeductionRegisterCrew | null>(null);
   const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
 
+  const forex = searchParams.get("forex");
   useEffect(() => {
     const fetchAllotmentData = async () => {
       if (!vesselId || !month || !year) return;
@@ -152,6 +153,15 @@ export default function DeductionRegisterComponent() {
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
+  const handlePrint = () => {
+    generateDeductionRegister(
+      allotmentData,
+      Number(month),
+      Number(year),
+      Number(forex)
+    );
+  };
+
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">
       <style jsx global>{`
@@ -242,7 +252,7 @@ export default function DeductionRegisterComponent() {
             <Button
               className="gap-2 h-11 px-5"
               disabled={isLoading}
-              onClick={generateDeductionRegister}>
+              onClick={handlePrint}>
               <AiOutlinePrinter className="h-4 w-4" />
               Print Register
             </Button>

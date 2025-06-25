@@ -26,6 +26,7 @@ import {
   AllotmentRegisterData,
   getPayrollList,
   getVesselAllotmentRegister,
+  getVesselDeductionRegister,
   postPayrolls,
 } from "@/src/services/payroll/payroll.api";
 import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
@@ -44,6 +45,9 @@ import {
 } from "../ui/alert-dialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
+import generateDeductionRegister, {
+  DeductionRegisterData,
+} from "../PDFs/allotmentDeductionRegister";
 
 type Payroll = {
   vesselId: number;
@@ -151,6 +155,10 @@ export default function Allotment() {
     AllotmentRegisterData[]
   >([]);
 
+  const [allotmentDeductionData, setAllotmentDeductionData] = useState<
+    DeductionRegisterData[]
+  >([]);
+
   const month = searchParams.get("month");
   const year = searchParams.get("year");
   const vesselId = searchParams.get("vesselId");
@@ -175,7 +183,27 @@ export default function Allotment() {
       });
   }, [vesselId, month, year]);
 
-  console.log("Allotment Register Data:", allotmentRegisterData);
+  useEffect(() => {
+    getVesselDeductionRegister(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    )
+      .then((response) => {
+        if (response.success && Array.isArray(response.data)) {
+          setAllotmentDeductionData(response.data);
+        } else {
+          console.error("Unexpected API response format:", response);
+          setAllotmentRegisterData([]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching deduction register data:", error);
+        setAllotmentRegisterData([]);
+      });
+  }, [vesselId, month, year]);
+
+  console.log("Allotment Deduction Data:", allotmentDeductionData);
 
   // Fetch data when filters change
   useEffect(() => {
@@ -405,7 +433,7 @@ export default function Allotment() {
     p.vesselName.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
-  const handleGeneratePDF = () => {
+  const handleGenerateAllotmentRegisterPDF = () => {
     if (allotmentRegisterData && allotmentRegisterData.length > 0) {
       // Get month name from month number
       const monthNames = [
@@ -434,6 +462,15 @@ export default function Allotment() {
     } else {
       console.error("No allotment register data available");
     }
+  };
+
+  const handleGenerateDeductionRegisterPDF = () => {
+    generateDeductionRegister(
+      allotmentDeductionData,
+      Number(month),
+      Number(year),
+      Number(forexRate)
+    );
   };
 
   return (
@@ -568,13 +605,15 @@ export default function Allotment() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="text-xs sm:text-sm w-[200px] min-w-[100%]">
-                  <DropdownMenuItem asChild onClick={handleGeneratePDF}>
+                  <DropdownMenuItem
+                    asChild
+                    onClick={handleGenerateAllotmentRegisterPDF}>
                     <label>Allotment Register</label>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="" className="w-full">
-                      Deduction Register
-                    </Link>
+                  <DropdownMenuItem
+                    asChild
+                    onClick={handleGenerateDeductionRegisterPDF}>
+                    <label>Deduction Register</label>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="" className="w-full">
