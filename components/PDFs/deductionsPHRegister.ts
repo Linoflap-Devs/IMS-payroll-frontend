@@ -5,6 +5,7 @@ import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
 import { formatCurrency, getMonthName, truncateText } from "@/lib/utils";
+import { DeductionResponse, PhilhealthDeductionCrew } from "@/src/services/deduction/governmentReports.api";
 
 interface CrewMember {
     CrewID: number;
@@ -55,10 +56,8 @@ function extractPeriod(message: string): { month: string, year: number } {
 }
 
 export function generatePHRegisterPDF(
-    data: PHRegisterData,
-    exchangeRate: number = 57.53,
+    data: DeductionResponse<PhilhealthDeductionCrew>,
     dateGenerated: string = "04/14/25 9:55 AM",
-    // currentUser: string = 'lanceballicud'
 ): boolean {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
@@ -218,7 +217,7 @@ export function generatePHRegisterPDF(
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
         doc.text(
-            `EXCHANGE RATE: USD > PHP ${exchangeRate}`,
+            `EXCHANGE RATE: USD > PHP ${data.data[0].ExchangeRate}`,
             margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
             vesselInfoY + 6,
             { align: 'right' }
@@ -393,131 +392,13 @@ export function generatePHRegisterPDF(
         return false;
     }
 }
-
-// Real data from the user's JSON
-const realData: PHRegisterData = {
-	"success": true,
-	"message": "List of Philhealth deduction register for Vessel ID 9 for 6/2024",
-	"data": [
-		{
-			"VesselID": 9,
-			"VesselName": "CHEMROAD ECHO",
-			"VesselCode": "AMAK",
-			"VesselType": "Bulk-Jap. Flag",
-			"Principal": "IINO MARINE",
-			"IsActive": 1,
-			"Crew": [
-				{
-					"CrewID": 194,
-					"CrewName": "RODILLO LAGANAS NIALLA",
-					"Rank": "BSN",
-					"PHNumber": "N/A",
-					"Salary": 620,
-					"Allotment": 40541.9,
-					"Gross": 62538.11,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 1437,
-					"CrewName": "JEROLD ONG ESPLANADA",
-					"Rank": "3RD OFFICER",
-					"PHNumber": "N/A",
-					"Salary": 860,
-					"Allotment": 64386.87,
-					"Gross": 86730,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 1674,
-					"CrewName": "CRIS JOHN PACINIO GARCIA",
-					"Rank": "C/CK",
-					"PHNumber": "N/A",
-					"Salary": 620,
-					"Allotment": 40341.9,
-					"Gross": 62538.11,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 2288,
-					"CrewName": "GERALD GARCIA DESCUTIDO",
-					"Rank": "MMAN",
-					"PHNumber": "N/A",
-					"Salary": 415.2,
-					"Allotment": 20161.51,
-					"Gross": 41861.68,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 403,
-					"CrewName": "ALBERT TEODOSIO ARCILLA",
-					"Rank": "OLR1",
-					"PHNumber": "N/A",
-					"Salary": 620,
-					"Allotment": 40541.9,
-					"Gross": 62538.11,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 892,
-					"CrewName": "JEFFREY MATURAN MIRANDE",
-					"Rank": "2ND ENGINEER",
-					"PHNumber": "N/A",
-					"Salary": 968,
-					"Allotment": 74722.72,
-					"Gross": 97600.16,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 1663,
-					"CrewName": "JEREMIAS TAMPEPE SALGADO",
-					"Rank": "A/B",
-					"PHNumber": "N/A",
-					"Salary": 557.6,
-					"Allotment": 34041.29,
-					"Gross": 56247.3,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				}
-			]
-		}
-	]
-}
 	
 
-// Function to generate the PDF with real data
-// export function generatePHRegister(data: PHRegisterData = realData, exchangeRate: number = 57.53, dateGenerated: string = "04/14/25 9:55 AM", currentUser: string = 'lanceballicud'): boolean {
-//     return generatePHRegisterPDF(
-//         data,
-//         exchangeRate, 
-//         dateGenerated
-//     );
-// }
-
-export function generatePHRegister(): boolean {
+//Function to generate the PDF with real data
+export function generatePHRegister(data: DeductionResponse<PhilhealthDeductionCrew>, dateGenerated: string): boolean {
     return generatePHRegisterPDF(
-        realData,
-        57.58, 
-        new Date().toString()
+        data,
+        dateGenerated
     );
 }
 

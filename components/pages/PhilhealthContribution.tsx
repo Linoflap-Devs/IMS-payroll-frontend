@@ -15,9 +15,12 @@ import { useDebounce } from "@/lib/useDebounce";
 import { Card } from "@/components/ui/card";
 import {
   DeductionItem,
+  DeductionResponse,
   PhilhealthDeductionCrew,
   getPhilhealthDeductionList,
 } from "@/src/services/deduction/governmentReports.api";
+import generatePHRegister from "../PDFs/deductionsPHRegister";
+import { format } from "date-fns";
 
 export default function PhilhealthContribution() {
   const searchParams = useSearchParams();
@@ -29,6 +32,7 @@ export default function PhilhealthContribution() {
   const [SSSDeductionData, setSSSDeductionData] = useState<
     PhilhealthDeductionCrew[]
   >([]);
+  const [PHDeductionResponse, setPHDeductionResponse] = useState<DeductionResponse<PhilhealthDeductionCrew>>({} as DeductionResponse<PhilhealthDeductionCrew>);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -52,6 +56,7 @@ export default function PhilhealthContribution() {
           if (vesselData) {
             setVesselInfo(vesselData); // vessel-level info
             setSSSDeductionData(vesselData.Crew || []); // crew-level info
+            setPHDeductionResponse(response)
           } else {
             setVesselInfo(null);
             setSSSDeductionData([]);
@@ -158,11 +163,14 @@ export default function PhilhealthContribution() {
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
-  //   const handlePrint = () => {
-  //     if (!vesselInfo || !vesselInfo.Crew || vesselInfo.Crew.length === 0) {
-  //       console.error("No allotment register data available");
-  //       return;
-  //     }
+    const handlePrint = () => {
+      if (!vesselInfo || !vesselInfo.Crew || vesselInfo.Crew.length === 0) {
+        console.error("No allotment register data available");
+        return;
+      }
+
+      const result = generatePHRegister(PHDeductionResponse, format(new Date(), "MMM dd, yyyy hh:mm aa").toString())
+    }
 
   //     const monthNames = [
   //       "JANUARY",
@@ -273,7 +281,7 @@ export default function PhilhealthContribution() {
             <Button
               className="gap-2 h-11 px-5"
               disabled={isLoading}
-              //onClick={handlePrint}
+              onClick={handlePrint}
             >
               {isLoading ? (
                 <>
