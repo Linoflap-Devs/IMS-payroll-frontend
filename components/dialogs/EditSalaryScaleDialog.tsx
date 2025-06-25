@@ -168,7 +168,7 @@ export function EditSalaryScaleDialog({
                 className="w-full border border-[#E0E0E0] rounded-md">
                 <SelectValue placeholder="Select rank" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="h-70">
                 {ranks.map((rank) => (
                   <SelectItem key={rank.id} value={rank.id.toString()}>
                     {rank.name}

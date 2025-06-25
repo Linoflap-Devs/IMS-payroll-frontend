@@ -132,16 +132,17 @@ export function EditWageDescriptionDialog({
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 w-full">
             <label className="text-sm text-gray-600">Payable On Board</label>
             <Select
               value={payableOnboard === 1 ? "1" : "0"}
               onValueChange={(value) => setPayableOnboard(parseInt(value))}
-              disabled={isSubmitting}>
-              <SelectTrigger className="h-10">
+              disabled={isSubmitting}
+            >
+              <SelectTrigger className="w-full h-10">
                 <SelectValue placeholder="Select option" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="w-full">
                 <SelectItem value="1">Yes</SelectItem>
                 <SelectItem value="0">No</SelectItem>
               </SelectContent>
