@@ -24,22 +24,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DeductionDistributionDialog } from "../../dialogs/DeductionDistributionDialog";
-import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { useDebounce } from "@/lib/useDebounce";
 import { generateDeductionRegister } from "@/components/PDFs/allotmentDeductionRegister";
 
-interface VesselInfo {
-  code: string;
-  name: string;
-  type: string;
-  principalName: string;
-}
-
-export default function DeductionRegisterComponent({
-  vesselInfo: initialVesselInfo,
-}: {
-  vesselInfo?: VesselInfo;
-}) {
+export default function DeductionRegisterComponent() {
   const searchParams = useSearchParams();
   const vesselId = searchParams.get("vesselId");
   const month = searchParams.get("month");
@@ -54,27 +42,6 @@ export default function DeductionRegisterComponent({
   const [selectedCrew, setSelectedCrew] =
     useState<DeductionRegisterCrew | null>(null);
   const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
-  const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
-    initialVesselInfo
-  );
-
-  useEffect(() => {
-    getVesselList().then((response) => {
-      if (response.success) {
-        const vessel = response.data.find(
-          (v) => v.VesselID === Number(vesselId)
-        );
-        if (vessel) {
-          setVesselInfo({
-            code: vessel.VesselCode,
-            name: vessel.VesselName,
-            type: vessel.VesselType,
-            principalName: vessel.Principal,
-          });
-        }
-      }
-    });
-  }, [vesselId]);
 
   useEffect(() => {
     const fetchAllotmentData = async () => {
@@ -230,9 +197,11 @@ export default function DeductionRegisterComponent({
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <div className="text-xl text-gray-500 uppercase">
-                {vesselInfo?.code}
+                {allotmentData[0]?.VesselCode}
               </div>
-              <h2 className="text-2xl font-semibold">{vesselInfo?.name}</h2>
+              <h2 className="text-2xl font-semibold">
+                {allotmentData[0]?.VesselName}
+              </h2>
               <Badge
                 variant="secondary"
                 className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]">
@@ -242,12 +211,12 @@ export default function DeductionRegisterComponent({
             <div className="text-right">
               <div className="text-lg flex items-center gap-2">
                 <Ship className="h-4 w-4" />
-                {vesselInfo?.type}
+                {allotmentData[0]?.VesselType}
               </div>
               <Card className="p-1 bg-[#FDFDFD] mt-2">
                 <div className="text-sm text-center">
                   <p className="flex items-center justify-center font-semibold">
-                    {vesselInfo?.principalName}
+                    {allotmentData[0]?.Principal}
                   </p>
                   <div className="text-gray-500 text-xs flex items-center justify-center">
                     Principal Name
