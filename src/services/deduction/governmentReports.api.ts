@@ -51,13 +51,14 @@ export interface DeductionItem<TCrew> {
   VesselType: string;
   Principal: string;
   IsActive: number;
+  ExchangeRate: number;
   Crew: TCrew[];
 }
 
 // FINAL FIX: Make DeductionResponse generic!
 export interface DeductionResponse<TCrew> {
   success: boolean;
-  message?: string;
+  message: string;
   data: DeductionItem<TCrew>[];
 }
 
