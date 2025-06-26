@@ -847,7 +847,9 @@ export default function RemittanceDetails() {
                     <div className="w-1/2">
                       <Select
                         value={selectedMonth}
-                        onValueChange={setSelectedMonth}>
+                        onValueChange={setSelectedMonth}
+                        disabled={!remittanceData || remittanceData.length === 0}
+                        >
                         <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                           <div className="flex items-center w-full">
                             <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
@@ -880,11 +882,14 @@ export default function RemittanceDetails() {
                           ))}
                         </SelectContent>
                       </Select>
+
                     </div>
                     <div className="w-1/2">
                       <Select
                         value={selectedYear}
-                        onValueChange={setSelectedYear}>
+                        onValueChange={setSelectedYear}
+                        disabled={!remittanceData || remittanceData.length === 0}
+                        >
                         <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                           <div className="flex items-center w-full">
                             <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
