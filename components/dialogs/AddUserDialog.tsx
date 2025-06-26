@@ -1,0 +1,259 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Plus } from "lucide-react";
+import { useEffect } from "react";
+import { toast } from "../ui/use-toast";
+import { cn } from "@/lib/utils";
+import {
+  AddUserPayload,
+  addUsers,
+  UsersItem,
+} from "@/src/services/users/users.api";
+
+const userSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.coerce.number({
+    required_error: "Please select a role",
+  }),
+});
+
+type UserFormValues = z.infer<typeof userSchema>;
+
+interface AddUserDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: (newUser: UsersItem) => void;
+}
+
+export function AddUserDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+}: AddUserDialogProps) {
+  const form = useForm<UserFormValues>({
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      email: "",
+      firstName: "",
+      lastName: "",
+      password: "",
+      role: 0,
+    },
+  });
+
+  const { reset, formState } = form;
+  const { isSubmitting } = formState;
+  const roleOptions = [
+    { label: "System Admin", value: 1 },
+    { label: "Mobile", value: 2 },
+    { label: "Payroll Admin", value: 3 },
+    { label: "Payroll Staff", value: 4 },
+    { label: "Accounting Staff", value: 5 },
+  ];
+
+  useEffect(() => {
+    if (!open) reset();
+  }, [open, reset]);
+
+  const onSubmit = async (data: UserFormValues) => {
+    try {
+      const payload: AddUserPayload = {
+        ...data,
+        role: data.role,
+      };
+
+      const response = await addUsers(payload);
+
+      if (response?.success) {
+        onSuccess(response.data[0]);
+        toast({
+          title: "User Created",
+          description: "The user has been successfully added.",
+          variant: "success",
+        });
+        onOpenChange(false);
+        reset();
+      } else {
+        toast({
+          title: "Error",
+          description: response?.message || "Failed to create user",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">
+        <DialogHeader>
+          <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
+            Add User
+          </DialogTitle>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Email */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* First Name */}
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter first name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Last Name */}
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter last name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Password */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Enter password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Role */}
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <FormControl>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      value={field.value?.toString()}
+                    >
+                      <SelectTrigger className="w-full h-10">
+                        <SelectValue placeholder="Select Role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {roleOptions.map((role) => (
+                          <SelectItem key={role.value} value={role.value.toString()} >
+                            {role.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  onOpenChange(false);
+                  reset();
+                }}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  "Adding..."
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add User
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}

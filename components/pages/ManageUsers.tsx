@@ -26,23 +26,21 @@ import {
   Plus,
   Pencil,
   Lock,
-  Trash2,
   Trash,
 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { PiUserListFill } from "react-icons/pi";
-import { getCrewDeductionList } from "@/src/services/deduction/crewDeduction.api";
-import { CrewRankItem, getCrewRankList } from "@/src/services/crew/crew.api";
-import { getVesselList, VesselItem } from "@/src/services/vessel/vessel.api";
 import { getUsersList, UsersItem } from "@/src/services/users/users.api";
+import { AddUserDialog } from "../dialogs/AddUserDialog";
 
 export default function ManageUsers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setroleFilter] = useState("all");
-  const [vesselFilter, setVesselFilter] = useState("all");
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userData, setUserData] = useState<UsersItem[]>([]);
+
+  const [isAddUser, setAddUser] = useState(false);
+
   const [isLoading, setIsLoading] = useState({
     users: true,
     vessels: true,
@@ -72,7 +70,7 @@ export default function ManageUsers() {
       const matchesSearch =
         item.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.Role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.UserID.toString().includes(searchTerm);
+        item.UserID.toString().includes(searchTerm); // 
 
       const matchesRole = roleFilter === "all" || item.Role === roleFilter;
 
@@ -83,10 +81,10 @@ export default function ManageUsers() {
     });
   }, [userData, searchTerm, roleFilter, userTypeFilter]);
 
-const uniqueRoles = useMemo(() => {
-  const rolesSet = new Set(userData.map((user) => user.Role));
-  return Array.from(rolesSet);
-}, [userData]);
+  const uniqueRoles = useMemo(() => {
+    const rolesSet = new Set(userData.map((user) => user.Role));
+    return Array.from(rolesSet);
+  }, [userData]);
 
   // Columns definition
   const userManagementColumns: ColumnDef<UsersItem>[] = [
@@ -154,10 +152,6 @@ const uniqueRoles = useMemo(() => {
       },
     },
   ];
-
-  function handleUserAdd(event: MouseEvent<HTMLButtonElement, MouseEvent>): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <>
@@ -237,7 +231,7 @@ const uniqueRoles = useMemo(() => {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                   <Button
                     className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40"
-                    onClick={handleUserAdd}
+                     onClick={() => setAddUser(true)}
                   >
                     <Plus />
                     Add User
@@ -261,6 +255,14 @@ const uniqueRoles = useMemo(() => {
             </div>
           </div>
         </div>
+
+
+        <AddUserDialog
+          open={isAddUser}
+          onOpenChange={setAddUser} onSuccess={function (newUser: UsersItem): void {
+            throw new Error("Function not implemented.");
+          } }          
+        />
       </div>
     </>
   );
