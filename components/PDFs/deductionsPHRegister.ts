@@ -123,7 +123,7 @@ export function generatePHRegisterPDF(
         const colWidths = [
             mainTableWidth * 0.25, // CREW NAME
             mainTableWidth * 0.15, // PH Number
-            mainTableWidth * 0.15, // GROSS
+            mainTableWidth * 0.15, // DOB
             mainTableWidth * 0.15, // EE
             mainTableWidth * 0.15, // ER
             mainTableWidth * 0.15, // Total  
@@ -263,11 +263,11 @@ export function generatePHRegisterPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
-            const headers = ["CREW NAME", "Philhealth No.","GROSS", "EE", "ER", "Total"];
+            const headers = ["CREW NAME", "Philhealth No.","DOB", "EE", "ER", "Total"];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                if (index === 0 || index === 1) {
+                if (index <= 2) {
                     // Left align crew name header (same as data)
                     doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
                 } else {
@@ -333,7 +333,7 @@ export function generatePHRegisterPDF(
             const columnKeys: string[] = [
                 "CrewName",
                 "PHNumber",
-                "Gross",
+                "DateOfBirth",
                 "EE",
                 "ER",
                 "Total"
@@ -344,7 +344,7 @@ export function generatePHRegisterPDF(
                     // Crew Name
                     doc.text(truncateText(crew[key as keyof CrewMember].toString(), 27), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
-                else if (key === 'PHNumber'){
+                else if (key === 'PHNumber' || key === 'DateOfBirth'){
                     doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'Total') {
