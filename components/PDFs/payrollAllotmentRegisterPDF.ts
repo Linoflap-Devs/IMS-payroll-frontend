@@ -4,6 +4,7 @@ import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
+import { truncateText } from "@/lib/utils";
 
 // Define interfaces based on your updated data structure
 export interface Allottee {
@@ -158,7 +159,6 @@ export function generateAllotmentPayrollRegister(
 
         // Keep track of pagination
         let currentPage = 1;
-        let totalPages = 0; // Will calculate after processing
 
         // Variables to track current position
         let currentY = margins.top;
@@ -266,7 +266,17 @@ export function generateAllotmentPayrollRegister(
             headers.forEach((header, index) => {
                 const colWidth = colWidths[index] * scaleFactor;
                 const colX = colPositions[index];
-                doc.text(header, colX + colWidth / 2, currentY + 6, { align: 'center' });
+                 if (index <= 1) {
+                    // Left align crew name header (same as data)
+                    doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
+                }
+                else if(header === "ALLOTTEE NAME" || header === "BANK"){
+                    doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
+                } 
+                else {
+                    // Right align numeric headers (same as data)
+                    doc.text(header, colX + colWidth - 5, currentY + tableHeaderHeight / 2 + 1, { align: 'right' });
+                }
             });
 
             // Draw horizontal line after headers
@@ -276,11 +286,12 @@ export function generateAllotmentPayrollRegister(
         }
 
         // Function to add a footer to the current pages
-        function addPageFooter(): void {
+        function addPageFooter(currentPage: number, totalPages: number): void {
             // Draw page number box at bottom
+            console.log(pageHeight, margins.bottom);
             doc.rect(margins.left, pageHeight - margins.bottom + 3, pageWidth - margins.left - margins.right, 8);
             doc.setFontSize(7);
-            doc.text(`Page ${currentPage} out of #{TOTAL_PAGES}#`, pageWidth - margins.right - 6, pageHeight - margins.bottom + 8, { align: 'right' });
+            doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 6, pageHeight - margins.bottom + 8, { align: 'right' });
         }
 
         // Process each vessel - without adding vessel header between vessels
@@ -306,8 +317,7 @@ export function generateAllotmentPayrollRegister(
                     doc.line(margins.left, tableStartY, margins.left, y); // Left vertical line
                     doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, y); // Right vertical line
 
-                    // Add footer to current page
-                    addPageFooter();
+                    
 
                     // Start a new page with headers
                     addPageHeaders(vessel);
@@ -321,22 +331,48 @@ export function generateAllotmentPayrollRegister(
                 doc.setFontSize(7);
                 doc.setFont('NotoSans', 'normal');
 
+                const columnKeys: string[] = [
+                    "CrewName",
+                    "Rank",
+                    "BasicWage",
+                    "FixedOT",
+                    "GuarOT",
+                    "DollarGross",
+                    "PesoGross",
+                    "TotalDeduction",
+                    "Net",
+                ]
+
                 // Draw crew data
-                doc.text(crew.CrewName, colPositions[0] + 6, y + 5, { align: 'left' });
-                doc.text(crew.Rank, colPositions[1] + 9, y + 5, { align: 'left' });
-                doc.text(formatCurrency(crew.BasicWage), colPositions[2] + colWidths[2] * scaleFactor, y + 5, { align: 'right' });
-                doc.text(formatCurrency(crew.FixedOT), colPositions[3] + colWidths[3] * scaleFactor - 5, y + 5, { align: 'right' });
-                doc.text(formatCurrency(crew.GuarOT), colPositions[4] + colWidths[4] * scaleFactor - 5, y + 5, { align: 'right' });
-                doc.text(formatCurrency(crew.DollarGross), colPositions[5] + colWidths[5] * scaleFactor - 5, y + 5, { align: 'right' });
-                doc.text(formatCurrency(crew.PesoGross), colPositions[6] + colWidths[6] * scaleFactor - 5, y + 5, { align: 'right' });
-                doc.text(formatCurrency(crew.TotalDeduction), colPositions[7] + colWidths[7] * scaleFactor - 5, y + 5, { align: 'right' });
-                doc.text(formatCurrency(crew.Net), colPositions[8] + colWidths[8] * scaleFactor - 5, y + 5, { align: 'right' });
+                columnKeys.forEach((key, i) => {
+                    if(i == 0) {
+                        // Crew Name
+                        doc.text(truncateText(crew[key as keyof AllotmentRegisterCrew].toString(), 22), colPositions[0] + 5, y + 5, {align: 'left'});
+                    }
+                    else if(key === 'Rank') {
+                        doc.text(truncateText(crew[key as keyof AllotmentRegisterCrew].toString(), 22), colPositions[i] + 5,  y + 5, {align: 'left'});
+                    }
+                    else {
+                        const value = crew[key as keyof AllotmentRegisterCrew];
+                        doc.text(formatCurrency(Number(value) || 0), colPositions[i] + colWidths[i] * scaleFactor - 5, y + 5, { align: 'right' });
+                    }
+                });
+                // doc.text(crew.CrewName, colPositions[0] + 5, y + 5, { align: 'left' });
+                // doc.text(crew.Rank, colPositions[1] + 5, y + 5, { align: 'left' });
+                // doc.text(formatCurrency(crew.BasicWage), colPositions[2] + colWidths[2] * scaleFactor - 5, y + 5, { align: 'right' });
+                // doc.text(formatCurrency(crew.FixedOT), colPositions[3] + colWidths[3] * scaleFactor - 5, y + 5, { align: 'right' });
+                // doc.text(formatCurrency(crew.GuarOT), colPositions[4] + colWidths[4] * scaleFactor - 5, y + 5, { align: 'right' });
+                // doc.text(formatCurrency(crew.DollarGross), colPositions[5] + colWidths[5] * scaleFactor - 5, y + 5, { align: 'right' });
+                // doc.text(formatCurrency(crew.PesoGross), colPositions[6] + colWidths[6] * scaleFactor - 5, y + 5, { align: 'right' });
+                // doc.text(formatCurrency(crew.TotalDeduction), colPositions[7] + colWidths[7] * scaleFactor - 5, y + 5, { align: 'right' });
+                // doc.text(formatCurrency(crew.Net), colPositions[8] + colWidths[8] * scaleFactor - 5, y + 5, { align: 'right' });
 
                 // Draw horizontal line at bottom of crew row
                 doc.line(margins.left, y + rowHeight, pageWidth - margins.right, y + rowHeight);
 
                 // Move to next row
                 y += rowHeight;
+
 
                 // If crew has allottees, draw them in subsequent rows
                 if (crew.Allottee && crew.Allottee.length > 0) {
@@ -347,8 +383,7 @@ export function generateAllotmentPayrollRegister(
                             doc.line(margins.left, tableStartY, margins.left, y); // Left vertical line
                             doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, y); // Right vertical line
 
-                            // Add footer to current page
-                            addPageFooter();
+                            
 
                             // Start a new page with headers
                             addPageHeaders(vessel);
@@ -357,12 +392,14 @@ export function generateAllotmentPayrollRegister(
                             y = currentY;
                             tableStartY = currentY;
                         }
+                        
+
 
                         // Add allottee details - using the updated property names
-                        doc.text(allottee.AllotteeName, colPositions[9] + 4, y + 5, { align: 'left' });
+                        doc.text(truncateText(allottee.AllotteeName, 22), colPositions[9] + 5, y + 5, { align: 'left' });
                         doc.text(allottee.AccountNumber, colPositions[10] + 9, y + 5, { align: 'left' });
-                        doc.text(allottee.Bank, colPositions[11] + 4, y + 5, { align: 'left' });
-                        doc.text(formatCurrency(allottee.NetAllotment), colPositions[12] + colWidths[12] * scaleFactor - 6, y + 5, { align: 'right' });
+                        doc.text(allottee.Bank, colPositions[11] + 5, y + 5, { align: 'left' });
+                        doc.text(formatCurrency(allottee.NetAllotment), colPositions[12] + colWidths[12] * scaleFactor - 5, y + 5, { align: 'right' });
 
                         // Move to next row
                         y += rowHeight;
@@ -375,8 +412,7 @@ export function generateAllotmentPayrollRegister(
             doc.line(margins.left, tableStartY, margins.left, y); // Left vertical line
             doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, y); // Right vertical line
 
-            // Add footer to the last page of this vessel
-            addPageFooter();
+            
 
             // If there are more vessels, prepare for the next vessel (forcing new page)
             if (vesselIndex < vesselData.length - 1) {
@@ -384,26 +420,30 @@ export function generateAllotmentPayrollRegister(
             }
         });
 
-        // Set total pages count (replace placeholder)
-        totalPages = currentPage;
-        const pdfText = doc.output('datauristring');
-        const updatedPdfText = pdfText.replace(/#{TOTAL_PAGES}#/g, totalPages.toString());
+       // NOW ADD PAGE NUMBERS TO ALL PAGES - Get actual total pages
+        const totalPages = doc.internal.pages.length - 1; // Subtract 1 because pages array includes a blank first element
 
+        // Loop through all pages and add page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            // Draw page number box at bottom
+            addPageFooter(i, totalPages)
+        }
         // Save the final PDF
         const fileName = `allotment-payroll-register-multiple-vessels-${month.toLowerCase()}-${year}.pdf`;
+        doc.save(fileName)
+        // // Save the PDF using the updated content with correct page numbers
+        // const blob = dataURItoBlob(updatedPdfText);
+        // const url = URL.createObjectURL(blob);
+        // const link = document.createElement('a');
+        // link.href = url;
+        // link.download = fileName;
+        // link.click();
 
-        // Save the PDF using the updated content with correct page numbers
-        const blob = dataURItoBlob(updatedPdfText);
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        link.click();
-
-        // Clean up
-        setTimeout(() => {
-            URL.revokeObjectURL(url);
-        }, 100);
+        // // Clean up
+        // setTimeout(() => {
+        //     URL.revokeObjectURL(url);
+        // }, 100);
 
         return true;
     } catch (error) {
