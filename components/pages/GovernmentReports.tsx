@@ -30,10 +30,11 @@ import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "../ui/use-toast";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
-import { DeductionResponse, getAllPhilhealthDeductionList, getAllSSSDeductionList, HDMFDeductionCrew, PhilhealthDeductionCrew, SSSDeductionCrew } from "@/src/services/deduction/governmentReports.api";
+import { DeductionResponse, getAllHDMFDeductionList, getAllPhilhealthDeductionList, getAllSSSDeductionList, HDMFDeductionCrew, PhilhealthDeductionCrew, SSSDeductionCrew } from "@/src/services/deduction/governmentReports.api";
 import generateSSSRegister from "../PDFs/deductionsSSSRegister";
 import generatePHRegister from "../PDFs/deductionsPHRegister";
 import { format } from "date-fns";
+import generateHDMFRegister from "../PDFs/deductionsHDMFRegister";
 
 type Payroll = {
   vesselId: number;
@@ -212,8 +213,8 @@ export default function GovernmentReports() {
       const result = generateSSSRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), 'all')
     }
     if(mode === "hdmf"){
-      const data = await getAllPhilhealthDeductionList(Number(monthFilter), Number(yearFilter));
-      const result = generatePHRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), 'all')
+      const data = await getAllHDMFDeductionList(Number(monthFilter), Number(yearFilter));
+      const result = generateHDMFRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), 'all')
     }
 
     setPrintLoading(false)
