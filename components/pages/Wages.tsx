@@ -532,12 +532,12 @@ export default function Wages() {
                     });
                     setEditWageDescriptionDialogOpen(true);
                   }}>
-                  <Pencil className="mr-2 h-4 w-4" /> Edit
+                  <Pencil className="mr-2 h-4 w-4" /> Edit Wage
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleDelete(wageDescription.WageCode)}
                   className="text-destructive">
-                  <Trash className="mr-2 h-4 w-4" /> Delete
+                  <Trash className="mr-2 h-4 w-4" /> Delete Wage
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -645,12 +645,12 @@ export default function Wages() {
                     setSelectedForex(forex);
                     setEditForexDialogOpen(true);
                   }}>
-                  <Pencil className="mr-2 h-4 w-4" /> Edit
+                  <Pencil className="mr-2 h-4 w-4" /> Edit Forex
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleDelete(forex.id)}
                   className="text-destructive">
-                  <Trash className="mr-2 h-4 w-4" /> Delete
+                  <Trash className="mr-2 h-4 w-4" /> Delete Forex
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
