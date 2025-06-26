@@ -66,12 +66,13 @@ export function AddUserDialog({
       firstName: "",
       lastName: "",
       password: "",
-      role: 0,
+      role: undefined,
     },
   });
 
   const { reset, formState } = form;
   const { isSubmitting } = formState;
+
   const roleOptions = [
     { label: "System Admin", value: 1 },
     { label: "Mobile", value: 2 },
@@ -91,13 +92,16 @@ export function AddUserDialog({
         role: data.role,
       };
 
+      //console.log("SUBMITTING DATA:", payload);
+
       const response = await addUsers(payload);
 
       if (response?.success) {
         onSuccess(response.data[0]);
         toast({
           title: "User Created",
-          description: "The user has been successfully added.",
+          description:
+            "The user has been successfully added. Ask the user to verify their email.",
           variant: "success",
         });
         onOpenChange(false);
@@ -109,13 +113,27 @@ export function AddUserDialog({
           variant: "destructive",
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
+
+      // Check for Prisma unique constraint error
+      if (
+        err.response?.data?.message?.includes("Unique constraint failed") ||
+        err.message?.includes("Unique constraint failed")
+      ) {
+        toast({
+          title: "Email Already Taken",
+          description:
+            "This email is already registered. Please use another one.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: err?.message || "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -204,14 +222,21 @@ export function AddUserDialog({
                   <FormControl>
                     <Select
                       onValueChange={(value) => field.onChange(parseInt(value))}
-                      value={field.value?.toString()}
+                      value={
+                        field.value !== undefined
+                          ? field.value.toString()
+                          : undefined
+                      }
                     >
                       <SelectTrigger className="w-full h-10">
                         <SelectValue placeholder="Select Role" />
                       </SelectTrigger>
                       <SelectContent>
                         {roleOptions.map((role) => (
-                          <SelectItem key={role.value} value={role.value.toString()} >
+                          <SelectItem
+                            key={role.value}
+                            value={role.value.toString()}
+                          >
                             {role.label}
                           </SelectItem>
                         ))}

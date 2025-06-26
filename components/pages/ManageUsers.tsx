@@ -256,12 +256,11 @@ export default function ManageUsers() {
           </div>
         </div>
 
-
         <AddUserDialog
           open={isAddUser}
-          onOpenChange={setAddUser} onSuccess={function (newUser: UsersItem): void {
-            throw new Error("Function not implemented.");
-          } }          
+          onOpenChange={setAddUser}
+          // cannot set the data since the user has to verify first
+          onSuccess={() => {}} 
         />
       </div>
     </>
