@@ -4,6 +4,7 @@ import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
+import { truncateText } from "@/lib/utils";
 
 // Define interfaces based on your actual data structure
 export interface Deductions {
@@ -50,19 +51,6 @@ function getMonthName(monthNum: number): string {
     ];
     return months[monthNum - 1];
 }
-
-// Get current UTC date and time in specified format for footer
-// function getCurrentDateTime(): string {
-//     const now = new Date();
-//     const year = now.getUTCFullYear();
-//     const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-//     const day = String(now.getUTCDate()).padStart(2, '0');
-//     const hours = String(now.getUTCHours()).padStart(2, '0');
-//     const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-//     const seconds = String(now.getUTCSeconds()).padStart(2, '0');
-
-//     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-// }
 
 /**
  * Generate a deduction register PDF for all vessels
@@ -143,10 +131,9 @@ export function generateDeductionRegisterPDF(
 
         // Define columns for the main table
         const colWidths = [
-            mainTableWidth * 0.16, // CREW NAME
-            mainTableWidth * 0.09, // RANK
+            mainTableWidth * 0.20, // CREW NAME
+            mainTableWidth * 0.14, // RANK
             mainTableWidth * 0.09, // SALARY
-            mainTableWidth * 0.09, // BASIC WAGE
             mainTableWidth * 0.10, // GROSS
             mainTableWidth * 0.50  // Deduction details
         ];
@@ -163,19 +150,6 @@ export function generateDeductionRegisterPDF(
         // Define heights
         const rowHeight = 8;
         const tableHeaderHeight = 8;
-
-        // Initialize paging variables
-        let currentPage = 1;
-
-        // Calculate total rows across all vessels for total page estimation
-        const totalRows = vesselData.reduce((acc, vessel) => {
-            return acc + vessel.Crew.length + vessel.Crew.reduce((crewAcc, crew) =>
-                crewAcc + (crew.Deductions ? crew.Deductions.length : 0), 0);
-        }, 0);
-
-        // Estimate total pages - rows per page is approximate
-        const rowsPerPage = 30; // Increased from 25 to use more space
-        const totalPages = Math.ceil(totalRows / rowsPerPage);
 
         // Variables to track current position
         let currentY = margins.top;
@@ -292,42 +266,35 @@ export function generateDeductionRegisterPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
-            const headers = ["CREW NAME", "RANK", "SALARY", "BASIC WAGE", "GROSS"];
+            const headers = ["CREW NAME", "RANK", "SALARY", "GROSS"];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                doc.text(header, colX + colWidth / 2 + 12, currentY + tableHeaderHeight / 2 + 1, { align: 'center' });
+                if (index <= 1) {
+                    // Left align crew name header (same as data)
+                    doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
+                } else {
+                    // Right align numeric headers (same as data)
+                    doc.text(header, colX + colWidth - 5, currentY + tableHeaderHeight / 2 + 1, { align: 'right' });
+                }
             });
 
             currentY += tableHeaderHeight;
         };
 
-        // Function to add a footer to the current page
-        const addPageFooter = () => {
-            // Draw page number box at bottom of current page
-            doc.rect(margins.left, pageHeight - margins.bottom - pageNumberBoxHeight + 5, mainTableWidth, pageNumberBoxHeight);
-            doc.setFont('helvetica', 'italic');
-            doc.setFontSize(9);
-            doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - pageNumberBoxHeight / 2 + 6, { align: 'right' });
-
-            // Add footer with current date/time and user
-            // doc.setFontSize(8);
-            // doc.setFont('helvetica', 'italic');
-            // doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - 5);
-            // doc.text("Current User's Login: lanceballicud", margins.left, pageHeight - 2);
-        };
-
         // Function to add a new page - without main header after first page
-        const addNewPage = () => {
-            // Add footer to current page before adding a new one
-            addPageFooter();
-
-            // Add a new page
-            doc.addPage();
-            currentPage++;
+        const addNewPage = (isFirstPage: boolean = false) => {
+            if (!isFirstPage) {
+                doc.addPage();
+            }
             currentY = margins.top;
-
-            // Only draw the table header on subsequent pages, not the main header
+            
+            // Draw header only on first page
+            if (isFirstPage) {
+                drawMainHeader();
+            }
+            
+            // Draw table header on all pages
             drawTableHeader();
         };
 
@@ -337,8 +304,7 @@ export function generateDeductionRegisterPDF(
         };
 
         // FIRST PAGE ONLY - Draw the main header and table header
-        drawMainHeader();
-        drawTableHeader();
+        addNewPage(true);
 
         // Process each vessel
         vesselData.forEach((vessel) => {
@@ -357,17 +323,10 @@ export function generateDeductionRegisterPDF(
                 const deductionsHeight = crew.Deductions ? crew.Deductions.length * rowHeight : 0;
                 const totalEntryHeight = crewHeight + deductionsHeight;
 
-                // Check if we need a new page - use more precise calculation for available space
-                if (currentY + totalEntryHeight > getMaxYPosition()) {
-                    // Draw vertical lines for current table section
-                    doc.line(margins.left, tableStartY, margins.left, currentY); // Left vertical line
-                    doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, currentY); // Right vertical line
-
-                    // Add new page but WITHOUT main header
-                    addNewPage();
-
-                    // Reset table starting position
-                    tableStartY = currentY;
+                // Check if we need a new page
+                if (currentY + totalEntryHeight > pageHeight - margins.bottom - 20) { // Leave space for page number
+                    addNewPage(false);
+                    tableStartY = currentY; // Reset table starting position
                 }
 
                 // Set font for crew data
@@ -384,12 +343,25 @@ export function generateDeductionRegisterPDF(
                 doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight); // Right border
 
                 // Draw crew data
-                doc.text(crew.CrewName, colPositions[0] + 5, currentY + rowHeight / 2 + 1);
-                doc.text(crew.Rank, colPositions[1] + colWidths[1] / 2 + 15, currentY + rowHeight / 2 + 1, { align: 'center' });
-                doc.text(formatCurrency(crew.Salary), colPositions[2] + colWidths[2] - 5 + 10, currentY + rowHeight / 2 + 1, { align: 'right' });
-                doc.text(formatCurrency(crew.Salary), colPositions[3] + colWidths[3] - 5 + 10, currentY + rowHeight / 2 + 1, { align: 'right' });
-                doc.text(formatCurrency(crew.Gross), colPositions[4] + colWidths[4] - 5 + 10, currentY + rowHeight / 2 + 1, { align: 'right' });
-
+                const columnKeys: string[] = [
+                    "CrewName",
+                    "Rank",
+                    "Salary",
+                    "Gross",
+                ];
+                columnKeys.forEach((key, i) => {
+                    if(i == 0) {
+                        // Crew Name
+                        doc.text(truncateText(crew[key as keyof DeductionRegisterCrew].toString(), 22), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    }
+                    else if(key === 'Rank') {
+                        doc.text(truncateText(crew[key as keyof DeductionRegisterCrew].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    }
+                    else {
+                        const value = crew[key as keyof DeductionRegisterCrew];
+                        doc.text(formatCurrency(Number(value) || 0), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                    }
+                });
                 // Draw horizontal line at the bottom of crew row
                 doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
 
@@ -450,13 +422,29 @@ export function generateDeductionRegisterPDF(
             doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, currentY); // Right vertical line
         });
 
-        // Add footer to the last page
-        addPageFooter();
+        // NOW ADD PAGE NUMBERS TO ALL PAGES - Get actual total pages
+        const totalPages = doc.internal.pages.length - 1; // Subtract 1 because pages array includes a blank first element
+
+        // Loop through all pages and add page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            
+            // Draw page number box at bottom
+            doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(9);
+            doc.text(
+                `Page ${i} out of ${totalPages}`, 
+                pageWidth - margins.right - 5, 
+                pageHeight - margins.bottom - 4, 
+                { align: 'right' }
+            );
+        }
 
         // Save the PDF with an appropriate filename
         const fileName = vesselData.length > 1
             ? `deduction-register-all-vessels-${periodMonth.toLowerCase()}-${periodYear}.pdf`
-            : `deduction-register-${vesselData[0].VesselName.toLowerCase()}-${periodMonth.toLowerCase()}-${periodYear}.pdf`;
+            : `deduction-register-${vesselData[0].VesselName.toLowerCase().replace(/\s+/g, '-')}-${periodMonth.toLowerCase()}-${periodYear}.pdf`;
 
         doc.save(fileName);
 
