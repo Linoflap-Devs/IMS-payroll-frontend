@@ -29,21 +29,26 @@ import {
 import { Plus } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "../ui/use-toast";
-import { cn } from "@/lib/utils";
 import {
   AddUserPayload,
   addUsers,
   UsersItem,
 } from "@/src/services/users/users.api";
+import { cn } from "@/lib/utils";
 
 const userSchema = z.object({
   email: z.string().email("Invalid email address"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.coerce.number({
-    required_error: "Please select a role",
-  }),
+  role: z.coerce
+    .number({
+      required_error: "Please select a role",
+      invalid_type_error: "Please select a role",
+    })
+    .refine((val) => !isNaN(val), {
+      message: "Please select a valid role",
+    }),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
@@ -75,7 +80,6 @@ export function AddUserDialog({
 
   const roleOptions = [
     { label: "System Admin", value: 1 },
-    { label: "Mobile", value: 2 },
     { label: "Payroll Admin", value: 3 },
     { label: "Payroll Staff", value: 4 },
     { label: "Accounting Staff", value: 5 },
@@ -93,9 +97,7 @@ export function AddUserDialog({
       };
 
       //console.log("SUBMITTING DATA:", payload);
-
       const response = await addUsers(payload);
-
       if (response?.success) {
         onSuccess(response.data[0]);
         toast({
@@ -153,7 +155,7 @@ export function AddUserDialog({
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full gap-1 mt-1">
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter email" {...field} />
@@ -168,7 +170,7 @@ export function AddUserDialog({
               control={form.control}
               name="firstName"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full gap-1 mt-1">
                   <FormLabel>First Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter first name" {...field} />
@@ -183,7 +185,7 @@ export function AddUserDialog({
               control={form.control}
               name="lastName"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full gap-1 mt-1">
                   <FormLabel>Last Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter last name" {...field} />
@@ -198,7 +200,7 @@ export function AddUserDialog({
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full gap-1 mt-1">
                   <FormLabel>Password</FormLabel>
                   <FormControl>
                     <Input
@@ -216,8 +218,8 @@ export function AddUserDialog({
             <FormField
               control={form.control}
               name="role"
-              render={({ field }) => (
-                <FormItem>
+              render={({ field, fieldState }) => (
+                <FormItem className="w-full gap-1 mt-1">
                   <FormLabel>Role</FormLabel>
                   <FormControl>
                     <Select
@@ -228,7 +230,14 @@ export function AddUserDialog({
                           : undefined
                       }
                     >
-                      <SelectTrigger className="w-full h-10">
+                      <SelectTrigger
+                        className={cn(
+                          "w-full rounded-md h-10 gap-1",
+                          fieldState.invalid
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-[#E0E0E0]"
+                        )}
+                      >
                         <SelectValue placeholder="Select Role" />
                       </SelectTrigger>
                       <SelectContent>

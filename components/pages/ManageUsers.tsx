@@ -32,19 +32,38 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { getUsersList, UsersItem } from "@/src/services/users/users.api";
 import { AddUserDialog } from "../dialogs/AddUserDialog";
+import { EditUserDialog } from "../dialogs/EditUserDialog";
+import { Badge } from "../ui/badge";
 
 export default function ManageUsers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setroleFilter] = useState("all");
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userData, setUserData] = useState<UsersItem[]>([]);
-
   const [isAddUser, setAddUser] = useState(false);
-
+  const [selectedUserData, setSelectedUserData] = useState<UsersItem | null>(
+    null
+  );
+  const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] =
+    useState(false);
   const [isLoading, setIsLoading] = useState({
     users: true,
     vessels: true,
   });
+
+  const handleUserUpdated = (updatedUser: UsersItem) => {
+    setUserData((prev) =>
+      prev.map((item) =>
+        item.UserID === updatedUser.UserID
+          ? {
+              ...item,
+              ...updatedUser,
+              Name: `${updatedUser.FirstName} ${updatedUser.LastName}`,
+            }
+          : item
+      )
+    );
+  };
 
   useEffect(() => {
     setIsLoading((prev) => ({ ...prev, users: true }));
@@ -68,12 +87,11 @@ export default function ManageUsers() {
   const filteredUsersList = useMemo(() => {
     return userData.filter((item) => {
       const matchesSearch =
-        item.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.Role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.UserID.toString().includes(searchTerm); // 
+        item.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.Role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.UserID?.toString().includes(searchTerm);
 
       const matchesRole = roleFilter === "all" || item.Role === roleFilter;
-
       const matchesUserType =
         userTypeFilter === "all" || item.UserType === parseInt(userTypeFilter);
 
@@ -110,6 +128,21 @@ export default function ManageUsers() {
       ),
     },
     {
+      accessorKey: "IsVerified",
+      header: () => <div className="text-justify">Verified</div>,
+      cell: ({ row }) => {
+        const isVerified = row.getValue("IsVerified") === 1;
+
+        return (
+          <div className="text-justify">
+            <Badge variant={isVerified ? "default" : "outline"}>
+              {isVerified ? "Verified" : "Unverified"}
+            </Badge>
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "actions",
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
@@ -125,11 +158,15 @@ export default function ManageUsers() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                <DropdownMenuItem asChild>
-                  <Link href={`/home/users/edit/${userId}`}>
-                    <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    Edit User
-                  </Link>
+                <DropdownMenuItem
+                  className="text-xs sm:text-sm"
+                  onClick={() => {
+                    setSelectedUserData(row.original);
+                    setEditselectedUserDialogOpen(true);
+                  }}
+                >
+                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Edit User
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={`/home/users/reset-password/${userId}`}>
@@ -231,7 +268,7 @@ export default function ManageUsers() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                   <Button
                     className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40"
-                     onClick={() => setAddUser(true)}
+                    onClick={() => setAddUser(true)}
                   >
                     <Plus />
                     Add User
@@ -260,8 +297,17 @@ export default function ManageUsers() {
           open={isAddUser}
           onOpenChange={setAddUser}
           // cannot set the data since the user has to verify first
-          onSuccess={() => {}} 
+          onSuccess={() => {}}
         />
+
+        {selectedUserData && editselectedUserDialogOpen && (
+          <EditUserDialog
+            open={editselectedUserDialogOpen}
+            onOpenChange={setEditselectedUserDialogOpen}
+            SelectedUserData={selectedUserData}
+            onSuccess={handleUserUpdated}
+          />
+        )}
       </div>
     </>
   );
