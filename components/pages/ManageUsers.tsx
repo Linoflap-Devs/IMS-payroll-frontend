@@ -83,6 +83,11 @@ export default function ManageUsers() {
     });
   }, [userData, searchTerm, roleFilter, userTypeFilter]);
 
+const uniqueRoles = useMemo(() => {
+  const rolesSet = new Set(userData.map((user) => user.Role));
+  return Array.from(rolesSet);
+}, [userData]);
+
   // Columns definition
   const userManagementColumns: ColumnDef<UsersItem>[] = [
     {
@@ -204,23 +209,28 @@ export default function ManageUsers() {
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                   <Select
-                    value={vesselFilter}
-                    onValueChange={setVesselFilter}
-                    disabled={isLoading.vessels}
+                    value={roleFilter}
+                    onValueChange={setroleFilter}
+                    disabled={isLoading.users}
                   >
                     <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                      {isLoading.vessels ? (
+                      {isLoading.users ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
                       )}
                       <SelectValue
                         defaultValue="all"
-                        placeholder="All Vessels"
+                        placeholder="Filter by Role"
                       />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectItem value="all">All Roles</SelectItem>
+                      {uniqueRoles.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {role}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
