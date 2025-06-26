@@ -31,6 +31,8 @@ interface JoinCrewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   crewMember: IOffBoardCrew;
+  SelectedVesselID: number;
+  SelectedVesselName: string;
   setOnSuccess: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -49,12 +51,14 @@ function SimpleSearchableSelect({
   value,
   onChange,
   className,
+  disabled = false,
 }: {
   options: { id: string | number; value: string; label: string }[];
   placeholder: string;
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -110,12 +114,19 @@ function SimpleSearchableSelect({
         variant="outline"
         role="combobox"
         aria-expanded={open}
+        disabled={disabled} // prevent click
         className={cn(
-          `w-full justify-between bg-white`,
+          `w-full justify-between`,
+          disabled
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white",
           !value && "text-muted-foreground",
           className
         )}
-        onClick={() => setOpen(!open)}>
+        onClick={() => {
+          if (!disabled) setOpen(!open); // don’t open dropdown if disabled
+        }}
+      >
         {selectedOption ? selectedOption.label : placeholder}
         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
@@ -144,7 +155,8 @@ function SimpleSearchableSelect({
                   onClick={() => {
                     onChange(option.value);
                     setOpen(false);
-                  }}>
+                  }}
+                >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
@@ -170,6 +182,8 @@ export function JoinCrewDialog({
   open,
   onOpenChange,
   crewMember,
+  SelectedVesselID,
+  SelectedVesselName,
   setOnSuccess,
 }: JoinCrewDialogProps) {
   const [crew, setCrew] = useState<CrewBasic | null>(null);
@@ -177,11 +191,13 @@ export function JoinCrewDialog({
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
   const [allPorts, setAllPorts] = useState<IPort[]>([]);
   const [filteredPorts, setFilteredPorts] = useState<IPort[]>([]);
-
   const [selectedVessel, setSelectedVessel] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedPort, setSelectedPort] = useState("");
-  const [signOnDate, setSignOnDate] = useState("");
+  const [signOnDate, setSignOnDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+  });
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -207,8 +223,18 @@ export function JoinCrewDialog({
       getVesselList()
         .then((response) => {
           if (response.success) {
-            console.log("Vessel list fetched successfully:", response.data);
-            setVesselList(response.data);
+            const vesselList = response.data;
+            console.log("Vessel list fetched successfully:", vesselList);
+            setVesselList(vesselList);
+
+            // matching of selected vessel
+            const matched = vesselList.find(
+              (v) => v.VesselID === SelectedVesselID
+            );
+
+            if (matched) {
+              setSelectedVessel(matched.VesselID.toString());
+            }
           } else {
             console.error("Failed to fetch vessel list:", response.message);
           }
@@ -227,7 +253,7 @@ export function JoinCrewDialog({
       setSignOnDate("");
       setSubmitted(false);
     }
-  }, [open]);
+  }, [open, SelectedVesselID]);
 
   useEffect(() => {
     if (open) {
@@ -321,7 +347,6 @@ export function JoinCrewDialog({
     const joinCrewData = {
       crewCode: crewMember.CrewCode,
       vesselId: Number(selectedVessel),
-      // countryId: Number(selectedCountry),
       portId: Number(selectedPort),
       dateOnBoard: signOnDate,
       rankId: crewMember.RankID,
@@ -411,7 +436,8 @@ export function JoinCrewDialog({
                   crewMember.CrewStatusID === 2
                     ? "bg-red-100 text-red-600"
                     : "bg-green-100 text-green-600"
-                } px-2 py-0.5 rounded-full text-xs`}>
+                } px-2 py-0.5 rounded-full text-xs`}
+              >
                 {crewMember.CrewStatusID === 2 ? "Off board" : "On board"}
               </span>
             </div>
@@ -440,7 +466,7 @@ export function JoinCrewDialog({
                 <Ship className="w-4 h-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Current Vessel</div>
-                  <div>not assigned</div>
+                  <div>{SelectedVesselName}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -476,6 +502,11 @@ export function JoinCrewDialog({
                 value={selectedCountry}
                 onChange={setSelectedCountry}
               />
+              {!selectedCountry && (
+                <p className="text-xs text-gray-500 italic">
+                  Please select a country first to enable port selection.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -485,6 +516,7 @@ export function JoinCrewDialog({
                 placeholder="Select port"
                 value={selectedPort}
                 onChange={setSelectedPort}
+                disabled={!selectedCountry} // Disable when country is not selected
                 className={`w-full ${
                   submitted && !selectedPort ? "border-red-500" : ""
                 }`}
@@ -510,13 +542,15 @@ export function JoinCrewDialog({
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => onOpenChange(false)}>
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button
             className="flex-1 bg-[#2F3593] hover:bg-[#252a72]"
             onClick={handleSubmit}
-            disabled={isLoading}>
+            disabled={isLoading}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="animate-spin" />

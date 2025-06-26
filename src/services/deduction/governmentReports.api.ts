@@ -55,7 +55,7 @@ export interface DeductionItem<TCrew> {
   Crew: TCrew[];
 }
 
-// FINAL FIX: Make DeductionResponse generic!
+// Made DeductionResponse generic!
 export interface DeductionResponse<TCrew> {
   success: boolean;
   message: string;

@@ -295,7 +295,8 @@ export default function VesselCrewList() {
                   vesselData?.data.VesselInfo.Status === 1
                     ? "bg-blue-100 text-blue-800"
                     : "bg-gray-100 text-gray-800"
-                }`}>
+                }`}
+              >
                 {vesselData?.data.VesselInfo.Status === 1
                   ? "Active"
                   : "Inactive"}
@@ -319,7 +320,7 @@ export default function VesselCrewList() {
             </div>
           </div>
         </Card>
-        
+
         <div className="flex justify-between items-center gap-4 mt-3 mb-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -333,7 +334,11 @@ export default function VesselCrewList() {
           <div className="flex gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2 h-11 px-5" disabled={!filteredCrewData}>
+                <Button
+                  variant="outline"
+                  className="gap-2 h-11 px-5"
+                  disabled={!filteredCrewData}
+                >
                   <Filter className="h-4 w-4" />
                   {selectedRank ? `Rank: ${selectedRank}` : "Filter by Rank"}
                 </Button>
@@ -343,7 +348,8 @@ export default function VesselCrewList() {
                   <DropdownMenuItem
                     key={rank}
                     onClick={() => setSelectedRank(rank)}
-                    className="flex justify-between">
+                    className="flex justify-between"
+                  >
                     {rank}
                     {selectedRank === rank && <Check className="h-4 w-4" />}
                   </DropdownMenuItem>
@@ -351,7 +357,8 @@ export default function VesselCrewList() {
                 {selectedRank && (
                   <DropdownMenuItem
                     onClick={handleClearRankFilter}
-                    className="text-blue-600 font-medium">
+                    className="text-blue-600 font-medium"
+                  >
                     Clear Filter
                   </DropdownMenuItem>
                 )}
@@ -359,7 +366,8 @@ export default function VesselCrewList() {
             </DropdownMenu>
             <Button
               className="gap-2 h-11 px-5"
-              onClick={() => setSearchCrewDialogOpen(true)}>
+              onClick={() => setSearchCrewDialogOpen(true)}
+            >
               <Plus className="h-4 w-4" />
               Join Crew
             </Button>
@@ -437,6 +445,8 @@ export default function VesselCrewList() {
           setOnSuccess={setOnSuccess}
           onOpenChange={setJoinCrewDialogOpen}
           crewMember={selectedOffBoardCrew}
+          SelectedVesselID={Number(vesselId) || 0}
+          SelectedVesselName={vesselName ?? ""}
         />
       )}
     </div>
