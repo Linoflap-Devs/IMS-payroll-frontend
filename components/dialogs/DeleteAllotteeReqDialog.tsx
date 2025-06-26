@@ -88,11 +88,11 @@ export function DeleteAllotteeReqDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
+      <DialogContent className="max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC] px-10">
         <div className="p-6 pb-8">
           <div className="flex justify-between items-center mb-8">
-            <DialogTitle className="text-center text-2xl font-bold text-[#2F3593]">
-              Delete Allottee Request Details
+            <DialogTitle className="text-2xl font-bold text-[#2F3593]">
+              Delete Allottee Request
             </DialogTitle>
           </div>
 
@@ -251,7 +251,7 @@ export function DeleteAllotteeReqDialog({
               </Button>
               <Button
                 type="button"
-                className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md"
+                className="flex-1 bg-[#E24141] text-white hover:bg-red-700 rounded-md"
                 onClick={() => handleProcess(2)}
                 disabled={isSubmitting}>
                 <CheckCircle2 className="mr-2 h-4 w-4" />

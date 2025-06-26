@@ -29,6 +29,7 @@ import { getApplications } from "@/src/services/application_crew/application.api
 import { AddAllotteeReqDialog } from "@/components/dialogs/AddAllotteeReqDialog";
 import { DeleteAllotteeReqDialog } from "@/components/dialogs/DeleteAllotteeReqDialog";
 import { HDMFUpgradeReqDialog } from "@/components/dialogs/HDMFUpgradeReqDialog";
+import { PiUserListFill } from "react-icons/pi";
 
 interface AllotteeRequestData {
   AllotteeRequestID: number;
@@ -75,7 +76,7 @@ interface Application {
 export default function CrewApplication() {
   const [activeTab, setActiveTab] = useState("pending");
   const [searchTerm, setSearchTerm] = useState("");
-  // const [statusFilter, setStatusFilter] = useState("all");
+  const [applicationTypeFilter, setApplicationTypeFilter] = useState("all");
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] =
@@ -85,6 +86,8 @@ export default function CrewApplication() {
   useEffect(() => {
     fetchApplications();
   }, []);
+
+  console.log('APPLICATION DATA:', applications);
 
   const fetchApplications = async () => {
     try {
@@ -144,7 +147,8 @@ export default function CrewApplication() {
             className={cn(
               "font-medium",
               statusClasses[status as keyof typeof statusClasses]
-            )}>
+            )}
+          >
             {row.original.ApplicationStatus}
           </Badge>
         );
@@ -154,7 +158,10 @@ export default function CrewApplication() {
       accessorKey: "ApplicationType",
       header: "Application Type",
     },
-
+    {
+      accessorKey: "ApplicationOperation",
+      header: "Application Operation",
+    },
     {
       id: "actions",
       header: "Actions",
@@ -167,7 +174,8 @@ export default function CrewApplication() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => handleViewDetails(row.original)}>
-              View Details
+              <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+              View Request
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -182,14 +190,18 @@ export default function CrewApplication() {
       app.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.FirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.LastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.Rank.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.ApplicationType.toLowerCase().includes(searchTerm.toLowerCase());
+      app.Rank.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesStatus && matchesSearch;
+    const matchesApplicationType =
+      applicationTypeFilter === "all" ||
+      app.ApplicationType.toLowerCase() === applicationTypeFilter;
+
+    return matchesStatus && matchesSearch && matchesApplicationType;
   });
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    setApplicationTypeFilter("all");
   };
 
   return (
@@ -232,23 +244,27 @@ export default function CrewApplication() {
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full flex flex-col h-full">
+                className="w-full flex flex-col h-full"
+              >
                 <div className="border-b">
                   <div className="px-4 pt-1">
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
                       <TabsTrigger
                         value="pending"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         Pending
                       </TabsTrigger>
                       <TabsTrigger
                         value="approved"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         Approved
                       </TabsTrigger>
                       <TabsTrigger
                         value="declined"
-                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         Declined
                       </TabsTrigger>
                     </TabsList>
@@ -259,7 +275,8 @@ export default function CrewApplication() {
                   <TabsContent
                     key={tabValue}
                     value={tabValue}
-                    className="p-2 mt-0 overflow-y-auto flex-1">
+                    className="p-2 mt-0 overflow-y-auto flex-1"
+                  >
                     <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                       {/* Search and Filters */}
                       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
@@ -274,14 +291,18 @@ export default function CrewApplication() {
                         </div>
 
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-                          <Select>
+                          <Select
+                            onValueChange={(value) =>
+                              setApplicationTypeFilter(value)
+                            }
+                          >
                             <SelectTrigger className="w-full h-full sm:w-60 sm:h-20">
                               <SelectValue placeholder="Filter by Application Type" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="all">All</SelectItem>
                               <SelectItem value="allottee">Allottee</SelectItem>
-                              <SelectItem value="hdmf-upgrade">
+                              <SelectItem value="hdmf upgrade">
                                 HDMF Upgrade
                               </SelectItem>
                             </SelectContent>
@@ -314,17 +335,22 @@ export default function CrewApplication() {
 
       {selectedApplication?.ApplicationType === "Allottee" && (
         <>
-          {selectedApplication.ApplicationOperation === "CREATE" && (
+          {selectedApplication.ApplicationOperation === "CREATE" &&
+          selectedApplication.ApplicationStatus !== "Declined" && (
             <AddAllotteeReqDialog
               open={showDetailsDialog}
               onOpenChange={setShowDetailsDialog}
+              selectedApplicationOperation={selectedApplication.ApplicationOperation}
+              selectedApplicationStatus={selectedApplication.ApplicationStatus}
               requestData={
                 selectedApplication.RequestData as AllotteeRequestData
               }
               onSuccess={fetchApplications}
             />
           )}
-          {selectedApplication.ApplicationOperation === "DELETE" && (
+
+          {selectedApplication.ApplicationOperation === "CREATE" &&
+          selectedApplication.ApplicationStatus === "Declined" && (
             <DeleteAllotteeReqDialog
               open={showDetailsDialog}
               onOpenChange={setShowDetailsDialog}
@@ -338,10 +364,11 @@ export default function CrewApplication() {
       )}
 
       {selectedApplication?.ApplicationType === "HDMF Upgrade" &&
-        selectedApplication.ApplicationOperation === "UPDATE" && (
+        (selectedApplication.ApplicationOperation === "CREATE" || selectedApplication.ApplicationOperation == "UPDATE") && (
           <HDMFUpgradeReqDialog
             open={showDetailsDialog}
             onOpenChange={setShowDetailsDialog}
+            selectedApplicationOperation={selectedApplication.ApplicationOperation}
             requestData={
               selectedApplication.RequestData as HDMFUpgradeRequestData
             }

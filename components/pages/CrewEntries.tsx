@@ -112,7 +112,9 @@ export default function Deduction() {
     return crewDeductionData.filter((item) => {
       const matchesSearch =
         item.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.crewName.toLowerCase().includes(searchTerm.toLowerCase());
+        item.crewName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.VesselName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.Rank.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesRank = rankFilter === "all" || item.Rank === rankFilter;
 

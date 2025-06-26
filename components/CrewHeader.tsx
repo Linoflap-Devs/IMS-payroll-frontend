@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { Button } from "@/components/ui/button";
+import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 
 interface CrewHeaderProps {
   isEditing: boolean;
@@ -72,6 +73,8 @@ export function CrewHeader({
   isDeclining,
   isRegistered,
 }: CrewHeaderProps) {
+  const { isAllotteeValid } = useAllotteeFormStore();
+
   return (
     <>
       <div className="flex items-center justify-between">
@@ -120,6 +123,7 @@ export function CrewHeader({
             </Button>
           )
         )}
+
         {activeTab === "allottee" && (
           <div className="px-4 pt-0 flex justify-end gap-3">
             {!isEditingAllottee && !isAddingAllottee && (
@@ -255,6 +259,7 @@ export function CrewHeader({
             )}
           </div>
         )}
+        
         {activeTab === "validation" && (
           <div className="px-4 pt-0 flex justify-end gap-3">
             <Button

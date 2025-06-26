@@ -130,7 +130,8 @@ const columns: ColumnDef<CrewItem>[] = [
         <div className="text-center">
           <Badge
             variant="outline"
-            className={`mx-auto justify-center text-xs sm:text-sm font-medium px-2 sm:px-2.5 py-0.5 flex items-center gap-1.5 sm:gap-2 w-24 sm:w-28 ${getStatusBgColor(
+            className={`mx-auto justify-center text-xs sm:text-sm font-medium px-2 sm:px-2.5 py-0.5 flex items-center gap-1.5 sm:gap-2 w-24 sm:w-28 
+              ${getStatusBgColor(
               status
             )}`}>
             {status}
@@ -143,16 +144,21 @@ const columns: ColumnDef<CrewItem>[] = [
     accessorKey: "IsActive",
     header: "Account Validation",
     cell: ({ row }) => {
-      // Adjust this mapping as necessary.
-      const validation =
-        row.getValue("IsActive") === 1 ? "Verified" : "Not Registered";
+      const isActive = row.getValue("IsActive");
+
+      let validation: string;
+      if (isActive === 1) validation = "Verified";
+      else if (isActive === 0) validation = "Pending";
+      else validation = "Not Registered";
+
       return (
         <div className="text-center">
           <Badge
             variant="outline"
             className={`mx-auto justify-center text-xs sm:text-sm font-medium px-2 sm:px-2.5 py-0.5 flex items-center gap-1.5 sm:gap-2 w-24 sm:w-28 ${getStatusBgColor(
               validation
-            )}`}>
+            )}`}
+          >
             {validation}
           </Badge>
         </div>
@@ -306,16 +312,20 @@ export default function CrewList() {
     const matchesValidation =
       validationFilter === "all" ||
       (crew.IsActive === 1 && validationFilter.toLowerCase() === "verified") ||
-      (crew.IsActive !== 1 &&
-        validationFilter.toLowerCase() === "not registered");
+      (crew.IsActive === 0 && validationFilter.toLowerCase() === "pending") ||
+      (crew.IsActive === null && validationFilter.toLowerCase() === "not registered");
+    //console.log('CREW DETAILS', crew);
 
     return matchesSearch && matchesStatus && matchesRank && matchesValidation;
   });
 
+  const uniqueRanks = Array.from(
+    new Map(crews.map((crew) => [crew.RankID, crew.Rank])).entries()
+  ).map(([id, name]) => ({ id, name }));
+
   if (error) {
     return <div className="text-center text-red-500">Error: {error}</div>;
   }
-
   return (
     <div className="h-full w-full p-4 pt-2">
       <style jsx global>{`
@@ -353,11 +363,13 @@ export default function CrewList() {
                   <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
                   <SelectValue placeholder="Filter by rank" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Filter by rank</SelectItem>
-                  <SelectItem value="13">Captain</SelectItem>
-                  <SelectItem value="6">First Officer</SelectItem>
-                  {/* Add additional mapping as needed */}
+                <SelectContent className="max-h-80">
+                  <SelectItem value="all">All Ranks</SelectItem>
+                  {uniqueRanks.map((rank) => (
+                    <SelectItem key={rank.id} value={rank.id.toString()}>
+                      {rank.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -366,9 +378,9 @@ export default function CrewList() {
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Filter by status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="all">All Filter by status</SelectItem>
+                  <SelectItem value="active">On Board</SelectItem>
+                  <SelectItem value="inactive">Off Board</SelectItem>
                 </SelectContent>
               </Select>
               <Select
@@ -379,8 +391,9 @@ export default function CrewList() {
                   <SelectValue placeholder="Filter by validation" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Filter by validation</SelectItem>
+                  <SelectItem value="all">All Account Validations</SelectItem>
                   <SelectItem value="verified">Verified</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="not registered">Not Registered</SelectItem>
                 </SelectContent>
               </Select>

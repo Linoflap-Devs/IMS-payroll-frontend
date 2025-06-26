@@ -319,7 +319,7 @@ export default function VesselCrewList() {
             </div>
           </div>
         </Card>
-
+        
         <div className="flex justify-between items-center gap-4 mt-3 mb-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -333,7 +333,7 @@ export default function VesselCrewList() {
           <div className="flex gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2 h-11 px-5">
+                <Button variant="outline" className="gap-2 h-11 px-5" disabled={!filteredCrewData}>
                   <Filter className="h-4 w-4" />
                   {selectedRank ? `Rank: ${selectedRank}` : "Filter by Rank"}
                 </Button>

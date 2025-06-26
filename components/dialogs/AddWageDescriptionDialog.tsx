@@ -119,7 +119,7 @@ export function AddWageDescriptionDialog({
         onOpenChange(false);
         setUniqueError(false);
       }}>
-      <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC]">
+       <DialogContent className="sm:max-w-[600px] p-4 bg-[#FCFCFC]">
         <DialogHeader>
           <DialogTitle className="text-center text-lg font-semibold text-[#2E37A4]">
             Add Wage Description
@@ -187,7 +187,7 @@ export function AddWageDescriptionDialog({
               control={form.control}
               name="payableOnBoard"
               render={({ field }) => (
-                <FormItem className="">
+                <FormItem className="w-full">
                   <FormLabel className="text-sm text-gray-600">
                     Payable On Board
                   </FormLabel>
@@ -196,10 +196,13 @@ export function AddWageDescriptionDialog({
                     defaultValue={field.value ? "yes" : "no"}>
                     <FormControl>
                       <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
-                        <SelectValue placeholder="Select option" />
+                        <SelectValue
+                          className="w-full"
+                          placeholder="Select option"
+                        />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="w-full">
                       <SelectItem value="yes">Yes</SelectItem>
                       <SelectItem value="no">No</SelectItem>
                     </SelectContent>

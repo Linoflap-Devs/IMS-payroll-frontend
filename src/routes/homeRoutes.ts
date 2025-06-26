@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ship, CircleMinus } from "lucide-react";
+import { LayoutDashboard, Users, Ship, CircleMinus, UserCheck } from "lucide-react";
 import { RiCoinsFill } from "react-icons/ri";
 import { TbCurrencyDollarOff } from "react-icons/tb";
 import { BiReceipt } from "react-icons/bi";
@@ -96,6 +96,13 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       icon: PiClockCounterClockwiseBold,
       href: "/home/audit-log",
       active: pathname.startsWith("/home/audit-log"),
+      allowedUserTypes: [1],
+    },
+    {
+      label: "Manage Users",
+      icon: UserCheck,
+      href: "/home/manage-users",
+      active: pathname.startsWith("/home/manage-users"),
       allowedUserTypes: [1],
     },
   ];
