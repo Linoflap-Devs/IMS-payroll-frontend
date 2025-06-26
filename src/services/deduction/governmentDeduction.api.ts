@@ -99,25 +99,25 @@ export const updateDeductionGovtRates = async (
   const response = await axiosInstance.patch<
     DeductionGovtRatesBaseResponse<DeductionRateMap[typeof type]>
   >(`/deductions/gov-rates/${contributionId}`, {
-    contributionId, // ✅ include this explicitly in body
+    contributionId, // include this explicitly in body
     type,
     ...data,
   });
 
-    console.log("✅ Backend response:", response);
+    console.log("Backend response:", response);
     return response.data;
   } catch (error: any) {
     if (error.response) {
       // Server responded with a status outside 2xx
-      console.error("❌ Backend error response:", error.response.data);
-      console.error("❌ Status:", error.response.status);
-      console.error("❌ Headers:", error.response.headers);
+      console.error("Backend error response:", error.response.data);
+      console.error("Status:", error.response.status);
+      console.error("Headers:", error.response.headers);
     } else if (error.request) {
       // Request was made but no response received
-      console.error("❌ No response received:", error.request);
+      console.error("No response received:", error.request);
     } else {
       // Other errors
-      console.error("❌ Error setting up request:", error.message);
+      console.error("Error setting up request:", error.message);
     }
     throw error; // rethrow so caller still catches it
   }
