@@ -1,10 +1,10 @@
 "use client";
-
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
 import { formatCurrency, getMonthName, truncateText } from "@/lib/utils";
+import { DeductionResponse, HDMFDeductionCrew } from "@/src/services/deduction/governmentReports.api";
 
 interface CrewMember {
     CrewID: number;
@@ -53,10 +53,9 @@ function extractPeriod(message: string): { month: string, year: number } {
 }
 
 export function generateHDMFRegisterPDF(
-    data: HDMFRegisterData,
-    exchangeRate: number = 57.53,
+    data: DeductionResponse<HDMFDeductionCrew>,
     dateGenerated: string = "04/14/25 9:55 AM",
-    // currentUser: string = 'lanceballicud'
+    mode: 'all' | 'vessel' = 'vessel'
 ): boolean {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
@@ -71,7 +70,6 @@ export function generateHDMFRegisterPDF(
     try {
         // Extract vessel data
         const vesselData = data.data[0];
-
         // Extract period information from message
         const period = extractPeriod(data.message);
 
@@ -79,7 +77,7 @@ export function generateHDMFRegisterPDF(
         const doc = new jsPDF({
             orientation: "landscape",
             unit: "mm",
-            format: "letter" // Legal size (8.5" × 14")
+            format: "letter"
         });
 
         // Add custom font with peso symbol support
@@ -93,8 +91,8 @@ export function generateHDMFRegisterPDF(
 
         // Set document properties
         doc.setProperties({
-            title: `HDMF Contribution Register - ${vesselData.VesselName} - ${period.month} ${period.year}`,
-            subject: `HDMF Contribution Register for ${vesselData.VesselName}`,
+            title: `HDMF Contribution Register - ${mode === 'vessel' ? vesselData.VesselName: 'All Vessels'} - ${period.month} ${period.year}`,
+            subject: `HDMF Contribution Register for ${mode === 'vessel' ? vesselData.VesselName: 'All Vessels'}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
@@ -103,13 +101,6 @@ export function generateHDMFRegisterPDF(
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
         const margins = { left: 10, right: 10, top: 10, bottom: 10 };
-
-        // Define maximum content height per page (leave room for page number at bottom)
-        // const maxContentHeight = pageHeight - margins.top - margins.bottom - 10;
-
-        // Initialize paging variables
-        let currentPage = 1;
-        const totalPages = 20; // Placeholder for total pages
 
         // Initialize current Y position
         let currentY = margins.top;
@@ -121,10 +112,12 @@ export function generateHDMFRegisterPDF(
         const colWidths = [
             mainTableWidth * 0.25, // CREW NAME
             mainTableWidth * 0.15, // HDMF Number
-            mainTableWidth * 0.15, // GROSS
-            mainTableWidth * 0.15, // EE
-            mainTableWidth * 0.15, // ER
-            mainTableWidth * 0.15, // Total  
+            mainTableWidth * 0.1, // DOB
+            mainTableWidth * 0.1, // YYYYMMDD
+            mainTableWidth * 0.1, // GROSS
+            mainTableWidth * 0.1, // EE
+            mainTableWidth * 0.1, // ER
+            mainTableWidth * 0.1, // Total  
         ];
 
         // Calculate column positions
@@ -140,118 +133,102 @@ export function generateHDMFRegisterPDF(
         const rowHeight = 8;
         const tableHeaderHeight = 8;
 
-        // -------------------------------------------------
-        // FIRST PAGE - Draw header only once
-        // -------------------------------------------------
+        // Function to draw the header (company info, vessel info, etc.)
+        const drawPageHeader = () => {
+            // Draw header table (3-column structure)
+            const headerWidth = pageWidth - margins.left - margins.right;
+            const companyColWidth = 90;
+            const middleColWidth = headerWidth - companyColWidth - 100;
+            const rightColWidth = 100;
 
-        // Draw header table (3-column structure)
-        const headerWidth = pageWidth - margins.left - margins.right;
-        const companyColWidth = 90;
-        const middleColWidth = headerWidth - companyColWidth - 100;
-        const rightColWidth = 100;
+            // Draw header table borders
+            doc.setLineWidth(0.1);
+            doc.setDrawColor(0);
 
-        // Draw header table borders
-        doc.setLineWidth(0.1);
-        doc.setDrawColor(0);
+            // Header container
+            doc.rect(margins.left, currentY, pageWidth - margins.right - 10, 40);
+            
+            // Logo
+            doc.addImage(logoBase64Image, 'PNG', margins.left, currentY, 20, 20);
 
-        // CrewHeader
-        doc.rect(margins.left, currentY, pageWidth - margins.right - 10, 40)
+            // Add company name text
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text("IMS PHILIPPINES", margins.left + 25, currentY + 9);
+            doc.text("MARITIME CORP.", margins.left + 25, currentY + 14);
 
-        //logo
-        doc.addImage(logoBase64Image, 'PNG', margins.left, currentY, 20, 20);
+            // Add month/year and report title
+            doc.rect(margins.left + companyColWidth + middleColWidth, currentY, rightColWidth, 10);
+            doc.rect(margins.left + companyColWidth + middleColWidth, currentY + 10, rightColWidth, 10);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(
+                `${period.month} ${period.year}`,
+                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
+                currentY + 6.5,
+                { align: 'right' }
+            );
+            doc.text(
+                "HDMF CONTRIBUTION REGISTER",
+                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
+                currentY + 16,
+                { align: 'right' }
+            );
 
-        // Add company name text
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text("IMS PHILIPPINES", margins.left + 25, currentY + 9);
-        doc.text("MARITIME CORP.", margins.left + 25, currentY + 14);
+            currentY += 20;
 
-        // Add month/year and report title
-        doc.rect(margins.left + companyColWidth + middleColWidth, currentY, rightColWidth, 10);
-        doc.rect(margins.left + companyColWidth + middleColWidth, currentY + 10, rightColWidth, 10);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text(
-            `${period.month} ${period.year}`,
-            margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            currentY + 6.5,
-            { align: 'right' }
-        );
-        doc.text(
-            "HDMF CONTRIBUTION REGISTER",
-            margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            currentY + 16,
-            { align: 'right' }
-        );
+            // Draw vessel information table
+            const vesselInfoY = currentY;
+            doc.line(margins.left, vesselInfoY, pageWidth - margins.right, vesselInfoY);
+            doc.setFontSize(8);
+            
+            // Text Gray
+            doc.setTextColor(150, 150, 150);
+            doc.setFont('helvetica', 'italic');
+            doc.text("VESSEL", margins.left + 2, vesselInfoY + 4.5);
+            doc.setTextColor(0);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+            doc.text(mode === 'vessel' ? vesselData.VesselName: 'All Vessels', margins.left + 2, vesselInfoY + 7.5);
+            doc.line(margins.left, vesselInfoY + 10, pageWidth - margins.right, vesselInfoY + 10);
 
-        currentY += 20;
+            doc.line(margins.left + companyColWidth + middleColWidth, 30, margins.left + companyColWidth + middleColWidth, 40);
 
-        // Draw vessel information table
-        const vesselInfoY = currentY;
+            // Add exchange rate and date
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(
+                `EXCHANGE RATE: USD > PHP ${data.data[0].ExchangeRate}`,
+                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
+                vesselInfoY + 6,
+                { align: 'right' }
+            );
+            doc.setFont('helvetica', 'italic');
+            doc.text(
+                dateGenerated,
+                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
+                vesselInfoY + 16,
+                { align: 'right' }
+            );
 
-        // Left column (Vessel name)
-        // doc.rect(margins.left, vesselInfoY, pageWidth - 20, 10);
-        doc.line(margins.left, vesselInfoY, pageWidth - margins.right, vesselInfoY);
-        doc.setFontSize(8);
-        //text Gray
-        doc.setTextColor(150, 150, 150);
-        doc.setFont('helvetica', 'italic');
-        doc.text("VESSEL", margins.left + 2, vesselInfoY + 4.5);
-        doc.setTextColor(0);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.text(vesselData.VesselName, margins.left + 2, vesselInfoY + 7.5);
-        doc.line(margins.left, vesselInfoY + 10, pageWidth - margins.right, vesselInfoY + 10);
+            currentY += 20;
 
-
-        // Middle column (Empty space)
-        // doc.rect(margins.left + companyColWidth, vesselInfoY, middleColWidth, 20);
-
-        // Right column (Exchange rate and date)
-        // doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY, rightColWidth, 10);
-        // doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY + 10, rightColWidth, 10);
-        doc.line(margins.left + companyColWidth + middleColWidth, 30, margins.left + companyColWidth + middleColWidth, 40);
-        // doc.line(margins.left, margins.top + 30, margins.left, margins.right - 20)
-        // Add exchange rate and date
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text(
-            `EXCHANGE RATE: USD > PHP ${exchangeRate}`,
-            margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            vesselInfoY + 6,
-            { align: 'right' }
-        );
-        doc.setFont('helvetica', 'italic');
-
-        doc.text(
-            dateGenerated,
-            margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            vesselInfoY + 16,
-            { align: 'right' }
-        );
-
-        currentY += 20;
-
-        // Gray separator line
-        const separatorY = currentY + 4;
-        doc.setDrawColor(180);
-        doc.setLineWidth(1);
-        doc.line(margins.left, separatorY, pageWidth - margins.right, separatorY);
-        doc.setDrawColor(0);
-        doc.setLineWidth(0.1);
-
-        currentY = separatorY + 4;
-
-        // -------------------------------------------------
-        // TABLE HEADER - Draw on first page and any new pages
-        // -------------------------------------------------
+            // Gray separator line
+            const separatorY = currentY + 4;
+            doc.setDrawColor(180);
+            doc.setLineWidth(1);
+            doc.line(margins.left, separatorY, pageWidth - margins.right, separatorY);
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.1);
+            currentY = separatorY + 4;
+        };
 
         // Function to draw the table header
         const drawTableHeader = () => {
             // Draw table headers
             doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
-
+            
             // Draw horizontal borders for header row only
             doc.line(margins.left, currentY, pageWidth - margins.right, currentY); // Top border
             doc.line(margins.left, currentY + tableHeaderHeight, pageWidth - margins.right, currentY + tableHeaderHeight); // Bottom border
@@ -261,11 +238,11 @@ export function generateHDMFRegisterPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
-            const headers = ["CREW NAME", "HDMF No.", "Gross", "EE", "ER", "Total"];
+            const headers = ["CREW NAME", "HDMF No.", "DOB", "YYYYMMDD", "Gross", "EE", "ER", "Total"];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                if (index === 0 || index === 1) {
+                if (index <= 3) {
                     // Left align crew name header (same as data)
                     doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
                 } else {
@@ -277,40 +254,34 @@ export function generateHDMFRegisterPDF(
             currentY += tableHeaderHeight;
         };
 
-        // Draw table header on first page
-        drawTableHeader();
-
-        // -------------------------------------------------
-        // TABLE DATA - Process each crew member
-        // -------------------------------------------------
-
-        // Function to add a new page with only the table header
-        const addNewPage = () => {
-            doc.addPage();
-            currentPage++;
+        // Function to add a new page
+        const addNewPage = (isFirstPage: boolean = false) => {
+            if (!isFirstPage) {
+                doc.addPage();
+            }
             currentY = margins.top;
-
-            // Draw table header on the new page
+            
+            // Draw header only on first page
+            if (isFirstPage) {
+                drawPageHeader();
+            }
+            
+            // Draw table header on all pages
             drawTableHeader();
         };
 
+        // Start with first page
+        addNewPage(true);
+
         // Process each crew member
         vesselData.Crew.forEach((crew, crewIndex) => {
-            // Calculate height needed for this crew entry (crew row + deduction rows)
+            // Calculate height needed for this crew entry
             const crewHeight = rowHeight;
-            //const deductionsHeight = crew.Deductions ? crew.Deductions.length * rowHeight : 0;
-            const totalEntryHeight = crewHeight //+ deductionsHeight;
+            const totalEntryHeight = crewHeight;
 
             // Check if we need a new page
-            if (currentY + totalEntryHeight > pageHeight - margins.bottom - 10) {
-                // Draw page number box at bottom of current page
-                doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
-                doc.setFont('helvetica', 'italic');
-                doc.setFontSize(9);
-                doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 4, { align: 'right' });
-
-
-                addNewPage();
+            if (currentY + totalEntryHeight > pageHeight - margins.bottom - 20) { // Leave space for page number
+                addNewPage(false);
             }
 
             // Set font for crew data
@@ -327,22 +298,23 @@ export function generateHDMFRegisterPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight); // Right border
 
             // Draw crew data
-
             const columnKeys: string[] = [
                 "CrewName",
                 "HDMFNumber",
+                "DateOfBirth",
+                "YYYYMMDD",
                 "Gross",
                 "EE",
                 "ER",
                 "Total"
-            ]
+            ];
 
             columnKeys.forEach((key, i) => {
                 if(i === 0) {
                     // Crew Name
                     doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
-                else if (key === 'HDMFNumber'){
+                else if (key === 'HDMFNumber' || key === 'DateOfBirth' || key === 'YYYYMMDD') {
                     doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'Total') {
@@ -355,153 +327,49 @@ export function generateHDMFRegisterPDF(
                 }
             });
 
-            // Draw horizontal line at the bottom of crew rowaa
+            // Draw horizontal line at the bottom of crew row
             doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
 
             // Move to next row
             currentY += rowHeight;
-
-           
         });
 
-        const pages = doc.internal.pages
-        // Draw page number box at bottom of last page
-        for(const page of pages) {
-            doc.setPage(page);
+        // NOW ADD PAGE NUMBERS TO ALL PAGES
+        const totalPages = doc.internal.pages.length - 1; // Subtract 1 because pages array includes a blank first element
+
+        // Loop through all pages and add page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            
+            // Draw page number box at bottom
             doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
             doc.setFont('helvetica', 'italic');
             doc.setFontSize(9);
-            doc.text(`Page ${currentPage} out of ${pages.length - 1}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 4, { align: 'right' });
+            doc.text(
+                `Page ${i} out of ${totalPages}`, 
+                pageWidth - margins.right - 5, 
+                pageHeight - margins.bottom - 4, 
+                { align: 'right' }
+            );
         }
 
-
-        // Add footer with current date/time and user on last page
-        // doc.setFontSize(8);
-        // doc.setFont('helvetica', 'italic');
-        // doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + getCurrentDateTime(), margins.left, pageHeight - margins.bottom - 20);
-        // doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
-
         // Save the PDF
-        const fileName = `deduction-register-${vesselData.VesselName.toLowerCase()}-${period.month.toLowerCase()}-${period.year}.pdf`;
+        const fileName = `hdmf-register-${vesselData.VesselName.toLowerCase().replace(/\s+/g, '-')}-${period.month.toLowerCase()}-${period.year}.pdf`;
         doc.save(fileName);
 
         return true;
     } catch (error) {
-        console.error("Error generating deduction register PDF:", error);
+        console.error("Error generating HDMF register PDF:", error);
         return false;
     }
 }
 
-// Real data from the user's JSON
-const realData: HDMFRegisterData = {
-	"success": true,
-	"message": "List of HDMF deduction register for Vessel ID 9 for 6/2024",
-	"data": [
-		{
-			"VesselID": 9,
-			"VesselName": "CHEMROAD ECHO",
-			"VesselCode": "AMAK",
-			"VesselType": "Bulk-Jap. Flag",
-			"Principal": "IINO MARINE",
-			"IsActive": 1,
-			"Crew": [
-				{
-					"CrewID": 194,
-					"CrewName": "RODILLO LAGANAS NIALLA",
-					"HDMFNumber": "N/A",
-					"Rank": "BSN",
-					"Salary": 620,
-					"Allotment": 40541.9,
-					"Gross": 62538.11,
-					"EE": 200,
-					"ER": 200
-				},
-				{
-					"CrewID": 1437,
-					"CrewName": "JEROLD ONG ESPLANADA",
-					"HDMFNumber": "N/A",
-					"Rank": "3RD OFFICER",
-					"Salary": 860,
-					"Allotment": 64386.87,
-					"Gross": 86730,
-					"EE": 200,
-					"ER": 200
-				},
-				{
-					"CrewID": 1674,
-					"CrewName": "CRIS JOHN PACINIO GARCIA",
-					"HDMFNumber": "N/A",
-					"Rank": "C/CK",
-					"Salary": 620,
-					"Allotment": 40341.9,
-					"Gross": 62538.11,
-					"EE": 400,
-					"ER": 200
-				},
-				{
-					"CrewID": 2288,
-					"CrewName": "GERALD GARCIA DESCUTIDO",
-					"HDMFNumber": "N/A",
-					"Rank": "MMAN",
-					"Salary": 415.2,
-					"Allotment": 20161.51,
-					"Gross": 41861.68,
-					"EE": 200,
-					"ER": 200
-				},
-				{
-					"CrewID": 403,
-					"CrewName": "ALBERT TEODOSIO ARCILLA",
-					"HDMFNumber": "N/A",
-					"Rank": "OLR1",
-					"Salary": 620,
-					"Allotment": 40541.9,
-					"Gross": 62538.11,
-					"EE": 200,
-					"ER": 200
-				},
-				{
-					"CrewID": 892,
-					"CrewName": "JEFFREY MATURAN MIRANDE",
-					"HDMFNumber": "N/A",
-					"Rank": "2ND ENGINEER",
-					"Salary": 968,
-					"Allotment": 74722.72,
-					"Gross": 97600.16,
-					"EE": 10,
-					"ER": 200
-				},
-				{
-					"CrewID": 1663,
-					"CrewName": "JEREMIAS TAMPEPE SALGADO",
-					"HDMFNumber": "N/A",
-					"Rank": "A/B",
-					"Salary": 557.6,
-					"Allotment": 34041.29,
-					"Gross": 56247.3,
-					"EE": 500,
-					"ER": 200
-				}
-			]
-		}
-	]
-}
-	
-
 // Function to generate the PDF with real data
-// export function generatePHRegister(data: PHRegisterData = realData, exchangeRate: number = 57.53, dateGenerated: string = "04/14/25 9:55 AM", currentUser: string = 'lanceballicud'): boolean {
-//     return generatePHRegisterPDF(
-//         data,
-//         exchangeRate, 
-//         dateGenerated
-//     );
-// }
-
-export function generateHDMFRegister(): boolean {
+export function generateHDMFRegister(data: DeductionResponse<HDMFDeductionCrew>, dateGenerated: string, mode: 'all' | 'vessel' = 'vessel'): boolean {
     return generateHDMFRegisterPDF(
-        realData,
-        57.58, 
-        new Date().toString()
+        data,
+        dateGenerated,
+        mode
     );
 }
 

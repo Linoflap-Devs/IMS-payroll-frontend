@@ -21,6 +21,7 @@ import {
   // Trash,
   ChevronLeft,
   Check,
+  ArrowDownUp,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
@@ -135,9 +136,11 @@ export default function VesselCrewList() {
       accessorKey: "crewCode",
       header: ({ column }) => (
         <div
-          className="flex items-center cursor-pointer text-left"
+          className="flex items-center justify-center cursor-pointer text-left space-x-2"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-          Crew Code
+          <p>Crew Code</p>
+
+          <ArrowDownUp size={15} />
         </div>
       ),
       cell: ({ row }) => (
@@ -148,9 +151,11 @@ export default function VesselCrewList() {
       accessorKey: "name",
       header: ({ column }) => (
         <div
-          className="flex items-center cursor-pointer text-left"
+          className="flex items-center justify-center cursor-pointer text-left space-x-2"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-          Crew Name
+          <p>Crew Name</p>
+
+          <ArrowDownUp size={15} />
         </div>
       ),
       cell: ({ row }) => (
@@ -161,13 +166,15 @@ export default function VesselCrewList() {
       accessorKey: "rank",
       header: ({ column }) => (
         <div
-          className="flex items-center cursor-pointer text-left"
+          className="flex items-center justify-center cursor-pointer text-left space-x-2"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-          Rank
+          <p>Rank</p>
+
+          <ArrowDownUp size={15} />
         </div>
       ),
       cell: ({ row }) => (
-        <div className="text-left">{row.getValue("rank")}</div>
+        <div className="text-center">{row.getValue("rank")}</div>
       ),
     },
     {

@@ -84,6 +84,10 @@ export interface DeductionRegisterCrew {
 export interface DeductionRegisterData {
   VesselID: number;
   VesselName: string;
+  VesselCode: string;
+  VesselType: string;
+  Principal: string;
+  IsActive: number;
   Crew: DeductionRegisterCrew[];
 }
 
@@ -95,28 +99,23 @@ export interface DeductionRegisterResponse {
 
 
 
-export const getVesselDeductionRegister = async (vesselId: string | number, month: number, year: number): Promise<DeductionRegisterResponse> => {
+export const getVesselDeductionRegister = async (vesselId: string | number | null, month: number | null, year: number | null): Promise<DeductionRegisterResponse> => {
   const response = await axiosInstance.get<DeductionRegisterResponse>(`/payroll/${vesselId}/deduction?month=${month}&year=${year}`);
   return response.data;
 }
 
-export interface PayslipPeriod {
-  month: number;
-  year: number;
-  startDate: string;
-  endDate: string;
-  formattedPeriod: string;
+export interface AllotteeDistribution {
+  name: string;
+  amount: number;
+  currency: string | number;
 }
 
-export interface PayrollSummary {
-  crewCount: number;
-  totalBasicWage: number;
-  totalFOT: number;
-  totalGOT: number;
-  totalDollarGross: number;
-  totalPesoGross: number;
-  totalDeductions: number;
-  totalNetAllotment: number;
+export interface AllotmentDeduction {
+  name: string;
+  currency: string;
+  amount: number;
+  forex: number;
+  dollar: number;
 }
 
 export interface PayrollDetails {
@@ -129,35 +128,53 @@ export interface PayrollDetails {
   netWage: number;
 }
 
-export interface AllotmentDeduction {
-  name: string;
-  currency: string;
-  amount: number;
-  forex: number;
-  dollar: number;
-}
-
-export interface AllotteeDistribution {
-  name: string;
-  amount: number;
-  currency: string | number;
-}
-
 export interface CrewPayroll {
   crewId: number;
   crewCode: string;
   crewName: string;
   rank: string;
+  vesselId: number;
+  vesselName: string;
   payrollDetails: PayrollDetails;
   allotmentDeductions: AllotmentDeduction[];
   allotteeDistribution: AllotteeDistribution[];
 }
 
-export interface PayslipData {
+export interface PayslipPeriod {
+  month: number;
+  year: number;
+  startDate: string;
+  endDate: string;
+  formattedPeriod: string;
+}
+
+
+export interface PayrollSummary {
+  crewCount: number;
+  totalBasicWage: number;
+  totalFOT: number;
+  totalGOT: number;
+  totalDollarGross: number;
+  totalPesoGross: number;
+  totalDeductions: number;
+  totalNetAllotment: number;
+}
+
+export interface Payroll {
+  vesselId: number;
   vesselName: string;
-  period: PayslipPeriod;
+  vesselCode: string;
+  vesselType: string;
+  principal: string;
+  isActive: number;
   summary: PayrollSummary;
   payrolls: CrewPayroll[];
+}
+
+export interface PayslipData {
+  period: PayslipPeriod;
+  overallSummary: PayrollSummary;
+  vessels: Payroll[];
 }
 
 export interface PayslipResponse {
@@ -168,6 +185,11 @@ export interface PayslipResponse {
 
 export const getVesselPayslip = async (vesselId: string | number, month: number, year: number): Promise<PayslipResponse> => {
   const response = await axiosInstance.get<PayslipResponse>(`/payroll/${vesselId}/payslip?month=${month}&year=${year}`);
+  return response.data;
+}
+
+export const getVesselPayslipV2 = async (vesselId: string | number | null, month: number | null, year: number | null): Promise<PayslipResponse> => {
+  const response = await axiosInstance.get<PayslipResponse>(`/v2/payroll/${vesselId}/payslip?month=${month}&year=${year}`);
   return response.data;
 }
 

@@ -5,6 +5,7 @@ import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
 import { formatCurrency, getMonthName, truncateText } from "@/lib/utils";
+import { DeductionResponse, PhilhealthDeductionCrew } from "@/src/services/deduction/governmentReports.api";
 
 interface CrewMember {
     CrewID: number;
@@ -55,10 +56,9 @@ function extractPeriod(message: string): { month: string, year: number } {
 }
 
 export function generatePHRegisterPDF(
-    data: PHRegisterData,
-    exchangeRate: number = 57.53,
+    data: DeductionResponse<PhilhealthDeductionCrew>,
     dateGenerated: string = "04/14/25 9:55 AM",
-    // currentUser: string = 'lanceballicud'
+    mode: 'all' | 'vessel' = 'vessel'
 ): boolean {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
@@ -95,8 +95,8 @@ export function generatePHRegisterPDF(
 
         // Set document properties
         doc.setProperties({
-            title: `Philhealth Contribution Register - ${vesselData.VesselName} - ${period.month} ${period.year}`,
-            subject: `Philhealth Contribution Register for ${vesselData.VesselName}`,
+            title: `Philhealth Contribution Register - ${mode === 'vessel' ? vesselData.VesselName: 'All Vessels'} - ${period.month} ${period.year}`,
+            subject: `Philhealth Contribution Register for ${mode === 'vessel' ? vesselData.VesselName: 'All Vessels'}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
@@ -111,7 +111,6 @@ export function generatePHRegisterPDF(
 
         // Initialize paging variables
         let currentPage = 1;
-        const totalPages = 20; // Placeholder for total pages
 
         // Initialize current Y position
         let currentY = margins.top;
@@ -123,7 +122,7 @@ export function generatePHRegisterPDF(
         const colWidths = [
             mainTableWidth * 0.25, // CREW NAME
             mainTableWidth * 0.15, // PH Number
-            mainTableWidth * 0.15, // GROSS
+            mainTableWidth * 0.15, // DOB
             mainTableWidth * 0.15, // EE
             mainTableWidth * 0.15, // ER
             mainTableWidth * 0.15, // Total  
@@ -145,105 +144,106 @@ export function generatePHRegisterPDF(
         // -------------------------------------------------
         // FIRST PAGE - Draw header only once
         // -------------------------------------------------
+        const drawPageHeader = () => {
+            // Draw header table (3-column structure)
+            const headerWidth = pageWidth - margins.left - margins.right;
+            const companyColWidth = 90;
+            const middleColWidth = headerWidth - companyColWidth - 100;
+            const rightColWidth = 100;
 
-        // Draw header table (3-column structure)
-        const headerWidth = pageWidth - margins.left - margins.right;
-        const companyColWidth = 90;
-        const middleColWidth = headerWidth - companyColWidth - 100;
-        const rightColWidth = 100;
+            // Draw header table borders
+            doc.setLineWidth(0.1);
+            doc.setDrawColor(0);
 
-        // Draw header table borders
-        doc.setLineWidth(0.1);
-        doc.setDrawColor(0);
+            // CrewHeader
+            doc.rect(margins.left, currentY, pageWidth - margins.right - 10, 40)
 
-        // CrewHeader
-        doc.rect(margins.left, currentY, pageWidth - margins.right - 10, 40)
+            //logo
+            doc.addImage(logoBase64Image, 'PNG', margins.left, currentY, 20, 20);
 
-        //logo
-        doc.addImage(logoBase64Image, 'PNG', margins.left, currentY, 20, 20);
+            // Add company name text
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text("IMS PHILIPPINES", margins.left + 25, currentY + 9);
+            doc.text("MARITIME CORP.", margins.left + 25, currentY + 14);
 
-        // Add company name text
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text("IMS PHILIPPINES", margins.left + 25, currentY + 9);
-        doc.text("MARITIME CORP.", margins.left + 25, currentY + 14);
+            // Add month/year and report title
+            doc.rect(margins.left + companyColWidth + middleColWidth, currentY, rightColWidth, 10);
+            doc.rect(margins.left + companyColWidth + middleColWidth, currentY + 10, rightColWidth, 10);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(
+                `${period.month} ${period.year}`,
+                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
+                currentY + 6.5,
+                { align: 'right' }
+            );
+            doc.text(
+                "PHILHEALTH CONTRIBUTION REGISTER",
+                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
+                currentY + 16,
+                { align: 'right' }
+            );
 
-        // Add month/year and report title
-        doc.rect(margins.left + companyColWidth + middleColWidth, currentY, rightColWidth, 10);
-        doc.rect(margins.left + companyColWidth + middleColWidth, currentY + 10, rightColWidth, 10);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text(
-            `${period.month} ${period.year}`,
-            margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            currentY + 6.5,
-            { align: 'right' }
-        );
-        doc.text(
-            "PHILHEALTH CONTRIBUTION REGISTER",
-            margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            currentY + 16,
-            { align: 'right' }
-        );
+            currentY += 20;
 
-        currentY += 20;
+            // Draw vessel information table
+            const vesselInfoY = currentY;
 
-        // Draw vessel information table
-        const vesselInfoY = currentY;
-
-        // Left column (Vessel name)
-        // doc.rect(margins.left, vesselInfoY, pageWidth - 20, 10);
-        doc.line(margins.left, vesselInfoY, pageWidth - margins.right, vesselInfoY);
-        doc.setFontSize(8);
-        //text Gray
-        doc.setTextColor(150, 150, 150);
-        doc.setFont('helvetica', 'italic');
-        doc.text("VESSEL", margins.left + 2, vesselInfoY + 4.5);
-        doc.setTextColor(0);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.text(vesselData.VesselName, margins.left + 2, vesselInfoY + 7.5);
-        doc.line(margins.left, vesselInfoY + 10, pageWidth - margins.right, vesselInfoY + 10);
+            // Left column (Vessel name)
+            // doc.rect(margins.left, vesselInfoY, pageWidth - 20, 10);
+            doc.line(margins.left, vesselInfoY, pageWidth - margins.right, vesselInfoY);
+            doc.setFontSize(8);
+            //text Gray
+            doc.setTextColor(150, 150, 150);
+            doc.setFont('helvetica', 'italic');
+            doc.text("VESSEL", margins.left + 2, vesselInfoY + 4.5);
+            doc.setTextColor(0);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+            doc.text(mode === 'vessel' ? vesselData.VesselName: 'All Vessels', margins.left + 2, vesselInfoY + 7.5);
+            doc.line(margins.left, vesselInfoY + 10, pageWidth - margins.right, vesselInfoY + 10);
 
 
-        // Middle column (Empty space)
-        // doc.rect(margins.left + companyColWidth, vesselInfoY, middleColWidth, 20);
+            // Middle column (Empty space)
+            // doc.rect(margins.left + companyColWidth, vesselInfoY, middleColWidth, 20);
 
-        // Right column (Exchange rate and date)
-        // doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY, rightColWidth, 10);
-        // doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY + 10, rightColWidth, 10);
-        doc.line(margins.left + companyColWidth + middleColWidth, 30, margins.left + companyColWidth + middleColWidth, 40);
-        // doc.line(margins.left, margins.top + 30, margins.left, margins.right - 20)
-        // Add exchange rate and date
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.text(
-            `EXCHANGE RATE: USD > PHP ${exchangeRate}`,
-            margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            vesselInfoY + 6,
-            { align: 'right' }
-        );
-        doc.setFont('helvetica', 'italic');
+            // Right column (Exchange rate and date)
+            // doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY, rightColWidth, 10);
+            // doc.rect(margins.left + companyColWidth + middleColWidth, vesselInfoY + 10, rightColWidth, 10);
+            doc.line(margins.left + companyColWidth + middleColWidth, 30, margins.left + companyColWidth + middleColWidth, 40);
+            // doc.line(margins.left, margins.top + 30, margins.left, margins.right - 20)
+            // Add exchange rate and date
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(
+                `EXCHANGE RATE: USD > PHP ${data.data[0].ExchangeRate}`,
+                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
+                vesselInfoY + 6,
+                { align: 'right' }
+            );
+            doc.setFont('helvetica', 'italic');
 
-        doc.text(
-            dateGenerated,
-            margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            vesselInfoY + 16,
-            { align: 'right' }
-        );
+            doc.text(
+                dateGenerated,
+                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
+                vesselInfoY + 16,
+                { align: 'right' }
+            );
 
-        currentY += 20;
+            currentY += 20;
 
-        // Gray separator line
-        const separatorY = currentY + 4;
-        doc.setDrawColor(180);
-        doc.setLineWidth(1);
-        doc.line(margins.left, separatorY, pageWidth - margins.right, separatorY);
-        doc.setDrawColor(0);
-        doc.setLineWidth(0.1);
+            // Gray separator line
+            const separatorY = currentY + 4;
+            doc.setDrawColor(180);
+            doc.setLineWidth(1);
+            doc.line(margins.left, separatorY, pageWidth - margins.right, separatorY);
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.1);
 
-        currentY = separatorY + 4;
-
+            currentY = separatorY + 4;
+        }
+        
         // -------------------------------------------------
         // TABLE HEADER - Draw on first page and any new pages
         // -------------------------------------------------
@@ -263,11 +263,11 @@ export function generatePHRegisterPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
-            const headers = ["CREW NAME", "Philhealth No.","GROSS", "EE", "ER", "Total"];
+            const headers = ["CREW NAME", "Philhealth No.","DOB", "EE", "ER", "Total"];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                if (index === 0 || index === 1) {
+                if (index <= 2) {
                     // Left align crew name header (same as data)
                     doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
                 } else {
@@ -279,22 +279,29 @@ export function generatePHRegisterPDF(
             currentY += tableHeaderHeight;
         };
 
+        // Function to add a new page with only the table header
+        const addNewPage = (isFirstPage: boolean = false) => {
+            if (!isFirstPage) {
+                doc.addPage();
+            }
+            currentY = margins.top;
+            
+            // Draw header only on first page
+            if (isFirstPage) {
+                drawPageHeader();
+            }
+            
+            // Draw table header on all pages
+            drawTableHeader();
+        };
+
         // Draw table header on first page
-        drawTableHeader();
+        addNewPage(true);
 
         // -------------------------------------------------
         // TABLE DATA - Process each crew member
         // -------------------------------------------------
 
-        // Function to add a new page with only the table header
-        const addNewPage = () => {
-            doc.addPage();
-            currentPage++;
-            currentY = margins.top;
-
-            // Draw table header on the new page
-            drawTableHeader();
-        };
 
         // Process each crew member
         vesselData.Crew.forEach((crew, crewIndex) => {
@@ -303,17 +310,11 @@ export function generatePHRegisterPDF(
             //const deductionsHeight = crew.Deductions ? crew.Deductions.length * rowHeight : 0;
             const totalEntryHeight = crewHeight //+ deductionsHeight;
 
-            // Check if we need a new page
-            if (currentY + totalEntryHeight > pageHeight - margins.bottom - 10) {
-                // Draw page number box at bottom of current page
-                doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
-                doc.setFont('helvetica', 'italic');
-                doc.setFontSize(9);
-                doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 4, { align: 'right' });
-
-
-                addNewPage();
+           // Check if we need a new page
+            if (currentY + totalEntryHeight > pageHeight - margins.bottom - 20) { // Leave space for page number
+                addNewPage(false);
             }
+
 
             // Set font for crew data
             doc.setFontSize(9);
@@ -333,7 +334,7 @@ export function generatePHRegisterPDF(
             const columnKeys: string[] = [
                 "CrewName",
                 "PHNumber",
-                "Gross",
+                "DateOfBirth",
                 "EE",
                 "ER",
                 "Total"
@@ -344,7 +345,7 @@ export function generatePHRegisterPDF(
                     // Crew Name
                     doc.text(truncateText(crew[key as keyof CrewMember].toString(), 27), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
-                else if (key === 'PHNumber'){
+                else if (key === 'PHNumber' || key === 'DateOfBirth'){
                     doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'Total') {
@@ -366,14 +367,23 @@ export function generatePHRegisterPDF(
            
         });
 
-        const pages = doc.internal.pages
-        // Draw page number box at bottom of last page
-        for(const page of pages) {
-            doc.setPage(page);
+        // NOW ADD PAGE NUMBERS TO ALL PAGES
+        const totalPages = doc.internal.pages.length - 1; // Subtract 1 because pages array includes a blank first element
+
+        // Loop through all pages and add page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            
+            // Draw page number box at bottom
             doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
             doc.setFont('helvetica', 'italic');
             doc.setFontSize(9);
-            doc.text(`Page ${currentPage} out of ${pages.length - 1}`, pageWidth - margins.right - 5, pageHeight - margins.bottom - 4, { align: 'right' });
+            doc.text(
+                `Page ${i} out of ${totalPages}`, 
+                pageWidth - margins.right - 5, 
+                pageHeight - margins.bottom - 4, 
+                { align: 'right' }
+            );
         }
 
 
@@ -393,131 +403,14 @@ export function generatePHRegisterPDF(
         return false;
     }
 }
-
-// Real data from the user's JSON
-const realData: PHRegisterData = {
-	"success": true,
-	"message": "List of Philhealth deduction register for Vessel ID 9 for 6/2024",
-	"data": [
-		{
-			"VesselID": 9,
-			"VesselName": "CHEMROAD ECHO",
-			"VesselCode": "AMAK",
-			"VesselType": "Bulk-Jap. Flag",
-			"Principal": "IINO MARINE",
-			"IsActive": 1,
-			"Crew": [
-				{
-					"CrewID": 194,
-					"CrewName": "RODILLO LAGANAS NIALLA",
-					"Rank": "BSN",
-					"PHNumber": "N/A",
-					"Salary": 620,
-					"Allotment": 40541.9,
-					"Gross": 62538.11,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 1437,
-					"CrewName": "JEROLD ONG ESPLANADA",
-					"Rank": "3RD OFFICER",
-					"PHNumber": "N/A",
-					"Salary": 860,
-					"Allotment": 64386.87,
-					"Gross": 86730,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 1674,
-					"CrewName": "CRIS JOHN PACINIO GARCIA",
-					"Rank": "C/CK",
-					"PHNumber": "N/A",
-					"Salary": 620,
-					"Allotment": 40341.9,
-					"Gross": 62538.11,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 2288,
-					"CrewName": "GERALD GARCIA DESCUTIDO",
-					"Rank": "MMAN",
-					"PHNumber": "N/A",
-					"Salary": 415.2,
-					"Allotment": 20161.51,
-					"Gross": 41861.68,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 403,
-					"CrewName": "ALBERT TEODOSIO ARCILLA",
-					"Rank": "OLR1",
-					"PHNumber": "N/A",
-					"Salary": 620,
-					"Allotment": 40541.9,
-					"Gross": 62538.11,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 892,
-					"CrewName": "JEFFREY MATURAN MIRANDE",
-					"Rank": "2ND ENGINEER",
-					"PHNumber": "N/A",
-					"Salary": 968,
-					"Allotment": 74722.72,
-					"Gross": 97600.16,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				},
-				{
-					"CrewID": 1663,
-					"CrewName": "JEREMIAS TAMPEPE SALGADO",
-					"Rank": "A/B",
-					"PHNumber": "N/A",
-					"Salary": 557.6,
-					"Allotment": 34041.29,
-					"Gross": 56247.3,
-					"EE": 0,
-					"ER": 0,
-					"EEPremium": 0,
-					"EEPremiumRate": 2.5
-				}
-			]
-		}
-	]
-}
 	
 
-// Function to generate the PDF with real data
-// export function generatePHRegister(data: PHRegisterData = realData, exchangeRate: number = 57.53, dateGenerated: string = "04/14/25 9:55 AM", currentUser: string = 'lanceballicud'): boolean {
-//     return generatePHRegisterPDF(
-//         data,
-//         exchangeRate, 
-//         dateGenerated
-//     );
-// }
-
-export function generatePHRegister(): boolean {
+//Function to generate the PDF with real data
+export function generatePHRegister(data: DeductionResponse<PhilhealthDeductionCrew>, dateGenerated: string, mode: 'all' | 'vessel' = 'vessel'): boolean {
     return generatePHRegisterPDF(
-        realData,
-        57.58, 
-        new Date().toString()
+        data,
+        dateGenerated,
+        mode
     );
 }
 

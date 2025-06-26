@@ -11,56 +11,21 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "../../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
-import { getVesselPayslip } from "@/src/services/payroll/payroll.api";
+import {
+  CrewPayroll,
+  getVesselPayslipV2,
+  PayslipData,
+} from "@/src/services/payroll/payroll.api";
 import { useSearchParams } from "next/navigation";
-import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { generatePayrollPDF } from "@/components/PDFs/payrollStatementPDF";
+import { toast } from "@/components/ui/use-toast";
 
-interface CrewPayroll {
-  crewId: number;
-  crewCode: string;
-  crewName: string;
-  rank: string;
-}
-
-interface VesselInfo {
-  code: string;
-  name: string;
-  type: string;
-  principalName: string;
-}
-
-export default function VesselPayslip({
-  vesselInfo: initialVesselInfo,
-}: {
-  vesselInfo?: VesselInfo;
-}) {
+export default function VesselPayslip() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [payslipData, setPayslipData] = useState<CrewPayroll[]>([]);
+  const [payslipData, setPayslipData] = useState<PayslipData>();
   const searchParams = useSearchParams();
-  const [PayslipPDFData, setPayslipPDFData] = useState<any>({});
-  const [vesselInfo, setVesselInfo] = useState<VesselInfo | undefined>(
-    initialVesselInfo
-  );
-  const vesselId = searchParams.get("vesselId");
-
-  useEffect(() => {
-    getVesselList().then((response) => {
-      if (response.success) {
-        const vessel = response.data.find(
-          (v) => v.VesselID === Number(vesselId)
-        );
-        if (vessel) {
-          setVesselInfo({
-            code: vessel.VesselCode,
-            name: vessel.VesselName,
-            type: vessel.VesselType,
-            principalName: vessel.Principal,
-          });
-        }
-      }
-    });
-  }, [vesselId]);
+  const [PayslipPDFData, setPayslipPDFData] = useState<PayslipData>();
+  const [payslipCrewData, setPayslipCrewData] = useState<CrewPayroll[]>([]);
 
   useEffect(() => {
     const vesselId = searchParams.get("vesselId");
@@ -68,18 +33,12 @@ export default function VesselPayslip({
     const year = searchParams.get("year");
 
     if (vesselId && month && year) {
-      getVesselPayslip(vesselId, parseInt(month), parseInt(year))
+      getVesselPayslipV2(vesselId, parseInt(month), parseInt(year))
         .then((res) => {
           if (res.success) {
             setPayslipPDFData(res.data);
-            setPayslipData(
-              res.data.payrolls.map((crew) => ({
-                crewId: crew.crewId,
-                crewCode: crew.crewCode,
-                crewName: crew.crewName,
-                rank: crew.rank,
-              }))
-            );
+            setPayslipData(res.data);
+            setPayslipCrewData(res.data.vessels[0]?.payrolls || []);
           } else {
             console.error("Failed to fetch payslip data:", res.message);
           }
@@ -88,7 +47,9 @@ export default function VesselPayslip({
     }
   }, [searchParams]);
 
-  console.log("Payslip Data:", PayslipPDFData);
+  console.log("Payslip Data:", payslipData);
+  console.log("Payslip Crew Data:", payslipCrewData);
+
   const columns: ColumnDef<CrewPayroll>[] = [
     {
       accessorKey: "crewCode",
@@ -119,14 +80,22 @@ export default function VesselPayslip({
     },
   ];
 
-  const filteredCrew = payslipData.filter(
+  const filteredCrew = payslipCrewData.filter(
     (crew) =>
       crew.crewName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const generatePayrollPDFs = () => {
-    console.log("Generating PDF for all crew:", PayslipPDFData);
+    if (!PayslipPDFData) {
+      console.error("No payslip data available for PDF generation.");
+      toast({
+        title: "Error",
+        description: "No payslip data available for PDF generation.",
+        variant: "destructive",
+      });
+      return;
+    }
     generatePayrollPDF(PayslipPDFData);
   };
 
@@ -157,10 +126,10 @@ export default function VesselPayslip({
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <div className="text-xl text-gray-500 uppercase">
-                {vesselInfo?.code || "AMAK"}
+                {payslipData?.vessels[0]?.vesselCode || "N/A"}
               </div>
               <h2 className="text-2xl font-semibold">
-                {vesselInfo?.name || "Amakus Island"}
+                {payslipData?.vessels[0]?.vesselName || "N/A"}
               </h2>
               <Badge
                 variant="secondary"
@@ -171,12 +140,12 @@ export default function VesselPayslip({
             <div className="text-right">
               <div className="text-lg flex items-center gap-2">
                 <Ship className="h-4 w-4" />
-                {vesselInfo?.type || "Bulk Jap, Flag"}
+                {payslipData?.vessels[0].vesselType || "Bulk Jap, Flag"}
               </div>
               <Card className="p-1 bg-[#FDFDFD] mt-2">
                 <div className="text-sm text-center">
                   <p className="flex items-center justify-center font-semibold">
-                    {vesselInfo?.principalName || "Iino Marine"}
+                    {payslipData?.vessels[0]?.principal || "Iino Marine"}
                   </p>
                   <div className="text-gray-500 text-xs flex items-center justify-center">
                     Principal Name
