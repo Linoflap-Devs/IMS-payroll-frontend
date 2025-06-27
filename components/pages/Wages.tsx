@@ -16,7 +16,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  // DropdownMenuLabel, // Not used
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -25,33 +24,26 @@ import {
   Plus,
   MoreHorizontal,
   Trash,
-  // Filter, // Not used
-  // IdCard, // Not used
-  // FolderClock, // Not used
-  // Users, // Not used
   Pencil,
   ChevronDown,
 } from "lucide-react";
-// import { Badge } from "@/components/ui/badge"; // Not used
 import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-
 import { Card } from "../ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   EditSalaryScaleDialog,
   DialogSelectOption,
-} from "@/components/dialogs/EditSalaryScaleDialog"; // Added DialogSelectOption
+} from "@/components/dialogs/EditSalaryScaleDialog";
 import { EditWageDescriptionDialog } from "@/components/dialogs/EditWageDescriptionDialog";
 import { EditForexDialog } from "@/components/dialogs/EditForexDialog";
 import { AddWageDescriptionDialog } from "@/components/dialogs/AddWageDescriptionDialog";
 import Swal from "sweetalert2";
 import {
-  SalaryScaleItem, // Ensure this is imported
+  SalaryScaleItem,
   getSalaryScaleList,
-  // updateSalaryScale and its payload are used in the dialog, not directly here
-} from "../../src/services/wages/salaryScale.api"; // Ensure path is correct
+} from "../../src/services/wages/salaryScale.api";
 import {
   WageDescriptionItem,
   deleteWageDescription,
@@ -61,14 +53,7 @@ import {
   deleteWageForex,
   getWageForexList,
 } from "@/src/services/wages/wageForex.api";
-
-// Type for data passed to dialog was previously SalaryScaleData, now managed by selectedSalaryScale (SalaryScaleItem)
-// type SalaryScaleData = {
-//   rank: string;
-//   wageType: string;
-//   amount: number;
-//   vesselTypeId?: number;
-// };
+import { AddForexDialog } from "../dialogs/AddForexDialog";
 
 type WageDescriptionData = {
   wageId: number;
@@ -104,6 +89,7 @@ export default function Wages() {
   const [editWageDescriptionDialogOpen, setEditWageDescriptionDialogOpen] =
     useState(false);
   const [editForexDialogOpen, setEditForexDialogOpen] = useState(false);
+  const [addForexDialogOpen, setAddForexDialogOpen] = useState(false);
   const [AddWageDescriptionDialogOpen, setAddWageDescriptionDialogOpen] =
     useState(false);
   const [forexData, setForexData] = useState<ForexData[]>([]);
@@ -706,7 +692,6 @@ export default function Wages() {
   return (
     <>
       <div className="h-full w-full p-3 pt-3 overflow-hidden">
-        {/* Styles remain the same */}
         <style jsx global>{`
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
@@ -737,36 +722,44 @@ export default function Wages() {
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full flex flex-col h-full">
+                className="w-full flex flex-col h-full"
+              >
                 <div className="border-b">
                   <div className="px-4 pt-1">
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
-                      {["salary", "wage-description", "forex"].map((tabValue) => {
-                        const label =
-                          tabValue === "salary"
-                            ? "Salary Scale"
-                            : tabValue
-                                .split("-")
-                                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                                .join(" ");
+                      {["salary", "wage-description", "forex"].map(
+                        (tabValue) => {
+                          const label =
+                            tabValue === "salary"
+                              ? "Salary Scale"
+                              : tabValue
+                                  .split("-")
+                                  .map(
+                                    (word) =>
+                                      word.charAt(0).toUpperCase() +
+                                      word.slice(1)
+                                  )
+                                  .join(" ");
 
-                        return (
-                          <TabsTrigger
-                            key={tabValue}
-                            value={tabValue}
-                            className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                          >
-                            {label}
-                          </TabsTrigger>
-                        );
-                      })}
+                          return (
+                            <TabsTrigger
+                              key={tabValue}
+                              value={tabValue}
+                              className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                            >
+                              {label}
+                            </TabsTrigger>
+                          );
+                        }
+                      )}
                     </TabsList>
                   </div>
                 </div>
 
                 <TabsContent
                   value="salary"
-                  className="p-2 mt-0 overflow-y-auto flex-1">
+                  className="p-2 mt-0 overflow-y-auto flex-1"
+                >
                   <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
                       <div className="relative w-full md:flex-1">
@@ -781,7 +774,8 @@ export default function Wages() {
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                         <Select
                           value={selectedVesselTypeId}
-                          onValueChange={setSelectedVesselTypeId}>
+                          onValueChange={setSelectedVesselTypeId}
+                        >
                           <SelectTrigger className="bg-white h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[280px] w-full sm:w-auto">
                             <div className="flex items-center justify-between w-full">
                               <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md -ml-3 sm:-ml-4">
@@ -804,7 +798,8 @@ export default function Wages() {
                             {uniqueVesselTypes.map((vType) => (
                               <SelectItem
                                 key={vType.id}
-                                value={vType.id.toString()}>
+                                value={vType.id.toString()}
+                              >
                                 {vType.name}
                               </SelectItem>
                             ))}
@@ -814,13 +809,15 @@ export default function Wages() {
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="outline"
-                              className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[130px] sm:min-w-[140px] w-full sm:w-auto bg-[#FFFFFF]">
+                              className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[130px] sm:min-w-[140px] w-full sm:w-auto bg-[#FFFFFF]"
+                            >
                               Columns <ChevronDown className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className="w-[180px] bg-[#FFFFFF]">
+                            className="w-[180px] bg-[#FFFFFF]"
+                          >
                             {salaryScaleColumns.map((col) => {
                               if (!col.id) return null;
                               let dName = col.id;
@@ -836,7 +833,8 @@ export default function Wages() {
                                   key={col.id}
                                   onClick={() =>
                                     col.id && toggleColumnVisibility(col.id)
-                                  }>
+                                  }
+                                >
                                   <div className="flex items-center w-full">
                                     <span className="text-primary w-4 mr-2">
                                       {columnVisibility[col.id] !== false
@@ -875,10 +873,10 @@ export default function Wages() {
                     )}
                   </div>
                 </TabsContent>
-                {/* Other TabsContent (wage-description, forex) remain largely the same, ensure search term handling is correct for each tab */}
                 <TabsContent
                   value="wage-description"
-                  className="p-2 mt-0 overflow-y-auto flex-1">
+                  className="p-2 mt-0 overflow-y-auto flex-1"
+                >
                   <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
                       <div className="relative w-full md:flex-1">
@@ -897,7 +895,8 @@ export default function Wages() {
                       </div>
                       <Button
                         className="bg-primary text-white hover:bg-primary/90 h-9 sm:h-10 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2"
-                        onClick={() => setAddWageDescriptionDialogOpen(true)}>
+                        onClick={() => setAddWageDescriptionDialogOpen(true)}
+                      >
                         <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                         Add Wage Type
                       </Button>
@@ -927,13 +926,15 @@ export default function Wages() {
                 </TabsContent>
                 <TabsContent
                   value="forex"
-                  className="p-2 mt-0 overflow-y-auto flex-1">
+                  className="p-2 mt-0 overflow-y-auto flex-1"
+                >
                   <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 w-full">
                       <div className="w-full md:w-1/2 pr-0 md:pr-2">
                         <Select
                           value={monthFilter}
-                          onValueChange={setMonthFilter}>
+                          onValueChange={setMonthFilter}
+                        >
                           <SelectTrigger className="h-16 w-full bg-white border rounded-md p-0 overflow-hidden">
                             <div className="flex items-center justify-between w-full h-full">
                               <div className="flex items-center justify-center h-full bg-[#F6F6F6] py-2.5 border-r w-[45%]">
@@ -949,12 +950,13 @@ export default function Wages() {
                               </div>
                             </div>
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="h-80">
                             <SelectItem value="all">All Months</SelectItem>
                             {[...Array(12)].map((_, i) => (
                               <SelectItem
                                 key={i + 1}
-                                value={(i + 1).toString()}>
+                                value={(i + 1).toString()}
+                              >
                                 {getMonthName(i + 1)}
                               </SelectItem>
                             ))}
@@ -964,7 +966,8 @@ export default function Wages() {
                       <div className="w-full md:w-1/2 pl-0 md:pl-2">
                         <Select
                           value={yearFilter}
-                          onValueChange={setYearFilter}>
+                          onValueChange={setYearFilter}
+                        >
                           <SelectTrigger className="h-16 w-full bg-white border rounded-md p-0 overflow-hidden">
                             <div className="flex items-center justify-between w-full h-full">
                               <div className="flex items-center justify-center h-full bg-[#F6F6F6] py-2.5 border-r w-[45%]">
@@ -980,7 +983,7 @@ export default function Wages() {
                               </div>
                             </div>
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="h-80">
                             <SelectItem value="all">All Years</SelectItem>
                             {getUniqueYears().map((year) => (
                               <SelectItem key={year} value={year.toString()}>
@@ -990,6 +993,13 @@ export default function Wages() {
                           </SelectContent>
                         </Select>
                       </div>
+                      <Button
+                        className="bg-primary text-white hover:bg-primary/90 h-9 sm:h-10 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2"
+                        onClick={() => setAddForexDialogOpen(true)}
+                      >
+                        <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                        Add Forex
+                      </Button>
                     </div>
                     <div className="bg-[#F9F9F9] rounded-md border mb-3">
                       <DataTable
@@ -1006,17 +1016,16 @@ export default function Wages() {
         </div>
       </div>
 
-      {selectedSalaryScale &&
-        editDialogOpen && ( // Ensure dialog only renders when data is available and it's meant to be open
-          <EditSalaryScaleDialog
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
-            salaryScale={selectedSalaryScale}
-            ranks={uniqueRanksForDialog}
-            wageTypes={uniqueWageTypesForDialog}
-            onUpdateSuccess={handleSalaryScaleUpdateSuccess}
-          />
-        )}
+      {selectedSalaryScale && editDialogOpen && (
+        <EditSalaryScaleDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          salaryScale={selectedSalaryScale}
+          ranks={uniqueRanksForDialog}
+          wageTypes={uniqueWageTypesForDialog}
+          onUpdateSuccess={handleSalaryScaleUpdateSuccess}
+        />
+      )}
       {selectedWageDescription && editWageDescriptionDialogOpen && (
         <EditWageDescriptionDialog
           open={editWageDescriptionDialogOpen}
@@ -1048,6 +1057,24 @@ export default function Wages() {
         //   setWageDescriptionItems((prev) => [...prev, newWageDescription]);
         //   // Optionally refetch wage descriptions or rely on local update if AddWageDescriptionDialog returns full item
         // }}
+      />
+
+      <AddForexDialog
+        open={addForexDialogOpen}
+        onOpenChange={setAddForexDialogOpen}
+        onSuccess={(newRate) => {
+          const convertedRate: ForexData = {
+            id: newRate.ExchangeRateID,
+            year: newRate.ExchangeRateYear,
+            month: newRate.ExchangeRateMonth,
+            exchangeRate: newRate.ExchangeRate,
+          };
+
+          setForexData((prev) => {
+            const updated = [...prev, convertedRate];
+            return updated;
+          });
+        }}
       />
     </>
   );
