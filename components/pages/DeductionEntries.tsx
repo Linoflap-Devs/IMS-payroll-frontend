@@ -358,8 +358,8 @@ export default function DeductionEntries() {
   const today = new Date();
   const currentYear = today.getFullYear().toString(); // e.g. "2025"
   const currentMonth = today.toLocaleString("default", { month: "long" }); // e.g. "June"
-  const [selectedYear, setSelectedYear] = useState<string>(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+  const [selectedMonth, setSelectedMonth] = useState("all");
+  const [selectedYear, setSelectedYear] = useState("all");
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [isAddDeductionOpen, setIsAddDeductionOpen] = useState(false);
@@ -715,16 +715,15 @@ export default function DeductionEntries() {
 
   // Filter entries by selected month and year
   const filteredEntries = useMemo(() => {
-    if (!selectedYear && !selectedMonth) return deductionEntries;
-
     return deductionEntries.filter((entry) => {
-      const yearMatch = selectedYear
-        ? entry.Year.toString() === selectedYear
-        : true;
-      const monthMatch = selectedMonth ? entry.Month === selectedMonth : true;
-      return yearMatch && monthMatch;
+      const matchesMonth =
+        selectedMonth === "all" || entry.Month === selectedMonth;
+      const matchesYear =
+        selectedYear === "all" || entry.Year.toString() === selectedYear;
+
+      return matchesMonth && matchesYear;
     });
-  }, [deductionEntries, selectedYear, selectedMonth]);
+  }, [deductionEntries, selectedMonth, selectedYear]);
 
   // Filter PhilHealth data by selected year
   const filteredPhilhealthData = useMemo(() => {
@@ -1001,6 +1000,7 @@ export default function DeductionEntries() {
                             </div>
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
                             {availableMonths.length > 0 ? (
                               availableMonths.map((month) => (
                                 <SelectItem key={month} value={month}>
@@ -1048,6 +1048,7 @@ export default function DeductionEntries() {
                             </div>
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
                             {availableYears.length > 0 ? (
                               availableYears.map((year) => (
                                 <SelectItem key={year} value={year}>
@@ -1069,8 +1070,8 @@ export default function DeductionEntries() {
                           <Button
                             className="w-48 bg-primary hover:bg-primary/90"
                             onClick={() => {
-                              setSelectedMonth("");
-                              setSelectedYear("");
+                              setSelectedMonth("all");
+                              setSelectedYear("all");
                             }}
                           >
                             <RiFilterOffLine className="w-4 h-4" />
