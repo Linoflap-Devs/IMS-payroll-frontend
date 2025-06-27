@@ -62,6 +62,7 @@ export const getCrewDetails = async (crewCode: string): Promise<CrewDetailsRespo
 };
 
 export interface CrewBasic {
+  Vessel: string;
   FirstName: string;
   MiddleName: string;
   LastName: string;

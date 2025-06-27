@@ -89,7 +89,7 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-gray-500">Current Vessel</div>
                 <div className="text-sm font-medium truncate">
-                  {crew.vessel}
+                  {crew.vessel || "N/A"}
                 </div>
               </div>
             </div>

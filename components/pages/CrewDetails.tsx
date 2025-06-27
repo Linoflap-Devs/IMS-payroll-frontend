@@ -92,6 +92,7 @@ export default function CrewDetails() {
     isEditLoading,
     crewValidationDetails,
     isCrewVerified,
+    crewBasic,
   } = useCrewDetails(crewId);
 
   const { fetchCrewValidationDetails } = useCrewStore();
@@ -388,7 +389,7 @@ export default function CrewDetails() {
   };
 
   const handleDelete = (selectedAllottee: string) => {
-    console.log("Deleting allottee:", selectedAllottee);
+    //console.log("Deleting allottee:", selectedAllottee);
     const swalWithBootstrapButtons = Swal.mixin({
       customClass: {
         confirmButton:
@@ -448,6 +449,7 @@ export default function CrewDetails() {
     );
 
   // console.log("Crew Details:", crewValidationDetails?.Documents[0]?.IDImages);
+  //console.log('CREW BASIC:', crewBasic);
 
   return (
     <div className="h-full w-full p-4 pt-3">

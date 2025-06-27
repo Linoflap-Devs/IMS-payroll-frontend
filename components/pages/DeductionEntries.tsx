@@ -25,6 +25,7 @@ import {
   CircleDot,
   Loader2,
   Pencil,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,7 +45,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { RiShieldStarLine } from "react-icons/ri";
+import { RiShieldStarLine, RiFilterOffLine } from "react-icons/ri";
 import { AddDeductionDialog } from "@/components/dialogs/AddDeductionDialog";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -194,6 +195,19 @@ const apiDeductionColumns = ({
   setOnSuccess,
 }: Props): ColumnDef<DeductionEntriesType>[] => [
   {
+    accessorKey: "Date",
+    header: "Date",
+    cell: ({ row }) => {
+      const month = row.original.Month;
+      const year = row.original.Year ?? row.original.Year;
+      return (
+        <div className="text-center">
+          {month && year ? `${month} ${year}` : "N/A"}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "Deduction",
     header: "Deduction",
   },
@@ -207,6 +221,15 @@ const apiDeductionColumns = ({
   {
     accessorKey: "Remarks",
     header: "Remarks",
+    cell: ({ row }) => {
+      const remarks = row.getValue("Remarks");
+      const text = typeof remarks === "string" ? remarks.trim() : "";
+      return (
+        <div className={text ? "" : "text-gray-500 italic"}>
+          {text || "No remarks."}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "Status",
@@ -234,7 +257,8 @@ const apiDeductionColumns = ({
           <span
             className={`px-2 py-1 w-full rounded-full text-xs ${getStatusColor(
               row.original.Status.toString(10)
-            )}`}>
+            )}`}
+          >
             {row.original.Status.toString(10)}
           </span>
         </div>
@@ -330,10 +354,12 @@ const apiDeductionColumns = ({
 export default function DeductionEntries() {
   const params = useSearchParams();
   const crewCode = params.get("crewCode");
-
   const [activeTab, setActiveTab] = useState("deduction-entries");
-  const [selectedMonth, setSelectedMonth] = useState("August");
-  const [selectedYear, setSelectedYear] = useState("2025");
+  const today = new Date();
+  const currentYear = today.getFullYear().toString(); // e.g. "2025"
+  const currentMonth = today.toLocaleString("default", { month: "long" }); // e.g. "June"
+  const [selectedYear, setSelectedYear] = useState<string>(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [isAddDeductionOpen, setIsAddDeductionOpen] = useState(false);
@@ -353,6 +379,7 @@ export default function DeductionEntries() {
       ContentType: "",
     },
   });
+
   const [loading, setLoading] = useState(false);
   const [deductionEntries, setDeductionEntries] = useState<
     DeductionEntriesType[]
@@ -377,6 +404,7 @@ export default function DeductionEntries() {
   const [selectedSSSYear, setSelectedSSSYear] = useState<string>("");
   const [sssYears, setSSSYears] = useState<string[]>([]);
   const [sssLoading, setSSSLoading] = useState<boolean>(false);
+  //console.log("deductionEntries", deductionEntries);
 
   const monthMap = useMemo<Record<number, string>>(
     () => ({
@@ -396,89 +424,58 @@ export default function DeductionEntries() {
     []
   );
 
-  const fetchDeductionEntries = useCallback(
-    async (crewCode: string) => {
-      if (!crewCode) return;
+  useEffect(() => {
+    if (crewCode) {
+      fetchDeductionEntries(crewCode);
+    }
+  }, [crewCode]);
 
-      setLoading(true);
-      setError(null);
+  const fetchDeductionEntries = useCallback(async (crewCode: string) => {
+    if (!crewCode) return;
 
-      try {
-        const response = await getDeductionEntries(crewCode);
+    setLoading(true);
+    setError(null);
 
-        if (response.success) {
-          setDeductionEntries(response.data);
+    try {
+      const response = await getDeductionEntries(crewCode);
 
-          if (response.data.length > 0) {
-            const years = [
-              ...new Set(response.data.map((entry) => entry.Year.toString())),
-            ];
+      if (response.success) {
+        setDeductionEntries(response.data);
 
-            years.sort((a, b) => parseInt(b) - parseInt(a));
+        // Populate dropdown filters only — don't auto-select
+        const years = [
+          ...new Set(response.data.map((entry) => entry.Year.toString())),
+        ];
+        years.sort((a, b) => parseInt(b) - parseInt(a));
+        setAvailableYears(years);
 
-            setAvailableYears(years);
-
-            if (years.length > 0 && !years.includes(selectedYear)) {
-              setSelectedYear(years[0]);
-            }
-
-            const months = [
-              ...new Set(response.data.map((entry) => entry.Month)),
-            ];
-
-            const monthOrder = [
-              "January",
-              "February",
-              "March",
-              "April",
-              "May",
-              "June",
-              "July",
-              "August",
-              "September",
-              "October",
-              "November",
-              "December",
-            ];
-            months.sort(
-              (a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b)
-            );
-
-            setAvailableMonths(months.length > 0 ? months : monthOrder);
-
-            if (months.length > 0 && !months.includes(selectedMonth)) {
-              setSelectedMonth(months[0]);
-            }
-          } else {
-            setAvailableYears(["2025", "2024", "2023"]);
-            setAvailableMonths([
-              "January",
-              "February",
-              "March",
-              "April",
-              "May",
-              "June",
-              "July",
-              "August",
-              "September",
-              "October",
-              "November",
-              "December",
-            ]);
-          }
-        } else {
-          setError(response.message || "Failed to fetch deduction entries");
-          console.error("API Error:", response.message);
-        }
-      } catch (err) {
-        setError("Error fetching deduction entries");
-        console.error("Error fetching deduction entries:", err);
-      } finally {
-        setLoading(false);
+        const months = [...new Set(response.data.map((entry) => entry.Month))];
+        const monthOrder = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        months.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+        setAvailableMonths(months);
+      } else {
+        setError(response.message || "Failed to fetch deduction entries");
       }
-    },
-    [selectedYear, selectedMonth]
-  );
+    } catch (err) {
+      setError("Error fetching deduction entries");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const fetchPhilhealthData = useCallback(
     async (crewCode: string, year: number = 0) => {
@@ -717,11 +714,17 @@ export default function DeductionEntries() {
   };
 
   // Filter entries by selected month and year
-  const filteredEntries = deductionEntries.filter((entry) => {
-    return (
-      entry.Month === selectedMonth && entry.Year.toString() === selectedYear
-    );
-  });
+  const filteredEntries = useMemo(() => {
+    if (!selectedYear && !selectedMonth) return deductionEntries;
+
+    return deductionEntries.filter((entry) => {
+      const yearMatch = selectedYear
+        ? entry.Year.toString() === selectedYear
+        : true;
+      const monthMatch = selectedMonth ? entry.Month === selectedMonth : true;
+      return yearMatch && monthMatch;
+    });
+  }, [deductionEntries, selectedYear, selectedMonth]);
 
   // Filter PhilHealth data by selected year
   const filteredPhilhealthData = useMemo(() => {
@@ -789,8 +792,10 @@ export default function DeductionEntries() {
           </div>
           {activeTab === "deduction-entries" && (
             <Button
-              className="bg-primary hover:bg-primary/90"
-              onClick={() => setIsAddDeductionOpen(true)}>
+              className="w-40 bg-primary hover:bg-primary/90"
+              onClick={() => setIsAddDeductionOpen(true)}
+            >
+              <Plus />
               Add Deduction
             </Button>
           )}
@@ -943,28 +948,33 @@ export default function DeductionEntries() {
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full flex flex-col h-full">
+                className="w-full flex flex-col h-full"
+              >
                 <div className="border-b">
                   <div className="px-4 pt-1">
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
                       <TabsTrigger
                         value="deduction-entries"
-                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         Deduction Entries
                       </TabsTrigger>
                       <TabsTrigger
                         value="hdmf-upgrade"
-                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         HDMF Upgrade Contributions
                       </TabsTrigger>
                       <TabsTrigger
                         value="philhealth"
-                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         Philhealth Contributions
                       </TabsTrigger>
                       <TabsTrigger
                         value="sss"
-                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="px-10 pb-8 h-full text-lg w-1/4 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         SSS Contributions
                       </TabsTrigger>
                     </TabsList>
@@ -973,13 +983,15 @@ export default function DeductionEntries() {
 
                 <TabsContent
                   value="deduction-entries"
-                  className="p-6 mt-0 overflow-y-auto flex-1">
+                  className="p-6 mt-0 overflow-y-auto flex-1"
+                >
                   <div className="space-y-6">
                     <div className="flex items-center justify-center gap-6 w-full">
-                      <div className="w-1/2">
+                      <div className="w-full">
                         <Select
                           value={selectedMonth}
-                          onValueChange={setSelectedMonth}>
+                          onValueChange={setSelectedMonth}
+                        >
                           <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                             <div className="flex items-center w-full">
                               <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
@@ -1022,10 +1034,11 @@ export default function DeductionEntries() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="w-1/2">
+                      <div className="w-full">
                         <Select
                           value={selectedYear}
-                          onValueChange={setSelectedYear}>
+                          onValueChange={setSelectedYear}
+                        >
                           <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                             <div className="flex items-center w-full">
                               <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
@@ -1050,6 +1063,20 @@ export default function DeductionEntries() {
                             )}
                           </SelectContent>
                         </Select>
+                      </div>
+                      <div className="w-full">
+                        <div className="flex justify-end w-full mt-2">
+                          <Button
+                            className="w-48 bg-primary hover:bg-primary/90"
+                            onClick={() => {
+                              setSelectedMonth("");
+                              setSelectedYear("");
+                            }}
+                          >
+                            <RiFilterOffLine className="w-4 h-4" />
+                            Clear Filters
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
@@ -1082,7 +1109,8 @@ export default function DeductionEntries() {
 
                 <TabsContent
                   value="hdmf-upgrade"
-                  className="p-6 mt-0 overflow-y-auto flex-1">
+                  className="p-6 mt-0 overflow-y-auto flex-1"
+                >
                   <div className="space-y-6">
                     <div className="bg-white p-4 rounded-lg border border-gray-200">
                       <div className="space-y-6">
@@ -1116,7 +1144,8 @@ export default function DeductionEntries() {
                           <Button
                             className="bg-primary hover:bg-primary/90"
                             onClick={handleSubmitHDMFUpgrade}
-                            disabled={hdmfLoading}>
+                            disabled={hdmfLoading}
+                          >
                             {hdmfLoading ? (
                               <>
                                 <Loader2 className="animate-spin mr-2" />
@@ -1137,14 +1166,16 @@ export default function DeductionEntries() {
 
                 <TabsContent
                   value="philhealth"
-                  className="p-6 mt-0 overflow-y-auto flex-1">
+                  className="p-6 mt-0 overflow-y-auto flex-1"
+                >
                   <div className="space-y-6">
                     <div className="flex items-center justify-center gap-6 w-full">
                       <div className="w-1/2"></div>
                       <div className="w-1/2">
                         <Select
                           value={selectedPhilhealthYear}
-                          onValueChange={setSelectedPhilhealthYear}>
+                          onValueChange={setSelectedPhilhealthYear}
+                        >
                           <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                             <div className="flex items-center w-full">
                               <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
@@ -1199,14 +1230,16 @@ export default function DeductionEntries() {
 
                 <TabsContent
                   value="sss"
-                  className="p-6 mt-0 overflow-y-auto flex-1">
+                  className="p-6 mt-0 overflow-y-auto flex-1"
+                >
                   <div className="space-y-6">
                     <div className="flex items-center justify-center gap-6 w-full">
                       <div className="w-1/2"></div>
                       <div className="w-1/2">
                         <Select
                           value={selectedSSSYear}
-                          onValueChange={setSelectedSSSYear}>
+                          onValueChange={setSelectedSSSYear}
+                        >
                           <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
                             <div className="flex items-center w-full">
                               <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">

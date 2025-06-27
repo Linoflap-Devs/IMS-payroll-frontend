@@ -4,7 +4,6 @@ import { Crew, mapMaritalStatus, mapGender } from "@/types/crew";
 import { updateCrew } from "../services/crew/crew.api";
 import { toast } from "@/components/ui/use-toast";
 
-
 export function useCrewDetails(crewId: string | null) {
   const [crew, setCrew] = useState<Crew | null>(null);
   const [editedCrew, setEditedCrew] = useState<Crew | null>(null);
@@ -50,6 +49,8 @@ export function useCrewDetails(crewId: string | null) {
         email: crewBasic.EmailAddress,
         phone: crewBasic.MobileNo,
         landline: crewBasic.LandLineNo, // Fixed casing from LandlineNo to LandLineNo
+        vessel: crewBasic.Vessel,
+
         firstName: crewDetails.FirstName,
         lastName: crewDetails.LastName,
         middleName: crewDetails.MiddleName,
@@ -174,6 +175,7 @@ export function useCrewDetails(crewId: string | null) {
     isEditLoading,
     crewValidationDetails,
     isLoadingValidationDetails,
-    isCrewVerified
+    isCrewVerified,
+    crewBasic
   };
 }
