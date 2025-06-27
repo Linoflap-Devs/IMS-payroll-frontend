@@ -250,7 +250,7 @@ export default function AuditLog() {
     currentPage < totalPages && setCurrentPage(currentPage + 1);
 
   return (
-    <div className="h-full w-full p-6 pt-5 overflow-hidden bg-[#F6F8FC]">
+    <div className="h-full w-full p-6 pt-5 bg-[#F6F8FC]">
       <div className="mb-2">
         <span className="text-xs text-[#6B7280] font-medium cursor-pointer">
           Audit Log
@@ -451,7 +451,7 @@ export default function AuditLog() {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-6">
+          <div className="flex items-center justify-center gap-2 my-6">
             <Button
               variant="outline"
               size="sm"
@@ -478,13 +478,12 @@ export default function AuditLog() {
                   <Button
                     key={pageNumber}
                     variant={currentPage === pageNumber ? "default" : "outline"}
-                    size="sm"
                     onClick={() => handlePageChange(pageNumber)}
                     className={cn(
-                      "h-10 w-10 p-0 border-gray-300",
+                      "h-9 w-9 p-0 border-gray-300",
                       currentPage === pageNumber
-                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                        : "bg-white text-gray-700 hover:bg-gray-50"
+                        ? "bg-[#1f279c] text-white border-[#1f279c] hover:bg-[#1f279c]"
+                        : "bg-[#e8edf3] text-gray-700 hover:bg-gray-50"
                     )}
                   >
                     {pageNumber}
@@ -504,6 +503,9 @@ export default function AuditLog() {
             </Button>
           </div>
         )}
+
+
+        
       </div>
     </div>
   );

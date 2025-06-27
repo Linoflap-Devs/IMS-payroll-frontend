@@ -30,11 +30,16 @@ import {
 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { getUsersList, UsersItem } from "@/src/services/users/users.api";
+import {
+  deleteUser,
+  getUsersList,
+  UsersItem,
+} from "@/src/services/users/users.api";
 import { AddUserDialog } from "../dialogs/AddUserDialog";
 import { EditUserDialog } from "../dialogs/EditUserDialog";
 import { Badge } from "../ui/badge";
-import { DeleteUserDialog } from "../dialogs/DeleteUserDialog";
+import Swal from "sweetalert2";
+import { toast } from "../ui/use-toast";
 
 export default function ManageUsers() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,9 +47,13 @@ export default function ManageUsers() {
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userData, setUserData] = useState<UsersItem[]>([]);
   const [isAddUser, setAddUser] = useState(false);
-  const [selectedUserData, setSelectedUserData] = useState<UsersItem | null>(null);
-  const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] = useState(false);
-  const [deleteselectedUserDialogOpen, setDeleteselectedUserDialogOpen] = useState(false);
+  const [selectedUserData, setSelectedUserData] = useState<UsersItem | null>(
+    null
+  );
+  const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] =
+    useState(false);
+  const [deleteselectedUserDialogOpen, setDeleteselectedUserDialogOpen] =
+    useState(false);
   const [isLoading, setIsLoading] = useState({
     users: true,
     vessels: true,
@@ -146,7 +155,6 @@ export default function ManageUsers() {
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const userId = row.original.UserID;
-
         return (
           <div className="text-center">
             <DropdownMenu>
@@ -167,18 +175,17 @@ export default function ManageUsers() {
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit User
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                {/* <DropdownMenuItem asChild>
                   <Link href={`/home/users/reset-password/${userId}`}>
                     <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     Reset Password
                   </Link>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive cursor-pointer"
                   onClick={() => {
-                    setSelectedUserData(row.original);
-                    setDeleteselectedUserDialogOpen(true);
+                    handleUserDelete(row.original.UserID);
                   }}
                 >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
@@ -191,6 +198,43 @@ export default function ManageUsers() {
       },
     },
   ];
+
+  const handleUserDelete = async (userId: number) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, delete it!",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const response = await deleteUser(userId);
+      if (response.success) {
+        setUserData((prev) => prev.filter((user) => user.UserID !== userId));
+        toast({
+          title: "Deleted",
+          description: "The user has been deleted successfully.",
+          variant: "success",
+          duration: 3000,
+        });
+      } else {
+        Swal.fire(
+          "Error",
+          response.message || "Failed to delete user.",
+          "error"
+        );
+      }
+    } catch (error) {
+      Swal.fire("Error", "An error occurred while deleting the user.", "error");
+      console.error(error);
+    }
+  };
 
   return (
     <>
@@ -308,15 +352,6 @@ export default function ManageUsers() {
             onOpenChange={setEditselectedUserDialogOpen}
             SelectedUserData={selectedUserData}
             onSuccess={handleUserUpdated}
-          />
-        )}
-
-        {selectedUserData && deleteselectedUserDialogOpen && (
-          <DeleteUserDialog
-            open={deleteselectedUserDialogOpen}
-            onOpenChange={setDeleteselectedUserDialogOpen}
-            SelectedUserData={selectedUserData}
-            //onSuccess={handleUserUpdated}
           />
         )}
       </div>
