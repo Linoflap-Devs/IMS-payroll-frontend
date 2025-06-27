@@ -25,6 +25,12 @@ export interface IEditWagePayload {
   exchangeRate: number;
 }
 
+export interface AddForexPayload {
+  year: number;
+  month: number;
+  rate: number;
+}
+
 export const editWageForex = async (forexId: number, payload: IEditWagePayload): Promise<WageForexResponse> => {
   const response = await axiosInstance.patch<WageForexResponse>(`/wages/forex/${forexId}`, payload);
   return response.data;
@@ -32,5 +38,10 @@ export const editWageForex = async (forexId: number, payload: IEditWagePayload):
 
 export const deleteWageForex = async (forexId: number): Promise<WageForexResponse> => {
   const response = await axiosInstance.delete<WageForexResponse>(`/wages/forex/${forexId}`);
+  return response.data;
+};
+
+export const addWageForex = async (payload: AddForexPayload): Promise<WageForexResponse> => {
+  const response = await axiosInstance.post<WageForexResponse>("/wages/forex", payload);
   return response.data;
 };

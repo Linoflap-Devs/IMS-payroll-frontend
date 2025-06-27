@@ -34,6 +34,7 @@ import { getUsersList, UsersItem } from "@/src/services/users/users.api";
 import { AddUserDialog } from "../dialogs/AddUserDialog";
 import { EditUserDialog } from "../dialogs/EditUserDialog";
 import { Badge } from "../ui/badge";
+import { DeleteUserDialog } from "../dialogs/DeleteUserDialog";
 
 export default function ManageUsers() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,11 +42,9 @@ export default function ManageUsers() {
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userData, setUserData] = useState<UsersItem[]>([]);
   const [isAddUser, setAddUser] = useState(false);
-  const [selectedUserData, setSelectedUserData] = useState<UsersItem | null>(
-    null
-  );
-  const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] =
-    useState(false);
+  const [selectedUserData, setSelectedUserData] = useState<UsersItem | null>(null);
+  const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] = useState(false);
+  const [deleteselectedUserDialogOpen, setDeleteselectedUserDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState({
     users: true,
     vessels: true,
@@ -177,7 +176,10 @@ export default function ManageUsers() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive cursor-pointer"
-                  // onClick={() => handleDelete(userId)}
+                  onClick={() => {
+                    setSelectedUserData(row.original);
+                    setDeleteselectedUserDialogOpen(true);
+                  }}
                 >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
@@ -306,6 +308,15 @@ export default function ManageUsers() {
             onOpenChange={setEditselectedUserDialogOpen}
             SelectedUserData={selectedUserData}
             onSuccess={handleUserUpdated}
+          />
+        )}
+
+        {selectedUserData && deleteselectedUserDialogOpen && (
+          <DeleteUserDialog
+            open={deleteselectedUserDialogOpen}
+            onOpenChange={setDeleteselectedUserDialogOpen}
+            SelectedUserData={selectedUserData}
+            //onSuccess={handleUserUpdated}
           />
         )}
       </div>
