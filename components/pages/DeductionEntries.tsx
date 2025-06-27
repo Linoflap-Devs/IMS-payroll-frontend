@@ -715,14 +715,39 @@ export default function DeductionEntries() {
 
   // Filter entries by selected month and year
   const filteredEntries = useMemo(() => {
-    return deductionEntries.filter((entry) => {
-      const matchesMonth =
-        selectedMonth === "all" || entry.Month === selectedMonth;
-      const matchesYear =
-        selectedYear === "all" || entry.Year.toString() === selectedYear;
+    const monthOrder = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
 
-      return matchesMonth && matchesYear;
-    });
+    return deductionEntries
+      .filter((entry) => {
+        const matchesMonth =
+          selectedMonth === "all" || entry.Month === selectedMonth;
+        const matchesYear =
+          selectedYear === "all" || entry.Year.toString() === selectedYear;
+        return matchesMonth && matchesYear;
+      })
+      .sort((a, b) => {
+        const yearA = a.Year;
+        const yearB = b.Year;
+
+        if (yearA !== yearB) return yearB - yearA;
+
+        const monthA = monthOrder.indexOf(a.Month);
+        const monthB = monthOrder.indexOf(b.Month);
+        return monthB - monthA;
+      });
   }, [deductionEntries, selectedMonth, selectedYear]);
 
   // Filter PhilHealth data by selected year
