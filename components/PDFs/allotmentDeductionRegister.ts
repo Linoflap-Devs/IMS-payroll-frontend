@@ -390,7 +390,7 @@ export function generateDeductionRegisterPDF(
 
                         // Format the deduction details - important to use fixed positions that match the image
                         const currencyLabel = deduction.Currency === 1 ? "Usd" : "PhP";
-                        const amountWithRate = `${formatCurrency(deduction.Amount)}/${formatCurrency(deduction.ExchangeRate)}`;
+                        const amountWithRate = deduction.Currency === 1 ? `${formatCurrency(deduction.Amount)}` : `${formatCurrency(deduction.Amount)}/${formatCurrency(deduction.ExchangeRate)}`;
 
                         // Calculate dollar amount based on currency
                         const dollarAmount = deduction.Currency === 1
