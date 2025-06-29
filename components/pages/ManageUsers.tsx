@@ -269,7 +269,7 @@ export default function ManageUsers() {
           <div className="p-3 pt-0 sm:p-4 flex flex-col space-y-4 sm:space-y-5 h-full">
             {/* Header */}
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-semibold mb-0">Manage Users</h1>
+              <h1 className="text-3xl font-semibold mb-0">Login History</h1>
             </div>
 
             <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
