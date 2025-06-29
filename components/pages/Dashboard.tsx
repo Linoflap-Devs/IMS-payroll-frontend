@@ -323,7 +323,7 @@ export default function Dashboard() {
                   {new Intl.NumberFormat(undefined, {
                     maximumFractionDigits: 2,
                     minimumFractionDigits: 2,
-                  }).format(dashboardData?.MonthlyAllotmentPHP ?? 0)}
+                  }).format(dashboardData?.NetAllotment ?? 0)}
                 </h3>
               </div>
               <div className="text-blue-600">
@@ -346,7 +346,7 @@ export default function Dashboard() {
                   {new Intl.NumberFormat(undefined, {
                     maximumFractionDigits: 2,
                     minimumFractionDigits: 2,
-                  }).format(totalSalaryProcessed)}
+                  }).format(dashboardData?.MonthlyAllotmentPHP ?? 0)}
                 </h3>
               </div>
               <div className="text-blue-600">

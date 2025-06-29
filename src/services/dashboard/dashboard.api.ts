@@ -20,6 +20,8 @@ export interface DashboardItem {
     [vesselName: string]: number;
   };
   TotalSalaryProcessed: SalaryProcessedItem[];
+  TotalDeduction: number,
+  NetAllotment: number
 }
 
 export interface DashboardResponse {
