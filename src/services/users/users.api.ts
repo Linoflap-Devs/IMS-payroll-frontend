@@ -9,6 +9,7 @@ export interface UsersItem {
   UserType: number;
   Role: any;
   Email: string;
+  IsVerified: boolean;
 }
 
 export interface UsersResponse {
@@ -21,7 +22,6 @@ export const getUsersList = async (): Promise<UsersResponse> => {
   const response = await axiosInstance.get<UsersResponse>("/users");
   return response.data;
 };
-
 
 export interface AddUserPayload {
   email: string;
@@ -63,4 +63,25 @@ export const deleteUser = async (userId: number) => {
       message: error.response?.data?.message || "Failed to delete user",
     };
   }
+};
+
+export interface LoginHistoryItem {
+  LoginHistoryId: number;
+  FirstName?: number;
+  LastName: string;
+  Action?: string;
+  UserAgent?: string;
+  IPAddress: number;
+  CreatedAt: any;
+}
+
+export interface LoginHistoryResponse {
+  success: boolean;
+  data: LoginHistoryItem[];
+  message?: string;
+}
+
+export const loginHistory = async (): Promise<LoginHistoryResponse> => {
+  const response = await axiosInstance.get<LoginHistoryResponse>("/users/login-history");
+  return response.data;
 };

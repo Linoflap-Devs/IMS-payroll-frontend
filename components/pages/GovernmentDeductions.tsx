@@ -299,12 +299,6 @@ export default function GovermentDeductions() {
                     >
                       SSS
                     </TabsTrigger>
-                    <TabsTrigger
-                      value="HMDF"
-                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                    >
-                      HMDF
-                    </TabsTrigger>
                   </TabsList>
                 </div>
               </div>
@@ -422,66 +416,6 @@ export default function GovermentDeductions() {
                     <DataTable
                       columns={columns}
                       data={filteredDeductionGovtData}
-                      pageSize={7}
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent
-                value="HMDF"
-                className="p-2 mt-0 overflow-y-auto flex-1"
-              >
-                <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
-                  {/* Search and Filters */}
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
-                    <div className="w-full md:w-auto">
-                      <Select value={yearFilter} onValueChange={setYearFilter}>
-                        <SelectTrigger className="bg-white h-full sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full sm:w-[280px] min-w-[240px]">
-                          <div className="flex items-center justify-between w-full -mx-4">
-                            <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md">
-                              <span className="text-muted-foreground text-base">Select Year</span>
-                            </div>
-                            <span className="text-foreground text-base px-4">{yearFilter}</span>
-                          </div>
-                        </SelectTrigger>
-
-                        <SelectContent className="w-[280px]">
-                          {years.map((yr, idx) => (
-                            <SelectItem key={idx} value={yr}>
-                              {yr}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto justify-end">
-                      <Button
-                        className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
-                        size="default"
-                        //onClick={() => setAddVesselDialogOpen(true)}
-                      >
-                        <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
-                        Insert New Rate
-                      </Button>
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                          <DownloadIcon className="h-4 w-4" />
-                          <span>Export</span>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="csv">Export as CSV</SelectItem>
-                          <SelectItem value="pdf">Export as PDF</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  {/* DataTable with custom styling */}
-                  <div className="bg-[#F9F9F9] rounded-md border pb-3">
-                    <DataTable
-                      columns={[]}
-                      data={[]}
                       pageSize={7}
                     />
                   </div>

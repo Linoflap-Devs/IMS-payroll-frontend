@@ -51,6 +51,7 @@ import generateDeductionRegister, {
   DeductionRegisterData,
 } from "../PDFs/allotmentDeductionRegister";
 import { generatePayrollPDF } from "../PDFs/payrollStatementPDF";
+import { PiFileTextFill, PiReceiptFill, PiUserListFill } from "react-icons/pi";
 
 type Payroll = {
   vesselId: number;
@@ -420,6 +421,7 @@ export default function Allotment() {
                   }&month=${parseInt(monthFilter)}&year=${parseInt(
                     yearFilter
                   )}&forex=${forexRate || 0}`}>
+                <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Allotment Register
                 </Link>
               </DropdownMenuItem>
@@ -430,6 +432,7 @@ export default function Allotment() {
                   }&month=${parseInt(monthFilter)}&year=${parseInt(
                     yearFilter
                   )}&forex=${forexRate || 0}`}>
+                <PiReceiptFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Deduction Register
                 </Link>
               </DropdownMenuItem>
@@ -440,6 +443,7 @@ export default function Allotment() {
                   }&month=${parseInt(monthFilter)}&year=${parseInt(
                     yearFilter
                   )}&forex=${forexRate || 0}`}>
+                <PiFileTextFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Pay Slip
                 </Link>
               </DropdownMenuItem>

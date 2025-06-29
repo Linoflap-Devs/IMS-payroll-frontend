@@ -4,6 +4,7 @@ import { TbCurrencyDollarOff } from "react-icons/tb";
 import { BiReceipt } from "react-icons/bi";
 import { MdOutlinePendingActions } from "react-icons/md";
 import { PiClockCounterClockwiseBold } from "react-icons/pi";
+import { LogIn } from "lucide-react";
 
 export const getHomeRoutes = (pathname: string, userType: number) => {
   const allRoutes = [
@@ -96,6 +97,13 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       icon: PiClockCounterClockwiseBold,
       href: "/home/audit-log",
       active: pathname.startsWith("/home/audit-log"),
+      allowedUserTypes: [1],
+    },
+    {
+      label: "Login History",
+      icon: LogIn,
+      href: "/home/login-history",
+      active: pathname.startsWith("/home/login-history"),
       allowedUserTypes: [1],
     },
     {
