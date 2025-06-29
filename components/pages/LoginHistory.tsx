@@ -19,7 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+``;
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar as CalendarComponent } from "../ui/calendar";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { loginHistory, LoginHistoryItem } from "@/src/services/users/users.api";
@@ -261,10 +263,14 @@ export default function LoginHistory() {
                 {dateFrom ? format(dateFrom, "MMM dd, yyyy") : "From date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent
-              className="w-auto p-0"
-              align="start"
-            ></PopoverContent>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={dateFrom}
+                onSelect={setDateFrom}
+                //showYearPicker={true}
+              />
+            </PopoverContent>
           </Popover>
 
           <Popover>
@@ -280,10 +286,14 @@ export default function LoginHistory() {
                 {dateTo ? format(dateTo, "MMM dd, yyyy") : "To date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent
-              className="w-auto p-0"
-              align="start"
-            ></PopoverContent>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={dateTo}
+                onSelect={setDateTo}
+                //showYearPicker={true}
+              />
+            </PopoverContent>
           </Popover>
         </div>
 
@@ -361,7 +371,7 @@ export default function LoginHistory() {
                         </div>
                         <div className="text-sm text-gray-400 mt-1">
                           {log.UserAgent}
-                           {/* - {log.IPAddress} */}
+                          {/* - {log.IPAddress} */}
                         </div>
                       </div>
                       <div className="text-sm text-gray-400 whitespace-nowrap">
