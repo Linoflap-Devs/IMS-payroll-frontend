@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -44,6 +43,8 @@ import { toast } from "../ui/use-toast";
 export default function ManageUsers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setroleFilter] = useState("all");
+  const [statusFilter, setstatusFilter] = useState("all");
+
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userData, setUserData] = useState<UsersItem[]>([]);
   const [isAddUser, setAddUser] = useState(false);
@@ -51,8 +52,6 @@ export default function ManageUsers() {
     null
   );
   const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] =
-    useState(false);
-  const [deleteselectedUserDialogOpen, setDeleteselectedUserDialogOpen] =
     useState(false);
   const [isLoading, setIsLoading] = useState({
     users: true,
@@ -91,7 +90,6 @@ export default function ManageUsers() {
       .finally(() => setIsLoading((prev) => ({ ...prev, users: false })));
   }, []);
 
-  // Memoize filtered data to prevent unnecessary recalculations
   const filteredUsersList = useMemo(() => {
     return userData.filter((item) => {
       const matchesSearch =
@@ -103,13 +101,23 @@ export default function ManageUsers() {
       const matchesUserType =
         userTypeFilter === "all" || item.UserType === parseInt(userTypeFilter);
 
-      return matchesSearch && matchesRole && matchesUserType;
+      const matchesStatus =
+        statusFilter === "all" ||
+        !!item.IsVerified === (statusFilter === "true");
+
+      return matchesSearch && matchesRole && matchesUserType && matchesStatus;
     });
-  }, [userData, searchTerm, roleFilter, userTypeFilter]);
+  }, [userData, searchTerm, roleFilter, userTypeFilter, statusFilter]);
 
   const uniqueRoles = useMemo(() => {
     const rolesSet = new Set(userData.map((user) => user.Role));
     return Array.from(rolesSet);
+  }, [userData]);
+
+  const uniqueStatus = useMemo(() => {
+    if (!Array.isArray(userData)) return [];
+    const statusSet = new Set(userData.map((user) => !!user.IsVerified));
+    return Array.from(statusSet);
   }, [userData]);
 
   // Columns definition
@@ -269,7 +277,7 @@ export default function ManageUsers() {
           <div className="p-3 pt-0 sm:p-4 flex flex-col space-y-4 sm:space-y-5 h-full">
             {/* Header */}
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-semibold mb-0">Login History</h1>
+              <h1 className="text-3xl font-semibold mb-0">Manage Users</h1>
             </div>
 
             <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
@@ -306,6 +314,32 @@ export default function ManageUsers() {
                       {uniqueRoles.map((role) => (
                         <SelectItem key={role} value={role}>
                           {role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={statusFilter}
+                    onValueChange={setstatusFilter}
+                    disabled={isLoading.users}
+                  >
+                    <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                      {isLoading.users ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
+                      )}
+                      <SelectValue
+                        defaultValue="all"
+                        placeholder="Filter by Status"
+                      />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60 overflow-y-auto">
+                      <SelectItem value="all">All Status</SelectItem>
+                      {uniqueStatus.map((status) => (
+                        <SelectItem key={String(status)} value={String(status)}>
+                          {status ? "Verified" : "Unverified"}
                         </SelectItem>
                       ))}
                     </SelectContent>

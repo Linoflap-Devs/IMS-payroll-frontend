@@ -88,10 +88,10 @@ export function DeleteAllotteeReqDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC] px-10">
+      <DialogContent className="max-w-[700px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC] px-2">
         <div className="p-6 pb-8">
-          <div className="flex justify-between items-center mb-8">
-            <DialogTitle className="text-2xl font-bold text-[#2F3593]">
+          <div className="flex justify-center items-center mb-8">
+            <DialogTitle className="text-2xl font-bold text-[#2F3593] items-center">
               Delete Allottee Request
             </DialogTitle>
           </div>

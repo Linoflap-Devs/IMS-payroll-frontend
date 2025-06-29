@@ -79,7 +79,7 @@ export function HDMFUpgradeReqDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
+      <DialogContent className="max-w-[700px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC] px-2">
         <div className="p-6 pb-8">
           <div className="flex justify-between items-center mb-8">
             <DialogTitle className="text-2xl font-bold text-[#2F3593]">

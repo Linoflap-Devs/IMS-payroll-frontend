@@ -378,7 +378,7 @@ export default function CrewList() {
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Filter by status</SelectItem>
+                  <SelectItem value="all">All Filter by Status</SelectItem>
                   <SelectItem value="active">On Board</SelectItem>
                   <SelectItem value="inactive">Off Board</SelectItem>
                 </SelectContent>

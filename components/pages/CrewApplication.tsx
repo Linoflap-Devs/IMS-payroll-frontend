@@ -87,8 +87,6 @@ export default function CrewApplication() {
     fetchApplications();
   }, []);
 
-  console.log('APPLICATION DATA:', applications);
-
   const fetchApplications = async () => {
     try {
       setLoading(true);

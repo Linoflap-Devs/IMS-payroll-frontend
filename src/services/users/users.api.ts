@@ -9,6 +9,7 @@ export interface UsersItem {
   UserType: number;
   Role: any;
   Email: string;
+  IsVerified: boolean;
 }
 
 export interface UsersResponse {
