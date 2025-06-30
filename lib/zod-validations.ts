@@ -29,7 +29,13 @@ export const addCrewSchema = z.object({
 })
 
 export const addCrewAllotteeSchema = z.object({
-    allotmentType: z.number().min(1).max(2),
+    allotmentType: z
+    .number({
+        required_error: "Please select an allotment type.",
+        invalid_type_error: "Allotment type must be a number.",
+    })
+    .min(1, { message: "Select either 'Amount' or 'Percentage'." })
+    .max(2, { message: "Invalid allotment type selected." }),
     name: z.string().min(2, { message: "Name is required" }).max(50, { message: "Name must be less than 50 characters" }),
     relation: z.number().min(1, { message: "Relationship is required" }),
     address: z.string().min(2, { message: "Address is required" }).max(100, { message: "Address must be less than 100 characters" }),

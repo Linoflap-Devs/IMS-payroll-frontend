@@ -14,7 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSearchParams } from "next/navigation";
-
 import { Input } from "@/components/ui/input";
 import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 import { useBankStore } from "@/src/store/useBankStore";
@@ -29,12 +28,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { addCrewAllotteeSchema } from "@/lib/zod-validations";
 import { addCrewAllottee } from "@/src/services/crew/crewAllottee.api";
 import { IAddAllottee } from "@/types/crewAllottee";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/components/ui/use-toast";
+import { Info } from "lucide-react";
 
 interface IAddCrewAllotteeProps {
   triggerAdd: boolean;
@@ -73,10 +72,11 @@ export default function AllotteeForm({
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
 
-  const form = useForm({
+  const form = useForm<IAddAllottee>({
     resolver: zodResolver(addCrewAllotteeSchema),
     defaultValues,
     mode: "onChange",
+    shouldFocusError: true,
   });
 
   const { control, watch, setValue, handleSubmit, formState } = form;
@@ -194,7 +194,9 @@ export default function AllotteeForm({
         .finally(() => {
           setTriggerAdd(false);
           setIsAddLoading(false);
-          console.log("Finalizing: isAddLoading set to false, triggerAdd set to false");
+          console.log(
+            "Finalizing: isAddLoading set to false, triggerAdd set to false"
+          );
         });
     },
     [
@@ -238,9 +240,15 @@ export default function AllotteeForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
         {/* Allotment Type Selection */}
-        <div className="relative rounded-lg border shadow-sm overflow-hidden w-1/2">
+        <div
+          className={`relative rounded-lg ml-4 shadow-sm overflow-hidden w-1/2 ${
+            errors.allotmentType
+              ? "border-red-500 ring-1 ring-red-500/50"
+              : "border"
+          }`}
+        >
           <div className="flex h-11 w-full">
             <div className="flex items-center px-4 bg-gray-50 border-r">
               <span className="text-gray-700 font-medium whitespace-nowrap">
@@ -251,18 +259,17 @@ export default function AllotteeForm({
               <FormField
                 control={control}
                 name="allotmentType"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem className="w-full">
                     <FormControl>
                       <Select
                         value={field.value === 0 ? "" : field.value.toString()}
-                        onValueChange={(value) => {
-                          if (value === "" || value === " ") {
-                            field.onChange(0);
-                          } else {
-                            field.onChange(parseInt(value));
-                          }
-                        }}>
+                        onValueChange={(value) =>
+                          field.onChange(
+                            value === "" || value === " " ? 0 : parseInt(value)
+                          )
+                        }
+                      >
                         <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                           <SelectValue placeholder="Amount" />
                         </SelectTrigger>
@@ -272,16 +279,21 @@ export default function AllotteeForm({
                         </SelectContent>
                       </Select>
                     </FormControl>
-                    <FormMessage className="absolute bottom-[-20px] left-0 text-xs text-red-500" />
                   </FormItem>
                 )}
               />
             </div>
           </div>
         </div>
+        {errors.allotmentType && (
+          <p className="text-red-500 text-xs flex items-center gap-1 mt-1.5 ml-6">
+            <Info className="w-4 h-4" />
+            {errors.allotmentType.message}
+          </p>
+        )}
 
         {/* Allottee Details */}
-        <div className="p-4 space-y-6">
+        <div className="p-4 mt-6 space-y-6">
           {/* Personal Info */}
           <div>
             <div className="flex items-center justify-between mb-4 w-full">
@@ -391,21 +403,24 @@ export default function AllotteeForm({
                           } else {
                             field.onChange(parseInt(value));
                           }
-                        }}>
+                        }}
+                      >
                         <SelectTrigger
                           id="relationship"
                           className={`w-full !h-10 ${
                             fieldState.error
                               ? "border-red-500 focus:!ring-red-400/50"
                               : ""
-                          }`}>
+                          }`}
+                        >
                           <SelectValue placeholder="Select a relationship" />
                         </SelectTrigger>
                         <SelectContent>
                           {allRelationshipData.map((relationship) => (
                             <SelectItem
                               key={relationship.RelationID}
-                              value={relationship.RelationID.toString()}>
+                              value={relationship.RelationID.toString()}
+                            >
                               {relationship.RelationName}
                             </SelectItem>
                           ))}
@@ -475,13 +490,15 @@ export default function AllotteeForm({
                           } else {
                             field.onChange(parseInt(value));
                           }
-                        }}>
+                        }}
+                      >
                         <SelectTrigger
                           className={`w-full !h-10 ${
                             fieldState.error
                               ? "border-red-500 focus:!ring-red-400/50"
                               : ""
-                          }`}>
+                          }`}
+                        >
                           <SelectValue placeholder="Select a province" />
                         </SelectTrigger>
                         <SelectContent>
@@ -491,7 +508,8 @@ export default function AllotteeForm({
                           {provinces.map((province) => (
                             <SelectItem
                               key={province.ProvinceID}
-                              value={province.ProvinceID.toString()}>
+                              value={province.ProvinceID.toString()}
+                            >
                               {province.ProvinceName}
                             </SelectItem>
                           ))}
@@ -522,13 +540,15 @@ export default function AllotteeForm({
                             field.onChange(parseInt(value));
                           }
                         }}
-                        disabled={!province}>
+                        disabled={!province}
+                      >
                         <SelectTrigger
                           className={`w-full !h-10 ${
                             fieldState.error
                               ? "border-red-500 focus:!ring-red-400/50"
                               : ""
-                          }`}>
+                          }`}
+                        >
                           <SelectValue placeholder="Select a city" />
                         </SelectTrigger>
                         <SelectContent>
@@ -536,7 +556,8 @@ export default function AllotteeForm({
                             filteredCities.map((city) => (
                               <SelectItem
                                 key={city.CityID}
-                                value={city.CityID.toString()}>
+                                value={city.CityID.toString()}
+                              >
                                 {city.CityName}
                               </SelectItem>
                             ))
@@ -581,21 +602,24 @@ export default function AllotteeForm({
                           } else {
                             field.onChange(parseInt(value));
                           }
-                        }}>
+                        }}
+                      >
                         <SelectTrigger
                           id="bank"
                           className={`w-full !h-10 ${
                             fieldState.error
                               ? "border-red-500 focus:!ring-red-400/50"
                               : ""
-                          }`}>
+                          }`}
+                        >
                           <SelectValue placeholder="Select a bank" />
                         </SelectTrigger>
                         <SelectContent>
                           {uniqueBanks.map((bank) => (
                             <SelectItem
                               key={bank.BankID}
-                              value={bank.BankID.toString()}>
+                              value={bank.BankID.toString()}
+                            >
                               {bank.BankName}
                             </SelectItem>
                           ))}
@@ -626,14 +650,16 @@ export default function AllotteeForm({
                             field.onChange(parseInt(value));
                           }
                         }}
-                        disabled={!bank}>
+                        disabled={!bank}
+                      >
                         <SelectTrigger
                           id="branch"
                           className={`w-full !h-10 ${
                             fieldState.error
                               ? "border-red-500 focus:!ring-red-400/50"
                               : ""
-                          }`}>
+                          }`}
+                        >
                           <SelectValue placeholder="Select a branch" />
                         </SelectTrigger>
                         <SelectContent>
@@ -641,7 +667,8 @@ export default function AllotteeForm({
                             branchesForSelectedBank.map((branch) => (
                               <SelectItem
                                 key={branch.BankBranchID}
-                                value={branch.BankBranchID.toString()}>
+                                value={branch.BankBranchID.toString()}
+                              >
                                 {branch.BankBranchName}
                               </SelectItem>
                             ))
@@ -716,7 +743,8 @@ export default function AllotteeForm({
                 type="button"
                 variant="outline"
                 onClick={() => form.reset()}
-                className="border-primary text-primary">
+                className="border-primary text-primary"
+              >
                 Reset Form
               </Button>
             </div>
