@@ -323,7 +323,6 @@ export default function AuditLog() {
                 mode="single"
                 selected={dateFrom}
                 onSelect={setDateFrom}
-                showYearPicker={true}
               />
             </PopoverContent>
           </Popover>
@@ -346,7 +345,6 @@ export default function AuditLog() {
                 mode="single"
                 selected={dateTo}
                 onSelect={setDateTo}
-                showYearPicker={true}
               />
             </PopoverContent>
           </Popover>

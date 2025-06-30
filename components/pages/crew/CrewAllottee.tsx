@@ -486,47 +486,66 @@ export function CrewAllottee({
     };
   };
 
-  useEffect(() => {
-    if (triggerDelete) {
-      setIsDeletingAllottee(true);
+useEffect(() => {
+  if (triggerSave) {
+    console.log("useEffect triggered due to triggerSave");
 
-      console.log("Delete triggered for allottee IN CREW ALLOTTEE");
-      if (!crewId || !currentAllottee) return;
+    setAllotteeLoading(true);
+    console.log("Allottee loading set to true");
 
-      deleteCrewAllottee(crewId.toString(), currentAllottee.id)
+    if (!editingAllottee || !crewId) {
+      console.log("Missing editingAllottee or crewId. Aborting save.");
+      setAllotteeLoading(false);
+      return;
+    }
+
+    try {
+      console.log("Attempting to save allottee with ID:", crewId);
+      const apiModel = convertToApiModel(editingAllottee!);
+      console.log("Converted API Model:", apiModel);
+
+      updateCrewAllottee(crewId.toString(), apiModel)
         .then((response) => {
-          console.log("Allottee deleted successfully:", response);
+          console.log("Allottee saved successfully:", response);
           toast({
-            title: "Allottee deleted successfully",
-            description: `Allottee ${currentAllottee.name} has been deleted.`,
+            title: "Allottee saved successfully",
+            description: `Allottee ${editingAllottee?.name} has been updated.`,
             variant: "success",
           });
+          setTriggerSave(false);
+          console.log("Refetching crew allottees...");
           fetchCrewAllottees(crewId.toString());
         })
         .catch((error) => {
-          console.log("Error deleting allottee:", error);
+          console.error("Error saving allottee:", error);
           toast({
-            title: "Error deleting allottee",
-            description: "There was an error deleting the allottee.",
+            title: "Error saving allottee",
+            description: "There was an error saving the allottee.",
             variant: "destructive",
           });
         })
         .finally(() => {
-          setTriggerDelete(false);
-          setIsDeletingAllottee(false);
+          console.log("Finished save attempt. Cleaning up...");
+          setAllotteeLoading(false);
+          setTriggerSave(false);
+          setIsEditingAllottee(false);
         });
-
-      return;
+    } catch (error) {
+      console.error("Unexpected error saving allottee:", error);
+      setAllotteeLoading(false);
+      setTriggerSave(false);
     }
-  }, [
-    triggerDelete,
-    editingAllottee,
-    crewId,
-    setTriggerDelete,
-    currentAllottee,
-    setIsDeletingAllottee,
-    fetchCrewAllottees,
-  ]);
+  }
+}, [
+  triggerSave,
+  crewId,
+  editingAllottee,
+  setAllotteeLoading,
+  setTriggerSave,
+  fetchCrewAllottees,
+  setIsEditingAllottee,
+]);
+
 
   useEffect(() => {
     if (triggerSave) {
