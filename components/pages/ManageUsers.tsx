@@ -183,12 +183,13 @@ export default function ManageUsers() {
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit User
                 </DropdownMenuItem>
-                {/* <DropdownMenuItem asChild>
-                  <Link href={`/home/users/reset-password/${userId}`}>
-                    <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    Reset Password
-                  </Link>
-                </DropdownMenuItem> */}
+                <DropdownMenuItem
+                  className="text-xs sm:text-sm"
+                  
+                >
+                  <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Reset Password
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive cursor-pointer"

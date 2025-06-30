@@ -92,10 +92,12 @@ export default function CrewDetails() {
     isEditLoading,
     crewValidationDetails,
     isCrewVerified,
-    crewBasic,
   } = useCrewDetails(crewId);
 
   const { fetchCrewValidationDetails } = useCrewStore();
+
+  //console.log("EDITED CREW", editedCrew);
+  //console.log("CREW", crew);
 
   useEffect(() => {
     if (handleVerify) {
@@ -448,7 +450,7 @@ export default function CrewDetails() {
       </div>
     );
 
-  // console.log("Crew Details:", crewValidationDetails?.Documents[0]?.IDImages);
+  //console.log("Crew Details:", crewValidationDetails?.Documents[0]?.IDImages);
   //console.log('CREW BASIC:', crewBasic);
 
   return (
@@ -492,28 +494,33 @@ export default function CrewDetails() {
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full flex flex-col h-full">
+                className="w-full flex flex-col h-full"
+              >
                 <div className="border-b">
                   <div className="px-4 pt-1">
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-between space-x-0">
                       <TabsTrigger
                         value="details"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         Crew Details
                       </TabsTrigger>
                       <TabsTrigger
                         value="movement"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         Crew Movement
                       </TabsTrigger>
                       <TabsTrigger
                         value="allottee"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         Allottee Profile
                       </TabsTrigger>
                       <TabsTrigger
                         value="validation"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                      >
                         Account Validation
                       </TabsTrigger>
                     </TabsList>
@@ -522,7 +529,8 @@ export default function CrewDetails() {
 
                 <TabsContent
                   value="details"
-                  className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
+                  className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                >
                   <div className="space-y-8">
                     {/* Personal Information Section */}
                     <div>
@@ -633,17 +641,19 @@ export default function CrewDetails() {
                             onValueChange={(value) =>
                               handleInputChange("maritalStatus", value)
                             }
-                            disabled={!isEditing}>
+                            disabled={!isEditing}
+                          >
                             <SelectTrigger
                               className={
                                 isEditing
                                   ? `w-full ${
                                       submitted && !editedCrew?.maritalStatus
                                         ? "border-red-500 focus:!ring-red-500/50"
-                                        : "border-primary"
+                                        : "border-primary "
                                     }`
                                   : "w-full"
-                              }>
+                              }
+                            >
                               <SelectValue placeholder="Select an option" />
                             </SelectTrigger>
                             <SelectContent>
@@ -672,7 +682,8 @@ export default function CrewDetails() {
                             onValueChange={(value) =>
                               handleInputChange("sex", value)
                             }
-                            disabled={!isEditing}>
+                            disabled={!isEditing}
+                          >
                             <SelectTrigger
                               className={
                                 isEditing
@@ -682,7 +693,8 @@ export default function CrewDetails() {
                                         : "border-primary"
                                     }`
                                   : "w-full"
-                              }>
+                              }
+                            >
                               <SelectValue placeholder="Select an option" />
                             </SelectTrigger>
                             <SelectContent>
@@ -701,14 +713,17 @@ export default function CrewDetails() {
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Birthdate
                           </label>
-                          {/* <Calendar strokeWidth={1.5} size={10} /> */}
                           <Input
                             type="date"
                             placeholder="Date of Birth"
                             value={
                               isEditing
-                                ? editedCrew?.dateOfBirth || ""
-                                : formatDate(crew.dateOfBirth) || ""
+                                ? editedCrew?.dateOfBirth
+                                  ? new Date(editedCrew.dateOfBirth).toISOString().split("T")[0]
+                                  : ""
+                                : crew.dateOfBirth
+                                ? new Date(crew.dateOfBirth).toISOString().split("T")[0]
+                                : ""
                             }
                             onChange={(e) =>
                               handleInputChange("dateOfBirth", e.target.value)
@@ -745,13 +760,15 @@ export default function CrewDetails() {
                               onValueChange={(value) =>
                                 handleInputChange("province", value)
                               }
-                              disabled={!isEditing}>
+                              disabled={!isEditing}
+                            >
                               <SelectTrigger
                                 className={
                                   submitted && !editedCrew?.province
                                     ? "border-red-500 focus:!ring-red-500/50 w-full"
                                     : "border-primary w-full"
-                                }>
+                                }
+                              >
                                 <SelectValue placeholder="Select a province" />
                               </SelectTrigger>
                               <SelectContent className="max-h-80">
@@ -769,7 +786,8 @@ export default function CrewDetails() {
                                   filteredProvinces.map((province) => (
                                     <SelectItem
                                       key={province.ProvinceID}
-                                      value={province.ProvinceID.toString()}>
+                                      value={province.ProvinceID.toString()}
+                                    >
                                       {province.ProvinceName}
                                     </SelectItem>
                                   ))
@@ -804,13 +822,15 @@ export default function CrewDetails() {
                               onValueChange={(value) =>
                                 handleInputChange("city", value)
                               }
-                              disabled={!isEditing || !editedCrew?.province}>
+                              disabled={!isEditing || !editedCrew?.province}
+                            >
                               <SelectTrigger
                                 className={
                                   submitted && !editedCrew?.city
                                     ? "w-full border-red-500 focus:!ring-red-500/50"
                                     : "border-primary w-full"
-                                }>
+                                }
+                              >
                                 <SelectValue placeholder="Select a city" />
                               </SelectTrigger>
                               <SelectContent className="max-h-80">
@@ -828,7 +848,8 @@ export default function CrewDetails() {
                                   filteredSearchCities.map((city) => (
                                     <SelectItem
                                       key={city.CityID}
-                                      value={city.CityID.toString()}>
+                                      value={city.CityID.toString()}
+                                    >
                                       {city.CityName}
                                     </SelectItem>
                                   ))
@@ -1102,7 +1123,7 @@ export default function CrewDetails() {
                               </p>
                             )}
                         </div>
-                        <div>
+                       <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Passport Issue Date
                           </label>
@@ -1111,8 +1132,12 @@ export default function CrewDetails() {
                             placeholder="Passport Issue Date"
                             value={
                               isEditing
-                                ? editedCrew?.passportIssueDate || ""
-                                : formatDate(crew.passportIssueDate) || ""
+                                ? editedCrew?.passportIssueDate
+                                  ? new Date(editedCrew.passportIssueDate).toISOString().split("T")[0]
+                                  : ""
+                                : crew.passportIssueDate
+                                ? new Date(crew.passportIssueDate).toISOString().split("T")[0]
+                                : ""
                             }
                             onChange={(e) =>
                               handleInputChange(
@@ -1138,7 +1163,7 @@ export default function CrewDetails() {
                                 Passport issue date is required.
                               </p>
                             )}
-                        </div>
+                        </div> 
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Passport Expiration Date
@@ -1148,8 +1173,12 @@ export default function CrewDetails() {
                             placeholder="Passport Expiry Date"
                             value={
                               isEditing
-                                ? editedCrew?.passportExpiryDate || ""
-                                : formatDate(crew.passportExpiryDate) || ""
+                                ? editedCrew?.passportExpiryDate
+                                  ? new Date(editedCrew.passportExpiryDate).toISOString().split("T")[0]
+                                  : ""
+                                : crew.passportExpiryDate
+                                ? new Date(crew.passportExpiryDate).toISOString().split("T")[0]
+                                : ""
                             }
                             onChange={(e) =>
                               handleInputChange(
@@ -1237,8 +1266,12 @@ export default function CrewDetails() {
                             placeholder="Seamans Book Issue Date"
                             value={
                               isEditing
-                                ? editedCrew?.seamansBookIssueDate || ""
-                                : formatDate(crew.seamansBookIssueDate) || ""
+                                ? editedCrew?.seamansBookIssueDate
+                                  ? new Date(editedCrew.seamansBookIssueDate).toISOString().split("T")[0]
+                                  : ""
+                                : crew.seamansBookIssueDate
+                                ? new Date(crew.seamansBookIssueDate).toISOString().split("T")[0]
+                                : ""
                             }
                             onChange={(e) =>
                               handleInputChange(
@@ -1275,8 +1308,12 @@ export default function CrewDetails() {
                             placeholder="Seamans Book Expiry Date"
                             value={
                               isEditing
-                                ? editedCrew?.seamansBookExpiryDate || ""
-                                : formatDate(crew.seamansBookExpiryDate) || ""
+                                ? editedCrew?.seamansBookExpiryDate
+                                  ? new Date(editedCrew.seamansBookExpiryDate).toISOString().split("T")[0]
+                                  : ""
+                                : crew.seamansBookExpiryDate
+                                ? new Date(crew.seamansBookExpiryDate).toISOString().split("T")[0]
+                                : ""
                             }
                             onChange={(e) =>
                               handleInputChange(
@@ -1311,13 +1348,15 @@ export default function CrewDetails() {
 
                 <TabsContent
                   value="movement"
-                  className="p-4 mt-0 overflow-y-auto scrollbar-hide flex-1">
+                  className="p-4 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                >
                   <CrewMovement />
                 </TabsContent>
 
                 <TabsContent
                   value="allottee"
-                  className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1">
+                  className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                >
                   {!isAddingAllottee ? (
                     <>
                       <CrewAllottee
@@ -1348,7 +1387,8 @@ export default function CrewDetails() {
 
                 <TabsContent
                   value="validation"
-                  className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1">
+                  className="p-6 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                >
                   <div className="space-y-8">
                     <div>
                       <div className="flex items-center justify-start gap-x-5">
@@ -1360,13 +1400,15 @@ export default function CrewDetails() {
                             crewValidationDetails?.IsVerified === 1
                               ? "bg-green-100 text-green-800 border-green-600"
                               : "bg-yellow-100 text-yellow-800 border-yellow-600"
-                          } rounded-full border  flex items-center gap-1 flex-shrink-0`}>
+                          } rounded-full border  flex items-center gap-1 flex-shrink-0`}
+                        >
                           <p
                             className={`${
                               crewValidationDetails?.IsVerified === 1
                                 ? "text-green-800"
                                 : "text-yellow-800"
-                            }`}>
+                            }`}
+                          >
                             {crewValidationDetails?.IsVerified === 1
                               ? "Verified"
                               : crewValidationDetails?.IsVerified === null
@@ -1641,7 +1683,8 @@ export default function CrewDetails() {
                                   const fullDataUrl = `data:${imageData.ContentType};base64,${imageData.FileContent}`;
                                   openModal(fullDataUrl);
                                 }
-                              }}>
+                              }}
+                            >
                               {crewValidationDetails?.Documents?.[0]
                                 ?.IDImages?.[0]?.FileContent ? (
                                 <Base64Image
@@ -1717,7 +1760,8 @@ export default function CrewDetails() {
                                         const fullDataUrl = `data:${imageData.ContentType};base64,${imageData.FileContent}`;
                                         openModal(fullDataUrl);
                                       }
-                                    }}>
+                                    }}
+                                  >
                                     {crewValidationDetails?.Documents?.[0]
                                       ?.IDImages?.[currentSelfieIndex + 1]
                                       ?.FileContent ? (
@@ -1766,13 +1810,15 @@ export default function CrewDetails() {
                                                 ? Math.max(0, totalImages - 1)
                                                 : prev - 1
                                             );
-                                          }}>
+                                          }}
+                                        >
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             className="h-5 w-5"
                                             fill="none"
                                             viewBox="0 0 24 24"
-                                            stroke="currentColor">
+                                            stroke="currentColor"
+                                          >
                                             <path
                                               strokeLinecap="round"
                                               strokeLinejoin="round"
@@ -1795,13 +1841,15 @@ export default function CrewDetails() {
                                                 ? 0
                                                 : prev + 1
                                             );
-                                          }}>
+                                          }}
+                                        >
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             className="h-5 w-5"
                                             fill="none"
                                             viewBox="0 0 24 24"
-                                            stroke="currentColor">
+                                            stroke="currentColor"
+                                          >
                                             <path
                                               strokeLinecap="round"
                                               strokeLinejoin="round"

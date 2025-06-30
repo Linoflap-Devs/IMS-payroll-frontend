@@ -155,7 +155,7 @@ export function AddUserDialog({
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className="w-full gap-1 mt-1">
+                <FormItem className="w-full mt-1">
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter email" {...field} />

@@ -58,7 +58,7 @@ export default function LoginHistory() {
   );
   const [filteredLogs, setFilteredLogs] = useState<LoginHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);  
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filter states
@@ -179,9 +179,9 @@ export default function LoginHistory() {
 
     switch (action) {
       case "login":
-        return `${user} logged in`;
+        return `${user} logged in.`;
       case "logout":
-        return `${user} logged out`;
+        return `${user} logged out.`;
       default:
         return `${user} performed ${action}`;
     }
