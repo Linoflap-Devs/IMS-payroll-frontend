@@ -27,6 +27,7 @@ import {
   updateCrewAllottee,
 } from "@/src/services/crew/crewAllottee.api";
 import { toast } from "@/components/ui/use-toast";
+import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 
 // Empty UI model for initialization
 const emptyAllottee: AllotteeUiModel = {
@@ -93,6 +94,7 @@ export function CrewAllottee({
   const [searchCity, setSearchCity] = useState("");
   const [searchProvince, setSearchProvince] = useState("");
   const [previousAllotteeId, setPreviousAllotteeId] = useState<string>("");
+  const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
 
   const {
     allottees: storeAllottees,
@@ -101,6 +103,8 @@ export function CrewAllottee({
     fetchCrewAllottees,
     resetAllottees,
   } = useCrewStore();
+
+  //console.log('ALLOTTEES:', allottees);
 
   const {
     fetchBanks,
@@ -193,6 +197,7 @@ export function CrewAllottee({
     }));
 
     setAllottees(mapped);
+
 
     if (previousAllotteeId) {
       const previousIndex = mapped.findIndex(
@@ -546,7 +551,6 @@ useEffect(() => {
   setIsEditingAllottee,
 ]);
 
-
   useEffect(() => {
     if (triggerSave) {
       setAllotteeLoading(true);
@@ -609,6 +613,18 @@ useEffect(() => {
   const displayAllottee =
     isEditingAllottee || isAdding ? editingAllottee : currentAllottee;
 
+    //console.log('DISPLAY ALLOTEE:', displayAllottee);
+
+  // validating the name form
+  useEffect(() => {
+    const validateAllotteeForm = () => {
+      const isValid = Boolean(displayAllottee?.name?.trim());
+      setIsAllotteeValid(isValid);
+    };
+
+    validateAllotteeForm();
+  }, [displayAllottee, setIsAllotteeValid]);
+
   return (
     <div className="space-y-6">
       {isLoadingAllottees ? (
@@ -630,11 +646,13 @@ useEffect(() => {
                       <div className="flex-1 w-full flex items-center">
                         <Select
                           value={selectedIndex}
-                          onValueChange={setSelectedIndex}>
+                          onValueChange={setSelectedIndex}
+                          disabled={!displayAllottee} // disable when first name is not valid
+                          >
                           <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                             <SelectValue placeholder="Select Allottee" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="min-h-40">
                             {allottees.map((a, idx) => (
                               <SelectItem key={idx} value={idx.toString()}>
                                 {a.name}
@@ -776,7 +794,7 @@ useEffect(() => {
                       <SelectTrigger id="relationship" className="w-full !h-10">
                         <SelectValue placeholder="Select a relationship" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="h-70">
                         {allRelationshipData.map((relationship) => (
                           <SelectItem
                             key={relationship.RelationID}

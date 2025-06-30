@@ -5,14 +5,23 @@ import { Crew } from "@/types/crew";
 import { calculateAge } from "@/types/crew";
 import Base64Image from "./Base64Image";
 import Image from "next/image";
+import { Input } from "./ui/input";
 
 interface CrewSidebarProps {
   crew: Crew;
   isEditing: boolean;
   editedCrew: Crew | null;
+  handleInputChange: (field: keyof Crew, value: string) => void;
+  submitted: boolean;
 }
 
-export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
+export function CrewSidebar({
+  crew,
+  isEditing,
+  editedCrew,
+  handleInputChange,
+  submitted,
+}: CrewSidebarProps) {
   return (
     <div className="md:col-span-1">
       <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
@@ -52,7 +61,8 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
                   : crew.status === "Off board"
                   ? "bg-[#F5ECE4] text-orange-800 border-orange-300"
                   : "bg-gray-100 text-gray-800 border-gray-300" // Default styling if status is neither
-              }`}>
+              }`}
+            >
               <p
                 className={`p-0.5 px-2 ${
                   crew.status === "On board"
@@ -60,7 +70,8 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
                     : crew.status === "Off board"
                     ? "text-orange-800"
                     : "text-gray-800"
-                }`}>
+                }`}
+              >
                 {crew.status}
               </p>
             </div>
@@ -111,33 +122,134 @@ export function CrewSidebar({ crew, isEditing, editedCrew }: CrewSidebarProps) {
               Contact Information
             </h3>
             <div className="space-y-3 text-left">
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-primary flex-shrink-0" />
+              {/* Mobile Number */}
+              <div className="flex items-start gap-2">
+                <Phone className="h-4 w-4 text-primary flex-shrink-0 mt-2" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-gray-500">Mobile Number</div>
-                  <div className="text-sm font-medium truncate">
-                    {crew.phone}
-                  </div>
+                  <label className="text-sm text-gray-500">Mobile Number</label>
+                  {isEditing ? (
+                    <>
+                      <Input
+                        placeholder="Enter mobile number"
+                        value={editedCrew?.phone || ""}
+                        onChange={(e) =>
+                          handleInputChange("phone", e.target.value)
+                        }
+                        className={`h-9 ${
+                          submitted &&
+                          (!editedCrew?.phone ||
+                            !/^09\d{9}$/.test(editedCrew.phone))
+                            ? "border-red-500 focus:!ring-red-500/50"
+                            : "border-primary"
+                        }`}
+                      />
+                      {submitted &&
+                        (!editedCrew?.phone ||
+                          !/^09\d{9}$/.test(editedCrew.phone)) && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {!editedCrew?.phone
+                              ? "Mobile number is required."
+                              : 'Mobile number must be 11 digits and start with "09".'}
+                          </p>
+                        )}
+                    </>
+                  ) : (
+                    <div className="text-sm font-medium truncate">
+                      {crew?.phone || "N/A"}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <PhoneCall className="h-4 w-4 text-primary flex-shrink-0" />
+              {/* Landline Number */}
+              <div className="flex items-start gap-2">
+                <PhoneCall className="h-4 w-4 text-primary flex-shrink-0 mt-2" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-gray-500">Landline Number</div>
-                  <div className="text-sm font-medium truncate">
-                    {crew.landline}
-                  </div>
+                  <label className="text-sm text-gray-500">
+                    Landline Number
+                  </label>
+                  {isEditing ? (
+                    <>
+                      <Input
+                        placeholder="Enter landline number"
+                        value={editedCrew?.landline || ""}
+                        onChange={(e) =>
+                          handleInputChange("landline", e.target.value)
+                        }
+                        className={`h-9 ${
+                          submitted &&
+                          (!editedCrew?.landline ||
+                            !/^\d{7,10}$/.test(editedCrew.landline))
+                            ? "border-red-500 focus:!ring-red-500/50"
+                            : "border-primary"
+                        }`}
+                      />
+                      {submitted &&
+                        (!editedCrew?.landline ? (
+                          <p className="text-red-500 text-sm mt-1">
+                            Landline number is required.
+                          </p>
+                        ) : !/^\d+$/.test(editedCrew.landline) ? (
+                          <p className="text-red-500 text-sm mt-1">
+                            Landline must contain digits only.
+                          </p>
+                        ) : !/^\d{7,10}$/.test(editedCrew.landline) ? (
+                          <p className="text-red-500 text-sm mt-1">
+                            Landline must be 7 to 10 digits (e.g., 0281234567).
+                          </p>
+                        ) : null)}
+                    </>
+                  ) : (
+                    <div className="text-sm font-medium truncate">
+                      {crew?.landline || "N/A"}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-primary flex-shrink-0" />
+              {/* Email Address */}
+              <div className="flex items-start gap-2">
+                <Mail className="h-4 w-4 text-primary flex-shrink-0 mt-2" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-gray-500">Email Address</div>
-                  <div className="text-sm font-medium truncate">
-                    {crew.email}
-                  </div>
+                  <label className="text-sm text-gray-500">Email Address</label>
+                  {isEditing ? (
+                    <>
+                      <Input
+                        placeholder="Enter email address"
+                        value={editedCrew?.email || ""}
+                        onChange={(e) =>
+                          handleInputChange("email", e.target.value)
+                        }
+                        className={`h-9 ${
+                          submitted &&
+                          (!editedCrew?.email ||
+                            !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
+                              editedCrew.email
+                            ))
+                            ? "border-red-500 focus:!ring-red-500/50"
+                            : "border-primary"
+                        }`}
+                      />
+                      {submitted && !editedCrew?.email && (
+                        <p className="text-red-500 text-sm mt-1">
+                          Email is required.
+                        </p>
+                      )}
+                      {submitted &&
+                        editedCrew?.email &&
+                        !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
+                          editedCrew.email
+                        ) && (
+                          <p className="text-red-500 text-sm mt-1">
+                            Please enter a valid email.
+                          </p>
+                        )}
+                    </>
+                  ) : (
+                    <div className="text-sm font-medium truncate">
+                      {crew?.email || "N/A"}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

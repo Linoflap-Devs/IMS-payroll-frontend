@@ -73,8 +73,7 @@ export function CrewHeader({
   isDeclining,
   isRegistered,
 }: CrewHeaderProps) {
-  const { isAllotteeValid } = useAllotteeFormStore();
-
+const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
   return (
     <>
       <div className="flex items-center justify-between">
@@ -133,7 +132,8 @@ export function CrewHeader({
                     <Button
                       variant="destructive"
                       className="px-6 bg-[#B63C3C] w-40"
-                      disabled={isDeletingAllottee}>
+                      disabled={isDeletingAllottee || !isAllotteeValid}
+                      >
                       {isDeletingAllottee ? (
                         <>
                           <Loader2 className="animate-spin" />
@@ -245,7 +245,9 @@ export function CrewHeader({
               <>
                 <Button
                   onClick={toggleAllotteeEdit}
-                  className="bg-[#2BA148] hover:bg-green-700 px-6 w-40">
+                  className="bg-[#2BA148] hover:bg-green-700 px-6 w-40"
+                   disabled={!isAllotteeValid}
+                  >
                   <Pencil />
                   Edit
                 </Button>

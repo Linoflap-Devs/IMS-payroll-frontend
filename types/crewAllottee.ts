@@ -44,6 +44,7 @@ export interface AllotteeUiModel {
 }
 
 export interface IAddAllottee {
+    active?: any;
     name: string;
     allotmentType: number;
     relation: number;
