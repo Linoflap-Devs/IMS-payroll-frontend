@@ -380,7 +380,7 @@ function generateCrewPayrollPage(
     doc.text("CURRENCY", margin + colWidth * 1.8, y + 7.5);
     doc.text("AMOUNT", margin + colWidth * 2.8, y + 7.5);
     doc.text("FOREX", margin + colWidth * 3.7, y + 7.5);
-    doc.text("DOLLAR", margin + colWidth * 4.5, y + 7.5);
+    doc.text("PESO", margin + colWidth * 4.5, y + 7.5);
 
     // Deduction items
     y += 17;
@@ -440,6 +440,8 @@ function generateCrewPayrollPage(
     doc.setFont('NotoSans', 'normal');
     doc.setFontSize(10);
 
+    const exchangeRate = period.exchangeRate
+
     if (crewData.allotteeDistribution && crewData.allotteeDistribution.length > 0) {
         crewData.allotteeDistribution.forEach((allottee, index) => {
             doc.text(allottee.name, margin + 2, y + index * 8);
@@ -452,7 +454,9 @@ function generateCrewPayrollPage(
                 currencyType = 'USD';
             }
 
-            doc.text(formatWithCurrency(allottee.amount, currencyType), pageWidth - 12, y + index * 8, { align: 'right' });
+            const toPeso = allottee.currency === 1 ? allottee.amount * exchangeRate : allottee.amount;
+
+            doc.text(formatWithCurrency(toPeso, 'PHP'), pageWidth - 12, y + index * 8, { align: 'right' });
         });
     } else {
         // No allottees - show a message
@@ -466,6 +470,6 @@ function generateCrewPayrollPage(
 
     // Use your specified format for date/time and user
     doc.text("Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): " + formatDate(new Date()), margin, y);
-    doc.text("Current User's Login: " + currentUser, margin, y + 5);
+    doc.text("Current User's Login: " + currentUser, margin, y + 5); 
     doc.text("(This is a system generated document and does not require signature)", margin, y + 10);
 }

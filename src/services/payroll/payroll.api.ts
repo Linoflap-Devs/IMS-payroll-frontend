@@ -147,6 +147,7 @@ export interface PayslipPeriod {
   startDate: string;
   endDate: string;
   formattedPeriod: string;
+  exchangeRate: number;
 }
 
 
