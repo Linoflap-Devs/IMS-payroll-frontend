@@ -19,7 +19,7 @@ import { useCrewDetails } from "@/src/hooks/useCrewDetails";
 import { CrewSidebar } from "@/components/CrewSidebar";
 import { CrewHeader } from "@/components/CrewHeader";
 import { ImageModal } from "@/components/ImageModal";
-import { formatDate, formatDayMonthYear } from "@/types/crew";
+import { Crew, formatDate, formatDayMonthYear } from "@/types/crew";
 import AddCrewAllottee from "./crew/AddCrewAllottee";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import Base64Image from "../Base64Image";
@@ -478,8 +478,9 @@ export default function CrewDetails() {
             crew={crew}
             isEditing={isEditing}
             editedCrew={editedCrew}
+            handleInputChange={handleInputChange}
+            submitted={submitted}
           />
-
           <div className="md:col-span-3">
             <Card className="h-[calc(100vh-180px)] flex flex-col">
               <Tabs

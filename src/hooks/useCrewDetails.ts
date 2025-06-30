@@ -107,9 +107,10 @@ export function useCrewDetails(crewId: string | null) {
 
     const crewToBeUpdated = {
       status: updatedCrew.status,
-      email: updatedCrew.email,
-      phone: updatedCrew.phone,
-      landline: updatedCrew.landline,
+      emailAddress: updatedCrew.email,
+      mobileNumber: updatedCrew.phone,
+      landlineNumber: updatedCrew.landline,
+
       firstName: updatedCrew.firstName,
       lastName: updatedCrew.lastName,
       middleName: updatedCrew.middleName ? updatedCrew.middleName : undefined,

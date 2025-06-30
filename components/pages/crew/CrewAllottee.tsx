@@ -104,7 +104,7 @@ export function CrewAllottee({
     resetAllottees,
   } = useCrewStore();
 
-  console.log('ALLOTTEES:', allottees);
+  //console.log('ALLOTTEES:', allottees);
 
   const {
     fetchBanks,
@@ -613,9 +613,9 @@ useEffect(() => {
   const displayAllottee =
     isEditingAllottee || isAdding ? editingAllottee : currentAllottee;
 
-    console.log('DISPLAY ALLOTEE:', displayAllottee);
+    //console.log('DISPLAY ALLOTEE:', displayAllottee);
 
-// validating the name form
+  // validating the name form
   useEffect(() => {
     const validateAllotteeForm = () => {
       const isValid = Boolean(displayAllottee?.name?.trim());
