@@ -32,6 +32,7 @@ export interface AllotmentRegisterCrew {
 export interface AllotmentRegisterData {
     VesselID: number;
     VesselName: string;
+    ExchangeRate: number;
     Crew: AllotmentRegisterCrew[];
 }
 
@@ -236,7 +237,7 @@ export function generateAllotmentPayrollRegister(
             // Add exchange rate and date
             doc.setFontSize(7);
             doc.setFont('NotoSans', 'normal');
-            doc.text(`EXCHANGE RATE: USD > PHP ${exchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 5, { align: 'right' });
+            doc.text(`EXCHANGE RATE: USD > PHP ${vessel.ExchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 5, { align: 'right' });
             doc.text(getFormattedDate(), margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 13, { align: 'right' });
 
             currentY += vesselInfoHeight;
@@ -393,13 +394,13 @@ export function generateAllotmentPayrollRegister(
                             tableStartY = currentY;
                         }
                         
-
+                        const netAllotment = allottee.Currency === 1 ? allottee.NetAllotment * vessel.ExchangeRate : allottee.NetAllotment;
 
                         // Add allottee details - using the updated property names
                         doc.text(truncateText(allottee.AllotteeName, 22), colPositions[9] + 5, y + 5, { align: 'left' });
                         doc.text(allottee.AccountNumber, colPositions[10] + 9, y + 5, { align: 'left' });
                         doc.text(allottee.Bank, colPositions[11] + 5, y + 5, { align: 'left' });
-                        doc.text(formatCurrency(allottee.NetAllotment), colPositions[12] + colWidths[12] * scaleFactor - 5, y + 5, { align: 'right' });
+                        doc.text(formatCurrency(netAllotment), colPositions[12] + colWidths[12] * scaleFactor - 5, y + 5, { align: 'right' });
 
                         // Move to next row
                         y += rowHeight;

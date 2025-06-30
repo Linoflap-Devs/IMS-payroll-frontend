@@ -47,6 +47,7 @@ export interface AllotmentRegisterData {
   VesselType: string;
   Principal: string;
   IsActive: number;
+  ExchangeRate: number;
   Crew: AllotmentRegisterCrew[];
 }
 
