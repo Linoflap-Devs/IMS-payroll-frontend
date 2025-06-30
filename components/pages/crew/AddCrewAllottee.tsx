@@ -139,65 +139,73 @@ export default function AllotteeForm({
     return citiesInProvince.slice(0, 100);
   }, [cities, province]);
 
-const onSubmit = useCallback(
-  (data: IAddAllottee) => {
-    console.log("onSubmit called with allottee data:", data);
+  const onSubmit = useCallback(
+    (data: IAddAllottee) => {
+      console.log("onSubmit called with allottee data:", data);
 
-    if (!crewId) {
-      console.log("No crewId found. Submission aborted.");
-      return;
-    }
+      if (!crewId) {
+        console.log("No crewId found. Submission aborted.");
+        return;
+      }
 
-    setIsAddingAllottee(true);
-    console.log("isAddingAllottee set to true");
+      setIsAddingAllottee(true);
+      console.log("isAddingAllottee set to true");
 
-    addCrewAllottee(crewId, data)
-      .then((response) => {
-        console.log("addCrewAllottee response:", response);
+      // Prepare payload: convert isActive to active
+      const payload = {
+        ...data,
+        IsActive: data.active,
+      };
 
-        if (response.success) {
-          console.log("Allottee added successfully.");
-          toast({
-            title: "Success",
-            description: "Allottee added successfully.",
-            variant: "success",
-          });
-          setIsAddingAllottee(false);
-          console.log("Form reset to default values.");
-          form.reset(defaultValues);
-        } else {
-          console.log("Add allottee failed with message:", response.message);
+      //delete payload.isActive; // optional: remove isActive if not needed by API
+
+      addCrewAllottee(crewId, payload)
+        .then((response) => {
+          console.log("addCrewAllottee response:", response);
+
+          if (response.success) {
+            console.log("Allottee added successfully.");
+            toast({
+              title: "Success",
+              description: "Allottee added successfully.",
+              variant: "success",
+            });
+            setIsAddingAllottee(false);
+            console.log("Form reset to default values.");
+            form.reset(defaultValues);
+          } else {
+            console.log("Add allottee failed with message:", response.message);
+            toast({
+              title: "Error",
+              description: response.message || "Failed to add allottee.",
+              variant: "destructive",
+            });
+          }
+        })
+        .catch((error) => {
+          const err = error as Error;
+          console.log("Error adding allottee:", err.message);
           toast({
             title: "Error",
-            description: response.message || "Failed to add allottee.",
+            description: "Failed to add allottee.",
             variant: "destructive",
           });
-        }
-      })
-      .catch((error) => {
-        const err = error as Error;
-        console.log("Error adding allottee:", err.message);
-        toast({
-          title: "Error",
-          description: "Failed to add allottee.",
-          variant: "destructive",
+        })
+        .finally(() => {
+          setTriggerAdd(false);
+          setIsAddLoading(false);
+          console.log("Finalizing: isAddLoading set to false, triggerAdd set to false");
         });
-      })
-      .finally(() => {
-        setTriggerAdd(false);
-        setIsAddLoading(false);
-        console.log("Finalizing: isAddLoading set to false, triggerAdd set to false");
-      });
-  },
-  [
-    crewId,
-    form,
-    defaultValues,
-    setIsAddingAllottee,
-    setTriggerAdd,
-    setIsAddLoading,
-  ]
-);
+    },
+    [
+      crewId,
+      form,
+      defaultValues,
+      setIsAddingAllottee,
+      setTriggerAdd,
+      setIsAddLoading,
+    ]
+  );
 
   useEffect(() => {
     if (triggerAdd) {

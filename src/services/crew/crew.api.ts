@@ -114,7 +114,6 @@ export const getCrewMovementv2 = async (crewCode: string): Promise<CrewMovementR
 }
 
 export interface CrewAllottee {
-
   AllotteeId: number;
   AllotteeName: string;
   RelationName: string;
@@ -143,11 +142,12 @@ export interface CrewAllotteeResponse {
   data: CrewAllottee[];
   message?: string;
 }
+
 export const getCrewAllottee = async (crewCode: string): Promise<CrewAllotteeResponse> => {
   const response = await axiosInstance.get<CrewAllotteeResponse>(`/crew/${crewCode}/allottee`);
+  console.log('getCrewAllottee Response: ', response.data);
   return response.data;
 }
-
 
 export interface CrewRankItem {
   RankID: number;
