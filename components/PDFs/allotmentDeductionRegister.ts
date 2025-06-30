@@ -65,7 +65,7 @@ export function generateDeductionRegisterPDF(
     vesselData: DeductionRegisterData[],
     month: number,
     year: number,
-    exchangeRate: number = 57.53,
+    exchangeRate: number,
     dateGenerated: string = new Date().toLocaleDateString("en-US", {
         month: "2-digit",
         day: "2-digit",
@@ -224,7 +224,7 @@ export function generateDeductionRegisterPDF(
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
             doc.text(
-                `EXCHANGE RATE: USD > PHP ${exchangeRate}`,
+                `EXCHANGE RATE: USD > PHP ${vesselData[0].Crew[0].Deductions[0].ExchangeRate.toFixed(2)}`,
                 margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
                 vesselInfoY + 6,
                 { align: 'right' }
@@ -390,12 +390,12 @@ export function generateDeductionRegisterPDF(
 
                         // Format the deduction details - important to use fixed positions that match the image
                         const currencyLabel = deduction.Currency === 1 ? "Usd" : "PhP";
-                        const amountWithRate = deduction.Currency === 1 ? `${formatCurrency(deduction.Amount)}` : `${formatCurrency(deduction.Amount)}/${formatCurrency(deduction.ExchangeRate)}`;
+                        const amountWithRate = deduction.Currency === 1 ? `${formatCurrency(deduction.Amount)} X ${deduction.ExchangeRate}` : `${formatCurrency(deduction.Amount)}`;
 
                         // Calculate dollar amount based on currency
                         const dollarAmount = deduction.Currency === 1
-                            ? deduction.Amount
-                            : deduction.Amount / deduction.ExchangeRate;
+                            ? deduction.Amount * deduction.ExchangeRate
+                            : deduction.Amount;
 
                         // Define fixed positions for deduction details based on the sample image
                         const namePosition = margins.left + mainTableWidth * 0.5; // Deduction name position
