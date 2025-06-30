@@ -24,7 +24,7 @@ export function useCrewDetails(crewId: string | null) {
     crewValidationDetails,
     isLoadingValidationDetails,
     fetchCrewValidationDetails,
-    isCrewVerified
+    isCrewVerified,
   } = useCrewStore();
 
   useEffect(() => {
@@ -32,13 +32,19 @@ export function useCrewDetails(crewId: string | null) {
       fetchCrewDetails(crewId);
       fetchCrewBasic(crewId);
       fetchCrewValidationDetails(crewId);
-
     }
     return () => {
       resetDetails();
       resetBasic();
     };
-  }, [crewId, fetchCrewDetails, resetDetails, fetchCrewBasic, resetBasic, fetchCrewValidationDetails]);
+  }, [
+    crewId,
+    fetchCrewDetails,
+    resetDetails,
+    fetchCrewBasic,
+    resetBasic,
+    fetchCrewValidationDetails,
+  ]);
 
   useEffect(() => {
     if (crewDetails && crewBasic) {
@@ -70,7 +76,7 @@ export function useCrewDetails(crewId: string | null) {
         seamansBookNumber: crewDetails.SRIBNumber,
         seamansBookIssueDate: crewDetails.SRIBIssueDate,
         seamansBookExpiryDate: crewDetails.SRIBExpiredDate,
-        profileImage: crewDetails.ProfileImage
+        profileImage: crewDetails.ProfileImage,
       };
 
       setCrew(mappedCrew);
@@ -86,7 +92,11 @@ export function useCrewDetails(crewId: string | null) {
   };
 
   const saveChanges = async () => {
-    if (!editedCrew || !editedCrew.id) return;
+
+    if (!editedCrew || !editedCrew.id) {
+      console.warn("Cannot save. editedCrew or editedCrew.id is missing");
+      return;
+    }
 
     setIsEditLoading(true);
 
@@ -95,7 +105,6 @@ export function useCrewDetails(crewId: string | null) {
       name: `${editedCrew.firstName} ${editedCrew.lastName}`,
     };
 
-    // CREW update DTO
     const crewToBeUpdated = {
       status: updatedCrew.status,
       email: updatedCrew.email,
@@ -104,8 +113,24 @@ export function useCrewDetails(crewId: string | null) {
       firstName: updatedCrew.firstName,
       lastName: updatedCrew.lastName,
       middleName: updatedCrew.middleName ? updatedCrew.middleName : undefined,
-      maritalStatus: updatedCrew?.maritalStatus === 'single' ? "1" : updatedCrew?.maritalStatus === 'married' ? "2" : updatedCrew?.maritalStatus === 'divorced' ? "3" : updatedCrew?.maritalStatus === 'widowed' ? "4" : "0",
-      sex: updatedCrew?.sex === 'male' ? "1" : updatedCrew?.sex === 'female' ? "2" : updatedCrew?.sex === 'other' ? "3" : "0",
+      maritalStatus:
+        updatedCrew?.maritalStatus === "single"
+          ? "1"
+          : updatedCrew?.maritalStatus === "married"
+          ? "2"
+          : updatedCrew?.maritalStatus === "divorced"
+          ? "3"
+          : updatedCrew?.maritalStatus === "widowed"
+          ? "4"
+          : "0",
+      sex:
+        updatedCrew?.sex === "male"
+          ? "1"
+          : updatedCrew?.sex === "female"
+          ? "2"
+          : updatedCrew?.sex === "other"
+          ? "3"
+          : "0",
       dateOfBirth: updatedCrew.dateOfBirth,
       city: updatedCrew.city,
       province: updatedCrew.province,
@@ -116,34 +141,38 @@ export function useCrewDetails(crewId: string | null) {
       passportNumber: updatedCrew.passportNumber,
       passportIssueDate: updatedCrew.passportIssueDate,
       passportExpiryDate: updatedCrew.passportExpiryDate,
-      seamansBookNumber: updatedCrew.seamansBookNumber,
-      seamansBookIssueDate: updatedCrew.seamansBookIssueDate,
-      seamansBookExpiryDate: updatedCrew.seamansBookExpiryDate,
-    }
-
-    setCrew(updatedCrew);
-    setEditedCrew(updatedCrew);
-    setIsEditing(false);
+      
+      seamanBookNumber: updatedCrew.seamansBookNumber,
+      seamanBookIssueDate: updatedCrew.seamansBookIssueDate,
+      seamanBookExpiryDate: updatedCrew.seamansBookExpiryDate,
+    };
 
     try {
       const response = await updateCrew(editedCrew.id, crewToBeUpdated);
+
       if (response.success) {
+        await Promise.all([
+          fetchCrewBasic(editedCrew.id),
+          fetchCrewDetails(editedCrew.id),
+        ]); // re-fetch
+
         toast({
           title: "Success",
-          // description: response.message || "Crew details updated successfully.",
           description: "Crew details updated successfully.",
           variant: "success",
         });
-      }
-      if (!response.success) {
+      } else {
+        console.warn("API responded with failure:", response.message);
         toast({
           title: "Error",
           description: response.message || "Failed to update crew details.",
           variant: "destructive",
         });
       }
+
+      setIsEditing(false);
     } catch (error) {
-      console.log("Error updating crew details:", error);
+      console.error("Exception caught during API call:", error);
       toast({
         title: "Error",
         description: "Failed to update crew details.",
@@ -151,14 +180,18 @@ export function useCrewDetails(crewId: string | null) {
       });
     } finally {
       setIsEditLoading(false);
+      console.log("Finished saveChanges: loading stopped");
     }
   };
 
   const handleInputChange = (field: keyof Crew, value: string) => {
-    setEditedCrew(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    setEditedCrew((prev) => {
+      const updated = {
+        ...prev,
+        [field]: value,
+      };
+      return updated;
+    });
   };
 
   return {
@@ -176,6 +209,6 @@ export function useCrewDetails(crewId: string | null) {
     crewValidationDetails,
     isLoadingValidationDetails,
     isCrewVerified,
-    crewBasic
+    crewBasic,
   };
 }

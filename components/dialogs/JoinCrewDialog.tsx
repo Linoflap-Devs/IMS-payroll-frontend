@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Ship, MapPin, User, Check, ChevronDown, Loader2 } from "lucide-react";
+import { Ship, MapPin, User, Check, ChevronDown, Loader2, Info } from "lucide-react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Icon } from "@iconify/react/dist/iconify.js";
@@ -118,7 +118,7 @@ function SimpleSearchableSelect({
         className={cn(
           `w-full justify-between`,
           disabled
-            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            ? "bg-gray-100 text-gray-800 cursor-not-allowed"
             : "bg-white",
           !value && "text-muted-foreground",
           className
@@ -488,6 +488,8 @@ export function JoinCrewDialog({
                 placeholder="Select vessel"
                 value={selectedVessel}
                 onChange={setSelectedVessel}
+                //disabled
+                disabled={!!selectedVessel} // disable if vessel already selected
                 className={`w-full ${
                   submitted && !selectedVessel ? "border-red-500" : ""
                 }`}
@@ -518,9 +520,15 @@ export function JoinCrewDialog({
                 onChange={setSelectedPort}
                 disabled={!selectedCountry} // Disable when country is not selected
                 className={`w-full ${
-                  submitted && !selectedPort ? "border-red-500" : ""
+                  submitted && !selectedPort && selectedCountry ? "border-red-500" : ""
                 }`}
               />
+              {submitted && !selectedPort && selectedCountry && (
+                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                  <Info className="w-4 h-4" />
+                  Please select a port.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -533,6 +541,12 @@ export function JoinCrewDialog({
                 value={signOnDate}
                 onChange={(e) => setSignOnDate(e.target.value)}
               />
+              {submitted && !signOnDate && (
+                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                  <Info className="w-4 h-4" />
+                  Please select a sign off date.
+                </p>
+              )}
             </div>
           </div>
         </div>

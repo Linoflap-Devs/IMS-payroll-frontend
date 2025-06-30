@@ -115,8 +115,7 @@ export function CrewMovement() {
       <div className="text-center text-red-500">Error: {movementsError}</div>
     );
   }
-  console.log("Filtered Movements", filteredMovements);
-
+  
   return (
     <div className="space-y-6">
       {/* Vessel selection and filter */}
@@ -150,7 +149,7 @@ export function CrewMovement() {
             </div>
           </div>
         </div>
-        <div>
+        {/* <div>
           <Button
             variant="outline"
             className="h-11 px-5 border rounded-lg shadow-sm cursor-pointer"
@@ -160,7 +159,7 @@ export function CrewMovement() {
               Filter By Movement Type
             </span>
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Movement history table */}

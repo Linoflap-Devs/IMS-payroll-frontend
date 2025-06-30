@@ -85,11 +85,11 @@ export interface CrewBasicResponse {
   data: CrewBasic;
   message?: string;
 }
+
 export const getCrewBasic = async (crewCode: string): Promise<CrewBasicResponse> => {
   const response = await axiosInstance.get<CrewBasicResponse>(`/crew/${crewCode}`);
   return response.data;
 }
-
 
 export interface CrewMovement {
   Vessel: string;

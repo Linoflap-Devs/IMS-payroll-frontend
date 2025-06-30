@@ -26,6 +26,7 @@ import {
 import { AllotteeDistributionDialog } from "../../dialogs/AllotteeDistributionDialog";
 import { useDebounce } from "@/lib/useDebounce";
 import { generateAllotmentPDF } from "@/components/PDFs/payrollAllotmentRegisterPDF";
+import { PiUserListFill } from "react-icons/pi";
 
 export default function AllotmentRegisterComponent() {
   const searchParams = useSearchParams();
@@ -167,6 +168,7 @@ export default function AllotmentRegisterComponent() {
                   setSelectedCrew(crew);
                   setIsAllotteeDialogOpen(true);
                 }}>
+              <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 View Allottee Distribution
               </DropdownMenuItem>
             </DropdownMenuContent>
