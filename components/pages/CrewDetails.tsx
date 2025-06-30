@@ -99,7 +99,6 @@ export default function CrewDetails() {
   useEffect(() => {
     if (handleVerify) {
       setIsVerifying(true);
-      // console.log("Handle Verify Triggered");
 
       if (!crewId) return;
 
@@ -388,7 +387,6 @@ export default function CrewDetails() {
   };
 
   const handleDelete = (selectedAllottee: string) => {
-    //console.log("Deleting allottee:", selectedAllottee);
     const swalWithBootstrapButtons = Swal.mixin({
       customClass: {
         confirmButton:
@@ -446,9 +444,6 @@ export default function CrewDetails() {
         <p>Crew member not found.</p>
       </div>
     );
-
-  //console.log("Crew Details:", crewValidationDetails?.Documents[0]?.IDImages);
-  //console.log('CREW BASIC:', crewBasic);
 
   return (
     <div className="h-full w-full p-4 pt-3">

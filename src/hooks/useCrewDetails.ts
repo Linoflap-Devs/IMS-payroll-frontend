@@ -104,7 +104,6 @@ export function useCrewDetails(crewId: string | null) {
       ...editedCrew,
       name: `${editedCrew.firstName} ${editedCrew.lastName}`,
     };
-    console.log("Updated crew (with name field):", updatedCrew);
 
     const crewToBeUpdated = {
       status: updatedCrew.status,
@@ -142,17 +141,14 @@ export function useCrewDetails(crewId: string | null) {
       passportNumber: updatedCrew.passportNumber,
       passportIssueDate: updatedCrew.passportIssueDate,
       passportExpiryDate: updatedCrew.passportExpiryDate,
-
+      
       seamanBookNumber: updatedCrew.seamansBookNumber,
       seamanBookIssueDate: updatedCrew.seamansBookIssueDate,
       seamanBookExpiryDate: updatedCrew.seamansBookExpiryDate,
     };
 
-    console.log("Payload to be sent to backend:", crewToBeUpdated);
-
     try {
       const response = await updateCrew(editedCrew.id, crewToBeUpdated);
-      console.log("API response:", response);
 
       if (response.success) {
         await Promise.all([
@@ -189,14 +185,11 @@ export function useCrewDetails(crewId: string | null) {
   };
 
   const handleInputChange = (field: keyof Crew, value: string) => {
-    console.log(`Updating field "${field}" with value:`, value);
-
     setEditedCrew((prev) => {
       const updated = {
         ...prev,
         [field]: value,
       };
-      console.log("Updated editedCrew:", updated);
       return updated;
     });
   };

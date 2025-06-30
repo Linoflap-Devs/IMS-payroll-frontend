@@ -115,8 +115,7 @@ export function CrewMovement() {
       <div className="text-center text-red-500">Error: {movementsError}</div>
     );
   }
-  console.log("Filtered Movements", filteredMovements);
-
+  
   return (
     <div className="space-y-6">
       {/* Vessel selection and filter */}

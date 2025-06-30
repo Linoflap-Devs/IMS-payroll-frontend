@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Loader2,
   User,
+  Info,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { Card } from "../ui/card";
@@ -264,11 +265,13 @@ export function PromoteCrewDialog({
     label: vessel.VesselName,
   }));
 
-  const rankOptions = rankList.map((rank) => ({
-    id: rank.RankID,
-    value: rank.RankID.toString(),
-    label: rank.RankName,
-  }));
+  const rankOptions = rankList
+    .filter((rank) => rank.RankID.toString() !== currentRank)
+    .map((rank) => ({
+      id: rank.RankID,
+      value: rank.RankID.toString(),
+      label: rank.RankName,
+    }));
 
   const handlePromote = () => {
     setSubmitted(true);
@@ -434,6 +437,12 @@ export function PromoteCrewDialog({
                 onChange={setSelectedVessel}
                 className="w-full"
               />
+              {submitted && !selectedVessel && (
+                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                  <Info className="w-4 h-4" />
+                  Please select a vessel.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -451,9 +460,16 @@ export function PromoteCrewDialog({
                     : ""
                 }`}
               />
+              {submitted && !selectedRank && (
+                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                  <Info className="w-4 h-4" />
+                  Please select a rank for promotion.
+                </p>
+              )}
               {submitted && selectedRank === currentRank && (
-                <p className="text-sm text-red-500 mt-1">
-                  Please select a different rank for promotion
+                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                  <Info className="w-4 h-4" />
+                  Please select a different rank for promotion.
                 </p>
               )}
             </div>
@@ -468,6 +484,12 @@ export function PromoteCrewDialog({
                 }`}
                 onChange={(e) => setPromotionDate(e.target.value)}
               />
+              {submitted && !promotionDate && (
+                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                  <Info className="w-4 h-4" />
+                  Please select a promotion date.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -477,13 +499,15 @@ export function PromoteCrewDialog({
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => onOpenChange(false)}>
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button
             className="flex-1 bg-green-600 hover:bg-green-700"
             onClick={handlePromote}
-            disabled={isLoading}>
+            disabled={isLoading}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
