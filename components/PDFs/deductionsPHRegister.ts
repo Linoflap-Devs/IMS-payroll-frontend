@@ -349,7 +349,7 @@ export function generatePHRegisterPDF(
                     doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'Total') {
-                    const value = Number(crew.EEPremium);
+                    const value = Number(crew.EE) + Number(crew.ER);
                     doc.text(formatCurrency(value || 0), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
                 }
                 else {
