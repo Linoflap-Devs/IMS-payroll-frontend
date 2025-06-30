@@ -55,12 +55,14 @@ function SimpleSearchableSelect({
   value,
   onChange,
   className,
+  disabled = false,
 }: {
   options: { id: string | number; value: string; label: string }[];
   placeholder: string;
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -116,12 +118,19 @@ function SimpleSearchableSelect({
         variant="outline"
         role="combobox"
         aria-expanded={open}
+        disabled={disabled} // prevent click
         className={cn(
-          `w-full justify-between bg-white`,
+          `w-full justify-between`,
+          disabled
+            ? "bg-gray-100 text-gray-800 cursor-not-allowed"
+            : "bg-white",
           !value && "text-muted-foreground",
           className
         )}
-        onClick={() => setOpen(!open)}>
+        onClick={() => {
+          if (!disabled) setOpen(!open); // don’t open dropdown if disabled
+        }}
+      >
         {selectedOption ? selectedOption.label : placeholder}
         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
@@ -434,6 +443,7 @@ export function PromoteCrewDialog({
                 options={vesselOptions}
                 placeholder="Select vessel"
                 value={selectedVessel}
+                //disabled={!!selectedVessel}
                 onChange={setSelectedVessel}
                 className="w-full"
               />
@@ -460,16 +470,10 @@ export function PromoteCrewDialog({
                     : ""
                 }`}
               />
-              {submitted && !selectedRank && (
-                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                  <Info className="w-4 h-4" />
-                  Please select a rank for promotion.
-                </p>
-              )}
               {submitted && selectedRank === currentRank && (
                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                   <Info className="w-4 h-4" />
-                  Please select a different rank for promotion.
+                  Please select a rank for promotion.
                 </p>
               )}
             </div>

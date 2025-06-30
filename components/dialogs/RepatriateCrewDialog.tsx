@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Ship, MapPin, User, Check, ChevronDown, Loader2 } from "lucide-react";
+import { Ship, MapPin, User, Check, ChevronDown, Loader2, Info } from "lucide-react";
 import { useEffect, useState, useRef, Dispatch, SetStateAction } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
@@ -46,12 +46,14 @@ function SimpleSearchableSelect({
   value,
   onChange,
   className,
+  disabled = false,
 }: {
   options: { id: string | number; value: string; label: string }[];
   placeholder: string;
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,12 +109,19 @@ function SimpleSearchableSelect({
         variant="outline"
         role="combobox"
         aria-expanded={open}
+        disabled={disabled} // prevent click
         className={cn(
-          "w-full justify-between bg-white",
+          `w-full justify-between`,
+          disabled
+            ? "bg-gray-100 text-gray-800 cursor-not-allowed"
+            : "bg-white",
           !value && "text-muted-foreground",
           className
         )}
-        onClick={() => setOpen(!open)}>
+        onClick={() => {
+          if (!disabled) setOpen(!open); // don’t open dropdown if disabled
+        }}
+      >
         {selectedOption ? selectedOption.label : placeholder}
         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
@@ -141,7 +150,8 @@ function SimpleSearchableSelect({
                   onClick={() => {
                     onChange(option.value);
                     setOpen(false);
-                  }}>
+                  }}
+                >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
@@ -423,6 +433,11 @@ export function RepatriateCrewDialog({
                 value={selectedCountry}
                 onChange={setSelectedCountry}
               />
+              {!selectedCountry && (
+                <p className="text-xs text-gray-500 italic">
+                  Please select a country first to enable port selection.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -431,11 +446,18 @@ export function RepatriateCrewDialog({
                 options={portOptions}
                 placeholder="Select port"
                 value={selectedPort}
+                disabled={!selectedCountry}
                 onChange={setSelectedPort}
                 className={`${
-                  submitted && !selectedPort ? "border-red-500" : ""
+                  submitted && !selectedPort && selectedCountry ? "border-red-500" : ""
                 }`}
               />
+              {submitted && !selectedPort && selectedCountry && (
+                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                  <Info className="w-4 h-4" />
+                  Please select a port.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -448,6 +470,12 @@ export function RepatriateCrewDialog({
                 value={signOffDate}
                 onChange={(e) => setSignOffDate(e.target.value)}
               />
+              {submitted && !signOffDate && (
+                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                  <Info className="w-4 h-4" />
+                  Please select a sign off date.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -457,13 +485,15 @@ export function RepatriateCrewDialog({
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => onOpenChange(false)}>
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button
             className="flex-1 bg-red-600 hover:bg-red-700"
             onClick={handleSubmit}
-            disabled={isLoading}>
+            disabled={isLoading}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="animate-spin" />

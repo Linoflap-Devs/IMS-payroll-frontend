@@ -608,31 +608,6 @@ export default function AddCrew() {
                         )}
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col items-start flex-1 min-w-0">
-                        <label className="text-sm font-semibold text-gray-500">
-                          Current Vessel
-                        </label>
-                        <Input
-                          value={formData.currentVessel}
-                          onChange={(e) =>
-                            handleInputChange("currentVessel", e.target.value)
-                          }
-                          className="h-8 text-sm"
-                          // className={`h-8 mt-1 text-sm ${
-                          //   submitted && formData.currentVessel.length == 0
-                          //     ? "border-red-500 focus:!ring-red-500/50"
-                          //     : ""
-                          // }`}
-                        />
-                        {/* {submitted && formData.currentVessel.length == 0 && (
-                          <p className="text-red-500 text-sm">
-                            Please enter a vessel.
-                          </p>
-                        )} */}
-                      </div>
-                    </div>
                   </div>
 
                   <div className="w-full mt-4 pt-4 border-t min-w-0">
