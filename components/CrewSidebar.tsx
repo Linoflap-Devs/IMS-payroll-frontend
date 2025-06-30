@@ -122,6 +122,7 @@ export function CrewSidebar({
               Contact Information
             </h3>
             <div className="space-y-3 text-left">
+              {/* Mobile Number */}
               <div className="flex items-start gap-2">
                 <Phone className="h-4 w-4 text-primary flex-shrink-0 mt-2" />
                 <div className="flex-1 min-w-0">
@@ -135,16 +136,22 @@ export function CrewSidebar({
                           handleInputChange("phone", e.target.value)
                         }
                         className={`h-9 ${
-                          submitted && !editedCrew?.phone
+                          submitted &&
+                          (!editedCrew?.phone ||
+                            !/^09\d{9}$/.test(editedCrew.phone))
                             ? "border-red-500 focus:!ring-red-500/50"
                             : "border-primary"
                         }`}
                       />
-                      {submitted && !editedCrew?.phone && (
-                        <p className="text-red-500 text-sm mt-1">
-                          Mobile number is required.
-                        </p>
-                      )}
+                      {submitted &&
+                        (!editedCrew?.phone ||
+                          !/^09\d{9}$/.test(editedCrew.phone)) && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {!editedCrew?.phone
+                              ? "Mobile number is required."
+                              : 'Mobile number must be 11 digits and start with "09".'}
+                          </p>
+                        )}
                     </>
                   ) : (
                     <div className="text-sm font-medium truncate">
@@ -153,6 +160,8 @@ export function CrewSidebar({
                   )}
                 </div>
               </div>
+
+              {/* Landline Number */}
               <div className="flex items-start gap-2">
                 <PhoneCall className="h-4 w-4 text-primary flex-shrink-0 mt-2" />
                 <div className="flex-1 min-w-0">
@@ -160,14 +169,36 @@ export function CrewSidebar({
                     Landline Number
                   </label>
                   {isEditing ? (
-                    <Input
-                      placeholder="Enter landline number"
-                      value={editedCrew?.landline || ""}
-                      onChange={(e) =>
-                        handleInputChange("landline", e.target.value)
-                      }
-                      className="h-9 border-primary"
-                    />
+                    <>
+                      <Input
+                        placeholder="Enter landline number"
+                        value={editedCrew?.landline || ""}
+                        onChange={(e) =>
+                          handleInputChange("landline", e.target.value)
+                        }
+                        className={`h-9 ${
+                          submitted &&
+                          (!editedCrew?.landline ||
+                            !/^\d{7,10}$/.test(editedCrew.landline))
+                            ? "border-red-500 focus:!ring-red-500/50"
+                            : "border-primary"
+                        }`}
+                      />
+                      {submitted &&
+                        (!editedCrew?.landline ? (
+                          <p className="text-red-500 text-sm mt-1">
+                            Landline number is required.
+                          </p>
+                        ) : !/^\d+$/.test(editedCrew.landline) ? (
+                          <p className="text-red-500 text-sm mt-1">
+                            Landline must contain digits only.
+                          </p>
+                        ) : !/^\d{7,10}$/.test(editedCrew.landline) ? (
+                          <p className="text-red-500 text-sm mt-1">
+                            Landline must be 7 to 10 digits (e.g., 0281234567).
+                          </p>
+                        ) : null)}
+                    </>
                   ) : (
                     <div className="text-sm font-medium truncate">
                       {crew?.landline || "N/A"}
@@ -175,6 +206,8 @@ export function CrewSidebar({
                   )}
                 </div>
               </div>
+
+              {/* Email Address */}
               <div className="flex items-start gap-2">
                 <Mail className="h-4 w-4 text-primary flex-shrink-0 mt-2" />
                 <div className="flex-1 min-w-0">
@@ -188,7 +221,11 @@ export function CrewSidebar({
                           handleInputChange("email", e.target.value)
                         }
                         className={`h-9 ${
-                          submitted && !editedCrew?.email
+                          submitted &&
+                          (!editedCrew?.email ||
+                            !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
+                              editedCrew.email
+                            ))
                             ? "border-red-500 focus:!ring-red-500/50"
                             : "border-primary"
                         }`}
@@ -198,6 +235,15 @@ export function CrewSidebar({
                           Email is required.
                         </p>
                       )}
+                      {submitted &&
+                        editedCrew?.email &&
+                        !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
+                          editedCrew.email
+                        ) && (
+                          <p className="text-red-500 text-sm mt-1">
+                            Please enter a valid email.
+                          </p>
+                        )}
                     </>
                   ) : (
                     <div className="text-sm font-medium truncate">
