@@ -12,6 +12,9 @@ export type Allottee = {
 };
 
 export interface Crew {
+  seamanBookNumber?: string;
+  seamanBookIssueDate?: string;
+  seamanBookExpiryDate?: string;
   id?: string;
   firstName?: string;
   lastName?: string;

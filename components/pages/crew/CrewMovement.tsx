@@ -150,7 +150,7 @@ export function CrewMovement() {
             </div>
           </div>
         </div>
-        <div>
+        {/* <div>
           <Button
             variant="outline"
             className="h-11 px-5 border rounded-lg shadow-sm cursor-pointer"
@@ -160,7 +160,7 @@ export function CrewMovement() {
               Filter By Movement Type
             </span>
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Movement history table */}

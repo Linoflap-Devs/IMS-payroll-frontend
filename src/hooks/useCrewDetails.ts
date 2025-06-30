@@ -142,9 +142,10 @@ export function useCrewDetails(crewId: string | null) {
       passportNumber: updatedCrew.passportNumber,
       passportIssueDate: updatedCrew.passportIssueDate,
       passportExpiryDate: updatedCrew.passportExpiryDate,
-      seamansBookNumber: updatedCrew.seamansBookNumber,
-      seamansBookIssueDate: updatedCrew.seamansBookIssueDate,
-      seamansBookExpiryDate: updatedCrew.seamansBookExpiryDate,
+
+      seamanBookNumber: updatedCrew.seamansBookNumber,
+      seamanBookIssueDate: updatedCrew.seamansBookIssueDate,
+      seamanBookExpiryDate: updatedCrew.seamansBookExpiryDate,
     };
 
     console.log("Payload to be sent to backend:", crewToBeUpdated);

@@ -96,9 +96,6 @@ export default function CrewDetails() {
 
   const { fetchCrewValidationDetails } = useCrewStore();
 
-  //console.log("EDITED CREW", editedCrew);
-  //console.log("CREW", crew);
-
   useEffect(() => {
     if (handleVerify) {
       setIsVerifying(true);
@@ -1207,20 +1204,17 @@ export default function CrewDetails() {
                         </div>
                         <div className="md:col-span-2">
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
-                            Seamans Book
+                            Seaman Book Number
                           </label>
                           <Input
-                            placeholder="Enter seamans book number"
+                            placeholder="Enter Seaman Book number"
                             value={
                               isEditing
                                 ? editedCrew?.seamansBookNumber || ""
                                 : crew.seamansBookNumber || ""
                             }
                             onChange={(e) =>
-                              handleInputChange(
-                                "seamansBookNumber",
-                                e.target.value
-                              )
+                              handleInputChange("seamansBookNumber", e.target.value)
                             }
                             readOnly={!isEditing}
                             className={
@@ -1229,31 +1223,26 @@ export default function CrewDetails() {
                                     submitted &&
                                     (!editedCrew?.seamansBookNumber ||
                                       (editedCrew.seamansBookNumber &&
-                                        (editedCrew.seamansBookNumber.length <
-                                          7 ||
-                                          editedCrew.seamansBookNumber.length >
-                                            9)))
+                                        (editedCrew.seamansBookNumber.length < 7 ||
+                                        editedCrew.seamansBookNumber.length > 9)))
                                       ? "border-red-500 focus:!ring-red-500/50"
                                       : "border-primary"
                                   }`
                                 : ""
                             }
                           />
-                          {submitted &&
-                            isEditing &&
-                            !editedCrew?.seamansBookNumber && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Seamans book number is required.
-                              </p>
-                            )}
+                          {submitted && isEditing && !editedCrew?.seamansBookNumber && (
+                            <p className="text-red-500 text-sm mt-1">
+                              Seaman Book number is required.
+                            </p>
+                          )}
                           {submitted &&
                             isEditing &&
                             editedCrew?.seamansBookNumber &&
                             (editedCrew.seamansBookNumber.length < 7 ||
-                              editedCrew.seamansBookNumber.length > 9) && (
+                            editedCrew.seamansBookNumber.length > 9) && (
                               <p className="text-red-500 text-sm mt-1">
-                                Seamans Book number should be between 7-9
-                                characters.
+                                Seaman Book number should be between 7–9 characters.
                               </p>
                             )}
                         </div>
