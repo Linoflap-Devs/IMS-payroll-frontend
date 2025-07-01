@@ -738,7 +738,7 @@ export function CrewAllottee({
 
                 {/* Checkboxes */}
                 <div className="flex items-center gap-6">
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
                       checked={!!displayAllottee.active}
@@ -753,7 +753,7 @@ export function CrewAllottee({
                     <label className="text-sm font-medium text-gray-900">
                       Active
                     </label>
-                  </div>
+                  </div> */}
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"

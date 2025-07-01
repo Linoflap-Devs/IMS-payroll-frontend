@@ -109,77 +109,83 @@ export default function CrewApplication() {
     setShowDetailsDialog(true);
   };
 
-  const columns: ColumnDef<Application>[] = [
-    {
-      accessorKey: "CrewCode",
-      header: "Crew Code",
+const baseColumns: ColumnDef<Application>[] = [
+  {
+    accessorKey: "CrewCode",
+    header: "Crew Code",
+  },
+  {
+    id: "fullName",
+    header: "Crew Name",
+    accessorFn: (row) => {
+      const middleInitial = row.MiddleName
+        ? ` ${row.MiddleName.charAt(0)}. `
+        : " ";
+      return `${row.FirstName}${middleInitial}${row.LastName}`;
     },
-    {
-      id: "fullName",
-      header: "Crew Name",
-      accessorFn: (row) => {
-        const middleInitial = row.MiddleName
-          ? ` ${row.MiddleName.charAt(0)}. `
-          : " ";
-        return `${row.FirstName}${middleInitial}${row.LastName}`;
-      },
-    },
-    {
-      accessorKey: "Rank",
-      header: "Rank",
-    },
-    {
-      accessorKey: "ApplicationStatus",
-      header: "Status",
-      cell: ({ row }) => {
-        const status = row.original.ApplicationStatus.toLowerCase();
+  },
+  {
+    accessorKey: "Rank",
+    header: "Rank",
+  },
+  {
+    accessorKey: "ApplicationStatus",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.original.ApplicationStatus.toLowerCase();
 
-        const statusClasses = {
-          pending: "bg-[#F5ECE4] text-[#9F6932]",
-          approved: "bg-green-100 text-green-600",
-          declined: "bg-red-100 text-red-600",
-        };
+      const statusClasses = {
+        pending: "bg-[#F5ECE4] text-[#9F6932]",
+        approved: "bg-green-100 text-green-600",
+        declined: "bg-red-100 text-red-600",
+      };
 
-        return (
-          <Badge
-            className={cn(
-              "font-medium",
-              statusClasses[status as keyof typeof statusClasses]
-            )}
-          >
-            {row.original.ApplicationStatus}
-          </Badge>
-        );
-      },
+      return (
+        <Badge
+          className={cn(
+            "font-medium",
+            statusClasses[status as keyof typeof statusClasses]
+          )}
+        >
+          {row.original.ApplicationStatus}
+        </Badge>
+      );
     },
-    {
-      accessorKey: "ApplicationType",
-      header: "Application Type",
-    },
-    {
-      accessorKey: "ApplicationOperation",
-      header: "Application Operation",
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleViewDetails(row.original)}>
-              <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              View Request
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
-  ];
+  },
+  {
+    accessorKey: "ApplicationType",
+    header: "Application Type",
+  },
+  {
+    accessorKey: "ApplicationOperation",
+    header: "Application Operation",
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => handleViewDetails(row.original)}>
+            <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+            View Request
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  },
+];
+
+// Remove "actions" column if selected application is Declined
+const columns: ColumnDef<Application>[] =
+  activeTab === "declined"
+    ? baseColumns.filter((col) => col.id !== "actions")
+    : baseColumns;
 
   const filteredApplications = applications.filter((app) => {
     const matchesStatus = activeTab === app.ApplicationStatus.toLowerCase();
