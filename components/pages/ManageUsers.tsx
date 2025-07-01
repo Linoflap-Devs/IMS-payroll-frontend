@@ -72,6 +72,20 @@ export default function ManageUsers() {
     );
   };
 
+  const handleUserAdd = (updatedUser: UsersItem) => {
+    setUserData((prev) =>
+      prev.map((item) =>
+        item.UserID === updatedUser.UserID
+          ? {
+              ...item,
+              ...updatedUser,
+              Name: `${updatedUser.FirstName} ${updatedUser.LastName}`,
+            }
+          : item
+      )
+    );
+  };
+
   useEffect(() => {
     setIsLoading((prev) => ({ ...prev, users: true }));
 
@@ -79,7 +93,7 @@ export default function ManageUsers() {
       .then((response) => {
         if (response.success) {
           const validUsers = response.data.filter(
-            (user) => user.Name && user.Name.trim() !== ""
+            (user: { Name: string }) => user.Name && user.Name.trim() !== ""
           );
           setUserData(validUsers);
         } else {
@@ -183,10 +197,7 @@ export default function ManageUsers() {
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit User
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-xs sm:text-sm"
-                  
-                >
+                <DropdownMenuItem className="text-xs sm:text-sm">
                   <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Reset Password
                 </DropdownMenuItem>
@@ -312,11 +323,16 @@ export default function ManageUsers() {
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectItem value="all">All Roles</SelectItem>
-                      {uniqueRoles.map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {role}
-                        </SelectItem>
-                      ))}
+                      {uniqueRoles
+                        .filter(
+                          (role) =>
+                            typeof role === "string" && role.trim() !== ""
+                        )
+                        .map((role) => (
+                          <SelectItem key={role} value={role}>
+                            {role}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
 
@@ -338,11 +354,19 @@ export default function ManageUsers() {
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectItem value="all">All Status</SelectItem>
-                      {uniqueStatus.map((status) => (
-                        <SelectItem key={String(status)} value={String(status)}>
-                          {status ? "Verified" : "Unverified"}
-                        </SelectItem>
-                      ))}
+                      {uniqueStatus
+                        .filter(
+                          (status): status is boolean =>
+                            typeof status === "boolean"
+                        )
+                        .map((status) => (
+                          <SelectItem
+                            key={String(status)}
+                            value={String(status)}
+                          >
+                            {status ? "Verified" : "Unverified"}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -377,8 +401,9 @@ export default function ManageUsers() {
         <AddUserDialog
           open={isAddUser}
           onOpenChange={setAddUser}
-          // cannot set the data since the user has to verify first
-          onSuccess={() => {}}
+          onSuccess={(newUser) => {
+            setUserData((prev) => [...prev, newUser]);
+          }}
         />
 
         {selectedUserData && editselectedUserDialogOpen && (

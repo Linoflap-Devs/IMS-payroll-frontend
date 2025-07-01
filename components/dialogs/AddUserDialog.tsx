@@ -37,7 +37,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const userSchema = z.object({
-  email: z.string().nonempty("Email is required").email("Invalid email address"),
+  email: z
+    .string()
+    .nonempty("Email is required")
+    .email("Invalid email address"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -91,22 +94,46 @@ export function AddUserDialog({
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      const payload: AddUserPayload = {
-        ...data,
-        role: data.role,
-      };
+      const payload: AddUserPayload = { ...data, role: data.role };
 
-      //console.log("SUBMITTING DATA:", payload);
       const response = await addUsers(payload);
+
       if (response?.success) {
-        onSuccess(response.data[0]);
+        const raw = response.data;
+
+        if (!raw) {
+          console.warn("No user data returned from server");
+          return;
+        }
+
+        const normalizedUser: UsersItem = {
+          ...raw,
+          FirstName: raw.FirstName ?? raw.firstName ?? "",
+          LastName: raw.LastName ?? raw.lastName ?? "",
+          Email: raw.Email ?? raw.email ?? "",
+          Role:
+            raw.Role ??
+            raw.role ??
+            roleOptions.find((r) => r.value === data.role)?.label ??
+            "", // fallback to mapped label
+          IsVerified: raw.IsVerified ?? false,
+          UserType: raw.UserType ?? 0,
+          UserID: raw.UserID ?? 0,
+          Name: `${raw.FirstName ?? raw.firstName ?? ""} ${
+            raw.LastName ?? raw.lastName ?? ""
+          }`,
+        };
+
+        onSuccess(normalizedUser);
+
         toast({
           title: "User Created",
           description:
             "The user has been successfully added. Ask the user to verify their email.",
           variant: "success",
         });
-        onOpenChange(false);
+
+        onOpenChange(false); // will now be reached
         reset();
       } else {
         toast({
@@ -118,7 +145,6 @@ export function AddUserDialog({
     } catch (err: any) {
       console.error(err);
 
-      // Check for Prisma unique constraint error
       if (
         err.response?.data?.message?.includes("Unique constraint failed") ||
         err.message?.includes("Unique constraint failed")
@@ -170,7 +196,7 @@ export function AddUserDialog({
               control={form.control}
               name="firstName"
               render={({ field }) => (
-                <FormItem className="w-full gap-1 mt-1">
+                <FormItem className="w-full gap-2 mt-1">
                   <FormLabel>First Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter first name" {...field} />
@@ -185,7 +211,7 @@ export function AddUserDialog({
               control={form.control}
               name="lastName"
               render={({ field }) => (
-                <FormItem className="w-full gap-1 mt-1">
+                <FormItem className="w-full gap-2 mt-1">
                   <FormLabel>Last Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter last name" {...field} />
@@ -200,7 +226,7 @@ export function AddUserDialog({
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem className="w-full gap-1 mt-1">
+                <FormItem className="w-full gap-2 mt-1">
                   <FormLabel>Password</FormLabel>
                   <FormControl>
                     <Input
@@ -219,7 +245,7 @@ export function AddUserDialog({
               control={form.control}
               name="role"
               render={({ field, fieldState }) => (
-                <FormItem className="w-full gap-1 mt-1">
+                <FormItem className="w-full gap-2 mt-1">
                   <FormLabel>Role</FormLabel>
                   <FormControl>
                     <Select
@@ -232,7 +258,7 @@ export function AddUserDialog({
                     >
                       <SelectTrigger
                         className={cn(
-                          "w-full rounded-md h-10 gap-1",
+                          "w-full rounded-md h-10 gap-2",
                           fieldState.invalid
                             ? "border-red-500 focus:ring-red-500"
                             : "border-[#E0E0E0]"
