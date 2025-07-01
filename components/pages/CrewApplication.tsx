@@ -333,7 +333,7 @@ export default function CrewApplication() {
 
       {selectedApplication?.ApplicationType === "Allottee" && (
         <>
-          {selectedApplication.ApplicationOperation === "CREATE" &&
+          {
           selectedApplication.ApplicationStatus !== "Declined" && (
             <AddAllotteeReqDialog
               open={showDetailsDialog}
@@ -347,7 +347,7 @@ export default function CrewApplication() {
             />
           )}
 
-          {selectedApplication.ApplicationOperation === "CREATE" &&
+          {
           selectedApplication.ApplicationStatus === "Declined" && (
             <DeleteAllotteeReqDialog
               open={showDetailsDialog}
@@ -361,10 +361,7 @@ export default function CrewApplication() {
         </>
       )}
 
-      {selectedApplication?.ApplicationType === "HDMF Upgrade" &&
-        (selectedApplication.ApplicationOperation === "CREATE" || 
-          selectedApplication.ApplicationOperation == "UPDATE" || 
-          selectedApplication.ApplicationOperation == "DELETE") && (
+      {selectedApplication?.ApplicationType === "HDMF Upgrade" && (
           <HDMFUpgradeReqDialog
             open={showDetailsDialog}
             onOpenChange={setShowDetailsDialog}
