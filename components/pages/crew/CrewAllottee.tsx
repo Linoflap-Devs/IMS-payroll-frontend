@@ -188,7 +188,8 @@ export function CrewAllottee({
       accountNumber: a.AccountNumber,
       allotment: a.Allotment,
       active: a.IsActive === 1,
-      priority: !!a.Priority, // changed
+      priority: !!a.Priority, // true or false
+      //priority: a.Priority === 1,
       dollarAllotment: a.IsDollar === 1,
       isDollar: a.IsDollar,
       allotmentType: a.AllotmentType,

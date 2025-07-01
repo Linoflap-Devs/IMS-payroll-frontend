@@ -128,32 +128,6 @@ export function CrewHeader({
           <div className="px-4 pt-0 flex justify-end gap-3">
             {isEditingAllottee && !isAddingAllottee ? (
               <>
-                <Button
-                  variant="outline"
-                  onClick={toggleAllotteeEdit}
-                  className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button
-                  className="bg-primary hover:bg-primary/90 w-40"
-                  onClick={handleSave}
-                  disabled={allotteeLoading}
-                >
-                  {allotteeLoading ? (
-                    <>
-                      <Loader2 className="animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Allottee
-                    </>
-                  )}
-                </Button>
-
                 {/* Delete button inside edit mode */}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -170,7 +144,7 @@ export function CrewHeader({
                       ) : (
                         <>
                           <CircleMinus className="h-4 w-4 ml-2" />
-                          Remove
+                          Remove Allottee
                         </>
                       )}
                     </Button>
@@ -207,6 +181,32 @@ export function CrewHeader({
                     </div>
                   </AlertDialogContent>
                 </AlertDialog>
+
+                <Button
+                  variant="outline"
+                  onClick={toggleAllotteeEdit}
+                  className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel Edit
+                </Button>
+                <Button
+                  className="bg-primary hover:bg-primary/90 w-40"
+                  onClick={handleSave}
+                  disabled={allotteeLoading}
+                >
+                  {allotteeLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Allottee
+                    </>
+                  )}
+                </Button>
               </>
             ) : isAddingAllottee ? (
               <>
