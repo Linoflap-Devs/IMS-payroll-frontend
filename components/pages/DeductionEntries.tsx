@@ -801,6 +801,24 @@ export default function DeductionEntries() {
       });
   };
 
+  const calculateAge = (birthday: string) => {
+    const birthDate = new Date(birthday);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+
+    const hasHadBirthdayThisYear =
+      today.getMonth() > birthDate.getMonth() ||
+      (today.getMonth() === birthDate.getMonth() &&
+        today.getDate() >= birthDate.getDate());
+
+    if (!hasHadBirthdayThisYear) {
+      age--;
+    }
+
+    return age;
+  };
+
   return (
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
@@ -910,7 +928,11 @@ export default function DeductionEntries() {
                     <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm text-gray-500">Age</div>
-                      <div className="text-sm font-medium truncate">18</div>
+                      <div className="text-sm font-medium truncate">
+                        {crewData.birthday
+                          ? `${calculateAge(crewData.birthday)} years old`
+                          : "N/A"}
+                      </div>
                     </div>
                   </div>
                 </div>
