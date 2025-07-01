@@ -362,11 +362,14 @@ export default function CrewApplication() {
       )}
 
       {selectedApplication?.ApplicationType === "HDMF Upgrade" &&
-        (selectedApplication.ApplicationOperation === "CREATE" || selectedApplication.ApplicationOperation == "UPDATE") && (
+        (selectedApplication.ApplicationOperation === "CREATE" || 
+          selectedApplication.ApplicationOperation == "UPDATE" || 
+          selectedApplication.ApplicationOperation == "DELETE") && (
           <HDMFUpgradeReqDialog
             open={showDetailsDialog}
             onOpenChange={setShowDetailsDialog}
             selectedApplicationOperation={selectedApplication.ApplicationOperation}
+            selectedApplicationStatus={selectedApplication.ApplicationStatus}
             requestData={
               selectedApplication.RequestData as HDMFUpgradeRequestData
             }

@@ -1209,7 +1209,7 @@ export default function AddCrew() {
                             {submitted && formData.hdmfNumber.length !== 12 && (
                               <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                 <Info className="w-4 h-4" />
-                                Please enter a valdi HDMF number.
+                                Please enter a valid HDMF number.
                               </p>
                             )}
                           </div>

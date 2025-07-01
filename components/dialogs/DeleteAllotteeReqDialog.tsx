@@ -253,7 +253,7 @@ export function DeleteAllotteeReqDialog({
                 type="button"
                 className="flex-1 bg-[#E24141] text-white hover:bg-red-700 rounded-md"
                 onClick={() => handleProcess(2)}
-                disabled={isSubmitting}>
+                disabled={isSubmitting} >
                 <CheckCircle2 className="mr-2 h-4 w-4" />
                 {isSubmitting ? "Processing..." : "Approve Delete Request"}
               </Button>

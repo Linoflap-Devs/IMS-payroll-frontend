@@ -63,7 +63,7 @@ export default function AllotmentRegisterComponent() {
           // but we keep the array structure for the DataTable
           setAllotmentData(response.data);
 
-          console.log("Fetched vessel data:", response.data);
+          //console.log("Fetched vessel data:", response.data);
         } else {
           console.error("Unexpected API response format:", response);
           setAllotmentData([]);
@@ -87,6 +87,13 @@ export default function AllotmentRegisterComponent() {
   };
 
   const columns: ColumnDef<AllotmentRegisterCrew>[] = [
+    {
+      accessorKey: "CrewID",
+      header: "Crew Code",
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("CrewID")}</div>
+      ),
+    },
     {
       accessorKey: "CrewName",
       header: "Crew Name",
@@ -181,6 +188,7 @@ export default function AllotmentRegisterComponent() {
   // Filter the crew data based on search term
   const filterCrew = allotmentData[0]?.Crew || [];
   const filteredData = filterCrew.filter((item) =>
+    item.CrewID?.toString().toLowerCase().includes(debouncedSearch.toLowerCase()) ||
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 

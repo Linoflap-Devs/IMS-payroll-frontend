@@ -10,7 +10,6 @@ import {
 import { TbUserCheck } from "react-icons/tb";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +20,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
 import { Button } from "@/components/ui/button";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 
@@ -73,7 +71,7 @@ export function CrewHeader({
   isDeclining,
   isRegistered,
 }: CrewHeaderProps) {
-const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
+  const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
   return (
     <>
       <div className="flex items-center justify-between">
@@ -91,14 +89,16 @@ const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
             <Button
               variant="outline"
               onClick={toggleEditMode}
-              className="border-gray-300 w-40">
+              className="border-gray-300 w-40"
+            >
               <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
             <Button
               className="bg-primary hover:bg-primary/90 w-40"
               onClick={saveChanges}
-              disabled={isEditLoading}>
+              disabled={isEditLoading}
+            >
               {isEditLoading ? (
                 <>
                   <Loader2 className="animate-spin" />
@@ -116,7 +116,8 @@ const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
           activeTab === "details" && (
             <Button
               className="bg-primary hover:bg-primary/90 w-40"
-              onClick={toggleEditMode}>
+              onClick={toggleEditMode}
+            >
               <Pencil className="h-4 w-4 mr-2" />
               Edit Crew
             </Button>
@@ -125,15 +126,16 @@ const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
 
         {activeTab === "allottee" && (
           <div className="px-4 pt-0 flex justify-end gap-3">
-            {!isEditingAllottee && !isAddingAllottee && (
-              <div>
+            {isEditingAllottee && !isAddingAllottee ? (
+              <>
+                {/* Delete button inside edit mode */}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="destructive"
                       className="px-6 bg-[#B63C3C] w-40"
-                      disabled={isDeletingAllottee || !isAllotteeValid}
-                      >
+                      disabled={!isEditingAllottee || isDeletingAllottee}
+                    >
                       {isDeletingAllottee ? (
                         <>
                           <Loader2 className="animate-spin" />
@@ -142,7 +144,7 @@ const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
                       ) : (
                         <>
                           <CircleMinus className="h-4 w-4 ml-2" />
-                          Remove
+                          Remove Allottee
                         </>
                       )}
                     </Button>
@@ -165,7 +167,8 @@ const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
                       <AlertDialogAction
                         className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
                         onClick={handleDeleteAllottee}
-                        disabled={isDeletingAllottee}>
+                        disabled={isDeletingAllottee}
+                      >
                         {isDeletingAllottee ? (
                           <>
                             <Loader2 className="animate-spin" />
@@ -178,82 +181,76 @@ const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
                     </div>
                   </AlertDialogContent>
                 </AlertDialog>
-              </div>
-            )}
-            {isEditingAllottee || isAddingAllottee ? (
+
+                <Button
+                  variant="outline"
+                  onClick={toggleAllotteeEdit}
+                  className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel Edit
+                </Button>
+                <Button
+                  className="bg-primary hover:bg-primary/90 w-40"
+                  onClick={handleSave}
+                  disabled={allotteeLoading}
+                >
+                  {allotteeLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Allottee
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : isAddingAllottee ? (
               <>
-                {isAddingAllottee ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={toggleAllotteeAdd}
-                      className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500">
-                      <X className="h-4 w-4 mr-2" />
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleTriggerAdd}
-                      disabled={isAddLoading}
-                      className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white">
-                      {/* <Plus /> */}
-                      {isAddLoading ? (
-                        <>
-                          <Loader2 className="animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Allottee
-                        </>
-                      )}
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={toggleAllotteeEdit}
-                      className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500">
-                      <X className="h-4 w-4 mr-2" />
-                      Cancel
-                    </Button>
-                    <Button
-                      className="bg-primary hover:bg-primary/90 w-40"
-                      onClick={() => {
-                        handleSave();
-                      }}
-                      disabled={allotteeLoading}>
-                      {allotteeLoading ? (
-                        <>
-                          <Loader2 className="animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Allottee
-                        </>
-                      )}
-                      {/* Loader2 Save Changes */}
-                    </Button>
-                  </>
-                )}
+                <Button
+                  variant="outline"
+                  onClick={toggleAllotteeAdd}
+                  className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleTriggerAdd}
+                  disabled={isAddLoading}
+                  className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white"
+                >
+                  {isAddLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Allottee
+                    </>
+                  )}
+                </Button>
               </>
             ) : (
               <>
                 <Button
                   onClick={toggleAllotteeEdit}
                   className="bg-[#2BA148] hover:bg-green-700 px-6 w-40"
-                   disabled={!isAllotteeValid}
-                  >
+                  disabled={!isAllotteeValid}
+                >
                   <Pencil />
                   Edit
                 </Button>
                 <Button
                   className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40"
-                  onClick={toggleAllotteeAdd}>
+                  onClick={toggleAllotteeAdd}
+                >
                   <Plus />
                   Add Allottee
                 </Button>
@@ -261,14 +258,15 @@ const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
             )}
           </div>
         )}
-        
+
         {activeTab === "validation" && (
           <div className="px-4 pt-0 flex justify-end gap-3">
             <Button
               variant="destructive"
               className="px-6 bg-[#B63C3C] w-40"
               disabled={isCrewVerified === 1 || isDeclining || !isRegistered}
-              onClick={handleTriggerDecline}>
+              onClick={handleTriggerDecline}
+            >
               {isDeclining ? (
                 <>
                   <Loader2 className="animate-spin" />
@@ -285,7 +283,8 @@ const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
             <Button
               className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40"
               onClick={handleTriggerVerify}
-              disabled={isVerifying || isCrewVerified === 1 || !isRegistered}>
+              disabled={isVerifying || isCrewVerified === 1 || !isRegistered}
+            >
               {isVerifying ? (
                 <>
                   <Loader2 className="animate-spin" />
