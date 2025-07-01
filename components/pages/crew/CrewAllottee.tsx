@@ -91,10 +91,6 @@ export function CrewAllottee({
     useState<AllotteeUiModel | null>(null);
   const [editingAllottee, setEditingAllottee] =
     useState<AllotteeUiModel | null>(null);
-
-  const [deletingAllottee, setDeletingAllottee] =
-    useState<AllotteeUiModel | null>(null);
-
   const [searchCity, setSearchCity] = useState("");
   const [searchProvince, setSearchProvince] = useState("");
   const [previousAllotteeId, setPreviousAllotteeId] = useState<string>("");

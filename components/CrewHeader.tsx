@@ -10,7 +10,6 @@ import {
 import { TbUserCheck } from "react-icons/tb";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +20,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
 import { Button } from "@/components/ui/button";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 

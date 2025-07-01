@@ -688,6 +688,27 @@ export default function RemittanceDetails() {
     }
   };
 
+  const calculateAge = (birthday: string) => {
+    const birthDate = new Date(birthday);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+
+    const hasHadBirthdayThisYear =
+      today.getMonth() > birthDate.getMonth() ||
+      (today.getMonth() === birthDate.getMonth() &&
+        today.getDate() >= birthDate.getDate());
+
+    if (!hasHadBirthdayThisYear) {
+      age--;
+    }
+
+    return age;
+  };
+
+  //console.log('CREW DATA:', crewData);
+  //const birthDate = crewData?.birthday ? dayjs(crewData.birthday) : null;
+  //const age = birthDate ? dayjs().diff(birthDate, 'year') : 'N/A';
   return (
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
@@ -787,7 +808,9 @@ export default function RemittanceDetails() {
                     <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm text-gray-500">Age</div>
-                      <div className="text-sm font-medium truncate">18</div>
+                      <div className="text-sm font-medium truncate">
+                        {calculateAge(crewData.birthday)} years old
+                      </div>
                     </div>
                   </div>
                 </div>
