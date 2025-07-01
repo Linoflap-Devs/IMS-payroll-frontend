@@ -538,7 +538,8 @@ export default function AddCrew() {
                           handleInputChange("crewCode", e.target.value)
                         }
                         className={`h-8 mt-1 text-sm ${
-                          submitted && (duplicateError || formData.crewCode.length === 0)
+                          submitted &&
+                          (duplicateError || formData.crewCode.length === 0)
                             ? "border-red-500 focus:!ring-red-500/50"
                             : ""
                         }`}
@@ -559,7 +560,9 @@ export default function AddCrew() {
 
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col items-start flex-1 min-w-0">
-                        <label className="text-sm font-semibold text-gray-500">Rank</label>
+                        <label className="text-sm font-semibold text-gray-500">
+                          Rank
+                        </label>
                         <Select
                           value={formData.rank}
                           onValueChange={(value) =>
@@ -603,7 +606,7 @@ export default function AddCrew() {
                         {submitted && formData.rank.length == 0 && (
                           <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                             <Info className="w-4 h-4" />
-                              Please enter a rank.
+                            Please enter a rank.
                           </p>
                         )}
                       </div>
@@ -620,6 +623,7 @@ export default function AddCrew() {
                         <div className="text-sm font-semibold text-gray-500">
                           Mobile Number
                         </div>
+
                         <Input
                           type="tel"
                           inputMode="numeric"
@@ -630,17 +634,24 @@ export default function AddCrew() {
                             handleInputChange("mobileNumber", onlyNums);
                           }}
                           className={`h-8 text-sm ${
-                            submitted && formData.mobileNumber.length == 0
+                            submitted &&
+                            (!formData.mobileNumber ||
+                              !/^09\d{9}$/.test(formData.mobileNumber))
                               ? "border-red-500 focus:!ring-red-500/50"
                               : ""
                           }`}
                         />
-                        {submitted && formData.mobileNumber.length == 0 && (
-                          <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                            <Info className="w-4 h-4" />
-                              Please enter a valid mobile number.
-                          </p>
-                        )}
+
+                        {submitted &&
+                          (!formData.mobileNumber ||
+                            !/^09\d{9}$/.test(formData.mobileNumber)) && (
+                            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                              <Info className="w-4 h-4" />
+                              {!formData.mobileNumber
+                                ? "Mobile number is required."
+                                : 'Mobile number must be 11 digits and start with "09".'}
+                            </p>
+                          )}
                       </div>
 
                       <div className="flex flex-col items-start">
@@ -669,23 +680,40 @@ export default function AddCrew() {
                         <label className="text-sm font-semibold text-gray-500">
                           Email Address
                         </label>
+
                         <Input
                           value={formData.emailAddress}
                           onChange={(e) =>
                             handleInputChange("emailAddress", e.target.value)
                           }
                           className={`h-8 text-sm ${
-                            submitted && formData.emailAddress.length == 0
+                            submitted &&
+                            (!formData.emailAddress ||
+                              !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
+                                formData.emailAddress
+                              ))
                               ? "border-red-500 focus:!ring-red-500/50"
                               : ""
                           }`}
                         />
-                        {submitted && formData.emailAddress.length == 0 && (
+
+                        {submitted && !formData.emailAddress && (
                           <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                             <Info className="w-4 h-4" />
-                            Please enter a valid email address.
+                            Email is required.
                           </p>
                         )}
+
+                        {submitted &&
+                          formData.emailAddress &&
+                          !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
+                            formData.emailAddress
+                          ) && (
+                            <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                              <Info className="w-4 h-4" />
+                              Please enter a valid email.
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -714,7 +742,9 @@ export default function AddCrew() {
                               <Check className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <span className="mt-5 fonr-bold">Personal Information</span>
+                          <span className="mt-5 fonr-bold">
+                            Personal Information
+                          </span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="movement"
@@ -736,7 +766,9 @@ export default function AddCrew() {
                               <Check className="h-5 w-5 text-primary" />
                             </div>
                           )}
-                          <span className="mt-5 font-bold">Travel Documents</span>
+                          <span className="mt-5 font-bold">
+                            Travel Documents
+                          </span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="summary"
@@ -1268,7 +1300,10 @@ export default function AddCrew() {
                                 type="date"
                                 value={formData.passportIssueDate}
                                 onChange={(e) =>
-                                  handleInputChange("passportIssueDate", e.target.value)
+                                  handleInputChange(
+                                    "passportIssueDate",
+                                    e.target.value
+                                  )
                                 }
                                 className={`${
                                   submitted && !formData.passportIssueDate
@@ -1282,16 +1317,17 @@ export default function AddCrew() {
                                   Please enter a valid Passport Issue Date.
                                 </p>
                               )}
-                              {formData.passportIssueDate === formData.passportExpiryDate &&
+                              {formData.passportIssueDate ===
+                                formData.passportExpiryDate &&
                                 formData.passportIssueDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
-                                    Issue Date and Expiration Date cannot be the same.
+                                    Issue Date and Expiration Date cannot be the
+                                    same.
                                   </p>
                                 )}
                             </div>
                           </div>
-
 
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -1302,7 +1338,10 @@ export default function AddCrew() {
                                 type="date"
                                 value={formData.passportExpiryDate}
                                 onChange={(e) =>
-                                  handleInputChange("passportExpiryDate", e.target.value)
+                                  handleInputChange(
+                                    "passportExpiryDate",
+                                    e.target.value
+                                  )
                                 }
                                 className={`${
                                   submitted && !formData.passportExpiryDate
@@ -1316,11 +1355,13 @@ export default function AddCrew() {
                                   Please enter a valid Passport Expiration Date.
                                 </p>
                               )}
-                              {formData.passportIssueDate === formData.passportExpiryDate &&
+                              {formData.passportIssueDate ===
+                                formData.passportExpiryDate &&
                                 formData.passportIssueDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
-                                    Issue Date and Expiration Date cannot be the same.
+                                    Issue Date and Expiration Date cannot be the
+                                    same.
                                   </p>
                                 )}
                             </div>
@@ -1379,13 +1420,15 @@ export default function AddCrew() {
                                   Please enter a valid Seamans Book Issue Date.
                                 </p>
                               )}
-                              {formData.seamansBookIssueDate === formData.seamansBookExpiryDate &&
+                              {formData.seamansBookIssueDate ===
+                                formData.seamansBookExpiryDate &&
                                 formData.seamansBookIssueDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
-                                    Issue Date and Expiration Date cannot be the same.
+                                    Issue Date and Expiration Date cannot be the
+                                    same.
                                   </p>
-                              )}
+                                )}
                             </div>
                           </div>
                           <div>
@@ -1412,16 +1455,19 @@ export default function AddCrew() {
                               {submitted && !formData.seamansBookExpiryDate && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
-                                  Please enter a valid Seamans Book Expiration Date.
+                                  Please enter a valid Seamans Book Expiration
+                                  Date.
                                 </p>
                               )}
-                              {formData.seamansBookIssueDate === formData.seamansBookExpiryDate &&
+                              {formData.seamansBookIssueDate ===
+                                formData.seamansBookExpiryDate &&
                                 formData.seamansBookIssueDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
-                                    Issue Date and Expiration Date cannot be the same.
+                                    Issue Date and Expiration Date cannot be the
+                                    same.
                                   </p>
-                              )}
+                                )}
                             </div>
                           </div>
                         </div>
