@@ -1,6 +1,7 @@
 import axiosInstance from "@/src/lib/axios";
 
 export interface UsersItem {
+  [x: string]: any;
   UserID: number;
   userId?: number;
   Name: string;
@@ -10,11 +11,15 @@ export interface UsersItem {
   Role: any;
   Email: string;
   IsVerified: boolean;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  role?: string;
 }
 
 export interface UsersResponse {
   success: boolean;
-  data: UsersItem[];
+  data: UsersItem;
   message?: string;
 }
 
