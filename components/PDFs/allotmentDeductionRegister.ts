@@ -224,7 +224,7 @@ export function generateDeductionRegisterPDF(
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
             doc.text(
-                `EXCHANGE RATE: USD > PHP ${vesselData[0].Crew[0].Deductions[0].ExchangeRate.toFixed(2)}`,
+                `EXCHANGE RATE: USD 1.00 = PHP ${vesselData[0].Crew[0].Deductions[0].ExchangeRate.toFixed(2)}`,
                 margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
                 vesselInfoY + 6,
                 { align: 'right' }

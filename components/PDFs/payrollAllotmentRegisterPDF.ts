@@ -237,7 +237,7 @@ export function generateAllotmentPayrollRegister(
             // Add exchange rate and date
             doc.setFontSize(7);
             doc.setFont('NotoSans', 'normal');
-            doc.text(`EXCHANGE RATE: USD > PHP ${vessel.ExchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 5, { align: 'right' });
+            doc.text(`EXCHANGE RATE: USD 1.00 = PHP ${vessel.ExchangeRate}`, margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 5, { align: 'right' });
             doc.text(getFormattedDate(), margins.left + companyColWidth + middleColWidth + rightColWidth - 5, vesselInfoY + 13, { align: 'right' });
 
             currentY += vesselInfoHeight;

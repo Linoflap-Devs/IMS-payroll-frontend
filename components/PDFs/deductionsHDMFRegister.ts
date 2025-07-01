@@ -198,7 +198,7 @@ export function generateHDMFRegisterPDF(
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
             doc.text(
-                `EXCHANGE RATE: USD > PHP ${data.data[0].ExchangeRate}`,
+                `EXCHANGE RATE: USD 1.00 = PHP ${data.data[0].ExchangeRate}`,
                 margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
                 vesselInfoY + 6,
                 { align: 'right' }
