@@ -372,6 +372,7 @@ export default function CrewDetails() {
     url.searchParams.set("tab", value);
 
     window.history.pushState({}, "", url.toString());
+    setIsEditingAllottee(false);
   };
 
   const toggleAllotteeEdit = () => {
@@ -489,6 +490,7 @@ export default function CrewDetails() {
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={handleTabChange}
+
                 className="w-full flex flex-col h-full"
               >
                 <div className="border-b">

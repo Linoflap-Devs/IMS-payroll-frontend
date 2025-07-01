@@ -301,7 +301,7 @@ export default function AllotteeForm({
                 Allottee Personal Information
               </h3>
               <div className="flex justify-end gap-10 w-1/2">
-                <FormField
+                {/* <FormField
                   control={control}
                   name="isActive"
                   render={({ field }) => (
@@ -321,7 +321,7 @@ export default function AllotteeForm({
                       <FormMessage className="text-xs text-red-500" />
                     </FormItem>
                   )}
-                />
+                /> */}
 
                 <FormField
                   control={control}

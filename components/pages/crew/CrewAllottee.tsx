@@ -47,10 +47,9 @@ const emptyAllottee: AllotteeUiModel = {
   branchId: "",
   accountNumber: "",
   allotment: 0,
-  active: true,
+  active: 0,
   priority: 0,
-  dollarAllotment: false,
-  isDollar: 0,
+  receivePayslip: 0,
   allotmentType: 1,
   allotteeDetailID: "",
 };
@@ -187,12 +186,11 @@ export function CrewAllottee({
       branchId: a.BankBranchID?.toString() || "",
       accountNumber: a.AccountNumber,
       allotment: a.Allotment,
-      active: a.IsActive === 1,
-      priority: a.priority ? 1 : 0, // Convert boolean to number
-      //priority: !!a.priority, // true or false
-      //priority: a.priority === 1,
-      dollarAllotment: a.IsDollar === 1,
-      isDollar: a.IsDollar,
+      
+      priority: a.priority ? 1 : 0,
+      receivePayslip: a.receivePayslip ? 1 : 0,
+      active: a.active ? 1 : 0,
+
       allotmentType: a.AllotmentType,
       allotteeDetailID: a.AllotteeDetailID,
     }));
@@ -479,14 +477,9 @@ export function CrewAllottee({
       branch: uiModel.branchId ? parseInt(uiModel.branchId) : 0,
       accountNumber: uiModel.accountNumber,
       allotment: uiModel.allotment,
-      //priority: uiModel.priority === 1 ? 1 : 0,
       priority: uiModel.priority ? 1 : 0,
-      //priority: 1, // when i put 1, why is it always 1????
-      //priority: !!uiModel.priority, // ensures it's always true or false
-      //priority: uiModel.priority,
-      isActive: 1,
-      receivePayslip: 0,
-      isDollar: uiModel.isDollar,
+      receivePayslip: uiModel.receivePayslip ? 1 : 0,
+      active: uiModel.active ? 1 : 0,
       allotteeDetailID: uiModel.allotteeDetailID,
     };
   };
@@ -653,6 +646,8 @@ export function CrewAllottee({
       ? editingAllottee
       : currentAllottee;
 
+  console.log('DISPLAY ALLOTTEE:', displayAllottee);
+
   // validating the name form
   useEffect(() => {
     const validateAllotteeForm = () => {
@@ -662,8 +657,6 @@ export function CrewAllottee({
 
     validateAllotteeForm();
   }, [displayAllottee, setIsAllotteeValid]);
-
-   //console.log('DISPLAY ALLOTTEE:', displayAllottee);
 
   return (
     <div className="space-y-6">
@@ -745,10 +738,10 @@ export function CrewAllottee({
 
                 {/* Checkboxes */}
                 <div className="flex items-center gap-6">
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      checked={displayAllottee.active}
+                      checked={!!displayAllottee.active}
                       onChange={(e) =>
                         isEditingAllottee || isAdding
                           ? handleInputChange("active", e.target.checked)
@@ -760,7 +753,7 @@ export function CrewAllottee({
                     <label className="text-sm font-medium text-gray-900">
                       Active
                     </label>
-                  </div>
+                  </div> */}
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
@@ -780,13 +773,10 @@ export function CrewAllottee({
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      checked={displayAllottee.isDollar === 1}
+                      checked={!!displayAllottee.receivePayslip}
                       onChange={(e) =>
-                        isEditingAllottee || isAdding
-                          ? handleInputChange(
-                              "isDollar",
-                              e.target.checked ? 1 : 0
-                            )
+                        isEditingAllottee || !isAdding
+                          ? handleInputChange("receivePayslip", e.target.checked)
                           : null
                       }
                       disabled={!isEditingAllottee && !isAdding}
@@ -1101,7 +1091,7 @@ export function CrewAllottee({
                     <label className="text-sm text-gray-500 mb-1 block">
                       {displayAllottee.allotmentType === 1
                         ? "Allotment Amount in" +
-                          (displayAllottee.isDollar === 1
+                          (displayAllottee.receivePayslip === 1
                             ? " (Dollar)"
                             : " (Peso)")
                         : "Allotment Percentage"}

@@ -114,6 +114,8 @@ export const getCrewMovementv2 = async (crewCode: string): Promise<CrewMovementR
 }
 
 export interface CrewAllottee {
+  active?: number;
+  receivePayslip?: number;
   priority?: any;
   AllotteeId: number;
   AllotteeName: string;

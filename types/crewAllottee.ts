@@ -1,71 +1,69 @@
 export interface AllotteeApiModel {
-    id?: string;
-    name: string;
-    allotmentType: number;
-    relation: number;
-    contactNumber: string;
-    address: string;
-    city: number;
-    province: number;
-    bank: number;
-    branch: number;
-    accountNumber: string;
-    allotment: number;
-    Priority?: boolean;
-    priority: number;
-    isActive: number;
-    receivePayslip: number;
-    isDollar: number;
-    allotteeDetailID?: string;
+  id?: string;
+  name: string;
+  allotmentType: number;
+  relation: number;
+  contactNumber: string;
+  address: string;
+  city: number;
+  province: number;
+  bank: number;
+  branch: number;
+  accountNumber: string;
+  allotment: number;
+  priority: number;
+  active: number;
+  allotteeDetailID?: string;
+  receivePayslip?: number;
 }
 
 export interface AllotteeUiModel {
-    priority?: number;
-    Priority?: number;
-    id: string;
-    name: string;
-    relationship: string;
-    relationshipId: string;
-    contactNumber: string;
-    address: string;
-    city: string;
-    cityId: string;
-    province: string;
-    provinceId: string;
-    bankName: string;
-    bankId: string;
-    bankBranch: string;
-    branchId: string;
-    accountNumber: string;
-    allotment: number;
-    active: boolean;
-    priorityAmount?: boolean;
-    dollarAllotment: boolean;
-    isDollar: number;
-    allotmentType: number;
-    allotteeDetailID: string;
+  priority?: number;
+  id: string;
+  name: string;
+  relationship: string;
+  relationshipId: string;
+  contactNumber: string;
+  address: string;
+  city: string;
+  cityId: string;
+  province: string;
+  provinceId: string;
+  bankName: string;
+  bankId: string;
+  bankBranch: string;
+  branchId: string;
+  accountNumber: string;
+  allotment: number;
+  active: number;
+  priorityAmount?: boolean;
+  dollarAllotment?: boolean;
+  allotmentType: number;
+  allotteeDetailID: string;
+
+  receivePayslip?: number;
 }
 
 export interface IAddAllottee {
-    active?: any;
-    name: string;
-    allotmentType: number;
-    relation: number;
-    contactNumber: string;
-    address: string;
-    city: number;
-    province: number;
-    bank: number;
-    branch: number;
-    accountNumber: string;
-    allotment: number;
-    priority: boolean;
-    isActive: number;
-    receivePayslip: number;
+  active?: any;
+  name: string;
+  allotmentType: number;
+  relation: number;
+  contactNumber: string;
+  address: string;
+  city: number;
+  province: number;
+  bank: number;
+  branch: number;
+  accountNumber: string;
+  allotment: number;
+  priority: boolean;
+  isActive: number;
+  receivePayslip: number;
 }
 
 export interface CrewAllotteeResponse {
-    success: boolean;
-    message: string;
-    data: AllotteeApiModel[];
+  success: boolean;
+  message: string;
+  data: AllotteeApiModel[];
 }
