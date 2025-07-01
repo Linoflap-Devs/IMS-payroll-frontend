@@ -91,6 +91,10 @@ export function CrewAllottee({
     useState<AllotteeUiModel | null>(null);
   const [editingAllottee, setEditingAllottee] =
     useState<AllotteeUiModel | null>(null);
+
+  const [deletingAllottee, setDeletingAllottee] =
+    useState<AllotteeUiModel | null>(null);
+
   const [searchCity, setSearchCity] = useState("");
   const [searchProvince, setSearchProvince] = useState("");
   const [previousAllotteeId, setPreviousAllotteeId] = useState<string>("");
@@ -115,7 +119,6 @@ export function CrewAllottee({
   } = useBankStore();
 
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
-
   const { loading, cities, provinces, fetchCities, fetchProvinces } =
     useLocationStore();
 
@@ -552,6 +555,7 @@ export function CrewAllottee({
       setAllotteeLoading(true);
       //console.log("Save triggered for allottee IN CREW ALLOTTEE");
 
+      console.log(editingAllottee);
       if (!editingAllottee || !crewId) {
         setAllotteeLoading(false);
         return;
@@ -600,6 +604,43 @@ export function CrewAllottee({
     setIsEditingAllottee,
   ]);
 
+  // for delete allottee
+  useEffect(() => {
+    if (triggerDelete) {
+      setIsDeletingAllottee(true);
+
+      if (!editingAllottee?.id || !crewId) {
+        console.warn("Missing editingAllottee.id or crewId");
+        setIsDeletingAllottee(false);
+        setTriggerDelete(false);
+        return;
+      }
+
+      deleteCrewAllottee(crewId.toString(), editingAllottee.id.toString())
+        .then(() => {
+          toast({
+            title: "Allottee deleted successfully",
+            description: `Allottee ${editingAllottee?.name} has been removed.`,
+            variant: "success",
+          });
+          fetchCrewAllottees(crewId.toString());
+        })
+        .catch((error) => {
+          console.error("Error deleting allottee:", error);
+          toast({
+            title: "Error deleting allottee",
+            description: "There was an error deleting the allottee.",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          setIsDeletingAllottee(false);
+          setTriggerDelete(false);
+          setIsEditingAllottee(false);
+        });
+    }
+  }, [triggerDelete, crewId, editingAllottee]);
+
   if (allotteesError) {
     return (
       <div className="text-center text-red-500">Error: {allotteesError}</div>
@@ -607,7 +648,9 @@ export function CrewAllottee({
   }
 
   const displayAllottee =
-    isEditingAllottee || isAdding ? editingAllottee : currentAllottee;
+    isEditingAllottee || isAdding || triggerDelete
+      ? editingAllottee
+      : currentAllottee;
 
   // validating the name form
   useEffect(() => {
@@ -648,7 +691,7 @@ export function CrewAllottee({
                           <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                             <SelectValue placeholder="Select Allottee" />
                           </SelectTrigger>
-                          <SelectContent className="min-h-40">
+                          <SelectContent>
                             {allottees.map((a, idx) => (
                               <SelectItem key={idx} value={idx.toString()}>
                                 {a.name}
@@ -732,7 +775,7 @@ export function CrewAllottee({
                     <label className="text-sm font-medium text-gray-900">
                       Priority for Amount Type
                     </label>
-                  </div> 
+                  </div>
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"

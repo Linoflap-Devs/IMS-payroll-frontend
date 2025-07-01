@@ -380,10 +380,12 @@ export default function CrewDetails() {
 
   const toggleAllotteeAdd = () => {
     setIsAddingAllottee(!isAddingAllottee);
+    
   };
 
   const handleDeleteAllottee = () => {
-    setTriggerDelete((prev) => !prev);
+    setIsDeletingAllottee(!isDeletingAllottee);
+    setTriggerDelete(true);
   };
 
   const handleDelete = (selectedAllottee: string) => {
