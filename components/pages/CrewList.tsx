@@ -141,10 +141,10 @@ const columns: ColumnDef<CrewItem>[] = [
     },
   },
   {
-    accessorKey: "IsActive",
+    accessorKey: "AccountValidation",
     header: "Account Validation",
     cell: ({ row }) => {
-      const isActive = row.getValue("IsActive");
+      const isActive = row.getValue("AccountValidation");
 
       let validation: string;
       if (isActive === 1) validation = "Verified";
@@ -311,9 +311,9 @@ export default function CrewList() {
 
     const matchesValidation =
       validationFilter === "all" ||
-      (crew.IsActive === 1 && validationFilter.toLowerCase() === "verified") ||
-      (crew.IsActive === 0 && validationFilter.toLowerCase() === "pending") ||
-      (crew.IsActive === null && validationFilter.toLowerCase() === "not registered");
+      (crew.AccountValidation === 1 && validationFilter.toLowerCase() === "verified") ||
+      (crew.AccountValidation === 0 && validationFilter.toLowerCase() === "pending") ||
+      (crew.AccountValidation === null && validationFilter.toLowerCase() === "not registered");
     //console.log('CREW DETAILS', crew);
 
     return matchesSearch && matchesStatus && matchesRank && matchesValidation;
