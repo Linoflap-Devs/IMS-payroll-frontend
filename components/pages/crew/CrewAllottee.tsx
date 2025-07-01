@@ -48,7 +48,7 @@ const emptyAllottee: AllotteeUiModel = {
   accountNumber: "",
   allotment: 0,
   active: true,
-  priority: false,
+  priority: 0,
   dollarAllotment: false,
   isDollar: 0,
   allotmentType: 1,
@@ -188,8 +188,9 @@ export function CrewAllottee({
       accountNumber: a.AccountNumber,
       allotment: a.Allotment,
       active: a.IsActive === 1,
-      priority: !!a.Priority, // true or false
-      //priority: a.Priority === 1,
+      priority: a.priority ? 1 : 0, // Convert boolean to number
+      //priority: !!a.priority, // true or false
+      //priority: a.priority === 1,
       dollarAllotment: a.IsDollar === 1,
       isDollar: a.IsDollar,
       allotmentType: a.AllotmentType,
@@ -478,8 +479,11 @@ export function CrewAllottee({
       branch: uiModel.branchId ? parseInt(uiModel.branchId) : 0,
       accountNumber: uiModel.accountNumber,
       allotment: uiModel.allotment,
-      //Priority: uiModel.priority ? 1 : 0, // i think this should be false or true. i can't edit it....
-      Priority: !!uiModel.priority, // ensures it's always true or false
+      //priority: uiModel.priority === 1 ? 1 : 0,
+      priority: uiModel.priority ? 1 : 0,
+      //priority: 1, // when i put 1, why is it always 1????
+      //priority: !!uiModel.priority, // ensures it's always true or false
+      //priority: uiModel.priority,
       isActive: 1,
       receivePayslip: 0,
       isDollar: uiModel.isDollar,
@@ -489,32 +493,32 @@ export function CrewAllottee({
 
   useEffect(() => {
     if (triggerSave) {
-      console.log("useEffect triggered due to triggerSave");
+      //console.log("useEffect triggered due to triggerSave");
 
       setAllotteeLoading(true);
-      console.log("Allottee loading set to true");
+      //console.log("Allottee loading set to true");
 
       if (!editingAllottee || !crewId) {
-        console.log("Missing editingAllottee or crewId. Aborting save.");
+        //console.log("Missing editingAllottee or crewId. Aborting save.");
         setAllotteeLoading(false);
         return;
       }
 
       try {
-        console.log("Attempting to save allottee with ID:", crewId);
+        //console.log("Attempting to save allottee with ID:", crewId);
         const apiModel = convertToApiModel(editingAllottee!);
-        console.log("Converted API Model:", apiModel);
+        //console.log("Converted API Model:", apiModel);
 
         updateCrewAllottee(crewId.toString(), apiModel)
           .then((response) => {
-            console.log("Allottee saved successfully:", response);
+            //console.log("Allottee saved successfully:", response);
             toast({
               title: "Allottee saved successfully",
               description: `Allottee ${editingAllottee?.name} has been updated.`,
               variant: "success",
             });
             setTriggerSave(false);
-            console.log("Refetching crew allottees...");
+            //console.log("Refetching crew allottees...");
             fetchCrewAllottees(crewId.toString());
           })
           .catch((error) => {
@@ -659,7 +663,7 @@ export function CrewAllottee({
     validateAllotteeForm();
   }, [displayAllottee, setIsAllotteeValid]);
 
-  // console.log('DISPLAY ALLOTTEE:', displayAllottee);
+   //console.log('DISPLAY ALLOTTEE:', displayAllottee);
 
   return (
     <div className="space-y-6">
