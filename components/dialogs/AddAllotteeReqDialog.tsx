@@ -259,7 +259,7 @@ export function AddAllotteeReqDialog({
                 className="flex-1 rounded-md p-5"
                 onClick={() => handleProcess(3)}
                 disabled={
-                  isSubmitting || selectedApplicationStatus === "Approved"
+                  isSubmitting
                 }
               >
                 <XCircle className="mr-2 h-4 w-4" />

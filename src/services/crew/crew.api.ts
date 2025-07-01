@@ -114,6 +114,7 @@ export const getCrewMovementv2 = async (crewCode: string): Promise<CrewMovementR
 }
 
 export interface CrewAllottee {
+  priority?: any;
   AllotteeId: number;
   AllotteeName: string;
   RelationName: string;

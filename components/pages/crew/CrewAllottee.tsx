@@ -48,12 +48,11 @@ const emptyAllottee: AllotteeUiModel = {
   accountNumber: "",
   allotment: 0,
   active: true,
-  Priority: 0,
+  priority: false,
   dollarAllotment: false,
   isDollar: 0,
   allotmentType: 1,
   allotteeDetailID: "",
-  //priorityAmount: false
 };
 
 interface ICrewAllotteeProps {
@@ -190,7 +189,7 @@ export function CrewAllottee({
       accountNumber: a.AccountNumber,
       allotment: a.Allotment,
       active: a.IsActive === 1,
-      Priority: a.Priority ? 1 : 0, // fix this line
+      priority: !!a.Priority, // changed
       dollarAllotment: a.IsDollar === 1,
       isDollar: a.IsDollar,
       allotmentType: a.AllotmentType,
@@ -479,7 +478,8 @@ export function CrewAllottee({
       branch: uiModel.branchId ? parseInt(uiModel.branchId) : 0,
       accountNumber: uiModel.accountNumber,
       allotment: uiModel.allotment,
-      Priority: 1,
+      //Priority: uiModel.priority ? 1 : 0, // i think this should be false or true. i can't edit it....
+      Priority: !!uiModel.priority, // ensures it's always true or false
       isActive: 1,
       receivePayslip: 0,
       isDollar: uiModel.isDollar,
@@ -489,10 +489,10 @@ export function CrewAllottee({
 
   useEffect(() => {
     if (triggerSave) {
-      //console.log("useEffect triggered due to triggerSave");
+      console.log("useEffect triggered due to triggerSave");
 
       setAllotteeLoading(true);
-      //console.log("Allottee loading set to true");
+      console.log("Allottee loading set to true");
 
       if (!editingAllottee || !crewId) {
         console.log("Missing editingAllottee or crewId. Aborting save.");
@@ -501,13 +501,13 @@ export function CrewAllottee({
       }
 
       try {
-        //console.log("Attempting to save allottee with ID:", crewId);
+        console.log("Attempting to save allottee with ID:", crewId);
         const apiModel = convertToApiModel(editingAllottee!);
-        //console.log("Converted API Model:", apiModel);
+        console.log("Converted API Model:", apiModel);
 
         updateCrewAllottee(crewId.toString(), apiModel)
           .then((response) => {
-            //console.log("Allottee saved successfully:", response);
+            console.log("Allottee saved successfully:", response);
             toast({
               title: "Allottee saved successfully",
               description: `Allottee ${editingAllottee?.name} has been updated.`,
@@ -609,8 +609,6 @@ export function CrewAllottee({
   const displayAllottee =
     isEditingAllottee || isAdding ? editingAllottee : currentAllottee;
 
-  //console.log('DISPLAY ALLOTEE:', displayAllottee);
-
   // validating the name form
   useEffect(() => {
     const validateAllotteeForm = () => {
@@ -621,7 +619,7 @@ export function CrewAllottee({
     validateAllotteeForm();
   }, [displayAllottee, setIsAllotteeValid]);
 
-  //console.log('DISPLAY ALLOTTEE:', displayAllottee);
+  // console.log('DISPLAY ALLOTTEE:', displayAllottee);
 
   return (
     <div className="space-y-6">
@@ -722,10 +720,10 @@ export function CrewAllottee({
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      checked={!!displayAllottee.Priority}
+                      checked={!!displayAllottee.priority}
                       onChange={(e) =>
                         isEditingAllottee || isAdding
-                          ? handleInputChange("Priority", e.target.checked)
+                          ? handleInputChange("priority", e.target.checked)
                           : null
                       }
                       disabled={!isEditingAllottee && !isAdding}
@@ -734,7 +732,7 @@ export function CrewAllottee({
                     <label className="text-sm font-medium text-gray-900">
                       Priority for Amount Type
                     </label>
-                  </div>
+                  </div> 
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
