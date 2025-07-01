@@ -240,10 +240,10 @@ export default function AllotteeForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-2">
         {/* Allotment Type Selection */}
         <div
-          className={`relative rounded-lg ml-4 shadow-sm overflow-hidden w-1/2 ${
+          className={`relative rounded-lg shadow-sm overflow-hidden w-1/2 ${
             errors.allotmentType
               ? "border-red-500 ring-1 ring-red-500/50"
               : "border"
@@ -286,14 +286,14 @@ export default function AllotteeForm({
           </div>
         </div>
         {errors.allotmentType && (
-          <p className="text-red-500 text-xs flex items-center gap-1 mt-1.5 ml-6">
+          <p className="text-red-500 text-xs flex items-center gap-1 mt-1.5 ml-2">
             <Info className="w-4 h-4" />
             {errors.allotmentType.message}
           </p>
         )}
 
         {/* Allottee Details */}
-        <div className="p-4 mt-6 space-y-6">
+        <div className="p-4 mt-2 space-y-6">
           {/* Personal Info */}
           <div>
             <div className="flex items-center justify-between mb-4 w-full">
