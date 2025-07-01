@@ -48,11 +48,12 @@ const emptyAllottee: AllotteeUiModel = {
   accountNumber: "",
   allotment: 0,
   active: true,
-  priorityAmount: false,
+  Priority: 0,
   dollarAllotment: false,
   isDollar: 0,
   allotmentType: 1,
   allotteeDetailID: "",
+  //priorityAmount: false
 };
 
 interface ICrewAllotteeProps {
@@ -189,7 +190,7 @@ export function CrewAllottee({
       accountNumber: a.AccountNumber,
       allotment: a.Allotment,
       active: a.IsActive === 1,
-      priorityAmount: a.PriorityAmount === 1,
+      Priority: a.Priority ? 1 : 0, // fix this line
       dollarAllotment: a.IsDollar === 1,
       isDollar: a.IsDollar,
       allotmentType: a.AllotmentType,
@@ -197,7 +198,6 @@ export function CrewAllottee({
     }));
 
     setAllottees(mapped);
-
 
     if (previousAllotteeId) {
       const previousIndex = mapped.findIndex(
@@ -336,12 +336,9 @@ export function CrewAllottee({
       !editingAllottee.branchId
     ) {
       // We have a bank ID but no branch ID, let's try to find it
-
-      console.log(
-        "Bank selected but branch is empty, trying to find matching branch..."
-      );
-      console.log("Current bank ID:", editingAllottee.bankId);
-      console.log("Bank branch name to find:", editingAllottee.bankBranch);
+      //console.log("Bank selected but branch is empty, trying to find matching branch...");
+      //console.log("Current bank ID:", editingAllottee.bankId);
+      //console.log("Bank branch name to find:", editingAllottee.bankBranch);
 
       // Set the selected bank ID in the store
       setSelectedBankId(Number(editingAllottee.bankId));
@@ -349,7 +346,7 @@ export function CrewAllottee({
       // Wait a bit for branches to load and then find the matching branch
       setTimeout(() => {
         const branches = getBranchesForSelectedBank();
-        console.log("Available branches:", branches);
+        //console.log("Available branches:", branches);
 
         // If we have a branch name but no ID, find it
         if (editingAllottee.bankBranch && branches.length > 0) {
@@ -358,7 +355,7 @@ export function CrewAllottee({
           );
 
           if (matchingBranch) {
-            console.log("Found matching branch:", matchingBranch);
+            //console.log("Found matching branch:", matchingBranch);
 
             // Update the allottee with the branch ID
             setEditingAllottee({
@@ -482,8 +479,7 @@ export function CrewAllottee({
       branch: uiModel.branchId ? parseInt(uiModel.branchId) : 0,
       accountNumber: uiModel.accountNumber,
       allotment: uiModel.allotment,
-      priority: uiModel.priorityAmount,
-      // isActive: uiModel.active ? 1 : 0,
+      Priority: 1,
       isActive: 1,
       receivePayslip: 0,
       isDollar: uiModel.isDollar,
@@ -491,70 +487,70 @@ export function CrewAllottee({
     };
   };
 
-useEffect(() => {
-  if (triggerSave) {
-    console.log("useEffect triggered due to triggerSave");
+  useEffect(() => {
+    if (triggerSave) {
+      //console.log("useEffect triggered due to triggerSave");
 
-    setAllotteeLoading(true);
-    console.log("Allottee loading set to true");
+      setAllotteeLoading(true);
+      //console.log("Allottee loading set to true");
 
-    if (!editingAllottee || !crewId) {
-      console.log("Missing editingAllottee or crewId. Aborting save.");
-      setAllotteeLoading(false);
-      return;
-    }
+      if (!editingAllottee || !crewId) {
+        console.log("Missing editingAllottee or crewId. Aborting save.");
+        setAllotteeLoading(false);
+        return;
+      }
 
-    try {
-      console.log("Attempting to save allottee with ID:", crewId);
-      const apiModel = convertToApiModel(editingAllottee!);
-      console.log("Converted API Model:", apiModel);
+      try {
+        //console.log("Attempting to save allottee with ID:", crewId);
+        const apiModel = convertToApiModel(editingAllottee!);
+        //console.log("Converted API Model:", apiModel);
 
-      updateCrewAllottee(crewId.toString(), apiModel)
-        .then((response) => {
-          console.log("Allottee saved successfully:", response);
-          toast({
-            title: "Allottee saved successfully",
-            description: `Allottee ${editingAllottee?.name} has been updated.`,
-            variant: "success",
+        updateCrewAllottee(crewId.toString(), apiModel)
+          .then((response) => {
+            //console.log("Allottee saved successfully:", response);
+            toast({
+              title: "Allottee saved successfully",
+              description: `Allottee ${editingAllottee?.name} has been updated.`,
+              variant: "success",
+            });
+            setTriggerSave(false);
+            console.log("Refetching crew allottees...");
+            fetchCrewAllottees(crewId.toString());
+          })
+          .catch((error) => {
+            console.error("Error saving allottee:", error);
+            toast({
+              title: "Error saving allottee",
+              description: "There was an error saving the allottee.",
+              variant: "destructive",
+            });
+          })
+          .finally(() => {
+            console.log("Finished save attempt. Cleaning up...");
+            setAllotteeLoading(false);
+            setTriggerSave(false);
+            setIsEditingAllottee(false);
           });
-          setTriggerSave(false);
-          console.log("Refetching crew allottees...");
-          fetchCrewAllottees(crewId.toString());
-        })
-        .catch((error) => {
-          console.error("Error saving allottee:", error);
-          toast({
-            title: "Error saving allottee",
-            description: "There was an error saving the allottee.",
-            variant: "destructive",
-          });
-        })
-        .finally(() => {
-          console.log("Finished save attempt. Cleaning up...");
-          setAllotteeLoading(false);
-          setTriggerSave(false);
-          setIsEditingAllottee(false);
-        });
-    } catch (error) {
-      console.error("Unexpected error saving allottee:", error);
-      setAllotteeLoading(false);
-      setTriggerSave(false);
+      } catch (error) {
+        console.error("Unexpected error saving allottee:", error);
+        setAllotteeLoading(false);
+        setTriggerSave(false);
+      }
     }
-  }
-}, [
-  triggerSave,
-  crewId,
-  editingAllottee,
-  setAllotteeLoading,
-  setTriggerSave,
-  fetchCrewAllottees,
-  setIsEditingAllottee,
-]);
+  }, [
+    triggerSave,
+    crewId,
+    editingAllottee,
+    setAllotteeLoading,
+    setTriggerSave,
+    fetchCrewAllottees,
+    setIsEditingAllottee,
+  ]);
 
   useEffect(() => {
     if (triggerSave) {
       setAllotteeLoading(true);
-      console.log("Save triggered for allottee IN CREW ALLOTTEE");
+      //console.log("Save triggered for allottee IN CREW ALLOTTEE");
 
       if (!editingAllottee || !crewId) {
         setAllotteeLoading(false);
@@ -562,11 +558,11 @@ useEffect(() => {
       }
 
       try {
-        console.log("Saving allottee with ID:", crewId);
+        //console.log("Saving allottee with ID:", crewId);
         const apiModel = convertToApiModel(editingAllottee!);
         updateCrewAllottee(crewId.toString(), apiModel)
           .then((response) => {
-            console.log("Allottee saved successfully:", response);
+            //console.log("Allottee saved successfully:", response);
             toast({
               title: "Allottee saved successfully",
               description: `Allottee ${editingAllottee?.name} has been updated.`,
@@ -613,7 +609,7 @@ useEffect(() => {
   const displayAllottee =
     isEditingAllottee || isAdding ? editingAllottee : currentAllottee;
 
-    //console.log('DISPLAY ALLOTEE:', displayAllottee);
+  //console.log('DISPLAY ALLOTEE:', displayAllottee);
 
   // validating the name form
   useEffect(() => {
@@ -624,6 +620,8 @@ useEffect(() => {
 
     validateAllotteeForm();
   }, [displayAllottee, setIsAllotteeValid]);
+
+  //console.log('DISPLAY ALLOTTEE:', displayAllottee);
 
   return (
     <div className="space-y-6">
@@ -648,7 +646,7 @@ useEffect(() => {
                           value={selectedIndex}
                           onValueChange={setSelectedIndex}
                           disabled={!displayAllottee} // disable when first name is not valid
-                          >
+                        >
                           <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                             <SelectValue placeholder="Select Allottee" />
                           </SelectTrigger>
@@ -679,7 +677,8 @@ useEffect(() => {
                     value={displayAllottee?.allotmentType.toString() || "1"}
                     onValueChange={(value) =>
                       handleInputChange("allotmentType", parseInt(value))
-                    }>
+                    }
+                  >
                     <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                       <SelectValue placeholder="Amount" />
                     </SelectTrigger>
@@ -723,13 +722,10 @@ useEffect(() => {
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      checked={displayAllottee.priorityAmount}
+                      checked={!!displayAllottee.Priority}
                       onChange={(e) =>
                         isEditingAllottee || isAdding
-                          ? handleInputChange(
-                              "priorityAmount",
-                              e.target.checked
-                            )
+                          ? handleInputChange("Priority", e.target.checked)
                           : null
                       }
                       disabled={!isEditingAllottee && !isAdding}
@@ -790,7 +786,8 @@ useEffect(() => {
                   {isEditingAllottee || isAdding ? (
                     <Select
                       value={displayAllottee.relationshipId}
-                      onValueChange={handleRelationshipChange}>
+                      onValueChange={handleRelationshipChange}
+                    >
                       <SelectTrigger id="relationship" className="w-full !h-10">
                         <SelectValue placeholder="Select a relationship" />
                       </SelectTrigger>
@@ -798,7 +795,8 @@ useEffect(() => {
                         {allRelationshipData.map((relationship) => (
                           <SelectItem
                             key={relationship.RelationID}
-                            value={relationship.RelationID.toString()}>
+                            value={relationship.RelationID.toString()}
+                          >
                             {relationship.RelationName}
                           </SelectItem>
                         ))}
@@ -860,7 +858,8 @@ useEffect(() => {
                       <Select
                         value={displayAllottee.cityId}
                         onValueChange={handleCityChange}
-                        disabled={!displayAllottee.provinceId}>
+                        disabled={!displayAllottee.provinceId}
+                      >
                         <SelectTrigger className="w-full !h-10">
                           <SelectValue placeholder="Select a city" />
                         </SelectTrigger>
@@ -879,7 +878,8 @@ useEffect(() => {
                             filteredCities.map((city) => (
                               <SelectItem
                                 key={city.CityID}
-                                value={city.CityID.toString()}>
+                                value={city.CityID.toString()}
+                              >
                                 {city.CityName}
                               </SelectItem>
                             ))
@@ -911,7 +911,8 @@ useEffect(() => {
                     <>
                       <Select
                         value={displayAllottee.provinceId}
-                        onValueChange={handleProvinceChange}>
+                        onValueChange={handleProvinceChange}
+                      >
                         <SelectTrigger className="w-full !h-10">
                           <SelectValue placeholder="Select a province" />
                         </SelectTrigger>
@@ -932,7 +933,8 @@ useEffect(() => {
                             filteredProvinces.map((province) => (
                               <SelectItem
                                 key={province.ProvinceID}
-                                value={province.ProvinceID.toString()}>
+                                value={province.ProvinceID.toString()}
+                              >
                                 {province.ProvinceName}
                               </SelectItem>
                             ))
@@ -968,7 +970,8 @@ useEffect(() => {
                     {isEditingAllottee || isAdding ? (
                       <Select
                         value={displayAllottee.bankId}
-                        onValueChange={handleBankChange}>
+                        onValueChange={handleBankChange}
+                      >
                         <SelectTrigger id="bank" className="w-full !h-10">
                           <SelectValue placeholder="Select a bank" />
                         </SelectTrigger>
@@ -976,7 +979,8 @@ useEffect(() => {
                           {uniqueBanks.map((bank) => (
                             <SelectItem
                               key={bank.BankID}
-                              value={bank.BankID.toString()}>
+                              value={bank.BankID.toString()}
+                            >
                               {bank.BankName}
                             </SelectItem>
                           ))}
@@ -1000,7 +1004,8 @@ useEffect(() => {
                       <Select
                         value={displayAllottee.branchId}
                         onValueChange={handleBranchChange}
-                        disabled={!displayAllottee.bankId}>
+                        disabled={!displayAllottee.bankId}
+                      >
                         <SelectTrigger id="branch" className="w-full !h-10">
                           <SelectValue placeholder="Select a branch" />
                         </SelectTrigger>
@@ -1009,7 +1014,8 @@ useEffect(() => {
                             branchesForSelectedBank.map((branch) => (
                               <SelectItem
                                 key={branch.BankBranchID}
-                                value={branch.BankBranchID.toString()}>
+                                value={branch.BankBranchID.toString()}
+                              >
                                 {branch.BankBranchName}
                               </SelectItem>
                             ))

@@ -129,12 +129,13 @@ export interface CrewAllottee {
   AllotmentType: number;
   AllotteeDetailID: string;
   IsActive?: number;
-  PriorityAmount?: number;
+  //PriorityAmount?: number;
   RelationID?: number;
   ProvinceID?: number;
   CityID?: number;
   BankID?: number;
   BankBranchID?: number;
+  Priority?: number;
 }
 
 export interface CrewAllotteeResponse {
@@ -145,7 +146,6 @@ export interface CrewAllotteeResponse {
 
 export const getCrewAllottee = async (crewCode: string): Promise<CrewAllotteeResponse> => {
   const response = await axiosInstance.get<CrewAllotteeResponse>(`/crew/${crewCode}/allottee`);
-  console.log('getCrewAllottee Response: ', response.data);
   return response.data;
 }
 

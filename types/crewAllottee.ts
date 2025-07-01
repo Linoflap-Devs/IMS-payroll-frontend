@@ -11,7 +11,7 @@ export interface AllotteeApiModel {
     branch: number;
     accountNumber: string;
     allotment: number;
-    priority: boolean;
+    Priority: number;
     isActive: number;
     receivePayslip: number;
     isDollar: number;
@@ -19,6 +19,7 @@ export interface AllotteeApiModel {
 }
 
 export interface AllotteeUiModel {
+    Priority?: number;
     id: string;
     name: string;
     relationship: string;
@@ -36,7 +37,7 @@ export interface AllotteeUiModel {
     accountNumber: string;
     allotment: number;
     active: boolean;
-    priorityAmount: boolean;
+    priorityAmount?: boolean;
     dollarAllotment: boolean;
     isDollar: number;
     allotmentType: number;
