@@ -86,6 +86,7 @@ export default function GovermentDeductions() {
           setPhilhealthData(mapped);
 
         } else if (type === "SSS") {
+          console.log("SSS Data:", res.data);
           const mapped: SSSDeductionRate[] = res.data.map((item: any) => ({
             contributionId: item.contributionId,
             salaryFrom: item.salaryFrom,
@@ -153,10 +154,10 @@ export default function GovermentDeductions() {
       return [
         { accessorKey: "salaryFrom", header: "Salary From" },
         { accessorKey: "salaryTo", header: "Salary To" },
-        { accessorKey: "regularSS", header: "Regular SS" },
-        { accessorKey: "mutualFund", header: "Mutual Fund" },
-        { accessorKey: "eerate", header: "EE Rate" },
-        { accessorKey: "errate", header: "ER Rate" },
+        { accessorKey: "eess", header: "Employee SS" },
+        { accessorKey: "erss", header: "Employer SS" },
+        { accessorKey: "eemf", header: "Employee Mutual Fund" },
+        { accessorKey: "ermf", header: "Employer Mutual Fund" },
         { accessorKey: "ec", header: "EC" },
         { accessorKey: "Year", header: "Year" },
         {
