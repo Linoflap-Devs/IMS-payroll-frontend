@@ -146,7 +146,7 @@ export default function ManageUsers() {
     },
     {
       accessorKey: "IsVerified",
-      header: () => <div className="text-justify">Verified</div>,
+      header: () => <div className="text-justify">Status</div>,
       cell: ({ row }) => {
         const isVerified = row.getValue("IsVerified") === 1;
 
