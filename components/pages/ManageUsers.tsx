@@ -32,6 +32,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import {
   deleteUser,
   getUsersList,
+  resetPassword,
   UsersItem,
 } from "@/src/services/users/users.api";
 import { AddUserDialog } from "../dialogs/AddUserDialog";
@@ -59,20 +60,6 @@ export default function ManageUsers() {
   });
 
   const handleUserUpdated = (updatedUser: UsersItem) => {
-    setUserData((prev) =>
-      prev.map((item) =>
-        item.UserID === updatedUser.UserID
-          ? {
-              ...item,
-              ...updatedUser,
-              Name: `${updatedUser.FirstName} ${updatedUser.LastName}`,
-            }
-          : item
-      )
-    );
-  };
-
-  const handleUserAdd = (updatedUser: UsersItem) => {
     setUserData((prev) =>
       prev.map((item) =>
         item.UserID === updatedUser.UserID
@@ -177,9 +164,12 @@ export default function ManageUsers() {
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const userId = row.original.UserID;
+        //console.log("IS VERIFIED?", row.original.IsVerified);
+        const isVerified = Number(row.original.IsVerified) === 0;
+
         return (
           <div className="text-center">
-            <DropdownMenu>
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
                   <span className="sr-only">Open menu</span>
@@ -197,15 +187,25 @@ export default function ManageUsers() {
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit User
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-xs sm:text-sm">
-                  <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Reset Password
-                </DropdownMenuItem>
+
+                {/* Only show if NOT verified */}
+                {!isVerified && (
+                  <DropdownMenuItem
+                    className="text-xs sm:text-sm"
+                    onClick={() => {
+                      handleResetPassword(userId);
+                    }}
+                  >
+                    <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    Reset Password
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
+
                 <DropdownMenuItem
                   className="text-destructive cursor-pointer"
                   onClick={() => {
-                    handleUserDelete(row.original.UserID);
+                    handleUserDelete(userId);
                   }}
                 >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
@@ -252,6 +252,49 @@ export default function ManageUsers() {
       }
     } catch (error) {
       Swal.fire("Error", "An error occurred while deleting the user.", "error");
+      console.error(error);
+    }
+  };
+
+  const handleResetPassword = async (userId: number) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, reset the password of this user.",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const response = await resetPassword(userId);
+
+      if (response.success) {
+        setUserData((prev) => prev.filter((user) => user.UserID !== userId));
+        toast({
+          title: "Password reset!",
+          description:
+            "The password has been reset successfully. An email has been sent to the user.",
+          variant: "success",
+          duration: 3000,
+        });
+      } else {
+        Swal.fire(
+          "Error",
+          response.message || "Failed to reset the password.",
+          "error"
+        );
+      }
+    } catch (error) {
+      Swal.fire(
+        "Error",
+        "An error occurred while resetting the password.",
+        "error"
+      );
       console.error(error);
     }
   };
@@ -397,7 +440,6 @@ export default function ManageUsers() {
             </div>
           </div>
         </div>
-
         <AddUserDialog
           open={isAddUser}
           onOpenChange={setAddUser}
