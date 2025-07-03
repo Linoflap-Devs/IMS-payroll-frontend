@@ -350,7 +350,7 @@ export function RepatriateCrewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] p-0 gap-0 bg-[#FCFCFC]">
+      <DialogContent className="p-2 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-2xl font-semibold text-[#2F3593] text-center">
             Repatriate Crew

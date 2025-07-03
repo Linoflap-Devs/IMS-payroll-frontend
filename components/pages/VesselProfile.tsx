@@ -855,7 +855,6 @@ export default function VesselProfile() {
         </div>
       </div>
 
-      {/* Add Vessel Dialog */}
       <AddVesselDialog
         open={addVesselDialogOpen}
         onOpenChange={setAddVesselDialogOpen}

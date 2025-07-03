@@ -578,10 +578,20 @@ export default function Wages() {
       ),
     },
     {
-      id: "actions_forex", // Ensure unique ID
+      id: "actions_forex",
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const forex = row.original;
+
+        const now = new Date();
+        const phTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+        const currentYear = phTime.getFullYear();
+        const currentMonth = phTime.getMonth() + 1; // 0-indexed
+
+        const isPast =
+          forex.year < currentYear ||
+          (forex.year === currentYear && forex.month < currentMonth);
+
         const handleDelete = (id: number) => {
           Swal.fire({
             title: "Are you sure?",
@@ -591,32 +601,26 @@ export default function Wages() {
             confirmButtonText: "Yes, delete it!",
             cancelButtonText: "No, cancel!",
           }).then(async (result) => {
-            console.log("ID in handle Delete: " + id);
             if (result.isConfirmed) {
-              await deleteWageForex(id)
-                .then((response) => {
-                  if (response.success) {
-                    Swal.fire("Deleted!", "Forex entry deleted.", "success");
-                    setOnSuccess(true); // Trigger re-fetch
-                  } else {
-                    Swal.fire(
-                      "Error!",
-                      response.message || "Failed to delete forex entry.",
-                      "error"
-                    );
-                  }
-                })
-                .catch((error) => {
-                  Swal.fire(
-                    "Error!",
-                    error.message || "Failed to delete forex entry.",
-                    "error"
-                  );
-                });
-              Swal.fire("Deleted!", "Forex entry deleted.", "success");
+              try {
+                const response = await deleteWageForex(id);
+                if (response.success) {
+                  Swal.fire("Deleted!", "Forex entry deleted.", "success");
+                  setOnSuccess(true);
+                } else {
+                  Swal.fire("Error!", response.message || "Failed to delete forex entry.", "error");
+                }
+              } catch (error: any) {
+                Swal.fire("Error!", error.message || "Failed to delete forex entry.", "error");
+              }
             }
           });
         };
+
+        if (isPast) {
+          return <div className="text-center text-sm italic text-gray-400">N/A</div>;
+        }
+
         return (
           <div className="text-center">
             <DropdownMenu>
@@ -630,12 +634,14 @@ export default function Wages() {
                   onClick={() => {
                     setSelectedForex(forex);
                     setEditForexDialogOpen(true);
-                  }}>
+                  }}
+                >
                   <Pencil className="mr-2 h-4 w-4" /> Edit Forex
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleDelete(forex.id)}
-                  className="text-destructive">
+                  className="text-destructive"
+                >
                   <Trash className="mr-2 h-4 w-4" /> Delete Forex
                 </DropdownMenuItem>
               </DropdownMenuContent>
