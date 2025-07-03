@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
+import { Pencil } from "lucide-react";
 
 interface EditWageDescriptionDialogProps {
   open: boolean;
@@ -163,6 +164,7 @@ export function EditWageDescriptionDialog({
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
+              <Pencil className="mr-2 h-4 w-4" />
               {isSubmitting ? "Updating..." : "Update Wage Description"}
             </Button>
           </div>

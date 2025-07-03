@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { updateVesselPrincipal } from "@/src/services/vessel/vesselPrincipal.api"; // Import the new API function
 import { VesselPrincipalItem } from "@/src/services/vessel/vesselPrincipal.api";
+import { Pencil } from "lucide-react";
 import { useState } from "react";
 
 interface EditVesselPrincipalDialogProps {
@@ -132,7 +133,8 @@ export function EditVesselPrincipalDialog({
               className="flex-1 h-10"
               onClick={handleSubmit}
               disabled={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Update Principal"}
+              <Pencil className="mr-2 h-4 w-4" />
+              {isSubmitting ? "Updating..." : "Update Vessel Principal"}
             </Button>
           </div>
         </div>

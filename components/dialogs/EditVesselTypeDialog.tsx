@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { updateVesselType } from "@/src/services/vessel/vesselType.api"; // Import the new API function
 import { VesselTypeItem } from "@/src/services/vessel/vesselType.api";
+import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface EditVesselTypeDialogProps {
@@ -160,6 +161,7 @@ export function EditVesselTypeDialog({
                 vesselTypeCode.length > 10 ||
                 vesselTypeName.length == 0
               }>
+              <Pencil className="mr-2 h-4 w-4" />
               {isSubmitting ? "Updating..." : "Update Vessel Type"}
             </Button>
           </div>
