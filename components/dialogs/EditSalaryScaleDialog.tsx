@@ -146,7 +146,8 @@ export function EditSalaryScaleDialog({
       <DialogContent className="p-6 pt-2 max-w-[600px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
-            Edit Salary Scale for {salaryScale.Rank} - {salaryScale.Wage}
+            Edit Salary Scale for {salaryScale.Rank}
+             {/* - {salaryScale.Wage} */}
           </DialogTitle>
         </DialogHeader>
         <div className="mt-6 space-y-4">
