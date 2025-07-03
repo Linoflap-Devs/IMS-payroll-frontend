@@ -192,12 +192,9 @@ export default function Remittance() {
       `}</style>
       <div className="h-full overflow-y-auto scrollbar-hide">
         <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
-          {/* Header */}
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-semibold mb-0">Remittance</h1>
           </div>
-
-          {/* Search and Filters */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
             <div className="relative w-full md:flex-1">
               <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
@@ -208,7 +205,6 @@ export default function Remittance() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
               <Select value={vesselFilter} onValueChange={setVesselFilter}>
                 <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
@@ -226,7 +222,6 @@ export default function Remittance() {
               </Select>
             </div>
           </div>
-
           <div className="text-center">
             {isLoadingRemittance ? (
               <div className="text-center">Loading remittance data...</div>

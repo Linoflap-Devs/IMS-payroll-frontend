@@ -466,7 +466,7 @@ export function JoinCrewDialog({
                 <Ship className="w-4 h-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Current Vessel</div>
-                  <div>{SelectedVesselName}</div>
+                  <div>N/A</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">

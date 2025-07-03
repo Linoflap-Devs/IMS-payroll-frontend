@@ -30,9 +30,10 @@ import {
   getVesselPayslipV2,
   PayslipData,
   postPayrolls,
+  postVesselPayrolls,
 } from "@/src/services/payroll/payroll.api";
 import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
-import { MdOutlineFileUpload } from "react-icons/md";
+import { MdFileUpload, MdOutlineFileUpload } from "react-icons/md";
 import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "../ui/use-toast";
 import {
@@ -100,7 +101,8 @@ const TableSkeleton = () => {
           {Array.from({ length: 6 }).map((_, colIdx) => (
             <div
               key={`${rowIdx}-${colIdx}`}
-              className="flex-1 px-3 text-center">
+              className="flex-1 px-3 text-center"
+            >
               <Skeleton className="h-5 w-[80%] mx-auto" />
             </div>
           ))}
@@ -130,6 +132,8 @@ export default function Allotment() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [showPostDialog, setShowPostDialog] = useState(false);
+  const [selectedVessel, setSelectedVessel] = useState<Payroll | null>(null);
 
   const formatNumber = (value: number) => value?.toFixed(2);
 
@@ -297,29 +301,78 @@ export default function Allotment() {
 
   const handleProcessPayroll = async () => {
     setPayrollLoading(true);
-    await postPayrolls(monthFilter, yearFilter)
-      .then((response) => {
-        if (response.success) {
-          toast({
-            title: "Payroll Processed",
-            description: `Payroll for ${
-              monthNames[parseInt(monthFilter) - 1]
-            } ${yearFilter} has been processed successfully.`,
-            variant: "success",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error processing payroll:", error);
+
+    try {
+      const response = await postPayrolls(monthFilter, yearFilter);
+
+      const wasAllAlreadyPosted = response.message?.includes("Posted 0");
+
+      if (response.success) {
         toast({
-          title: "Error Processing Payroll",
-          description: "An error occurred while processing the payroll.",
+          title: wasAllAlreadyPosted ? "Nothing to Post" : "Payroll Processed",
+          description: response.message ||
+            `Payroll for ${monthNames[parseInt(monthFilter) - 1]} ${yearFilter} has been processed successfully.`,
+          variant: wasAllAlreadyPosted ? "default" : "success",
+        });
+      } else {
+        toast({
+          title: "Payroll Not Processed",
+          description: response.message || "Something went wrong while processing the payroll.",
           variant: "destructive",
         });
-      })
-      .finally(() => {
-        setPayrollLoading(false);
+      }
+    } catch (error) {
+      console.error("Error processing payroll:", error);
+      toast({
+        title: "Error Processing Payroll",
+        description: "An error occurred while processing the payroll.",
+        variant: "destructive",
       });
+    } finally {
+      setPayrollLoading(false);
+    }
+  };
+
+  const handlePostVesselPayroll = async (selectedVessel: Payroll) => {
+    if (!selectedVessel || !selectedVessel.vesselId) {
+      toast({
+        title: "Missing Vessel",
+        description: "Please select a vessel before posting payroll.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPayrollLoading(true);
+
+    try {
+      const response = await postVesselPayrolls(monthFilter, yearFilter, selectedVessel.vesselId);
+
+      const wasAllAlreadyPosted = response.message?.includes("Posted 0");
+
+      if (response.success) {
+        toast({
+          title: wasAllAlreadyPosted ? "Payroll has already been posted." : "Payroll Processed",
+          description: response.message || "Payroll has been processed successfully.",
+          variant: wasAllAlreadyPosted ? "default" : "success",
+        });
+      } else {
+        toast({
+          title: "Payroll Not Processed",
+          description: response.message || "Something went wrong while processing the payroll.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error processing payroll:", error);
+      toast({
+        title: "Error Processing Payroll",
+        description: "An error occurred while processing the payroll.",
+        variant: "destructive",
+      });
+    } finally {
+      setPayrollLoading(false);
+    }
   };
 
   const handlePrintSummary = async () => {
@@ -405,51 +458,67 @@ export default function Allotment() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <div className="text-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/home/allotment/allotment_register?vesselId=${
-                    row.original.vesselId
-                  }&month=${parseInt(monthFilter)}&year=${parseInt(
-                    yearFilter
-                  )}&forex=${forexRate || 0}`}>
-                <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Allotment Register
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/home/allotment/deduction_register?vesselId=${
-                    row.original.vesselId
-                  }&month=${parseInt(monthFilter)}&year=${parseInt(
-                    yearFilter
-                  )}&forex=${forexRate || 0}`}>
-                <PiReceiptFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Deduction Register
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/home/allotment/payslip?vesselId=${
-                    row.original.vesselId
-                  }&month=${parseInt(monthFilter)}&year=${parseInt(
-                    yearFilter
-                  )}&forex=${forexRate || 0}`}>
-                <PiFileTextFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Pay Slip
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/home/allotment/allotment_register?vesselId=${
+                  row.original.vesselId
+                }&month=${parseInt(monthFilter)}&year=${parseInt(
+                  yearFilter
+                )}&forex=${forexRate || 0}`}
+              >
+                <PiUserListFill className="mr-2 h-4 w-4" />
+                Allotment Register
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/home/allotment/deduction_register?vesselId=${
+                  row.original.vesselId
+                }&month=${parseInt(monthFilter)}&year=${parseInt(
+                  yearFilter
+                )}&forex=${forexRate || 0}`}
+              >
+                <PiReceiptFill className="mr-2 h-4 w-4" />
+                Deduction Register
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/home/allotment/payslip?vesselId=${
+                  row.original.vesselId
+                }&month=${parseInt(monthFilter)}&year=${parseInt(
+                  yearFilter
+                )}&forex=${forexRate || 0}`}
+              >
+                <PiFileTextFill className="mr-2 h-4 w-4" />
+                Pay Slip
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault();
+                setSelectedVessel(row.original);
+                setShowPostDialog(true); // open the alert dialog
+              }}
+              className="flex items-center gap-2"
+            >
+              <MdFileUpload className="text-[#62748e] mr-2 h-4 w-4" />
+              Post Payroll
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ),
     },
   ];
@@ -577,7 +646,8 @@ export default function Allotment() {
                 <AlertDialogTrigger asChild>
                   <Button
                     className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
-                    disabled={payrollLoading || isDataLoading}>
+                    disabled={payrollLoading || isDataLoading}
+                  >
                     {payrollLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -610,7 +680,8 @@ export default function Allotment() {
                     <AlertDialogAction
                       className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
                       onClick={handleProcessPayroll}
-                      disabled={payrollLoading}>
+                      disabled={payrollLoading}
+                    >
                       {payrollLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -629,7 +700,8 @@ export default function Allotment() {
                   <Button
                     className="whitespace-nowrap h-9 sm:h-10 px-4 sm:px-6 text-xs sm:text-sm w-full"
                     onClick={handlePrintSummary}
-                    disabled={printLoading || isDataLoading}>
+                    disabled={printLoading || isDataLoading}
+                  >
                     <AiOutlinePrinter className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
                     {printLoading ? (
                       <>
@@ -641,19 +713,22 @@ export default function Allotment() {
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="text-xs sm:text-sm w-[200px] min-w-[100%]">
+                <DropdownMenuContent className="text-xs sm:text-sm w-[330px] min-w-[100%]">
                   <DropdownMenuItem
-                    asChild
-                    onClick={handleGenerateAllotmentRegisterPDF}>
-                    <label>Allotment Register</label>
+                    onClick={handleGenerateAllotmentRegisterPDF}
+                  >
+                    <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    Allotment Register
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    asChild
-                    onClick={handleGenerateDeductionRegisterPDF}>
-                    <label>Deduction Register</label>
+                    onClick={handleGenerateDeductionRegisterPDF}
+                  >
+                    <PiReceiptFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    Deduction Register
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild onClick={handleGeneratePayslipPDF}>
-                    <label>Allotment/Payslip</label>
+                  <DropdownMenuItem onClick={handleGeneratePayslipPDF}>
+                    <PiFileTextFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    Allotment / Payslip
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -734,6 +809,44 @@ export default function Allotment() {
                 data={filteredAllotment}
                 pageSize={7}
               />
+            )}
+
+            {selectedVessel && (
+              <AlertDialog
+                open={showPostDialog}
+                onOpenChange={setShowPostDialog}
+              >
+                <AlertDialogContent className="bg-white p-10">
+                  <AlertDialogHeader className="flex flex-col items-center space-y-2">
+                    <CircleAlert size={60} strokeWidth={1} color="orange" />
+                    <AlertDialogTitle className="text-xl text-center">
+                      Post Payroll for {selectedVessel.vesselName}?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-center text-base text-gray-600">
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="flex items-center justify-center space-x-4 px-4 mt-1">
+                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white hover:text-white">
+                      No, Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
+                      onClick={() => handlePostVesselPayroll(selectedVessel)}
+                      disabled={payrollLoading}
+                    >
+                      {payrollLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Yes, Process Payroll"
+                      )}
+                    </AlertDialogAction>
+                  </div>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>
