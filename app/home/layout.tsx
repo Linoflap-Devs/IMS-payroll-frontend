@@ -26,9 +26,6 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   const { user } = useAuth();
   const userType = user?.UserType ?? -1; // fallback to -1 (unauthorized)
 
-
-
-
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 

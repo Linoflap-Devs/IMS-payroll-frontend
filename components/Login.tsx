@@ -31,7 +31,7 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { DialogClose } from "@radix-ui/react-dialog";
+import { DialogClose, DialogTitle } from "@radix-ui/react-dialog";
 import Image from "next/image";
 import { AxiosError } from "axios";
 import { useAuth } from "@/src/store/useAuthStore";
@@ -205,9 +205,9 @@ export default function Login() {
               <DialogTrigger className="text-base text-center text-[#1e2f8d] hover:underline">
                 Forgot password?
               </DialogTrigger>
-              <DialogContent className="p-13 [&>button:last-child]:hidden">
+              <DialogContent className="p-13">
                 <DialogHeader className="gap-3">
-                  {/* <DialogTitle>Are you absolutely sure?</DialogTitle> */}
+                  <DialogTitle> </DialogTitle>
                   <Image
                     src="/mail-logo.png"
                     alt="Forgot Password"
@@ -219,10 +219,10 @@ export default function Login() {
                     To reset your password, please send a request to the
                     administrator at admin@gmail.com.
                   </DialogDescription>
-                  <DialogClose>
+                  <DialogClose asChild className="mt-2">
                     <Button
                       variant="outline"
-                      className="py-5 px-18 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white">
+                      className="py-5 px-9 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white">
                       Okay
                     </Button>
                   </DialogClose>
