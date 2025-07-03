@@ -119,10 +119,10 @@ export function AddWageDescriptionDialog({
         onOpenChange(false);
         setUniqueError(false);
       }}>
-       <DialogContent className="sm:max-w-[600px] p-4 bg-[#FCFCFC]">
-        <DialogHeader>
-          <DialogTitle className="text-center text-lg font-semibold text-[#2E37A4]">
-            Add Wage Description
+      <DialogContent className="p-6 max-w-[600px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
+        <DialogHeader> 
+          <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
+            Add Wage Type Description
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>

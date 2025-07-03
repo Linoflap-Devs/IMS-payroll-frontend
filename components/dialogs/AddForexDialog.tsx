@@ -164,9 +164,9 @@ export function AddForexDialog({
         setUniqueError(false);
       }}
     >
-      <DialogContent className="sm:max-w-[600px] p-4 bg-[#FCFCFC]">
+      <DialogContent className="p-6 max-w-[600px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
         <DialogHeader>
-          <DialogTitle className="text-center text-lg font-semibold text-[#2E37A4]">
+          <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
             Add Forex
           </DialogTitle>
         </DialogHeader>
@@ -261,7 +261,7 @@ export function AddForexDialog({
               </Button>
               <Button
                 type="submit"
-                className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
+                className="flex-1 text-sm h-11 bg-[#2E37A4] hover:bg-[#2E37A4]/90"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

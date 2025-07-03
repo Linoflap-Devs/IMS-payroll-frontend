@@ -29,7 +29,7 @@ export default function Home() {
               <br />
               MARITIME CORP
             </h1>
-            <p className="font-bold text-5xl mt-0">Payroll System</p>
+            <p className="font-bold text-5xl mt-0">Crew Payroll System</p>
           </div>
         </div>
       </div>
