@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Pencil, Save } from "lucide-react";
 import {
   editWageForex,
   IEditWagePayload,
@@ -223,8 +223,8 @@ export function EditForexDialog({
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Update Forex
                   </>
                 )}
               </Button>

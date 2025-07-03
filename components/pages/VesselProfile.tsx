@@ -796,8 +796,8 @@ export default function VesselProfile() {
                     </div>
                   </div>
                   {isLoadingVessels ? (
-                    <div className="text-center">
-                      Loading vessel data...
+                    <div className="flex justify-center items-center h-40">
+                      <p className="text-muted-foreground">Loading vessel data...</p>
                     </div>
                   ) : (
                     <div className="bg-[#F9F9F9] rounded-md border pb-3">
@@ -840,8 +840,8 @@ export default function VesselProfile() {
                     </div>
                   </div>
                   {isLoadingTypes ? (
-                    <div className="text-center">
-                      Loading vessel type data...
+                    <div className="flex justify-center items-center h-40">
+                      <p className="text-muted-foreground">Loading vessel type data...</p>
                     </div>
                   ) : (
                     <div className="bg-[#F9F9F9] rounded-md border pb-3">
@@ -883,10 +883,9 @@ export default function VesselProfile() {
                       </Button>
                     </div>
                   </div>
-                  {/* DataTable with custom styling */}
                   {isLoadingPrincipals ? (
-                    <div className="text-center">
-                      Loading vessel principal data...
+                    <div className="flex justify-center items-center h-40">
+                      <p className="text-muted-foreground">Loading vessel principals data...</p>
                     </div>
                   ) : (
                     <div className="bg-[#F9F9F9] rounded-md border pb-3">

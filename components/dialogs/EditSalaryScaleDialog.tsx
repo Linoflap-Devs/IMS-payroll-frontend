@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Save } from "lucide-react";
+import { Pencil, Save } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast"; // Updated import
 import {
   SalaryScaleItem,
@@ -216,7 +216,7 @@ export function EditSalaryScaleDialog({
             />
           </div>
         </div>
-        <DialogFooter className="mt-8 pt-4 border-t">
+        <DialogFooter className="flex !space-x-4 mt-8 pt-4 border-t">
           <DialogClose asChild>
             <Button
               variant="outline"
@@ -252,8 +252,8 @@ export function EditSalaryScaleDialog({
               </>
             ) : (
               <>
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
+                <Pencil className="mr-2 h-4 w-4" />
+                Update Salary Scale
               </>
             )}
           </Button>
