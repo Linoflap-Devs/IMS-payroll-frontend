@@ -284,8 +284,14 @@ export default function CrewList() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [rankFilter, setRankFilter] = useState("all");
   const [validationFilter, setValidationFilter] = useState("all");
-
   const { crews, isLoading, error, fetchCrews } = useCrewStore();
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setRankFilter("all");
+    setValidationFilter("all");
+  };
 
   // Fetch crew data on component mount
   useEffect(() => {
@@ -314,7 +320,6 @@ export default function CrewList() {
       (crew.AccountValidation === 1 && validationFilter.toLowerCase() === "verified") ||
       (crew.AccountValidation === 0 && validationFilter.toLowerCase() === "pending") ||
       (crew.AccountValidation === null && validationFilter.toLowerCase() === "not registered");
-    //console.log('CREW DETAILS', crew);
 
     return matchesSearch && matchesStatus && matchesRank && matchesValidation;
   });
@@ -397,7 +402,13 @@ export default function CrewList() {
                   <SelectItem value="not registered">Not Registered</SelectItem>
                 </SelectContent>
               </Select>
-
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+              >
+                Clear Filters
+              </Button>
               <Link href="/home/crew/add-crew">
                 <Button
                   className="whitespace-nowrap h-9 sm:h-10 px-5 sm:px-7 text-xs sm:text-sm w-full sm:w-auto"

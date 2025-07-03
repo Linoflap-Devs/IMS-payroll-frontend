@@ -30,7 +30,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-
 import { Card } from "../ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddVesselDialog } from "../dialogs/AddVesselDialog";
@@ -57,9 +56,8 @@ import {
 } from "@/src/services/vessel/vesselPrincipal.api";
 import { NewVesselItem, UpdatedVesselFromApi } from "@/types/vessel";
 
-// Define the shape used by the DataTable
 interface Vessel {
-  vesselId: number; // Added vesselId
+  vesselId: number;
   vesselCode: string;
   vesselName: string;
   vesselType: number;
@@ -104,6 +102,9 @@ export default function VesselProfile() {
   >([]);
   const [selectedVesselPrincipal, setSelectedVesselPrincipal] =
     useState<VesselPrincipal | null>(null);
+  const [isLoadingVessels, setLoadingVessels] = useState(false);
+  const [isLoadingTypes, setLoadingTypes] = useState(false);
+  const [isLoadingPrincipals, setLoadingPrincipals] = useState(false);
 
   const handleVesselTypeAdded = (newVesselType: VesselTypeItem) => {
     // Convert API response format to your internal format
@@ -132,7 +133,6 @@ export default function VesselProfile() {
   };
 
   const handleVesselAdded = (newVessel: NewVesselItem) => {
-    // Convert API response format to your internal format
     const newItem: Vessel = {
       vesselId: newVessel.VesselID,
       vesselCode: newVessel.VesselCode,
@@ -143,12 +143,8 @@ export default function VesselProfile() {
       principalID: parseInt(newVessel.Principal),
       status: newVessel.IsActive === 1 ? "Active" : "Inactive",
     };
-    // Add the new
-    //  vessel to the list
     setVesselData((prevData) => [...prevData, newItem]);
   };
-
-  // console.log("Vessel Data:", vesselData);
 
   const handleVesselUpdated = (updatedVessel: UpdatedVesselFromApi) => {
     setVesselData((prevData) =>
@@ -169,10 +165,7 @@ export default function VesselProfile() {
     );
   };
 
-  // console.log(vesselData);
-
   const handleVesselTypeUpdated = (updatedVesselType: VesselTypeItem) => {
-    // Update the vessel type in the list
     setVesselTypeData((prevData) =>
       prevData.map((item) =>
         item.vesselTypeId === updatedVesselType.VesselTypeID
@@ -229,7 +222,6 @@ export default function VesselProfile() {
 
         if (response.success) {
           swal.fire("Deleted!", "The vessel type has been deleted.", "success");
-          // Remove the deleted vessel type from the state
           setVesselTypeData((prevData) =>
             prevData.filter((v) => v.vesselTypeId !== vesselType.vesselTypeId)
           );
@@ -304,31 +296,41 @@ export default function VesselProfile() {
 
   // Fetch vessel list on mount
   useEffect(() => {
-    getVesselList()
-      .then((res) => {
+    const fetchVessels = async () => {
+      setLoadingVessels(true);
+      try {
+        const res = await getVesselList();
         if (res.success) {
           const mapped = res.data.map((item: VesselItem) => ({
             vesselId: item.VesselID,
             vesselCode: item.VesselCode,
             vesselName: item.VesselName,
-            vesselType: parseInt(item.VesselType), // Convert to number
+            vesselType: parseInt(item.VesselType),
             vesselTypeName: item.VesselType,
             principalName: item.Principal,
-            principalID: parseInt(item.Principal), // Convert to number
+            principalID: parseInt(item.Principal),
             status: item.IsActive === 1 ? "Active" : "Inactive",
           }));
           setVesselData(mapped);
         } else {
           console.error("Failed to fetch vessels:", res.message);
         }
-      })
-      .catch((err) => console.error("Error fetching vessels:", err));
+      } catch (err) {
+        console.error("Error fetching vessels:", err);
+      } finally {
+        setLoadingVessels(false);
+      }
+    };
+
+    fetchVessels();
   }, []);
 
   // Fetch vessel type list on mount
   useEffect(() => {
-    getVesselTypeList()
-      .then((res) => {
+    const fetchVesselTypes = async () => {
+      setLoadingTypes(true);
+      try {
+        const res = await getVesselTypeList();
         if (res.success && Array.isArray(res.data)) {
           const mapped: VesselType[] = res.data.map((item: VesselTypeItem) => ({
             vesselTypeId: item.VesselTypeID,
@@ -339,14 +341,22 @@ export default function VesselProfile() {
         } else {
           console.error("Failed to fetch vessel type:", res.message);
         }
-      })
-      .catch((err) => console.error("Error fetching vessel type:", err));
+      } catch (err) {
+        console.error("Error fetching vessel type:", err);
+      } finally {
+        setLoadingTypes(false);
+      }
+    };
+
+    fetchVesselTypes();
   }, []);
 
   // Fetch vessel principal list on mount
   useEffect(() => {
-    getVesselPrincipalList()
-      .then((res) => {
+    const fetchVesselPrincipals = async () => {
+      setLoadingPrincipals(true);
+      try {
+        const res = await getVesselPrincipalList();
         if (res.success) {
           const mapped: VesselPrincipal[] = res.data.map((item) => ({
             vesselPrincipalId: item.PrincipalID,
@@ -357,11 +367,16 @@ export default function VesselProfile() {
         } else {
           console.error("Failed to fetch vessel principal:", res.message);
         }
-      })
-      .catch((err) => console.error("Error fetching vessel principal:", err));
+      } catch (err) {
+        console.error("Error fetching vessel principal:", err);
+      } finally {
+        setLoadingPrincipals(false);
+      }
+    };
+
+    fetchVesselPrincipals();
   }, []);
 
-  // Define columns (actions unchanged)
   const columns: ColumnDef<Vessel>[] = [
     {
       accessorKey: "vesselCode",
@@ -403,7 +418,8 @@ export default function VesselProfile() {
                 statusRow === "Active"
                   ? "bg-[#E7F0F9] text-[#1F279C]/90"
                   : "bg-red-500/20 text-red-800"
-              }`}>
+              }`}
+            >
               {statusRow}
             </Badge>
           </div>
@@ -416,54 +432,54 @@ export default function VesselProfile() {
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const vessel = row.original;
-          const handleDelete = async (vessel: Vessel) => {
-            const swal = Swal.mixin({
-              customClass: {
-                confirmButton:
-                  "bg-[#1F279C] hover:bg-[#151d73] text-white font-bold py-2 px-4 mx-2 rounded",
-                cancelButton:
-                  "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-              },
-              buttonsStyling: false,
+        const handleDelete = async (vessel: Vessel) => {
+          const swal = Swal.mixin({
+            customClass: {
+              confirmButton:
+                "bg-[#1F279C] hover:bg-[#151d73] text-white font-bold py-2 px-4 mx-2 rounded",
+              cancelButton:
+                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+            },
+            buttonsStyling: false,
+          });
+
+          try {
+            const result = await swal.fire({
+              title: "Are you sure?",
+              text: "This action cannot be undone.",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "Yes, delete it!",
+              cancelButtonText: "No, cancel!",
+              reverseButtons: true,
             });
 
-            try {
-              const result = await swal.fire({
-                title: "Are you sure?",
-                text: "This action cannot be undone.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, delete it!",
-                cancelButtonText: "No, cancel!",
-                reverseButtons: true,
-              });
+            if (result.isConfirmed) {
+              const response = await deleteVessel(vessel.vesselId);
 
-              if (result.isConfirmed) {
-                const response = await deleteVessel(vessel.vesselId);
-
-                if (response.success) {
-                  swal.fire({
-                    title: "Deleted!",
-                    text: "The vessel has been deleted.",
-                    icon: "success",
-                    confirmButtonText: "Okay",
-                  });
-                  setVesselData((prevData) =>
-                    prevData.filter((v) => v.vesselId !== vessel.vesselId)
-                  );
-                } else {
-                  throw new Error(response.message);
-                }
+              if (response.success) {
+                swal.fire({
+                  title: "Deleted!",
+                  text: "The vessel has been deleted.",
+                  icon: "success",
+                  confirmButtonText: "Okay",
+                });
+                setVesselData((prevData) =>
+                  prevData.filter((v) => v.vesselId !== vessel.vesselId)
+                );
+              } else {
+                throw new Error(response.message);
               }
-            } catch (error) {
-              swal.fire({
-                title: "Error",
-                text: "Failed to delete vessel",
-                icon: "error",
-                confirmButtonText: "Okay",
-              });
             }
-          };
+          } catch (error) {
+            swal.fire({
+              title: "Error",
+              text: "Failed to delete vessel",
+              icon: "error",
+              confirmButtonText: "Okay",
+            });
+          }
+        };
 
         //console.log(vesselData);
         return (
@@ -479,20 +495,23 @@ export default function VesselProfile() {
                 onClick={() => {
                   setSelectedVessel(vessel);
                   setEditVesselDialogOpen(true);
-                }}>
+                }}
+              >
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit Vessel
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
-                  href={`/home/vessel/crew-list?id=${vessel.vesselId}&vesselName=${vessel.vesselName}`}>
+                  href={`/home/vessel/crew-list?id=${vessel.vesselId}&vesselName=${vessel.vesselName}`}
+                >
                   <Users className="mr-2 h-4 w-4" /> View Crew List
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive"
-                onClick={() => handleDelete(vessel)}>
+                onClick={() => handleDelete(vessel)}
+              >
                 <Trash className="mr-2 h-4 w-4" /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -536,14 +555,16 @@ export default function VesselProfile() {
                   onClick={() => {
                     setSelectedVesselType(vesselType);
                     setEditVesselTypeDialogOpen(true);
-                  }}>
+                  }}
+                >
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit Vessel Type
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleVesselTypeDelete(vesselType)}>
+                  onClick={() => handleVesselTypeDelete(vesselType)}
+                >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
                 </DropdownMenuItem>
@@ -593,14 +614,16 @@ export default function VesselProfile() {
                   onClick={() => {
                     setSelectedVesselPrincipal(vesselPrincipal);
                     setEditVesselPrincipalDialogOpen(true);
-                  }}>
+                  }}
+                >
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit Vessel Principal
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm"
-                  onClick={() => handleVesselPrincipalDelete(vesselPrincipal)}>
+                  onClick={() => handleVesselPrincipalDelete(vesselPrincipal)}
+                >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
                 </DropdownMenuItem>
@@ -639,14 +662,13 @@ export default function VesselProfile() {
 
   const filteredVesselPrincipal = vesselPrincipalData.filter(
     (vesselPrincipal) => {
-      const matchesSearch = 
-      
-      vesselPrincipal.vesselPrincipalName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      vesselPrincipal.vesselPrincipalCode
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        vesselPrincipal.vesselPrincipalName
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        vesselPrincipal.vesselPrincipalCode
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
       return matchesSearch;
     }
@@ -654,7 +676,7 @@ export default function VesselProfile() {
   // Handle tab change
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    setSearchTerm(""); 
+    setSearchTerm("");
   };
 
   return (
@@ -697,23 +719,27 @@ export default function VesselProfile() {
               defaultValue={activeTab}
               value={activeTab}
               onValueChange={handleTabChange}
-              className="w-full flex flex-col h-full">
+              className="w-full flex flex-col h-full"
+            >
               <div className="border-b">
                 <div className="px-4 pt-1">
                   <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
                     <TabsTrigger
                       value="vessel"
-                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                    >
                       Vessel
                     </TabsTrigger>
                     <TabsTrigger
                       value="vessel-type"
-                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                    >
                       Vessel Type
                     </TabsTrigger>
                     <TabsTrigger
                       value="vessel-principal"
-                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer">
+                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                    >
                       Vessel Principal
                     </TabsTrigger>
                     {/* <TabsTrigger
@@ -728,7 +754,8 @@ export default function VesselProfile() {
 
               <TabsContent
                 value="vessel"
-                className="p-2 mt-0 overflow-y-auto flex-1">
+                className="p-2 mt-0 overflow-y-auto flex-1"
+              >
                 <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                   {/* Search and Filters */}
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
@@ -745,7 +772,8 @@ export default function VesselProfile() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                       <Select
                         value={statusFilter}
-                        onValueChange={setStatusFilter}>
+                        onValueChange={setStatusFilter}
+                      >
                         <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                           <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
                           <SelectValue placeholder="Filter by status" />
@@ -760,26 +788,33 @@ export default function VesselProfile() {
                       <Button
                         className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
                         size="default"
-                        onClick={() => setAddVesselDialogOpen(true)}>
+                        onClick={() => setAddVesselDialogOpen(true)}
+                      >
                         <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                         Add Vessel
                       </Button>
                     </div>
                   </div>
-                  {/* DataTable with custom styling */}
-                  <div className="bg-[#F9F9F9] rounded-md border pb-3">
-                    <DataTable
-                      columns={columns}
-                      data={filteredVessel}
-                      pageSize={7}
-                    />
-                  </div>
+                  {isLoadingVessels ? (
+                    <div className="text-center">
+                      Loading vessel data...
+                    </div>
+                  ) : (
+                    <div className="bg-[#F9F9F9] rounded-md border pb-3">
+                      <DataTable
+                        columns={columns}
+                        data={filteredVessel}
+                        pageSize={7}
+                      />
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent
                 value="vessel-type"
-                className="p-2 mt-0 overflow-y-auto flex-1">
+                className="p-2 mt-0 overflow-y-auto flex-1"
+              >
                 <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                   {/* Search and Filters */}
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
@@ -797,26 +832,33 @@ export default function VesselProfile() {
                       <Button
                         className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
                         size="default"
-                        onClick={() => setAddVesselTypeDialogOpen(true)}>
+                        onClick={() => setAddVesselTypeDialogOpen(true)}
+                      >
                         <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                         Add Vessel Type
                       </Button>
                     </div>
                   </div>
-                  {/* DataTable with custom styling */}
-                  <div className="bg-[#F9F9F9] rounded-md border pb-3">
-                    <DataTable
-                      columns={columnsVesselType}
-                      data={filteredVesselType}
-                      pageSize={7}
-                    />
-                  </div>
+                  {isLoadingTypes ? (
+                    <div className="text-center">
+                      Loading vessel type data...
+                    </div>
+                  ) : (
+                    <div className="bg-[#F9F9F9] rounded-md border pb-3">
+                      <DataTable
+                        columns={columnsVesselType}
+                        data={filteredVesselType}
+                        pageSize={7}
+                      />
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent
                 value="vessel-principal"
-                className="p-2 mt-0 overflow-y-auto flex-1">
+                className="p-2 mt-0 overflow-y-auto flex-1"
+              >
                 <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
                   {/* Search and Filters */}
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
@@ -834,20 +876,27 @@ export default function VesselProfile() {
                       <Button
                         className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
                         size="default"
-                        onClick={() => setAddVesselPrincipalDialogOpen(true)}>
+                        onClick={() => setAddVesselPrincipalDialogOpen(true)}
+                      >
                         <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                         Add Vessel Principal
                       </Button>
                     </div>
                   </div>
                   {/* DataTable with custom styling */}
-                  <div className="bg-[#F9F9F9] rounded-md border pb-3">
-                    <DataTable
-                      columns={columnsVesselPrincipal}
-                      data={filteredVesselPrincipal}
-                      pageSize={7}
-                    />
-                  </div>
+                  {isLoadingPrincipals ? (
+                    <div className="text-center">
+                      Loading vessel principal data...
+                    </div>
+                  ) : (
+                    <div className="bg-[#F9F9F9] rounded-md border pb-3">
+                      <DataTable
+                        columns={columnsVesselPrincipal}
+                        data={filteredVesselPrincipal}
+                        pageSize={7}
+                      />
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
