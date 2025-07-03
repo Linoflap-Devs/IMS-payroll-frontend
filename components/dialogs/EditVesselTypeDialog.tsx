@@ -108,7 +108,7 @@ export function EditVesselTypeDialog({
 
         <div className="p-6 flex flex-col space-y-6">
           <div className="space-y-2">
-            <label className="text-sm text-gray-600">Vessel Code</label>
+            <label className="text-sm text-gray-600">Vessel Type Code</label>
             <Input
               placeholder="Enter vessel code"
               className={`h-10 ${
