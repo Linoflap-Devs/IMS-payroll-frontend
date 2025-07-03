@@ -40,12 +40,16 @@ export default function Remittance() {
   const [vesselFilter, setVesselFilter] = useState("all");
   const [crewData, setCrewData] = useState<Crew[]>([]);
   const [vessels, setVessels] = useState<string[]>([]);
-
   const debouncedSearch = useDebounce(searchTerm, 500);
+  const [isLoadingRemittance, setLoadingRemittance] = useState(false);
 
   useEffect(() => {
-    getCrewRemittanceList()
-      .then((res) => {
+    const fetchCrewRemittance = async () => {
+      setLoadingRemittance(true);
+
+      try {
+        const res = await getCrewRemittanceList();
+
         if (res.success) {
           const mapped: (Crew & { crewName: string })[] = res.data.map(
             (item) => {
@@ -62,26 +66,28 @@ export default function Remittance() {
                 rankId: item.RankID,
                 rank: item.Rank,
                 vessel: item.Vessel,
-
                 crewName: `${item.FirstName}${middleInitial} ${item.LastName}`,
               };
             }
           );
 
           const mappedVessels = res.data.map((item) => item.Vessel);
-
           const uniqueVessels = [...new Set(mappedVessels)];
-          setVessels(uniqueVessels);
 
+          setVessels(uniqueVessels);
           setCrewData(mapped);
         } else {
-          console.error("Failed to fetch vessel principal:", res.message);
+          console.error("Failed to fetch crew remittance:", res.message);
         }
-      })
-      .catch((err) => console.error("Error fetching vessel principal:", err));
-  }, []);
+      } catch (err) {
+        console.error("Error fetching crew remittance:", err);
+      } finally {
+        setLoadingRemittance(false);
+      }
+    };
 
-  console.log("remittance data", vessels);
+    fetchCrewRemittance();
+  }, []);
 
   const columns: ColumnDef<Crew>[] = [
     {
@@ -144,7 +150,8 @@ export default function Remittance() {
                       crew.crewCode
                     )}&rank=${encodeURIComponent(
                       crew.rank
-                    )}&vessel=${encodeURIComponent(crew.vessel)}`}>
+                    )}&vessel=${encodeURIComponent(crew.vessel)}`}
+                  >
                     <IdCard className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View Remittance
                   </Link>
@@ -220,9 +227,14 @@ export default function Remittance() {
             </div>
           </div>
 
-          {/* DataTable with custom styling */}
-          <div className="bg-white rounded-md border pb-3">
-            <DataTable columns={columns} data={filteredCrew} />
+          <div className="text-center">
+            {isLoadingRemittance ? (
+              <div className="text-center">Loading remittance data...</div>
+            ) : (
+              <div className="bg-[#F9F9F9] rounded-md border pb-3">
+                <DataTable columns={columns} data={filteredCrew} />
+              </div>
+            )}
           </div>
         </div>
       </div>
