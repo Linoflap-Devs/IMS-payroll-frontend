@@ -100,9 +100,9 @@ export function EditVesselPrincipalDialog({
 
         <div className="p-6 flex flex-col space-y-6">
           <div className="space-y-2">
-            <label className="text-sm text-gray-600">Principal Code</label>
+            <label className="text-sm text-gray-600">Vessel Principal Code</label>
             <Input
-              placeholder="Enter principal code"
+              placeholder="Enter vessel principal code"
               className="h-10"
               value={vesselPrincipalCode}
               onChange={(e) => setVesselPrincipalCode(e.target.value)}
@@ -111,9 +111,9 @@ export function EditVesselPrincipalDialog({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-gray-600">Principal Name</label>
+            <label className="text-sm text-gray-600">Vessel Principal Name</label>
             <Input
-              placeholder="Enter principal name"
+              placeholder="Enter vessel principal name"
               className="h-10"
               value={vesselPrincipalName}
               onChange={(e) => setVesselPrincipalName(e.target.value)}

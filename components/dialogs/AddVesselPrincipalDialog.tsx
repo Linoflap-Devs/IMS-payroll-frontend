@@ -158,11 +158,11 @@ export function AddVesselPrincipalDialog({
                     className={`text-sm text-gray-600 ${
                       uniqueError ? "text-destructive" : ""
                     }`}>
-                    Principal Code
+                    Vessel Principal Code
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter principal code"
+                      placeholder="Enter vessel principal code"
                       className={`h-10 ${
                         uniqueError
                           ? "border-destructive focus:!ring-destructive/50"
@@ -186,11 +186,11 @@ export function AddVesselPrincipalDialog({
                     className={`text-sm text-gray-600 ${
                       uniqueError ? "text-destructive" : ""
                     }`}>
-                    Principal Name
+                    Vessel Principal Name
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter principal name"
+                      placeholder="Enter vessel principal name"
                       className={`h-10 ${
                         uniqueError
                           ? "border-destructive focus:!ring-destructive/50"
