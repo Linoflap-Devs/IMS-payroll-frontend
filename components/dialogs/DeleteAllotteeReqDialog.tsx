@@ -43,6 +43,7 @@ export function DeleteAllotteeReqDialog({
 }: DeleteAllotteeReqDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const handleClose = () => onOpenChange(false);
 
   const handleProcess = async (status: number) => {
     setIsSubmitting(true);
@@ -92,7 +93,7 @@ export function DeleteAllotteeReqDialog({
         <div className="p-6 pb-8">
           <div className="flex justify-center items-center mb-8">
             <DialogTitle className="text-2xl font-bold text-[#2F3593] items-center">
-              Delete Allottee Request
+              View Delete Allottee Request
             </DialogTitle>
           </div>
 
@@ -242,20 +243,10 @@ export function DeleteAllotteeReqDialog({
             <div className="flex gap-4 pt-6">
               <Button
                 type="button"
-                variant="outline"
-                className="flex-1 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md"
-                onClick={() => handleProcess(3)}
+                className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] hover:color-[#fffff] rounded-md p-5"
+                onClick={() => handleClose()}
                 disabled={isSubmitting}>
-                <XCircle className="mr-2 h-4 w-4" />
-                {isSubmitting ? "Processing..." : "Decline"}
-              </Button>
-              <Button
-                type="button"
-                className="flex-1 bg-[#E24141] text-white hover:bg-red-700 rounded-md"
-                onClick={() => handleProcess(2)}
-                disabled={isSubmitting} >
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                {isSubmitting ? "Processing..." : "Approve Delete Request"}
+                Close
               </Button>
             </div>
           </div>
