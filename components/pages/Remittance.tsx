@@ -224,7 +224,9 @@ export default function Remittance() {
           </div>
           <div className="text-center">
             {isLoadingRemittance ? (
-              <div className="text-center">Loading remittance data...</div>
+              <div className="flex justify-center items-center h-40">
+                <p className="text-muted-foreground">Loading remittance data...</p>
+              </div>
             ) : (
               <div className="bg-[#F9F9F9] rounded-md border pb-3">
                 <DataTable columns={columns} data={filteredCrew} />
