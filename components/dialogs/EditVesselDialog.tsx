@@ -189,8 +189,8 @@ export function EditVesselDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="p-0 max-w-[600px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
         <div className="p-6 pb-8">
-          <div className="flex justify-between items-center mb-8">
-            <DialogTitle className="text-2xl font-bold text-[#2F3593]">
+          <div className="flex justify-center items-center mb-8">
+            <DialogTitle className="text-2xl font-semmibold text-[#2F3593]">
               Edit Vessel
             </DialogTitle>
           </div>

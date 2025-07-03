@@ -126,9 +126,9 @@ export function EditForexDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC]">
+      <DialogContent className="p-6 max-w-[600px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
         <DialogHeader>
-          <DialogTitle className="text-center text-lg font-semibold text-[#2E37A4]">
+          <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
             Edit Forex
           </DialogTitle>
         </DialogHeader>

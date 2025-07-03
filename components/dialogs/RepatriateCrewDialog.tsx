@@ -350,7 +350,7 @@ export function RepatriateCrewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] p-0 gap-0 bg-[#FCFCFC]">
+      <DialogContent className="p-2 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-2xl font-semibold text-[#2F3593] text-center">
             Repatriate Crew
@@ -393,17 +393,17 @@ export function RepatriateCrewDialog({
 
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <RiShieldStarLine className="h-4 w-4 text-gray-500" />
-                <div>
-                  <div className="text-gray-500">Rank</div>
-                  <div>{crewMember.rank}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-black-500" />
                 <div>
                   <div className="text-gray-500">Crew Code</div>
                   <div>{crewMember.crewCode}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <RiShieldStarLine className="h-4 w-4 text-gray-500" />
+                <div>
+                  <div className="text-gray-500">Rank</div>
+                  <div>{crewMember.rank}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">

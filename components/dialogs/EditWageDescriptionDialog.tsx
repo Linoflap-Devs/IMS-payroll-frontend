@@ -100,8 +100,8 @@ export function EditWageDescriptionDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-4 bg-[#FCFCFC]">
-        <DialogHeader className="p-6 pb-0">
+      <DialogContent className="p-1 max-w-[600px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
+        <DialogHeader className="p-4 pb-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-semibold text-primary w-full text-center">
               Edit Wage Description
@@ -154,13 +154,15 @@ export function EditWageDescriptionDialog({
               variant="outline"
               className="flex-1 h-10"
               onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}>
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button
               className="flex-1 h-10"
               onClick={handleSubmit}
-              disabled={isSubmitting}>
+              disabled={isSubmitting}
+            >
               {isSubmitting ? "Updating..." : "Update Wage Description"}
             </Button>
           </div>

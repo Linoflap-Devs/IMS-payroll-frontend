@@ -646,8 +646,6 @@ export function CrewAllottee({
       ? editingAllottee
       : currentAllottee;
 
-  console.log('DISPLAY ALLOTTEE:', displayAllottee);
-
   // validating the name form
   useEffect(() => {
     const validateAllotteeForm = () => {

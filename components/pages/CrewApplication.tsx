@@ -82,6 +82,8 @@ export default function CrewApplication() {
   const [selectedApplication, setSelectedApplication] =
     useState<Application | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [isClose, setClose] = useState(false);
+  //const handleClose = () => setShowDetailsDialog(false);
 
   useEffect(() => {
     fetchApplications();
@@ -109,83 +111,83 @@ export default function CrewApplication() {
     setShowDetailsDialog(true);
   };
 
-const baseColumns: ColumnDef<Application>[] = [
-  {
-    accessorKey: "CrewCode",
-    header: "Crew Code",
-  },
-  {
-    id: "fullName",
-    header: "Crew Name",
-    accessorFn: (row) => {
-      const middleInitial = row.MiddleName
-        ? ` ${row.MiddleName.charAt(0)}. `
-        : " ";
-      return `${row.FirstName}${middleInitial}${row.LastName}`;
+  const baseColumns: ColumnDef<Application>[] = [
+    {
+      accessorKey: "CrewCode",
+      header: "Crew Code",
     },
-  },
-  {
-    accessorKey: "Rank",
-    header: "Rank",
-  },
-  {
-    accessorKey: "ApplicationStatus",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.original.ApplicationStatus.toLowerCase();
-
-      const statusClasses = {
-        pending: "bg-[#F5ECE4] text-[#9F6932]",
-        approved: "bg-green-100 text-green-600",
-        declined: "bg-red-100 text-red-600",
-      };
-
-      return (
-        <Badge
-          className={cn(
-            "font-medium",
-            statusClasses[status as keyof typeof statusClasses]
-          )}
-        >
-          {row.original.ApplicationStatus}
-        </Badge>
-      );
+    {
+      id: "fullName",
+      header: "Crew Name",
+      accessorFn: (row) => {
+        const middleInitial = row.MiddleName
+          ? ` ${row.MiddleName.charAt(0)}. `
+          : " ";
+        return `${row.FirstName}${middleInitial}${row.LastName}`;
+      },
     },
-  },
-  {
-    accessorKey: "ApplicationType",
-    header: "Application Type",
-  },
-  {
-    accessorKey: "ApplicationOperation",
-    header: "Application Operation",
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => handleViewDetails(row.original)}>
-            <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-            View Request
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-];
+    {
+      accessorKey: "Rank",
+      header: "Rank",
+    },
+    {
+      accessorKey: "ApplicationStatus",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.original.ApplicationStatus.toLowerCase();
 
-// Remove "actions" column if selected application is Declined
-const columns: ColumnDef<Application>[] =
-  activeTab === "declined"
-    ? baseColumns.filter((col) => col.id !== "actions")
-    : baseColumns;
+        const statusClasses = {
+          pending: "bg-[#F5ECE4] text-[#9F6932]",
+          approved: "bg-green-100 text-green-600",
+          declined: "bg-red-100 text-red-600",
+        };
+
+        return (
+          <Badge
+            className={cn(
+              "font-medium",
+              statusClasses[status as keyof typeof statusClasses]
+            )}
+          >
+            {row.original.ApplicationStatus}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "ApplicationType",
+      header: "Application Type",
+    },
+    {
+      accessorKey: "ApplicationOperation",
+      header: "Application Operation",
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleViewDetails(row.original)}>
+              <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+              View Request
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
+  // Remove "actions" column if selected application is Declined
+  const columns: ColumnDef<Application>[] =
+    activeTab === "declined"
+      ? baseColumns.filter((col) => col.id !== "actions")
+      : baseColumns;
 
   const filteredApplications = applications.filter((app) => {
     const matchesStatus = activeTab === app.ApplicationStatus.toLowerCase();
@@ -322,7 +324,7 @@ const columns: ColumnDef<Application>[] =
                           </div>
                         ) : (
                           <DataTable
-                            columns={columns}
+                            columns={baseColumns}
                             data={filteredApplications}
                             pageSize={7}
                           />
@@ -339,12 +341,13 @@ const columns: ColumnDef<Application>[] =
 
       {selectedApplication?.ApplicationType === "Allottee" && (
         <>
-          {
-          selectedApplication.ApplicationStatus !== "Declined" && (
+          {selectedApplication.ApplicationStatus !== "Declined" && (
             <AddAllotteeReqDialog
               open={showDetailsDialog}
               onOpenChange={setShowDetailsDialog}
-              selectedApplicationOperation={selectedApplication.ApplicationOperation}
+              selectedApplicationOperation={
+                selectedApplication.ApplicationOperation
+              }
               selectedApplicationStatus={selectedApplication.ApplicationStatus}
               requestData={
                 selectedApplication.RequestData as AllotteeRequestData
@@ -353,8 +356,7 @@ const columns: ColumnDef<Application>[] =
             />
           )}
 
-          {
-          selectedApplication.ApplicationStatus === "Declined" && (
+          {selectedApplication.ApplicationStatus === "Declined" && (
             <DeleteAllotteeReqDialog
               open={showDetailsDialog}
               onOpenChange={setShowDetailsDialog}
@@ -368,17 +370,19 @@ const columns: ColumnDef<Application>[] =
       )}
 
       {selectedApplication?.ApplicationType === "HDMF Upgrade" && (
-          <HDMFUpgradeReqDialog
-            open={showDetailsDialog}
-            onOpenChange={setShowDetailsDialog}
-            selectedApplicationOperation={selectedApplication.ApplicationOperation}
-            selectedApplicationStatus={selectedApplication.ApplicationStatus}
-            requestData={
-              selectedApplication.RequestData as HDMFUpgradeRequestData
-            }
-            onSuccess={fetchApplications}
-          />
-        )}
+        <HDMFUpgradeReqDialog
+          open={showDetailsDialog}
+          onOpenChange={setShowDetailsDialog}
+          selectedApplicationOperation={
+            selectedApplication.ApplicationOperation
+          }
+          selectedApplicationStatus={selectedApplication.ApplicationStatus}
+          requestData={
+            selectedApplication.RequestData as HDMFUpgradeRequestData
+          }
+          onSuccess={fetchApplications}
+        />
+      )}
     </>
   );
 }

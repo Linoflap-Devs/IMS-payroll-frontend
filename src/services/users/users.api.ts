@@ -70,6 +70,24 @@ export const deleteUser = async (userId: number) => {
   }
 };
 
+type ResetPasswordResponse = {
+  success: boolean;
+  message?: string;
+};
+
+export const resetPassword = async (userId: number): Promise<ResetPasswordResponse> => {
+  try {
+    const response = await axiosInstance.put(`users/reset-password/${userId}`);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error resetting password:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to reset the password",
+    };
+  }
+};
+
 export interface LoginHistoryItem {
   LoginHistoryId: number;
   FirstName?: number;

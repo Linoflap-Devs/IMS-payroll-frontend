@@ -20,7 +20,6 @@ interface HDMFUpgradeReqDialogProps {
     TargetID: number;
     HDMFAmount: number;
     DollarCurrency: number;
-
   };
   onSuccess?: () => void;
 }
@@ -35,6 +34,7 @@ export function HDMFUpgradeReqDialog({
 }: HDMFUpgradeReqDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const handleClose = () => onOpenChange(false);
 
   const handleProcess = async (status: number) => {
     setIsSubmitting(true);
@@ -81,11 +81,11 @@ export function HDMFUpgradeReqDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[700px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC] px-2">
+      <DialogContent className="p-2 max-w-[600px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
         <div className="p-6 pb-8">
           <div className="flex items-center justify-center mb-8">
             <DialogTitle className="text-2xl font-bold  items-center text-[#2F3593]">
-              {selectedApplicationStatus === "Approved"
+              {selectedApplicationStatus !== "Pending"
                 ? "HDMF View Request Details"
                 : "HDMF Upgrade Request Details"}
             </DialogTitle>
@@ -96,7 +96,8 @@ export function HDMFUpgradeReqDialog({
               <div className="space-y-2">
                 <label
                   htmlFor="hdmfAmount"
-                  className="block text-sm font-medium text-gray-500">
+                  className="block text-sm font-medium text-gray-500"
+                >
                   HDMF Amount
                 </label>
                 <Input
@@ -109,26 +110,44 @@ export function HDMFUpgradeReqDialog({
             </div>
 
             <div className="flex gap-4 pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md"
-                onClick={() => handleProcess(3)}
-                disabled={isSubmitting}
-              >
-                <XCircle className="mr-2 h-4 w-4" />
-                {isSubmitting ? "Processing..." : "Decline"}
-              </Button>
-              
-              <Button
-                type="button"
-                className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md"
-                onClick={() => handleProcess(2)}
-                disabled={isSubmitting || selectedApplicationStatus === "Approved"}
-              >
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                {isSubmitting ? "Processing..." : "Approve Request"}
-              </Button>
+              {selectedApplicationStatus !== "Approved" &&
+                selectedApplicationStatus !== "Declined" &&
+                selectedApplicationOperation !== "HDMF Upgrade" && (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md"
+                      onClick={() => handleProcess(3)}
+                      disabled={isSubmitting}
+                    >
+                      <XCircle className="mr-2 h-4 w-4" />
+                      {isSubmitting ? "Processing..." : "Decline"}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md"
+                      onClick={() => handleProcess(2)}
+                      disabled={
+                        isSubmitting || selectedApplicationStatus === "Approved"
+                      }
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      {isSubmitting ? "Processing..." : "Approve Request"}
+                    </Button>
+                  </>
+                )}
+              {selectedApplicationStatus !== "Pending" && (
+                <Button
+                  type="button"
+                  className="flex-1 bg-[#2F3593] text-white hover:bg-[#252a72] rounded-md p-5"
+                  onClick={handleClose}
+                  disabled={isSubmitting}
+                >
+                  Close
+                </Button>
+              )}
             </div>
           </div>
         </div>

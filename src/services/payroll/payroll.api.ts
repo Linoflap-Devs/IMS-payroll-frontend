@@ -200,3 +200,8 @@ export const postPayrolls = async (month: string, year: string): Promise<Payslip
   return response.data;
 }
 
+export const postVesselPayrolls = async (month: string, year: string, vesselId: number): Promise<PayslipResponse> => {
+  const response = await axiosInstance.post<PayslipResponse>("/payroll", {month, year, vesselId });
+  return response.data;
+};
+
