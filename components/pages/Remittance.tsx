@@ -42,6 +42,8 @@ export default function Remittance() {
   const [vessels, setVessels] = useState<string[]>([]);
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [isLoadingRemittance, setLoadingRemittance] = useState(false);
+  const [rankFilter, setRankFilter] = useState("all");
+  const [ranks, setRanks] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchCrewRemittance = async () => {
@@ -64,17 +66,23 @@ export default function Remittance() {
                 middleName: item.MiddleName,
                 lastName: item.LastName,
                 rankId: item.RankID,
-                rank: item.Rank,
+                rank: item.Rank?.trim() ?? "N/A",
                 vessel: item.Vessel,
                 crewName: `${item.FirstName}${middleInitial} ${item.LastName}`,
               };
             }
           );
 
-          const mappedVessels = res.data.map((item) => item.Vessel);
-          const uniqueVessels = [...new Set(mappedVessels)];
+          const mappedVessels = res.data.map((item) => item.Vessel?.trim());
+          const uniqueVessels = [...new Set(mappedVessels.filter(Boolean))];
+
+          const mappedRanks = res.data
+            .map((item) => item.Rank?.trim())
+            .filter(Boolean);
+          const uniqueRanks = [...new Set(mappedRanks)].sort();
 
           setVessels(uniqueVessels);
+          setRanks(uniqueRanks);
           setCrewData(mapped);
         } else {
           console.error("Failed to fetch crew remittance:", res.message);
@@ -173,7 +181,9 @@ export default function Remittance() {
     const matchesVesselFilter =
       vesselFilter === "all" || crew.vessel === vesselFilter;
 
-    return matchesSearch && matchesVesselFilter;
+    const matchesRankFilter = rankFilter === "all" || crew.rank === rankFilter;
+
+    return matchesSearch && matchesVesselFilter && matchesRankFilter;
   });
 
   return (
@@ -220,12 +230,41 @@ export default function Remittance() {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Select value={rankFilter} onValueChange={setRankFilter}>
+                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                  <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
+                  <SelectValue placeholder="Filter by rank" />
+                </SelectTrigger>
+                <SelectContent className="max-h-80">
+                  <SelectItem value="all">All Ranks</SelectItem>
+                  {ranks.map((rank) => (
+                    <SelectItem key={rank} value={rank}>
+                      {rank}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="outline"
+                className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+                onClick={() => {
+                  setRankFilter("all");
+                  setVesselFilter("all");
+                  setSearchTerm("");
+                }}
+              >
+                Clear Filters
+              </Button>
             </div>
           </div>
           <div className="text-center">
             {isLoadingRemittance ? (
               <div className="flex justify-center items-center h-40">
-                <p className="text-muted-foreground">Loading remittance data...</p>
+                <p className="text-muted-foreground">
+                  Loading remittance data...
+                </p>
               </div>
             ) : (
               <div className="bg-[#F9F9F9] rounded-md border pb-3">
