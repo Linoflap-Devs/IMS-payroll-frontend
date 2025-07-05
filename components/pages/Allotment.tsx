@@ -53,6 +53,7 @@ import generateDeductionRegister, {
 } from "../PDFs/allotmentDeductionRegister";
 import { generatePayrollPDF } from "../PDFs/payrollStatementPDF";
 import { PiFileTextFill, PiReceiptFill, PiUserListFill } from "react-icons/pi";
+import { generateDeductionAllotmentV2PDF } from "../PDFs/payrollDeductionRegisterV2PDF";
 
 type Payroll = {
   vesselId: number;
@@ -559,12 +560,19 @@ export default function Allotment() {
   };
 
   const handleGenerateDeductionRegisterPDF = () => {
-    generateDeductionRegister(
+    // generateDeductionRegister(
+    //   allotmentDeductionData,
+    //   Number(month),
+    //   Number(year),
+    //   Number(forexRate)
+    // );
+
+    generateDeductionAllotmentV2PDF(
       allotmentDeductionData,
       Number(month),
       Number(year),
-      Number(forexRate)
-    );
+      Number(forexRate),
+    )
   };
 
   const handleGeneratePayslipPDF = () => {
