@@ -26,6 +26,7 @@ import {
 import { DeductionDistributionDialog } from "../../dialogs/DeductionDistributionDialog";
 import { useDebounce } from "@/lib/useDebounce";
 import { generateDeductionRegister } from "@/components/PDFs/allotmentDeductionRegister";
+import { generateDeductionAllotmentV2PDF } from "@/components/PDFs/payrollDeductionRegisterV2PDF";
 
 export default function DeductionRegisterComponent() {
   const searchParams = useSearchParams();
@@ -154,7 +155,13 @@ export default function DeductionRegisterComponent() {
   );
 
   const handlePrint = () => {
-    generateDeductionRegister(
+    // generateDeductionRegister(
+    //   allotmentData,
+    //   Number(month),
+    //   Number(year),
+    //   Number(forex)
+    // );
+    generateDeductionAllotmentV2PDF(
       allotmentData,
       Number(month),
       Number(year),
