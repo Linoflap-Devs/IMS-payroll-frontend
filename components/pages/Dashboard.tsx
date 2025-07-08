@@ -67,7 +67,6 @@ export default function Dashboard() {
     const testUser = async () => {
       try {
         const user = await getCurrentUser();
-        console.log('[RootLayout] getCurrentUser response:', user);
       } catch (err) {
         console.error('[RootLayout] Failed to fetch user:', err);
       }

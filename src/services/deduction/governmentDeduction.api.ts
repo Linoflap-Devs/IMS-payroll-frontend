@@ -41,8 +41,13 @@ interface DeductionGovtRatesBaseResponse<T> {
   message?: string;
 }
 
-export const getDeductionGovtRates = async <T extends DeductionType>(year: number, type: T): Promise<DeductionGovtRatesBaseResponse<DeductionRateMap[T]>> => {
-  const response = await axiosInstance.get(`/deductions/gov-rates?year=${year}&type=${type}`);
+export const getDeductionGovtRates = async <T extends DeductionType>(
+  year: number,
+  type: T
+): Promise<DeductionGovtRatesBaseResponse<DeductionRateMap[T]>> => {
+  const response = await axiosInstance.get(
+    `/deductions/gov-rates?year=${year}&type=${type}`
+  );
   return response.data;
 };
 
@@ -75,11 +80,13 @@ type DeductionRequestMap = {
   PHILHEALTH: PhilHealthDeductionRequest;
 };
 
-type DeductionGovtRatesBaseRequest<T extends DeductionType = DeductionType> =
-  { type: T } & DeductionRequestMap[T];
+type DeductionGovtRatesBaseRequest<T extends DeductionType = DeductionType> = {
+  type: T;
+} & DeductionRequestMap[T];
 
 export const addDeductionGovtRates = async <T extends DeductionType>(
-  payload: DeductionGovtRatesBaseRequest<T>): Promise<DeductionGovtRatesBaseResponse<DeductionRateMap[T]>> => {
+  payload: DeductionGovtRatesBaseRequest<T>
+): Promise<DeductionGovtRatesBaseResponse<DeductionRateMap[T]>> => {
   const response = await axiosInstance.post("/deductions/gov-rates", payload);
   return response.data;
 };
@@ -92,26 +99,23 @@ export interface UpdateDeductionGovtRatesPayload {
 }
 export const updateDeductionGovtRates = async (
   payload: UpdateDeductionGovtRatesPayload
-): Promise<DeductionGovtRatesBaseResponse<DeductionRateMap[typeof payload.type]>> => {
+): Promise<
+  DeductionGovtRatesBaseResponse<DeductionRateMap[typeof payload.type]>
+> => {
   const { contributionId, type, data } = payload;
 
   try {
-  const response = await axiosInstance.patch<
-    DeductionGovtRatesBaseResponse<DeductionRateMap[typeof type]>
-  >(`/deductions/gov-rates/${contributionId}`, {
-    contributionId, // include this explicitly in body
-    type,
-    ...data,
-  });
+    const response = await axiosInstance.patch<
+      DeductionGovtRatesBaseResponse<DeductionRateMap[typeof type]>
+    >(`/deductions/gov-rates/${contributionId}`, {
+      contributionId,
+      type,
+      ...data,
+    });
 
-    console.log("Backend response:", response);
     return response.data;
   } catch (error: any) {
     if (error.response) {
-      // Server responded with a status outside 2xx
-      console.error("Backend error response:", error.response.data);
-      console.error("Status:", error.response.status);
-      console.error("Headers:", error.response.headers);
     } else if (error.request) {
       // Request was made but no response received
       console.error("No response received:", error.request);
@@ -122,6 +126,3 @@ export const updateDeductionGovtRates = async (
     throw error; // rethrow so caller still catches it
   }
 };
-
-
-

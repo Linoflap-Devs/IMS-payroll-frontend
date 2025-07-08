@@ -488,18 +488,14 @@ export function CrewAllottee({
 
       try {
         const apiModel = convertToApiModel(editingAllottee!);
-        //console.log("Converted API Model:", apiModel);
-
         updateCrewAllottee(crewId.toString(), apiModel)
           .then((response) => {
-            //console.log("Allottee saved successfully:", response);
             toast({
               title: "Allottee saved successfully",
               description: `Allottee ${editingAllottee?.name} has been updated.`,
               variant: "success",
             });
             setTriggerSave(false);
-            //console.log("Refetching crew allottees...");
             fetchCrewAllottees(crewId.toString());
           })
           .catch((error) => {
@@ -511,7 +507,6 @@ export function CrewAllottee({
             });
           })
           .finally(() => {
-            console.log("Finished save attempt. Cleaning up...");
             setAllotteeLoading(false);
             setTriggerSave(false);
             setIsEditingAllottee(false);
@@ -535,8 +530,6 @@ export function CrewAllottee({
   useEffect(() => {
     if (triggerSave) {
       setAllotteeLoading(true);
-      //console.log("Save triggered for allottee IN CREW ALLOTTEE");
-
       console.log(editingAllottee);
       if (!editingAllottee || !crewId) {
         setAllotteeLoading(false);
@@ -544,11 +537,9 @@ export function CrewAllottee({
       }
 
       try {
-        //console.log("Saving allottee with ID:", crewId);
         const apiModel = convertToApiModel(editingAllottee!);
         updateCrewAllottee(crewId.toString(), apiModel)
           .then((response) => {
-            //console.log("Allottee saved successfully:", response);
             toast({
               title: "Allottee saved successfully",
               description: `Allottee ${editingAllottee?.name} has been updated.`,
