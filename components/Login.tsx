@@ -67,7 +67,7 @@ export default function Login() {
       const response: LoginResponse = await loginUser(values);
 
       if (response.success) {
-        localStorage.setItem("userEmail", response.data.email); // session ONLY.
+        sessionStorage.setItem("userEmail", response.data.email);
 
         const currentUser = await getCurrentUser();
         if (currentUser) {
