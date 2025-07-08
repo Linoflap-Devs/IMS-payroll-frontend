@@ -206,7 +206,6 @@ export function JoinCrewDialog({
       getCrewBasic(crewMember.CrewCode)
         .then((response) => {
           if (response.success) {
-            console.log("Crew details fetched successfully:", response.data);
             setCrew(response.data);
           } else {
             console.error("Failed to fetch crew details:", response.message);

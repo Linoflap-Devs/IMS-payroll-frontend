@@ -71,7 +71,7 @@ export default function GovermentDeductions() {
     getDeductionGovtRates(Number(yearFilter), type)
       .then((res) => {
         if (!res.success || !Array.isArray(res.data) || res.data.length === 0) {
-          console.warn("No data returned for", type, yearFilter);
+          //console.warn("No data returned for", type, yearFilter);
           return;
         }
         if (type === "PHILHEALTH") {
@@ -86,7 +86,6 @@ export default function GovermentDeductions() {
           setPhilhealthData(mapped);
 
         } else if (type === "SSS") {
-          console.log("SSS Data:", res.data);
           const mapped: SSSDeductionRate[] = res.data.map((item: any) => ({
             contributionId: item.contributionId,
             salaryFrom: item.salaryFrom,
@@ -192,7 +191,6 @@ export default function GovermentDeductions() {
 
     return [];
   };
-  console.log(selectedPhilHealthData);
 
   const isValidDeductionType = (val: any): val is DeductionType =>
     val === "SSS" || val === "PHILHEALTH";

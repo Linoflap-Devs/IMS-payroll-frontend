@@ -56,7 +56,6 @@ export default function SSSContribution() {
             setVesselInfo(null);
             setSSSDeductionData([]);
           }
-          console.log("Fetched SSS deduction data:", vesselData);
         } else {
           console.error("Unexpected response format:", response);
           setVesselInfo(null);

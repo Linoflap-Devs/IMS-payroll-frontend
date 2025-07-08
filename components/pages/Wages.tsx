@@ -359,7 +359,7 @@ export default function Wages() {
             .then((result) => {
               if (result.isConfirmed) {
                 // TODO: Implement actual delete API call
-                console.log("Deleting salary scale detail ID:", detailId);
+                //console.log("Deleting salary scale detail ID:", detailId);
                 // Example: deleteSalaryScale(detailId).then(() => {
                 //   swalWithBootstrapButtons.fire("Deleted!", "Item deleted.", "success");
                 //   fetchSalaryScaleData(); // Refresh list

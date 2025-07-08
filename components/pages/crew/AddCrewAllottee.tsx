@@ -88,12 +88,6 @@ export default function AllotteeForm({
   const allotmentType = watch("allotmentType");
   //   const receivePayslip = watch("receivePayslip");
 
-  useEffect(() => {
-    if (Object.keys(errors).length > 0) {
-      console.log("Form errors:", errors);
-    }
-  }, [errors]);
-
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
   const {
     fetchBanks,
@@ -141,7 +135,6 @@ export default function AllotteeForm({
 
   const onSubmit = useCallback(
     (data: IAddAllottee) => {
-      console.log("onSubmit called with allottee data:", data);
 
       if (!crewId) {
         console.log("No crewId found. Submission aborted.");
@@ -149,7 +142,6 @@ export default function AllotteeForm({
       }
 
       setIsAddingAllottee(true);
-      console.log("isAddingAllottee set to true");
 
       // Prepare payload: convert isActive to active
       const payload = {
@@ -161,20 +153,16 @@ export default function AllotteeForm({
 
       addCrewAllottee(crewId, payload)
         .then((response) => {
-          console.log("addCrewAllottee response:", response);
 
           if (response.success) {
-            console.log("Allottee added successfully.");
             toast({
               title: "Success",
               description: "Allottee added successfully.",
               variant: "success",
             });
             setIsAddingAllottee(false);
-            console.log("Form reset to default values.");
             form.reset(defaultValues);
           } else {
-            console.log("Add allottee failed with message:", response.message);
             toast({
               title: "Error",
               description: response.message || "Failed to add allottee.",
@@ -194,9 +182,6 @@ export default function AllotteeForm({
         .finally(() => {
           setTriggerAdd(false);
           setIsAddLoading(false);
-          console.log(
-            "Finalizing: isAddLoading set to false, triggerAdd set to false"
-          );
         });
     },
     [

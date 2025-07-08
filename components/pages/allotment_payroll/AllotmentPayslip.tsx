@@ -47,9 +47,6 @@ export default function VesselPayslip() {
     }
   }, [searchParams]);
 
-  console.log("Payslip Data:", payslipData);
-  console.log("Payslip Crew Data:", payslipCrewData);
-
   const columns: ColumnDef<CrewPayroll>[] = [
     {
       accessorKey: "crewCode",

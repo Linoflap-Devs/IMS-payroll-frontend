@@ -59,7 +59,7 @@ export default function Register() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     // Simulate API call
-    console.log(`button clicked: ${values}`);
+    //console.log(`button clicked: ${values}`);
     setTimeout(() => {
       setIsLoading(false);
       // Redirect to dashboard after successful registration

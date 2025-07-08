@@ -164,7 +164,6 @@ export default function ManageUsers() {
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const userId = row.original.UserID;
-        //console.log("IS VERIFIED?", row.original.IsVerified);
         const isVerified = Number(row.original.IsVerified) === 0;
 
         return (
