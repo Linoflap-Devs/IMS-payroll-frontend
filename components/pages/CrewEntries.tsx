@@ -50,6 +50,12 @@ export default function Deduction() {
     vessels: true,
   });
 
+  const clearFilters = () => {
+    setSearchTerm("");
+    setRankFilter("all");
+    setVesselFilter("all");
+  };
+
   // Load crew deduction data
   useEffect(() => {
     setIsLoading((prev) => ({ ...prev, crew: true }));
@@ -173,7 +179,8 @@ export default function Deduction() {
                   <Link
                     href={`/home/deduction/deduction-entries?tab=deduction-entries&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
-                    )}`}>
+                    )}`}
+                  >
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View Deduction Entries
                   </Link>
@@ -182,7 +189,8 @@ export default function Deduction() {
                   <Link
                     href={`/home/deduction/deduction-entries?tab=hdmf-upgrade&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
-                    )}`}>
+                    )}`}
+                  >
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View HDMF Upgrade Contributions
                   </Link>
@@ -191,7 +199,8 @@ export default function Deduction() {
                   <Link
                     href={`/home/deduction/deduction-entries?tab=philhealth&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
-                    )}`}>
+                    )}`}
+                  >
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View PhilHealth Contributions
                   </Link>
@@ -200,7 +209,8 @@ export default function Deduction() {
                   <Link
                     href={`/home/deduction/deduction-entries?tab=sss&crewCode=${encodeURIComponent(
                       row.getValue("CrewCode")
-                    )}`}>
+                    )}`}
+                  >
                     <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     View SSS Contributions
                   </Link>
@@ -265,7 +275,8 @@ export default function Deduction() {
                   <Select
                     value={vesselFilter}
                     onValueChange={setVesselFilter}
-                    disabled={isLoading.vessels}>
+                    disabled={isLoading.vessels}
+                  >
                     <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                       {isLoading.vessels ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -282,7 +293,8 @@ export default function Deduction() {
                       {vessels.map((vessel) => (
                         <SelectItem
                           key={vessel.VesselID}
-                          value={vessel.VesselName || ""}>
+                          value={vessel.VesselName || ""}
+                        >
                           {vessel.VesselName}
                         </SelectItem>
                       ))}
@@ -293,7 +305,8 @@ export default function Deduction() {
                   <Select
                     value={rankFilter}
                     onValueChange={setRankFilter}
-                    disabled={isLoading.ranks}>
+                    disabled={isLoading.ranks}
+                  >
                     <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                       {isLoading.ranks ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -307,12 +320,22 @@ export default function Deduction() {
                       {ranks.map((rank) => (
                         <SelectItem
                           key={rank.RankID}
-                          value={rank.RankName || ""}>
+                          value={rank.RankName || ""}
+                        >
                           {rank.RankName}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+                  <Button
+                    variant="outline"
+                    onClick={clearFilters}
+                    className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+                  >
+                    Clear Filters
+                  </Button>
                 </div>
               </div>
               {/* DataTable with custom styling */}

@@ -69,8 +69,6 @@ export default function DeductionRegisterComponent() {
     fetchAllotmentData();
   }, [vesselId, month, year]);
 
-  console.log("Allotment Data:", allotmentData);
-
   // Format numbers to two decimal places with null checking
   const formatNumber = (value: string | number | null | undefined) => {
     if (value === null || value === undefined) return "0.00";

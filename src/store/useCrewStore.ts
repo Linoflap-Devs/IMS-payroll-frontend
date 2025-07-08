@@ -159,7 +159,6 @@ export const useCrewStore = create<CrewStore>((set) => ({
     set({ isLoadingMovements: true, movementsError: null });
     try {
       const response = await getCrewMovementv2(crewCode);
-      console.log("Fetched crew movement response:", response);
 
       if (response.success) {
         set({ movements: response.data, isLoadingMovements: false });

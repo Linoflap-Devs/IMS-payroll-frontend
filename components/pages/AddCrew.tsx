@@ -238,7 +238,7 @@ export default function AddCrew() {
       seamanBookExpiryDate: formData.seamansBookExpiryDate,
       crewPhoto: crewPhotoFile || undefined,
     };
-    console.log(">>> Payload being sent to API:", payload);
+    //console.log(">>> Payload being sent to API:", payload);
     try {
       const response = await addCrew(payload);
 
@@ -414,7 +414,6 @@ export default function AddCrew() {
       });
   };
 
-  console.log("Form Data:", formData);
   return (
     <>
       <div className="h-full w-full p-4 pt-3">

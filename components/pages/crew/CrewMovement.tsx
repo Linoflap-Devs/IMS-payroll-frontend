@@ -75,7 +75,7 @@ export function CrewMovement() {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
   const [filteredMovements, setFilteredMovements] = useState<Movement[]>([]);
-  const [selectedVessel, setSelectedVessel] = useState<string>("");
+  const [selectedVessel, setSelectedVessel] = useState<string>("all");
 
   const {
     movements,
@@ -84,6 +84,11 @@ export function CrewMovement() {
     fetchCrewMovements,
     resetMovements,
   } = useCrewStore();
+
+  const clearFilters = () => {
+    setSelectedVessel("all");
+    setFilteredMovements(movements);
+  };
 
   useEffect(() => {
     if (!crewId) return;
@@ -101,12 +106,10 @@ export function CrewMovement() {
   const handleVesselChange = (value: string) => {
     setSelectedVessel(value);
 
-    if (value) {
-      setFilteredMovements(
-        movements.filter((m) => m.Vessel === value)
-      );
+    if (value === "all") {
+      setFilteredMovements(movements); // show all
     } else {
-      setFilteredMovements(movements);
+      setFilteredMovements(movements.filter((m) => m.Vessel === value));
     }
   };
 
@@ -118,7 +121,6 @@ export function CrewMovement() {
   
   return (
     <div className="space-y-6">
-      {/* Vessel selection and filter */}
       <div className="flex gap-4">
         <div className="flex-1">
           <div className="relative rounded-lg border shadow-sm overflow-hidden">
@@ -136,33 +138,31 @@ export function CrewMovement() {
                     <SelectValue placeholder="Select vessel" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from(new Set(movements.map((m) => m.Vessel))).map(
-                      (vessel) => (
-                        <SelectItem key={vessel} value={vessel}>
-                          {vessel}
-                        </SelectItem>
-                      )
-                    )}
+                    <SelectItem value="all">Show All Vessels</SelectItem>
+                    {Array.from(new Set(movements.map((m) => m.Vessel))).map((vessel) => (
+                      <SelectItem key={vessel} value={vessel}>
+                        {vessel}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </div>
         </div>
-        {/* <div>
+        <div>
           <Button
             variant="outline"
             className="h-11 px-5 border rounded-lg shadow-sm cursor-pointer"
-            onClick={() => handleVesselChange(selectedVessel)}>
-            <Filter className="h-5 w-5 text-primary mr-2" />
+            onClick={clearFilters}
+          >
             <span className="text-gray-700 font-medium">
-              Filter By Movement Type
+              Clear Select 
             </span>
           </Button>
-        </div> */}
+        </div>
       </div>
 
-      {/* Movement history table */}
       <div className="border rounded-md overflow-hidden pb-3">
         {isLoadingMovements ? (
           <div className="p-4 text-center text-gray-500">

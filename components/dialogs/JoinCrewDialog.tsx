@@ -196,7 +196,7 @@ export function JoinCrewDialog({
   const [selectedPort, setSelectedPort] = useState("");
   const [signOnDate, setSignOnDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+    return today.toISOString().split("T")[0];
   });
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -206,7 +206,6 @@ export function JoinCrewDialog({
       getCrewBasic(crewMember.CrewCode)
         .then((response) => {
           if (response.success) {
-            console.log("Crew details fetched successfully:", response.data);
             setCrew(response.data);
           } else {
             console.error("Failed to fetch crew details:", response.message);
@@ -224,7 +223,6 @@ export function JoinCrewDialog({
         .then((response) => {
           if (response.success) {
             const vesselList = response.data;
-            console.log("Vessel list fetched successfully:", vesselList);
             setVesselList(vesselList);
 
             // matching of selected vessel
@@ -488,8 +486,7 @@ export function JoinCrewDialog({
                 placeholder="Select vessel"
                 value={selectedVessel}
                 onChange={setSelectedVessel}
-                //disabled
-                disabled={!!selectedVessel} // disable if vessel already selected
+                disabled={!!selectedVessel}
                 className={`w-full ${
                   submitted && !selectedVessel ? "border-red-500" : ""
                 }`}

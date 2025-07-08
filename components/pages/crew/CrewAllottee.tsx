@@ -103,8 +103,6 @@ export function CrewAllottee({
     resetAllottees,
   } = useCrewStore();
 
-  //console.log('ALLOTTEES:', allottees);
-
   const {
     fetchBanks,
     setSelectedBankId,
@@ -333,10 +331,6 @@ export function CrewAllottee({
       editingAllottee.bankId &&
       !editingAllottee.branchId
     ) {
-      // We have a bank ID but no branch ID, let's try to find it
-      //console.log("Bank selected but branch is empty, trying to find matching branch...");
-      //console.log("Current bank ID:", editingAllottee.bankId);
-      //console.log("Bank branch name to find:", editingAllottee.bankBranch);
 
       // Set the selected bank ID in the store
       setSelectedBankId(Number(editingAllottee.bankId));
@@ -344,7 +338,6 @@ export function CrewAllottee({
       // Wait a bit for branches to load and then find the matching branch
       setTimeout(() => {
         const branches = getBranchesForSelectedBank();
-        //console.log("Available branches:", branches);
 
         // If we have a branch name but no ID, find it
         if (editingAllottee.bankBranch && branches.length > 0) {
@@ -353,7 +346,6 @@ export function CrewAllottee({
           );
 
           if (matchingBranch) {
-            //console.log("Found matching branch:", matchingBranch);
 
             // Update the allottee with the branch ID
             setEditingAllottee({
@@ -486,32 +478,24 @@ export function CrewAllottee({
 
   useEffect(() => {
     if (triggerSave) {
-      //console.log("useEffect triggered due to triggerSave");
 
       setAllotteeLoading(true);
-      //console.log("Allottee loading set to true");
 
       if (!editingAllottee || !crewId) {
-        //console.log("Missing editingAllottee or crewId. Aborting save.");
         setAllotteeLoading(false);
         return;
       }
 
       try {
-        //console.log("Attempting to save allottee with ID:", crewId);
         const apiModel = convertToApiModel(editingAllottee!);
-        //console.log("Converted API Model:", apiModel);
-
         updateCrewAllottee(crewId.toString(), apiModel)
           .then((response) => {
-            //console.log("Allottee saved successfully:", response);
             toast({
               title: "Allottee saved successfully",
               description: `Allottee ${editingAllottee?.name} has been updated.`,
               variant: "success",
             });
             setTriggerSave(false);
-            //console.log("Refetching crew allottees...");
             fetchCrewAllottees(crewId.toString());
           })
           .catch((error) => {
@@ -523,7 +507,6 @@ export function CrewAllottee({
             });
           })
           .finally(() => {
-            console.log("Finished save attempt. Cleaning up...");
             setAllotteeLoading(false);
             setTriggerSave(false);
             setIsEditingAllottee(false);
@@ -547,8 +530,6 @@ export function CrewAllottee({
   useEffect(() => {
     if (triggerSave) {
       setAllotteeLoading(true);
-      //console.log("Save triggered for allottee IN CREW ALLOTTEE");
-
       console.log(editingAllottee);
       if (!editingAllottee || !crewId) {
         setAllotteeLoading(false);
@@ -556,11 +537,9 @@ export function CrewAllottee({
       }
 
       try {
-        //console.log("Saving allottee with ID:", crewId);
         const apiModel = convertToApiModel(editingAllottee!);
         updateCrewAllottee(crewId.toString(), apiModel)
           .then((response) => {
-            //console.log("Allottee saved successfully:", response);
             toast({
               title: "Allottee saved successfully",
               description: `Allottee ${editingAllottee?.name} has been updated.`,

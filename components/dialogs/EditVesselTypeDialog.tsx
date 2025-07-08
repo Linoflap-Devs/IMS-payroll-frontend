@@ -52,7 +52,7 @@ export function EditVesselTypeDialog({
       setIsSubmitting(false);
     }
     onOpenChange(open);
-    console.log(vesselTypeData);
+    //console.log(vesselTypeData);
   };
 
   const handleSubmit = async () => {

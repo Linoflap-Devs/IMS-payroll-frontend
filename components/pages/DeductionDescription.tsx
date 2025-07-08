@@ -58,6 +58,12 @@ export default function Deduction() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [currencyFilter, setCurrencyFilter] = useState("all");
 
+  const clearFilters = () => {
+    setSearchTerm("");
+    setTypeFilter("all");
+    setCurrencyFilter("all");
+  }
+  
   const loantype: Record<number, string> = {
     1: "Common Deduction",
     2: "Loan Type",
@@ -132,7 +138,6 @@ export default function Deduction() {
       cell: ({ row }) => {
         const deduction = row.original;
         const handleDelete = (deductionId: number) => {
-          console.log("Delete deduction with ID:", deductionId);
           const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
               confirmButton:
@@ -307,6 +312,15 @@ export default function Deduction() {
                       <SelectItem value="2">USD</SelectItem>
                     </SelectContent>
                   </Select>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+                  <Button
+                    variant="outline"
+                    onClick={clearFilters}
+                    className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
                   <Button
                     className="bg-primary hover:bg-primary/90"
                     onClick={() => setAddDeductionTypeDialogOpen(true)}>

@@ -1,7 +1,4 @@
-// In: ../../src/services/wages/salaryScale.api.ts
 import axiosInstance from "../../lib/axios";
-
-// ... (other interfaces like SalaryScaleItem, UpdateSalaryScalePayload, UpdateSalaryScaleResponse remain the same) ...
 
 export interface SalaryScaleItem {
   SalaryScaleDetailID: number;
@@ -49,11 +46,7 @@ export const updateSalaryScale = async (
   payload: UpdateSalaryScalePayload
 ): Promise<UpdateSalaryScaleResponse> => {
   const apiUrl = `/wages/scale/${scaleId}`;
-  // console.log("Attempting to PATCH to URL:", apiUrl); // Keep for debugging if needed
-  // console.log("With scaleId:", scaleId);
-  // console.log("With payload:", payload);
 
-  // Change .put to .patch
   const response = await axiosInstance.patch<UpdateSalaryScaleResponse>(
     apiUrl,
     payload

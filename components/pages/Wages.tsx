@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-// Link import removed as it's not used directly in this component snippet
-// import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -288,10 +286,7 @@ export default function Wages() {
           : item
       )
     );
-    setEditDialogOpen(false); // Close dialog handled by dialog itself via onOpenChange
-    // Swal success message is shown in the dialog itself.
-    // Optionally, refetch if there are complex side effects not covered by updating the single item:
-    // fetchSalaryScaleData();
+    setEditDialogOpen(false);
   };
 
   const salaryScaleColumns: ColumnDef<SalaryScaleItem>[] = [
@@ -335,7 +330,7 @@ export default function Wages() {
       id: "action",
       header: () => <div className="text-center">Action</div>,
       cell: ({ row }) => {
-        const salaryScaleItem = row.original; // Renamed for clarity
+        const salaryScaleItem = row.original;
         const handleDelete = (detailId: number) => {
           const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
@@ -358,12 +353,6 @@ export default function Wages() {
             })
             .then((result) => {
               if (result.isConfirmed) {
-                // TODO: Implement actual delete API call
-                console.log("Deleting salary scale detail ID:", detailId);
-                // Example: deleteSalaryScale(detailId).then(() => {
-                //   swalWithBootstrapButtons.fire("Deleted!", "Item deleted.", "success");
-                //   fetchSalaryScaleData(); // Refresh list
-                // }).catch(err => swalWithBootstrapButtons.fire("Error", "Could not delete.", "error"));
                 swalWithBootstrapButtons.fire(
                   "Simulated Delete!",
                   "Item would be deleted.",
@@ -436,12 +425,7 @@ export default function Wages() {
       accessorKey: "PayableOnboard",
       header: () => <div className="text-center">Payable On Board</div>,
       cell: ({ row }) => {
-        // console.log("row.original in PayableOnBoard cell:", row.original);
-        const rawValue = row.original?.PayableOnboard; // console.log(
-        //   "PayableOnBoard Raw Value (row.original):",
-        //   rawValue,
-        //   typeof rawValue
-        // );
+        const rawValue = row.original?.PayableOnboard;
         const value = rawValue === 1;
         return (
           <div className="text-center">
@@ -473,7 +457,6 @@ export default function Wages() {
             cancelButtonText: "No, cancel!",
           })
             .then((result) => {
-              console.log("Wage Code in handle Delete: " + wageCode);
               if (result.isConfirmed) {
                 deleteWageDescription(wageDescription.WageID).then(
                   (response) => {

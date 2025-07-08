@@ -164,12 +164,11 @@ export default function ManageUsers() {
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const userId = row.original.UserID;
-        //console.log("IS VERIFIED?", row.original.IsVerified);
         const isVerified = Number(row.original.IsVerified) === 0;
 
         return (
           <div className="text-center">
-              <DropdownMenu>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
                   <span className="sr-only">Open menu</span>
@@ -220,14 +219,17 @@ export default function ManageUsers() {
   ];
 
   const handleUserDelete = async (userId: number) => {
+    const user = userData.find((u) => u.UserID === userId);
+    const userName = user ? user.Name : "this user";
+
     const result = await Swal.fire({
-      title: "Are you sure?",
+      title: `Delete ${userName}?`,
       text: "This action cannot be undone.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#6c757d",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: "Yes, delete",
       reverseButtons: true,
     });
 
@@ -239,7 +241,7 @@ export default function ManageUsers() {
         setUserData((prev) => prev.filter((user) => user.UserID !== userId));
         toast({
           title: "Deleted",
-          description: "The user has been deleted successfully.",
+          description: `${userName} has been deleted successfully.`,
           variant: "success",
           duration: 3000,
         });
@@ -257,14 +259,17 @@ export default function ManageUsers() {
   };
 
   const handleResetPassword = async (userId: number) => {
+    const user = userData.find((u) => u.UserID === userId);
+    const userName = user ? user.Name : "this user";
+
     const result = await Swal.fire({
-      title: "Are you sure?",
+      title: `Reset password for ${userName}?`,
       text: "This action cannot be undone.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#6c757d",
-      confirmButtonText: "Yes, reset the password of this user.",
+      confirmButtonText: "Yes, reset it",
       reverseButtons: true,
     });
 
@@ -274,11 +279,9 @@ export default function ManageUsers() {
       const response = await resetPassword(userId);
 
       if (response.success) {
-        setUserData((prev) => prev.filter((user) => user.UserID !== userId));
         toast({
-          title: "Password reset!",
-          description:
-            "The password has been reset successfully. An email has been sent to the user.",
+          title: "Password Reset",
+          description: `Password for ${userName} has been reset successfully.`,
           variant: "success",
           duration: 3000,
         });

@@ -181,7 +181,6 @@ export function useCrewDetails(crewId: string | null) {
       });
     } finally {
       setIsEditLoading(false);
-      console.log("Finished saveChanges: loading stopped");
     }
   };
 
