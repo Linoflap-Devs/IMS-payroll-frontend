@@ -211,10 +211,10 @@ export default function Dashboard() {
 
   return (
     <div className="h-full w-full p-6 pt-3">
-      <p className="text-4xl font-semibold mb-3">Dashboard</p>
+      <p className="text-4xl font-semibold my-3">Dashboard</p>
 
       {/* Welcome Card */}
-      <Card className="mb-3">
+      <Card className="my-3">
         <CardContent className="p-3 flex justify-between items-center">
           <div className="pl-6">
             <h1 className="text-3xl font-semibold text-blue-800 mb-1">
@@ -357,7 +357,7 @@ export default function Dashboard() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
         <Card>
           <CardHeader className="pb-1 p-3">
             <CardTitle className="text-base">
