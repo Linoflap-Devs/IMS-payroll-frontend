@@ -24,6 +24,7 @@ import { Card, CardContent } from "../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
 import {
   AllotmentRegisterData,
+  getForex,
   getPayrollList,
   getVesselAllotmentRegister,
   getVesselDeductionRegister,
@@ -246,8 +247,17 @@ export default function Allotment() {
     const fetchDashboardData = async () => {
       try {
         const dashboardResponse = await getDashboardList();
+        const forexRate = await getForex(monthFilter, yearFilter);
+        console.log("Forex rate", forexRate)
+
+        console.log("Filters: ", monthFilter, yearFilter)
+        console.log("Result", forexRate.find((item) => item.ExchangeRateMonth === Number(monthFilter) && item.ExchangeRateYear === Number(yearFilter)))
+        if(forexRate.length > 0) {
+          const result = forexRate.find((item) => item.ExchangeRateMonth === Number(monthFilter) && item.ExchangeRateYear === Number(yearFilter));
+          setForexRate(result?.ExchangeRate || 0)
+        }
         if (dashboardResponse.success && dashboardResponse.data) {
-          setForexRate(dashboardResponse.data.ForexRate);
+          //setForexRate(dashboardResponse.data.ForexRate);
         } else {
           console.error(
             "Failed to fetch dashboard data:",
@@ -259,10 +269,31 @@ export default function Allotment() {
       }
     };
 
-    fetchDashboardData();
+    // fetchDashboardData();
 
-    getPayrollList(Number(monthFilter), Number(yearFilter))
-      .then((res) => {
+    // getPayrollList(Number(monthFilter), Number(yearFilter))
+    //   .then((res) => {
+    //     if (res.success) {
+    //       const mapped: Payroll[] = res.data.map((item) => ({
+    //         vesselId: item.VesselId,
+    //         vesselName: item.VesselName,
+    //         onBoardCrew: item.OnBoardCrew,
+    //         grossAllotment: item.GrossAllotment,
+    //         totalDeductions: item.TotalDeduction,
+    //         netAllotment: item.NetAllotment,
+    //       }));
+
+    //       setPayrollData(mapped);
+    //     } else {
+    //       console.error("Failed to fetch payroll list:", res.message);
+    //     }
+    //   })
+    //   .catch((err) => console.error("Error fetching payroll list:", err))
+      
+    
+    const fetchPayrollData = async () => {
+      try {
+        const res = await getPayrollList(Number(monthFilter), Number(yearFilter));
         if (res.success) {
           const mapped: Payroll[] = res.data.map((item) => ({
             vesselId: item.VesselId,
@@ -272,15 +303,19 @@ export default function Allotment() {
             totalDeductions: item.TotalDeduction,
             netAllotment: item.NetAllotment,
           }));
-
           setPayrollData(mapped);
         } else {
           console.error("Failed to fetch payroll list:", res.message);
         }
-      })
-      .catch((err) => console.error("Error fetching payroll list:", err))
+      } catch (err) {
+        console.error("Error fetching payroll list:", err);
+      }
+    };
+
+      // Execute both async operations and wait for both to complete
+    Promise.all([fetchDashboardData(), fetchPayrollData()])
       .finally(() => {
-        setIsDataLoading(false);
+        setIsDataLoading(false); // Only set loading to false after both operations complete
       });
   }, [monthFilter, yearFilter]);
 
@@ -304,7 +339,7 @@ export default function Allotment() {
     setPayrollLoading(true);
 
     try {
-      const response = await postPayrolls(monthFilter, yearFilter);
+      const response = await postPayrolls(monthFilter, Number(yearFilter));
 
       const wasAllAlreadyPosted = response.message?.includes("Posted 0");
 
@@ -399,6 +434,11 @@ export default function Allotment() {
         setPrintLoading(false);
       });
   };
+
+  const handleValueChange = (value: number) => {
+    console.log("Value changed: " + value);
+    setMonthFilter(value.toString());
+  }
 
   const columns: ColumnDef<Payroll>[] = [
     {
@@ -615,7 +655,7 @@ export default function Allotment() {
                       </span>
                     </div>
                     <span className="text-foreground text-base px-4">
-                      {monthNames[parseInt(monthFilter, 10) - 1]}
+                      {monthNames[Number(monthFilter) - 1]}
                     </span>
                   </div>
                 </SelectTrigger>

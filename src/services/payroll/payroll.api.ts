@@ -185,6 +185,13 @@ export interface PayslipResponse {
   data: PayslipData;
 }
 
+export interface Forex {
+  ExchangeRateID: number,
+  ExchangeRateYear: number,
+  ExchangeRateMonth: number,
+  ExchangeRate: number
+}
+
 export const getVesselPayslip = async (vesselId: string | number, month: number, year: number): Promise<PayslipResponse> => {
   const response = await axiosInstance.get<PayslipResponse>(`/payroll/${vesselId}/payslip?month=${month}&year=${year}`);
   return response.data;
@@ -195,7 +202,7 @@ export const getVesselPayslipV2 = async (vesselId: string | number | null, month
   return response.data;
 }
 
-export const postPayrolls = async (month: string, year: string): Promise<PayslipResponse> => {
+export const postPayrolls = async (month: string, year: number): Promise<PayslipResponse> => {
   const response = await axiosInstance.post<PayslipResponse>("/payroll", { month, year });
   return response.data;
 }
@@ -205,3 +212,8 @@ export const postVesselPayrolls = async (month: string, year: string, vesselId: 
   return response.data;
 };
 
+export const getForex = async(month: string, year: string): Promise<Forex[]> => {
+  const response = await axiosInstance.get(`/wages/forex?month=${month}&year=${year}`);
+
+  return response.data.data;
+}
