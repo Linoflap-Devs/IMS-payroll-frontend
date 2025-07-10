@@ -27,6 +27,7 @@ import { AllotteeDistributionDialog } from "../../dialogs/AllotteeDistributionDi
 import { useDebounce } from "@/lib/useDebounce";
 import { generateAllotmentPDF } from "@/components/PDFs/payrollAllotmentRegisterPDF";
 import { PiUserListFill } from "react-icons/pi";
+import { generateAllotmentExcel } from "@/components/Excels/allotmentAllotmentRegister";
 
 export default function AllotmentRegisterComponent() {
   const searchParams = useSearchParams();
@@ -174,8 +175,9 @@ export default function AllotmentRegisterComponent() {
                 onClick={() => {
                   setSelectedCrew(crew);
                   setIsAllotteeDialogOpen(true);
-                }}>
-              <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                }}
+              >
+                <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 View Allottee Distribution
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -187,9 +189,12 @@ export default function AllotmentRegisterComponent() {
 
   // Filter the crew data based on search term
   const filterCrew = allotmentData[0]?.Crew || [];
-  const filteredData = filterCrew.filter((item) =>
-    item.CrewID?.toString().toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-    item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
+  const filteredData = filterCrew.filter(
+    (item) =>
+      item.CrewID?.toString()
+        .toLowerCase()
+        .includes(debouncedSearch.toLowerCase()) ||
+      item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   const handlePrint = () => {
@@ -213,6 +218,38 @@ export default function AllotmentRegisterComponent() {
       // const monthName = monthNames[selectedMonth - 1];
 
       generateAllotmentPDF(
+        allotmentData,
+        monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
+        year ? parseInt(year) : new Date().getFullYear(),
+        Number(forexRate)
+      );
+    } else {
+      console.error("No allotment register data available");
+    }
+  };
+
+  // EXCEL
+  const handleExcelPrint = () => {
+    if (allotmentData && allotmentData.length > 0) {
+      // Get month name from month number
+      const monthNames = [
+        "JANUARY",
+        "FEBRUARY",
+        "MARCH",
+        "APRIL",
+        "MAY",
+        "JUNE",
+        "JULY",
+        "AUGUST",
+        "SEPTEMBER",
+        "OCTOBER",
+        "NOVEMBER",
+        "DECEMBER",
+      ];
+
+      // const monthName = monthNames[selectedMonth - 1];
+
+      generateAllotmentExcel(
         allotmentData,
         monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
         year ? parseInt(year) : new Date().getFullYear(),
@@ -271,7 +308,8 @@ export default function AllotmentRegisterComponent() {
               </h2>
               <Badge
                 variant="secondary"
-                className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]">
+                className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]"
+              >
                 Active
               </Badge>
             </div>
@@ -305,22 +343,33 @@ export default function AllotmentRegisterComponent() {
             />
           </div>
           <div className="flex gap-4">
-            <Button
-              className="gap-2 h-11 px-5"
-              disabled={isLoading}
-              onClick={handlePrint}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <AiOutlinePrinter className="h-4 w-4" />
-                  Print Register
-                </>
-              )}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-10 px-4 text-sm" disabled={isLoading}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    "Print Summary"
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="text-sm w-48">
+                <DropdownMenuItem onClick={handlePrint}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                    Export PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                onClick={handleExcelPrint}
+                >
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  Export Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

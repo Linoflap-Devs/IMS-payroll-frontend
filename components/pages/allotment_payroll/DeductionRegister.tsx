@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronLeft, MoreHorizontal } from "lucide-react";
+import { Search, ChevronLeft, MoreHorizontal, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -25,8 +25,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DeductionDistributionDialog } from "../../dialogs/DeductionDistributionDialog";
 import { useDebounce } from "@/lib/useDebounce";
-import { generateDeductionRegister } from "@/components/PDFs/allotmentDeductionRegister";
 import { generateDeductionAllotmentV2PDF } from "@/components/PDFs/payrollDeductionRegisterV2PDF";
+import { generateDeductionAllotmentExcel } from "@/components/Excels/payrollDeductionRegister";
+import { PiReceiptFill } from "react-icons/pi";
 
 export default function DeductionRegisterComponent() {
   const searchParams = useSearchParams();
@@ -138,6 +139,7 @@ export default function DeductionRegisterComponent() {
                   setSelectedCrew(crew);
                   setIsDeductionDialogOpen(true);
                 }}>
+              <PiReceiptFill className="mr-2 h-4 w-4" />
                 View Deduction
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -153,12 +155,6 @@ export default function DeductionRegisterComponent() {
   );
 
   const handlePrint = () => {
-    // generateDeductionRegister(
-    //   allotmentData,
-    //   Number(month),
-    //   Number(year),
-    //   Number(forex)
-    // );
     generateDeductionAllotmentV2PDF(
       allotmentData,
       Number(month),
@@ -166,6 +162,15 @@ export default function DeductionRegisterComponent() {
       Number(forex)
     );
   };
+
+  const handleExcelPrint = () => (
+    generateDeductionAllotmentExcel(
+      allotmentData, 
+      Number(month),
+      Number(year),
+      Number(forex)
+    )
+  )
 
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">
@@ -254,17 +259,36 @@ export default function DeductionRegisterComponent() {
             />
           </div>
           <div className="flex gap-4">
-            <Button
-              className="gap-2 h-11 px-5"
-              disabled={isLoading}
-              onClick={handlePrint}>
-              <AiOutlinePrinter className="h-4 w-4" />
-              Print Register
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-10 px-4 text-sm" disabled={isLoading}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    "Print Summary"
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="text-sm w-48">
+                <DropdownMenuItem onClick={handlePrint}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                    Export PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                onClick={handleExcelPrint}
+                >
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  Export Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        {/* Allotment Table */}
         <div className="rounded-md border pb-3">
           <DataTable columns={columns} data={filteredData} pageSize={6} />
         </div>

@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {} from "@/components/ui/dropdown-menu";
-import { Search, Filter, Ship, ChevronLeft } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Search, Ship, ChevronLeft, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -19,6 +19,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import { generatePayrollPDF } from "@/components/PDFs/payrollStatementPDF";
 import { toast } from "@/components/ui/use-toast";
+import { generatePayrollExcel } from "@/components/Excels/payrollStatementPDF";
 
 export default function VesselPayslip() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,15 +27,18 @@ export default function VesselPayslip() {
   const searchParams = useSearchParams();
   const [PayslipPDFData, setPayslipPDFData] = useState<PayslipData>();
   const [payslipCrewData, setPayslipCrewData] = useState<CrewPayroll[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const vesselId = searchParams.get("vesselId");
-    const month = searchParams.get("month");
-    const year = searchParams.get("year");
+    const fetchPayslipData = async () => {
+      const vesselId = searchParams.get("vesselId");
+      const month = searchParams.get("month");
+      const year = searchParams.get("year");
 
-    if (vesselId && month && year) {
-      getVesselPayslipV2(vesselId, parseInt(month), parseInt(year))
-        .then((res) => {
+      if (vesselId && month && year) {
+        setIsLoading(true);
+        try {
+          const res = await getVesselPayslipV2(vesselId, parseInt(month), parseInt(year));
           if (res.success) {
             setPayslipPDFData(res.data);
             setPayslipData(res.data);
@@ -42,9 +46,15 @@ export default function VesselPayslip() {
           } else {
             console.error("Failed to fetch payslip data:", res.message);
           }
-        })
-        .catch((err) => console.error("Error fetching payslip data:", err));
-    }
+        } catch (err) {
+          console.error("Error fetching payslip data:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchPayslipData();
   }, [searchParams]);
 
   const columns: ColumnDef<CrewPayroll>[] = [
@@ -94,6 +104,17 @@ export default function VesselPayslip() {
       return;
     }
     generatePayrollPDF(PayslipPDFData);
+  };
+
+  const handleGeneratePayslipExcel = () => {
+    if (!PayslipPDFData) {
+      console.error("No payslip data available for PDF generation.");
+      return;
+    }
+    generatePayrollExcel(
+      PayslipPDFData,
+      undefined,
+    );
   };
 
   return (
@@ -164,14 +185,33 @@ export default function VesselPayslip() {
             />
           </div>
           <div className="flex gap-4">
-            <Button variant="outline" className="gap-2 h-11 px-5">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-            <Button className="gap-2 h-11 px-5" onClick={generatePayrollPDFs}>
-              <AiOutlinePrinter className="h-4 w-4" />
-              Print Payslip
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-10 px-4 text-sm" disabled={isLoading}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    "Print Summary"
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="text-sm w-48">
+                <DropdownMenuItem onClick={generatePayrollPDFs}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                    Export PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                onClick={handleGeneratePayslipExcel}
+                >
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  Export Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
