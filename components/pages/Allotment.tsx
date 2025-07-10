@@ -17,7 +17,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CircleAlert, Loader, Loader2, MoreHorizontal, Search } from "lucide-react";
+import {
+  CircleAlert,
+  Loader,
+  Loader2,
+  MoreHorizontal,
+  Search,
+} from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
@@ -131,6 +137,7 @@ export default function Allotment() {
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [printLoading, setPrintLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -159,16 +166,16 @@ export default function Allotment() {
     (currentYear - 15 + i).toString()
   );
 
-  const [allotmentRegisterData, setAllotmentRegisterData] = useState<
-    AllotmentRegisterData[]
-  >([]);
+  // const [allotmentRegisterData, setAllotmentRegisterData] = useState<
+  //   AllotmentRegisterData[]
+  // >([]);
 
-  const [allotmentDeductionData, setAllotmentDeductionData] = useState<
-    DeductionRegisterData[]
-  >([]);
+  // const [allotmentDeductionData, setAllotmentDeductionData] = useState<
+  //   DeductionRegisterData[]
+  // >([]);
 
-  const [allotmentPayslipData, setAllotmentPayslipData] =
-    useState<PayslipData>();
+  // const [allotmentPayslipData, setAllotmentPayslipData] =
+  //   useState<PayslipData>();
 
   const month = searchParams.get("month");
   const year = searchParams.get("year");
@@ -238,7 +245,7 @@ export default function Allotment() {
 
   // Fetch data when filters change
   useEffect(() => {
-    setIsDataLoading(true);
+    setIsLoading(true);
 
     const fetchDashboardData = async () => {
       try {
@@ -322,7 +329,7 @@ export default function Allotment() {
     };
 
     Promise.all([fetchDashboardData(), fetchPayrollData()]).finally(() => {
-      setIsDataLoading(false);
+      setIsLoading(false);
     });
   }, [monthFilter, yearFilter]);
 
@@ -560,26 +567,14 @@ export default function Allotment() {
   );
 
   const handleGenerateAllotmentRegisterPDF = async () => {
-    setIsDataLoading(true)
+    setIsDataLoading(true);
     const response = await getVesselAllotmentRegister(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null
-    )
-      // .then((response) => {
-      //   if (response.success && Array.isArray(response.data)) {
-      //     setAllotmentRegisterData(response.data);
-      //   } else {
-      //     console.log("Unexpected API response format:", response);
-      //     setAllotmentRegisterData([]);
-      //   }
-      // })
-      // .catch((error) => {
-      //   console.error("Error fetching allotment register data:", error);
-      //   setAllotmentRegisterData([]);
-      // });
+    );
 
-      const monthNames = [
+    const monthNames = [
       "JANUARY",
       "FEBRUARY",
       "MARCH",
@@ -595,79 +590,56 @@ export default function Allotment() {
     ];
 
     await generateAllotmentPDF(
-        response.data,
-        monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
-        year ? parseInt(year) : new Date().getFullYear(),
-        Number(forexRate)
-      );
-    setIsDataLoading(false)
-
-    // if (allotmentRegisterData && allotmentRegisterData.length > 0) {
-    //   // Get month name from month number
-     
-
-    //   // const monthName = monthNames[selectedMonth - 1];
-
-      
-    // } else {
-    //   console.error("No allotment register data available");
-    // }
+      response.data,
+      monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
+      year ? parseInt(year) : new Date().getFullYear(),
+      Number(forexRate)
+    );
+    setIsDataLoading(false);
   };
 
   const handleGenerateDeductionRegisterPDF = async () => {
-    setIsDataLoading(true)
+    setIsDataLoading(true);
     const response = await getVesselDeductionRegister(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null
-    )
-      // .then((response) => {
-      //   if (response.success && Array.isArray(response.data)) {
-      //     setAllotmentDeductionData(response.data);
-      //   } else {
-      //     console.log("Unexpected API response format:", response);
-      //     setAllotmentRegisterData([]);
-      //   }
-      // })
-      // .catch((error) => {
-      //   console.error("Error fetching deduction register data:", error);
-      //   setAllotmentRegisterData([]);
-      // });
+    );
 
     generateDeductionAllotmentV2PDF(
       response.data,
       Number(month),
       Number(year),
-      Number(forexRate),
-    )
-    setIsDataLoading(false)
+      Number(forexRate)
+    );
+    setIsDataLoading(false);
   };
 
   const handleGeneratePayslipPDF = async () => {
-    setIsDataLoading(true)
+    setIsDataLoading(true);
     const response = await getVesselPayslipV2(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null
-    )
+    );
 
     generatePayrollPDF(
       response.data,
       undefined,
       vesselId ? parseInt(vesselId) : undefined
     );
-    setIsDataLoading(false)
+    setIsDataLoading(false);
   };
 
   // EXCEL
   const handleGenerateAllotmentRegisterExcel = async () => {
-    setIsDataLoading(true)
+    setIsDataLoading(true);
     const response = await getVesselAllotmentRegister(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null
-    )
-      const monthNames = [
+    );
+    const monthNames = [
       "JANUARY",
       "FEBRUARY",
       "MARCH",
@@ -683,45 +655,45 @@ export default function Allotment() {
     ];
 
     await generateAllotmentExcel(
-        response.data,
-        monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
-        year ? parseInt(year) : new Date().getFullYear(),
-        Number(forexRate)
-      );
-    setIsDataLoading(false)
+      response.data,
+      monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
+      year ? parseInt(year) : new Date().getFullYear(),
+      Number(forexRate)
+    );
+    setIsDataLoading(false);
   };
 
   const handleGenerateDeductionRegisterExcel = async () => {
-    setIsDataLoading(true)
+    setIsDataLoading(true);
     const response = await getVesselDeductionRegister(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null
-    )
+    );
 
     generateDeductionAllotmentExcel(
       response.data,
       Number(month),
       Number(year),
-      Number(forexRate),
-    )
-    setIsDataLoading(false)
+      Number(forexRate)
+    );
+    setIsDataLoading(false);
   };
 
   const handleGeneratePayslipExcel = async () => {
-    setIsDataLoading(true)
+    setIsDataLoading(true);
     const response = await getVesselPayslipV2(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null
-    )
+    );
 
     generatePayrollExcel(
       response.data,
       undefined,
       vesselId ? parseInt(vesselId) : undefined
     );
-    setIsDataLoading(false)
+    setIsDataLoading(false);
   };
 
   return (
@@ -976,7 +948,7 @@ export default function Allotment() {
               </Card>
             </div>
           )}
-          
+
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
             <Input
@@ -988,19 +960,27 @@ export default function Allotment() {
           </div>
 
           <div className="bg-white rounded-md border pb-3">
-            {isDataLoading ? (
+            {isLoading || isDataLoading ? (
               <div className="flex flex-col items-center justify-center py-10 text-gray-500 text-sm space-y-4">
-                <Loader className="w-6 h-6 animate-spin text-primary" />
-                <p className="animate-pulse pb-2">Please wait, loading data...</p>
+                {isDataLoading ? (
+                  <>
+                    <Loader className="w-6 h-4 animate-spin text-primary" />
+                    <p className="animate-pulse pb-2">
+                      Please wait, processing report...
+                    </p>
+                  </>
+                ) : (
+                  <p className="animate-pulse m-0 p-0"></p>
+                )}
                 <TableSkeleton />
               </div>
-            ) : (
+            ) : filteredAllotment.length > 0 ? (
               <DataTable
                 columns={columns}
                 data={filteredAllotment}
                 pageSize={7}
               />
-            )}
+            ) : null}
 
             {selectedVessel && (
               <AlertDialog
