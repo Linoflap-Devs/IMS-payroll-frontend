@@ -20,6 +20,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import { AxiosError } from "axios";
 import { Checkbox } from "../ui/checkbox";
+import { cn } from "@/lib/utils";
 
 export default function AddCrew() {
   const router = useRouter();
@@ -39,6 +40,7 @@ export default function AddCrew() {
   const [duplicateError, setDuplicateError] = useState(false); // For duplicate crew code error
   const [noMiddleName, setNoMiddleName] = useState(false); // For no middle name checkbox
   const { fetchCrews: refreshCrewList } = useCrewStore.getState(); // To refresh list after adding
+  const [tabErrors, setTabErrors] = useState<{ [key: string]: boolean }>({});
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -55,7 +57,8 @@ export default function AddCrew() {
     }
   };
 
-  const [submitted, setSubmitted] = useState<boolean>(false);
+  //const [submitted, setSubmitted] = useState<boolean>(false);
+  const [submitted, setSubmitted] = useState<{ [tab: string]: boolean }>({});
 
   // Add form state
   const [formData, setFormData] = useState({
@@ -108,27 +111,31 @@ export default function AddCrew() {
   const tabOrder = ["details", "movement", "travel", "summary"];
 
   // Add navigation functions
-  const handleNext = async () => {
-    // Make handleNext async if it calls handleSubmit
+  const handleNext = () => {
     const currentIndex = tabOrder.indexOf(activeTab);
-    if (currentIndex < tabOrder.length - 1) {
-      // Basic validation example for current tab before proceeding (optional but recommended)
-      // if (!validateCurrentTab(activeTab)) { return; }
 
-      if (!completedTabs.includes(activeTab)) {
-        setCompletedTabs([...completedTabs, activeTab]);
-      }
+    const isValid = validateTab(activeTab);
+    setSubmitted((prev) => ({ ...prev, [activeTab]: true }));
+
+    if (!isValid) {
+      setTabErrors((prev) => ({ ...prev, [activeTab]: true }));
+      return; // Don't move forward if invalid
+    }
+
+    if (!completedTabs.includes(activeTab)) {
+      setCompletedTabs([...completedTabs, activeTab]);
+    }
+
+    if (currentIndex < tabOrder.length - 1) {
       setActiveTab(tabOrder[currentIndex + 1]);
-    } else if (activeTab === tabOrder[tabOrder.length - 1]) {
-      // If on the last tab (Summary)
-      await handleSubmit(); // Call the main submit function
+    } else {
+      handleSubmit();
     }
   };
 
   const handlePrevious = () => {
     const currentIndex = tabOrder.indexOf(activeTab);
     if (currentIndex > 0) {
-      // Remove completion status from current tab when going back
       setCompletedTabs(completedTabs.filter((tab) => tab !== activeTab));
       setActiveTab(tabOrder[currentIndex - 1]);
     }
@@ -148,18 +155,130 @@ export default function AddCrew() {
     }));
   };
 
+  const validateDetailsTab = () => {
+    const isNameValid = (name: string) =>
+      name.length >= 2 && /^[a-zA-Z\s]+$/.test(name);
+
+    const isSelectValid = (value: string) => value.trim() !== "";
+
+    const isDateValid = (date: string) => date.trim() !== "";
+
+    const isLocationValid = (value: string) => value.trim() !== "";
+
+    const lastNameValid = isNameValid(formData.lastName);
+    const firstNameValid = isNameValid(formData.firstName);
+    const middleNameValid =
+      noMiddleName ||
+      formData.middleName.trim().length === 0 ||
+      isNameValid(formData.middleName);
+
+    const maritalStatusValid = isSelectValid(formData.maritalStatus);
+    const sexValid = isSelectValid(formData.sex);
+    const birthdateValid = isDateValid(formData.birthdate);
+    const provinceValid = isLocationValid(formData.province);
+    const cityValid = isLocationValid(formData.city);
+
+    // Return true if all required fields are valid
+    return (
+      lastNameValid &&
+      firstNameValid &&
+      middleNameValid &&
+      maritalStatusValid &&
+      sexValid &&
+      birthdateValid &&
+      provinceValid &&
+      cityValid
+    );
+  };
+
+  const validateMovementTab = () => {
+    const sssValid = formData.sssNumber.length === 10;
+
+    const taxIdLength = formData.taxIdNumber.length;
+    const taxIdValid = taxIdLength > 8 && taxIdLength < 13;
+
+    const philhealthValid = formData.philhealthNumber.length === 12;
+    const hdmfValid = formData.hdmfNumber.length === 12;
+
+    return sssValid && taxIdValid && philhealthValid && hdmfValid;
+  };
+
+  const validateTravelTab = (): boolean => {
+    const passportValid =
+      formData.passportNumber.length >= 7 &&
+      formData.passportNumber.length <= 9;
+
+    const passportIssueValid = !!formData.passportIssueDate;
+    const passportExpiryValid = !!formData.passportExpiryDate;
+    const passportDatesNotEqual =
+      formData.passportIssueDate !== formData.passportExpiryDate;
+    const passportExpiryNotEarlier =
+      formData.passportExpiryDate >= formData.passportIssueDate;
+
+    const seamansBookValid =
+      formData.seamansBook.length >= 7 &&
+      formData.seamansBook.length <= 9;
+
+    const seamansBookIssueValid = !!formData.seamansBookIssueDate;
+    const seamansBookExpiryValid = !!formData.seamansBookExpiryDate;
+    const seamansBookDatesNotEqual =
+      formData.seamansBookIssueDate !== formData.seamansBookExpiryDate;
+    const seamansBookExpiryNotEarlier =
+      formData.seamansBookExpiryDate >= formData.seamansBookIssueDate;
+
+    return (
+      passportValid &&
+      passportIssueValid &&
+      passportExpiryValid &&
+      passportDatesNotEqual &&
+      passportExpiryNotEarlier &&
+      seamansBookValid &&
+      seamansBookIssueValid &&
+      seamansBookExpiryValid &&
+      seamansBookDatesNotEqual &&
+      seamansBookExpiryNotEarlier
+    );
+  };
+
+  const validateTab = (tab: string): boolean => {
+    switch (tab) {
+      case "details":
+        return validateDetailsTab();
+      case "movement":
+        return validateMovementTab();
+      case "travel":
+        return validateTravelTab();
+      default:
+        return true;
+    }
+  };
+
   // Handle tab change
-  const handleTabChange = () => {
-    // Prevent tab change when clicking on tabs
-    return;
+  const handleTabChange = (nextTab: string) => {
+    const isValid = validateTab(activeTab);
+
+    setSubmitted((prev) => ({ ...prev, [activeTab]: true }));
+
+    if (!isValid) {
+      setTabErrors((prev) => ({ ...prev, [activeTab]: true }));
+      return; // don't allow change
+    }
+
+    // Mark tab as completed
+    setCompletedTabs((prev) =>
+      prev.includes(activeTab) ? prev : [...prev, activeTab]
+    );
+
+    setTabErrors((prev) => ({ ...prev, [activeTab]: false }));
+    setActiveTab(nextTab);
+    setSubmitted((prev) => ({ ...prev, [nextTab]: false }));
   };
 
   // Handle form submission
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    setSubmitted(true);
+    setSubmitted((prev) => ({ ...prev, [activeTab]: true }));
 
-    // ** Client-side validation (Basic example - enhance as needed) **
     const requiredFields: (keyof typeof formData)[] = [
       "crewCode",
       "rank",
@@ -210,7 +329,6 @@ export default function AddCrew() {
       return;
     }
 
-    // ** Construct payload for the API **
     const payload: AddCrewDataForm = {
       crewCode: formData.crewCode,
       rank: formData.rank, // Assuming this is RankID as string
@@ -246,7 +364,7 @@ export default function AddCrew() {
           title: "Success!",
           text: response.message || "Crew member has been added successfully.",
           icon: "success",
-          confirmButtonColor: "#3085d6", // Or your primary color
+          confirmButtonColor: "#3085d6",
         }).then(() => {
           refreshCrewList(); // Refresh the crew list in the store
           router.push("/home/crew");
@@ -267,7 +385,6 @@ export default function AddCrew() {
       // Define interface for the error response structure
       interface ApiErrorResponse {
         message: string | unknown[];
-        // Add other properties if needed
       }
 
       // Check if error is an AxiosError
@@ -536,18 +653,19 @@ export default function AddCrew() {
                           handleInputChange("crewCode", e.target.value)
                         }
                         className={`h-8 mt-1 text-sm ${
-                          submitted &&
+                          submitted["details"] &&
                           (duplicateError || formData.crewCode.length === 0)
                             ? "border-red-500 focus:!ring-red-500/50"
                             : ""
                         }`}
                       />
-                      {submitted && formData.crewCode.length == 0 && (
-                        <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                          <Info className="w-4 h-4" />
-                          Please enter a valid crew code.
-                        </p>
-                      )}
+                      {submitted["details"] &&
+                        formData.crewCode.length == 0 && (
+                          <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                            <Info className="w-4 h-4" />
+                            Please enter a valid crew code.
+                          </p>
+                        )}
                       {duplicateError && (
                         <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                           <Info className="w-4 h-4" />
@@ -569,7 +687,7 @@ export default function AddCrew() {
                         >
                           <SelectTrigger
                             className={`w-full ${
-                              submitted && formData.rank.length == 0
+                              submitted["details"] && formData.rank.length == 0
                                 ? "border-red-500 focus:!ring-red-500/60"
                                 : ""
                             }`}
@@ -601,7 +719,7 @@ export default function AddCrew() {
                             )}
                           </SelectContent>
                         </Select>
-                        {submitted && formData.rank.length == 0 && (
+                        {submitted["details"] && formData.rank.length == 0 && (
                           <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                             <Info className="w-4 h-4" />
                             Please enter a rank.
@@ -632,7 +750,7 @@ export default function AddCrew() {
                             handleInputChange("mobileNumber", onlyNums);
                           }}
                           className={`h-8 text-sm ${
-                            submitted &&
+                            submitted["details"] &&
                             (!formData.mobileNumber ||
                               !/^09\d{9}$/.test(formData.mobileNumber))
                               ? "border-red-500 focus:!ring-red-500/50"
@@ -640,7 +758,7 @@ export default function AddCrew() {
                           }`}
                         />
 
-                        {submitted &&
+                        {submitted["details"] &&
                           (!formData.mobileNumber ||
                             !/^09\d{9}$/.test(formData.mobileNumber)) && (
                             <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
@@ -685,7 +803,7 @@ export default function AddCrew() {
                             handleInputChange("emailAddress", e.target.value)
                           }
                           className={`h-8 text-sm ${
-                            submitted &&
+                            submitted["details"] &&
                             (!formData.emailAddress ||
                               !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
                                 formData.emailAddress
@@ -695,14 +813,14 @@ export default function AddCrew() {
                           }`}
                         />
 
-                        {submitted && !formData.emailAddress && (
+                        {submitted["details"] && !formData.emailAddress && (
                           <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                             <Info className="w-4 h-4" />
                             Email is required.
                           </p>
                         )}
 
-                        {submitted &&
+                        {submitted["details"] &&
                           formData.emailAddress &&
                           !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
                             formData.emailAddress
@@ -733,7 +851,19 @@ export default function AddCrew() {
                       <TabsList className="bg-transparent p-0 h-11 w-full flex justify-between space-x-0">
                         <TabsTrigger
                           value="details"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
+                          className={cn(
+                            "flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none",
+                            tabErrors["details"] && " border-red-500"
+                          )}
+                          onClick={(e) => {
+                            if (!validateTab("details")) {
+                              e.preventDefault();
+                              setSubmitted((prev) => ({
+                                ...prev,
+                                details: true,
+                              }));
+                            }
+                          }}
                         >
                           {completedTabs.includes("details") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
@@ -746,7 +876,19 @@ export default function AddCrew() {
                         </TabsTrigger>
                         <TabsTrigger
                           value="movement"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
+                          className={cn(
+                            "flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none",
+                            tabErrors["movement"] && " border-red-500"
+                          )}
+                          onClick={(e) => {
+                            if (!validateTab("movement")) {
+                              e.preventDefault();
+                              setSubmitted((prev) => ({
+                                ...prev,
+                                movement: true,
+                              }));
+                            }
+                          }}
                         >
                           {completedTabs.includes("movement") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
@@ -757,7 +899,19 @@ export default function AddCrew() {
                         </TabsTrigger>
                         <TabsTrigger
                           value="travel"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
+                          className={cn(
+                            "flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none",
+                            tabErrors["travel"] && " border-red-500"
+                          )}
+                          onClick={(e) => {
+                            if (!validateTab("travel")) {
+                              e.preventDefault();
+                              setSubmitted((prev) => ({
+                                ...prev,
+                                travel: true,
+                              }));
+                            }
+                          }}
                         >
                           {completedTabs.includes("travel") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
@@ -770,7 +924,19 @@ export default function AddCrew() {
                         </TabsTrigger>
                         <TabsTrigger
                           value="summary"
-                          className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none"
+                          className={cn(
+                            "flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary rounded-none relative pointer-events-none",
+                            tabErrors["summary"] && " border-red-500"
+                          )}
+                          onClick={(e) => {
+                            if (!validateTab("summary")) {
+                              e.preventDefault();
+                              setSubmitted((prev) => ({
+                                ...prev,
+                                summary: true,
+                              }));
+                            }
+                          }}
                         >
                           {completedTabs.includes("summary") && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary/10 rounded-full p-0 w-6 h-6 flex items-center justify-center">
@@ -812,7 +978,7 @@ export default function AddCrew() {
                                 handleInputChange("lastName", e.target.value)
                               }
                               className={`${
-                                submitted &&
+                                submitted["details"] &&
                                 (formData.lastName.length === 0 ||
                                   !/^[a-zA-Z\s]+$/.test(formData.lastName))
                                   ? "border-red-500 focus:!ring-red-500/50"
@@ -820,14 +986,15 @@ export default function AddCrew() {
                               }`}
                             />
 
-                            {submitted && formData.lastName.length === 0 && (
-                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                <Info className="w-4 h-4" />
-                                Last name must be at least 2 characters.
-                              </p>
-                            )}
+                            {submitted["details"] &&
+                              formData.lastName.length === 0 && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  Last name must be at least 2 characters.
+                                </p>
+                              )}
 
-                            {submitted &&
+                            {submitted["details"] &&
                               formData.lastName.length > 0 &&
                               !/^[a-zA-Z\s]+$/.test(formData.lastName) && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
@@ -847,7 +1014,7 @@ export default function AddCrew() {
                                 handleInputChange("firstName", e.target.value)
                               }
                               className={`${
-                                submitted &&
+                                submitted["details"] &&
                                 (formData.firstName.length === 0 ||
                                   !/^[a-zA-Z\s]+$/.test(formData.firstName))
                                   ? "border-red-500 focus:!ring-red-500/50"
@@ -855,14 +1022,15 @@ export default function AddCrew() {
                               }`}
                             />
 
-                            {submitted && formData.firstName.length === 0 && (
-                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                <Info className="w-4 h-4" />
-                                First name must be at least 2 characters.
-                              </p>
-                            )}
+                            {submitted["details"] &&
+                              formData.firstName.length === 0 && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  First name must be at least 2 characters.
+                                </p>
+                              )}
 
-                            {submitted &&
+                            {submitted["details"] &&
                               formData.firstName.length > 0 &&
                               !/^[a-zA-Z\s]+$/.test(formData.firstName) && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
@@ -919,7 +1087,7 @@ export default function AddCrew() {
                             >
                               <SelectTrigger
                                 className={`w-full ${
-                                  submitted &&
+                                  submitted["details"] &&
                                   formData.maritalStatus.length == 0
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
@@ -938,7 +1106,7 @@ export default function AddCrew() {
                                 ))}
                               </SelectContent>
                             </Select>
-                            {submitted &&
+                            {submitted["details"] &&
                               formData.maritalStatus.length === 0 && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
@@ -958,7 +1126,8 @@ export default function AddCrew() {
                             >
                               <SelectTrigger
                                 className={`w-full ${
-                                  submitted && formData.sex.length == 0
+                                  submitted["details"] &&
+                                  formData.sex.length == 0
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
                                 }`}
@@ -976,12 +1145,13 @@ export default function AddCrew() {
                                 ))}
                               </SelectContent>
                             </Select>
-                            {submitted && formData.sex.length == 0 && (
-                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                <Info className="w-4 h-4" />
-                                Please enter a valid sex.
-                              </p>
-                            )}
+                            {submitted["details"] &&
+                              formData.sex.length == 0 && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  Please enter a valid sex.
+                                </p>
+                              )}
                           </div>
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -996,17 +1166,19 @@ export default function AddCrew() {
                                   handleInputChange("birthdate", e.target.value)
                                 }
                                 className={`${
-                                  submitted && formData.birthdate.length == 0
+                                  submitted["details"] &&
+                                  formData.birthdate.length == 0
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
                                 }`}
                               />
-                              {submitted && formData.birthdate.length == 0 && (
-                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                  <Info className="w-4 h-4" />
-                                  Please enter a valid birthdate.
-                                </p>
-                              )}
+                              {submitted["details"] &&
+                                formData.birthdate.length == 0 && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Please enter a valid birthdate.
+                                  </p>
+                                )}
                             </div>
                           </div>
                           <div className="md:col-span-2">
@@ -1021,7 +1193,8 @@ export default function AddCrew() {
                             >
                               <SelectTrigger
                                 className={`w-full ${
-                                  submitted && formData.province.length == 0
+                                  submitted["details"] &&
+                                  formData.province.length == 0
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
                                 }`}
@@ -1059,12 +1232,13 @@ export default function AddCrew() {
                                 )}
                               </SelectContent>
                             </Select>
-                            {submitted && formData.province.length == 0 && (
-                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                <Info className="w-4 h-4" />
-                                Please enter a province.
-                              </p>
-                            )}
+                            {submitted["details"] &&
+                              formData.province.length == 0 && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  Please enter a province.
+                                </p>
+                              )}
                           </div>
                           <div className="md:col-span-2">
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -1078,7 +1252,8 @@ export default function AddCrew() {
                             >
                               <SelectTrigger
                                 className={`w-full ${
-                                  submitted && formData.city.length == 0
+                                  submitted["details"] &&
+                                  formData.city.length == 0
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
                                 }`}
@@ -1120,12 +1295,13 @@ export default function AddCrew() {
                                 )}
                               </SelectContent>
                             </Select>
-                            {submitted && formData.city.length == 0 && (
-                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                <Info className="w-4 h-4" />
-                                Please enter a city.
-                              </p>
-                            )}
+                            {submitted["details"] &&
+                              formData.city.length == 0 && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  Please enter a city.
+                                </p>
+                              )}
                           </div>
                         </div>
                       </div>
@@ -1154,17 +1330,19 @@ export default function AddCrew() {
                                 handleInputChange("sssNumber", e.target.value)
                               }
                               className={`${
-                                submitted && formData.sssNumber.length !== 10
+                                submitted["movement"] &&
+                                formData.sssNumber.length !== 10
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
                               }`}
                             />
-                            {submitted && formData.sssNumber.length !== 10 && (
-                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                <Info className="w-4 h-4" />
-                                Please enter a valid SSS number.
-                              </p>
-                            )}
+                            {submitted["movement"] &&
+                              formData.sssNumber.length !== 10 && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  Please enter a valid SSS number.
+                                </p>
+                              )}
                           </div>
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -1177,14 +1355,15 @@ export default function AddCrew() {
                                 handleInputChange("taxIdNumber", e.target.value)
                               }
                               className={`${
-                                (submitted &&
+                                (submitted["movement"] &&
                                   formData.taxIdNumber.length <= 8) ||
                                 formData.taxIdNumber.length >= 13
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
                               }`}
                             />
-                            {((submitted && formData.taxIdNumber.length <= 8) ||
+                            {((submitted["movement"] &&
+                              formData.taxIdNumber.length <= 8) ||
                               formData.taxIdNumber.length >= 13) && (
                               <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                 <Info className="w-4 h-4" />
@@ -1206,13 +1385,13 @@ export default function AddCrew() {
                                 )
                               }
                               className={`${
-                                submitted &&
+                                submitted["movement"] &&
                                 formData.philhealthNumber.length !== 12
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
                               }`}
                             />
-                            {submitted &&
+                            {submitted["movement"] &&
                               formData.philhealthNumber.length !== 12 && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
@@ -1231,17 +1410,19 @@ export default function AddCrew() {
                                 handleInputChange("hdmfNumber", e.target.value)
                               }
                               className={`${
-                                submitted && formData.hdmfNumber.length !== 12
+                                submitted["movement"] &&
+                                formData.hdmfNumber.length !== 12
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
                               }`}
                             />
-                            {submitted && formData.hdmfNumber.length !== 12 && (
-                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                <Info className="w-4 h-4" />
-                                Please enter a valid HDMF number.
-                              </p>
-                            )}
+                            {submitted["movement"] &&
+                              formData.hdmfNumber.length !== 12 && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  Please enter a valid HDMF number.
+                                </p>
+                              )}
                           </div>
                         </div>
                       </div>
@@ -1273,14 +1454,14 @@ export default function AddCrew() {
                                 )
                               }
                               className={`${
-                                (submitted &&
+                                (submitted["travel"] &&
                                   formData.passportNumber.length <= 6) ||
                                 formData.passportNumber.length >= 10
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
                               }`}
                             />
-                            {submitted &&
+                            {submitted["travel"] &&
                               (formData.passportNumber.length <= 6 ||
                                 formData.passportNumber.length >= 10) && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
@@ -1289,6 +1470,7 @@ export default function AddCrew() {
                                 </p>
                               )}
                           </div>
+
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Issue Date
@@ -1304,24 +1486,46 @@ export default function AddCrew() {
                                   )
                                 }
                                 className={`${
-                                  submitted && !formData.passportIssueDate
+                                  submitted["travel"] &&
+                                  (!formData.passportIssueDate ||
+                                    formData.passportIssueDate ===
+                                      formData.passportExpiryDate ||
+                                    (formData.passportExpiryDate &&
+                                      formData.passportExpiryDate <
+                                        formData.passportIssueDate))
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
                                 }`}
                               />
-                              {submitted && !formData.passportIssueDate && (
-                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                  <Info className="w-4 h-4" />
-                                  Please enter a valid Passport Issue Date.
-                                </p>
-                              )}
-                              {formData.passportIssueDate ===
-                                formData.passportExpiryDate &&
-                                formData.passportIssueDate && (
+
+                              {submitted["travel"] &&
+                                !formData.passportIssueDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Please enter a valid Passport Issue Date.
+                                  </p>
+                                )}
+
+                              {submitted["travel"] &&
+                                formData.passportIssueDate &&
+                                formData.passportIssueDate ===
+                                  formData.passportExpiryDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Issue Date and Expiration Date cannot be the
                                     same.
+                                  </p>
+                                )}
+
+                              {submitted["travel"] &&
+                                formData.passportIssueDate &&
+                                formData.passportExpiryDate &&
+                                formData.passportExpiryDate <
+                                  formData.passportIssueDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Expiration Date cannot be earlier than Issue
+                                    Date.
                                   </p>
                                 )}
                             </div>
@@ -1342,24 +1546,47 @@ export default function AddCrew() {
                                   )
                                 }
                                 className={`${
-                                  submitted && !formData.passportExpiryDate
+                                  submitted["travel"] &&
+                                  (!formData.passportExpiryDate ||
+                                    formData.passportIssueDate ===
+                                      formData.passportExpiryDate ||
+                                    (formData.passportIssueDate &&
+                                      formData.passportExpiryDate <
+                                        formData.passportIssueDate))
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
                                 }`}
                               />
-                              {submitted && !formData.passportExpiryDate && (
-                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                  <Info className="w-4 h-4" />
-                                  Please enter a valid Passport Expiration Date.
-                                </p>
-                              )}
-                              {formData.passportIssueDate ===
+
+                              {submitted["travel"] &&
+                                !formData.passportExpiryDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Please enter a valid Passport Expiration
+                                    Date.
+                                  </p>
+                                )}
+
+                              {submitted["travel"] &&
                                 formData.passportExpiryDate &&
-                                formData.passportIssueDate && (
+                                formData.passportIssueDate ===
+                                  formData.passportExpiryDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Issue Date and Expiration Date cannot be the
                                     same.
+                                  </p>
+                                )}
+
+                              {submitted["travel"] &&
+                                formData.passportExpiryDate &&
+                                formData.passportIssueDate &&
+                                formData.passportExpiryDate <
+                                  formData.passportIssueDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Expiration Date cannot be earlier than Issue
+                                    Date.
                                   </p>
                                 )}
                             </div>
@@ -1376,14 +1603,15 @@ export default function AddCrew() {
                                 handleInputChange("seamansBook", e.target.value)
                               }
                               className={`${
-                                (submitted &&
+                                (submitted["travel"] &&
                                   formData.seamansBook.length <= 6) ||
                                 formData.seamansBook.length >= 10
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
                               }`}
                             />
-                            {((submitted && formData.seamansBook.length <= 6) ||
+                            {((submitted["travel"] &&
+                              formData.seamansBook.length <= 6) ||
                               formData.seamansBook.length >= 10) && (
                               <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                 <Info className="w-4 h-4" />
@@ -1391,6 +1619,7 @@ export default function AddCrew() {
                               </p>
                             )}
                           </div>
+
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Issue Date
@@ -1407,28 +1636,52 @@ export default function AddCrew() {
                                   )
                                 }
                                 className={`${
-                                  submitted && !formData.seamansBookIssueDate
+                                  submitted["travel"] &&
+                                  (!formData.seamansBookIssueDate ||
+                                    formData.seamansBookIssueDate ===
+                                      formData.seamansBookExpiryDate ||
+                                    (formData.seamansBookExpiryDate &&
+                                      formData.seamansBookExpiryDate <
+                                        formData.seamansBookIssueDate))
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
                                 }`}
                               />
-                              {submitted && !formData.seamansBookIssueDate && (
-                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                  <Info className="w-4 h-4" />
-                                  Please enter a valid Seamans Book Issue Date.
-                                </p>
-                              )}
-                              {formData.seamansBookIssueDate ===
-                                formData.seamansBookExpiryDate &&
-                                formData.seamansBookIssueDate && (
+
+                              {submitted["travel"] &&
+                                !formData.seamansBookIssueDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Please enter a valid Seamans Book Issue
+                                    Date.
+                                  </p>
+                                )}
+
+                              {submitted["travel"] &&
+                                formData.seamansBookIssueDate &&
+                                formData.seamansBookIssueDate ===
+                                  formData.seamansBookExpiryDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Issue Date and Expiration Date cannot be the
                                     same.
                                   </p>
                                 )}
+
+                              {submitted["travel"] &&
+                                formData.seamansBookIssueDate &&
+                                formData.seamansBookExpiryDate &&
+                                formData.seamansBookExpiryDate <
+                                  formData.seamansBookIssueDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Expiration Date cannot be earlier than Issue
+                                    Date.
+                                  </p>
+                                )}
                             </div>
                           </div>
+
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book Expiration Date
@@ -1445,25 +1698,47 @@ export default function AddCrew() {
                                   )
                                 }
                                 className={`${
-                                  submitted && !formData.seamansBookExpiryDate
+                                  submitted["travel"] &&
+                                  (!formData.seamansBookExpiryDate ||
+                                    formData.seamansBookExpiryDate ===
+                                      formData.seamansBookIssueDate ||
+                                    (formData.seamansBookIssueDate &&
+                                      formData.seamansBookExpiryDate <
+                                        formData.seamansBookIssueDate))
                                     ? "border-red-500 focus:!ring-red-500/50"
                                     : ""
                                 }`}
                               />
-                              {submitted && !formData.seamansBookExpiryDate && (
-                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                  <Info className="w-4 h-4" />
-                                  Please enter a valid Seamans Book Expiration
-                                  Date.
-                                </p>
-                              )}
-                              {formData.seamansBookIssueDate ===
+
+                              {submitted["travel"] &&
+                                !formData.seamansBookExpiryDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Please enter a valid Seamans Book Expiration
+                                    Date.
+                                  </p>
+                                )}
+
+                              {submitted["travel"] &&
                                 formData.seamansBookExpiryDate &&
-                                formData.seamansBookIssueDate && (
+                                formData.seamansBookExpiryDate ===
+                                  formData.seamansBookIssueDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Issue Date and Expiration Date cannot be the
                                     same.
+                                  </p>
+                                )}
+
+                              {submitted["travel"] &&
+                                formData.seamansBookExpiryDate &&
+                                formData.seamansBookIssueDate &&
+                                formData.seamansBookExpiryDate <
+                                  formData.seamansBookIssueDate && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Expiration Date cannot be earlier than Issue
+                                    Date.
                                   </p>
                                 )}
                             </div>
