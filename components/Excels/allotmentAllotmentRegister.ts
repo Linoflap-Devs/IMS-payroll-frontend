@@ -125,6 +125,14 @@ export function generateAllotmentExcel(
     // Optionally tweak specific widths
     colWidths[1] = { wch: 20 }; // RANK
     colWidths[2] = { wch: 12 }; // BASIC WAGE
+    colWidths[3] = { wch: 12 }; // FIXED OT
+    
+    colWidths[4] = { wch: 14 }; // GUAR OT
+    colWidths[5] = { wch: 14 }; // DOLLAR GROSS
+    colWidths[6] = { wch: 14 }; // PESO GROSS
+    colWidths[7] = { wch: 14 }; // TOTAL DED.
+    colWidths[8] = { wch: 14 }; // NET
+    
     colWidths[9] = { wch: 30 }; // ALLOTTEE NAME
     colWidths[10] = { wch: 25 }; // ACCOUNT NUMBER
     colWidths[11] = { wch: 22 }; // BANK

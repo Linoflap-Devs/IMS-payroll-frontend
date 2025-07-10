@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton"; // Import shadcn Skeleton
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -326,9 +326,8 @@ export default function Allotment() {
       }
     };
 
-    // Execute both async operations and wait for both to complete
     Promise.all([fetchDashboardData(), fetchPayrollData()]).finally(() => {
-      setIsDataLoading(false); // Only set loading to false after both operations complete
+      setIsDataLoading(false);
     });
   }, [monthFilter, yearFilter]);
 
@@ -340,7 +339,6 @@ export default function Allotment() {
     router.push(`${pathname}?${params.toString()}`);
   }, [monthFilter, yearFilter, pathname, searchParams, router]);
 
-  // Calculate totals
   const totalGross = payrollData.reduce((sum, p) => sum + p.grossAllotment, 0);
   const totalDeduction = payrollData.reduce(
     (sum, p) => sum + p.totalDeductions,
@@ -437,30 +435,6 @@ export default function Allotment() {
       setPayrollLoading(false);
     }
   };
-
-  // const handlePrintSummary = async () => {
-  //   setPrintLoading(true);
-  //   // Simulate print action
-  //   await new Promise((resolve) => setTimeout(resolve, 2000))
-  //     .then(() => {
-  //       toast({
-  //         title: "Print Summary",
-  //         description: "The summary has been sent to the printer.",
-  //         variant: "success",
-  //       });
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error printing summary:", error);
-  //       toast({
-  //         title: "Error Printing Summary",
-  //         description: "An error occurred while printing the summary.",
-  //         variant: "destructive",
-  //       });
-  //     })
-  //     .finally(() => {
-  //       setPrintLoading(false);
-  //     });
-  // };
 
   const columns: ColumnDef<Payroll>[] = [
     {
@@ -573,7 +547,7 @@ export default function Allotment() {
               onSelect={(e) => {
                 e.preventDefault();
                 setSelectedVessel(row.original);
-                setShowPostDialog(true); // open the alert dialog
+                setShowPostDialog(true);
               }}
               className="flex items-center gap-2"
             >
@@ -607,8 +581,6 @@ export default function Allotment() {
         "NOVEMBER",
         "DECEMBER",
       ];
-
-      // const monthName = monthNames[selectedMonth - 1];
 
       generateAllotmentPDF(
         allotmentRegisterData,
@@ -887,7 +859,6 @@ export default function Allotment() {
             </div>
           </div>
 
-          {/* Render either skeleton or actual cards */}
           {isDataLoading ? (
             <CardsSkeleton />
           ) : (

@@ -89,7 +89,7 @@ export function generateDeductionAllotmentExcel(
             idx === 0 ? formatCurrency(crew.Salary) : "",
             idx === 0 ? formatCurrency(crew.Gross) : "",
             deduction.Name,
-            isUSD ? "USD" : "PhP",
+            isUSD ? "USD" : "PHP",
             formatCurrency(amount),
             formatCurrency(phpEquivalent),
           ]);
