@@ -49,12 +49,13 @@ import {
 } from "../ui/alert-dialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
-import generateDeductionRegister, {
-  DeductionRegisterData,
-} from "../PDFs/allotmentDeductionRegister";
+import { DeductionRegisterData } from "../PDFs/allotmentDeductionRegister";
 import { generatePayrollPDF } from "../PDFs/payrollStatementPDF";
 import { PiFileTextFill, PiReceiptFill, PiUserListFill } from "react-icons/pi";
 import { generateDeductionAllotmentV2PDF } from "../PDFs/payrollDeductionRegisterV2PDF";
+import { generateAllotmentExcel } from "../Excels/allotmentAllotmentRegister";
+import { generateDeductionAllotmentExcel } from "../Excels/payrollDeductionRegister";
+import { generatePayrollExcel } from "../Excels/payrollStatementPDF";
 
 type Payroll = {
   vesselId: number;
@@ -242,19 +243,30 @@ export default function Allotment() {
 
   // Fetch data when filters change
   useEffect(() => {
-    setIsDataLoading(true); // Set loading to true when filters change
+    setIsDataLoading(true);
 
     const fetchDashboardData = async () => {
       try {
         const dashboardResponse = await getDashboardList();
         const forexRate = await getForex(monthFilter, yearFilter);
-        console.log("Forex rate", forexRate)
+        console.log("Forex rate", forexRate);
 
-        console.log("Filters: ", monthFilter, yearFilter)
-        console.log("Result", forexRate.find((item) => item.ExchangeRateMonth === Number(monthFilter) && item.ExchangeRateYear === Number(yearFilter)))
-        if(forexRate.length > 0) {
-          const result = forexRate.find((item) => item.ExchangeRateMonth === Number(monthFilter) && item.ExchangeRateYear === Number(yearFilter));
-          setForexRate(result?.ExchangeRate || 0)
+        console.log("Filters: ", monthFilter, yearFilter);
+        console.log(
+          "Result",
+          forexRate.find(
+            (item) =>
+              item.ExchangeRateMonth === Number(monthFilter) &&
+              item.ExchangeRateYear === Number(yearFilter)
+          )
+        );
+        if (forexRate.length > 0) {
+          const result = forexRate.find(
+            (item) =>
+              item.ExchangeRateMonth === Number(monthFilter) &&
+              item.ExchangeRateYear === Number(yearFilter)
+          );
+          setForexRate(result?.ExchangeRate || 0);
         }
         if (dashboardResponse.success && dashboardResponse.data) {
           //setForexRate(dashboardResponse.data.ForexRate);
@@ -289,11 +301,13 @@ export default function Allotment() {
     //     }
     //   })
     //   .catch((err) => console.error("Error fetching payroll list:", err))
-      
-    
+
     const fetchPayrollData = async () => {
       try {
-        const res = await getPayrollList(Number(monthFilter), Number(yearFilter));
+        const res = await getPayrollList(
+          Number(monthFilter),
+          Number(yearFilter)
+        );
         if (res.success) {
           const mapped: Payroll[] = res.data.map((item) => ({
             vesselId: item.VesselId,
@@ -312,11 +326,10 @@ export default function Allotment() {
       }
     };
 
-      // Execute both async operations and wait for both to complete
-    Promise.all([fetchDashboardData(), fetchPayrollData()])
-      .finally(() => {
-        setIsDataLoading(false); // Only set loading to false after both operations complete
-      });
+    // Execute both async operations and wait for both to complete
+    Promise.all([fetchDashboardData(), fetchPayrollData()]).finally(() => {
+      setIsDataLoading(false); // Only set loading to false after both operations complete
+    });
   }, [monthFilter, yearFilter]);
 
   useEffect(() => {
@@ -346,14 +359,19 @@ export default function Allotment() {
       if (response.success) {
         toast({
           title: wasAllAlreadyPosted ? "Nothing to Post" : "Payroll Processed",
-          description: response.message ||
-            `Payroll for ${monthNames[parseInt(monthFilter) - 1]} ${yearFilter} has been processed successfully.`,
+          description:
+            response.message ||
+            `Payroll for ${
+              monthNames[parseInt(monthFilter) - 1]
+            } ${yearFilter} has been processed successfully.`,
           variant: wasAllAlreadyPosted ? "default" : "success",
         });
       } else {
         toast({
           title: "Payroll Not Processed",
-          description: response.message || "Something went wrong while processing the payroll.",
+          description:
+            response.message ||
+            "Something went wrong while processing the payroll.",
           variant: "destructive",
         });
       }
@@ -382,20 +400,29 @@ export default function Allotment() {
     setPayrollLoading(true);
 
     try {
-      const response = await postVesselPayrolls(monthFilter, yearFilter, selectedVessel.vesselId);
+      const response = await postVesselPayrolls(
+        monthFilter,
+        yearFilter,
+        selectedVessel.vesselId
+      );
 
       const wasAllAlreadyPosted = response.message?.includes("Posted 0");
 
       if (response.success) {
         toast({
-          title: wasAllAlreadyPosted ? "Payroll has already been posted." : "Payroll Processed",
-          description: response.message || "Payroll has been processed successfully.",
+          title: wasAllAlreadyPosted
+            ? "Payroll has already been posted."
+            : "Payroll Processed",
+          description:
+            response.message || "Payroll has been processed successfully.",
           variant: wasAllAlreadyPosted ? "default" : "success",
         });
       } else {
         toast({
           title: "Payroll Not Processed",
-          description: response.message || "Something went wrong while processing the payroll.",
+          description:
+            response.message ||
+            "Something went wrong while processing the payroll.",
           variant: "destructive",
         });
       }
@@ -411,34 +438,29 @@ export default function Allotment() {
     }
   };
 
-  const handlePrintSummary = async () => {
-    setPrintLoading(true);
-    // Simulate print action
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-      .then(() => {
-        toast({
-          title: "Print Summary",
-          description: "The summary has been sent to the printer.",
-          variant: "success",
-        });
-      })
-      .catch((error) => {
-        console.error("Error printing summary:", error);
-        toast({
-          title: "Error Printing Summary",
-          description: "An error occurred while printing the summary.",
-          variant: "destructive",
-        });
-      })
-      .finally(() => {
-        setPrintLoading(false);
-      });
-  };
-
-  const handleValueChange = (value: number) => {
-    console.log("Value changed: " + value);
-    setMonthFilter(value.toString());
-  }
+  // const handlePrintSummary = async () => {
+  //   setPrintLoading(true);
+  //   // Simulate print action
+  //   await new Promise((resolve) => setTimeout(resolve, 2000))
+  //     .then(() => {
+  //       toast({
+  //         title: "Print Summary",
+  //         description: "The summary has been sent to the printer.",
+  //         variant: "success",
+  //       });
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error printing summary:", error);
+  //       toast({
+  //         title: "Error Printing Summary",
+  //         description: "An error occurred while printing the summary.",
+  //         variant: "destructive",
+  //       });
+  //     })
+  //     .finally(() => {
+  //       setPrintLoading(false);
+  //     });
+  // };
 
   const columns: ColumnDef<Payroll>[] = [
     {
@@ -600,19 +622,12 @@ export default function Allotment() {
   };
 
   const handleGenerateDeductionRegisterPDF = () => {
-    // generateDeductionRegister(
-    //   allotmentDeductionData,
-    //   Number(month),
-    //   Number(year),
-    //   Number(forexRate)
-    // );
-
     generateDeductionAllotmentV2PDF(
       allotmentDeductionData,
       Number(month),
       Number(year),
-      Number(forexRate),
-    )
+      Number(forexRate)
+    );
   };
 
   const handleGeneratePayslipPDF = () => {
@@ -621,6 +636,56 @@ export default function Allotment() {
       return;
     }
     generatePayrollPDF(
+      allotmentPayslipData,
+      undefined,
+      vesselId ? parseInt(vesselId) : undefined
+    );
+  };
+
+  // EXCEL
+  const handleGenerateAllotmentRegisterExcel = () => {
+    if (allotmentRegisterData && allotmentRegisterData.length > 0) {
+      const monthNames = [
+        "JANUARY",
+        "FEBRUARY",
+        "MARCH",
+        "APRIL",
+        "MAY",
+        "JUNE",
+        "JULY",
+        "AUGUST",
+        "SEPTEMBER",
+        "OCTOBER",
+        "NOVEMBER",
+        "DECEMBER",
+      ];
+
+      generateAllotmentExcel(
+        allotmentRegisterData,
+        monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
+        year ? parseInt(year) : new Date().getFullYear(),
+        Number(forexRate)
+      );
+    } else {
+      console.error("No allotment register data available");
+    }
+  };
+
+  const handleGenerateDeductionRegisterExcel = () => {
+    generateDeductionAllotmentExcel(
+      allotmentDeductionData,
+      Number(month),
+      Number(year),
+      Number(forexRate)
+    );
+  };
+
+  const handleGeneratePayslipExcel = () => {
+    if (!allotmentPayslipData) {
+      console.error("No payslip data available for PDF generation.");
+      return;
+    }
+    generatePayrollExcel(
       allotmentPayslipData,
       undefined,
       vesselId ? parseInt(vesselId) : undefined
@@ -645,7 +710,8 @@ export default function Allotment() {
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-5 items-start sm:items-center gap-3 sm:gap-4 w-full">
+            <div className="grid grid-cols-6 items-center gap-3 sm:gap-4 w-full">
+              {/* Month Filter */}
               <Select value={monthFilter} onValueChange={setMonthFilter}>
                 <SelectTrigger className="bg-white h-full sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[220px] w-full sm:w-auto">
                   <div className="flex items-center justify-between w-full -mx-4">
@@ -667,6 +733,8 @@ export default function Allotment() {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Year Filter */}
               <Select value={yearFilter} onValueChange={setYearFilter}>
                 <SelectTrigger className="bg-white h-full sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[220px] w-full sm:w-auto">
                   <div className="flex items-center justify-between w-full -mx-4">
@@ -688,12 +756,12 @@ export default function Allotment() {
                   ))}
                 </SelectContent>
               </Select>
-
               <div></div>
+              {/* Process Payroll Button */}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
-                    className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-9 sm:h-10 px-8 sm:px-6 text-xs sm:text-sm w-full"
+                    className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-10 px-6 text-sm"
                     disabled={payrollLoading || isDataLoading}
                   >
                     {payrollLoading ? (
@@ -709,7 +777,6 @@ export default function Allotment() {
                     )}
                   </Button>
                 </AlertDialogTrigger>
-
                 <AlertDialogContent className="bg-white p-10">
                   <AlertDialogHeader className="flex items-center">
                     <CircleAlert size={120} strokeWidth={1} color="orange" />
@@ -720,9 +787,8 @@ export default function Allotment() {
                       This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-
                   <div className="flex items-center justify-center space-x-4 px-4">
-                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white hover:text-white">
+                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white">
                       No, Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
@@ -743,39 +809,77 @@ export default function Allotment() {
                 </AlertDialogContent>
               </AlertDialog>
 
+              {/* PDF Summary Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    className="whitespace-nowrap h-9 sm:h-10 px-4 sm:px-6 text-xs sm:text-sm w-full"
-                    onClick={handlePrintSummary}
+                    className="h-10 px-4 text-sm"
                     disabled={printLoading || isDataLoading}
                   >
-                    <AiOutlinePrinter className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
+                    <AiOutlinePrinter className="mr-2 h-4 w-4" />
                     {printLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Printing...
                       </>
                     ) : (
-                      "Print Summary"
+                      "PDF Summary"
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="text-xs sm:text-sm w-[330px] min-w-[100%]">
+                <DropdownMenuContent className="text-sm w-48">
                   <DropdownMenuItem
                     onClick={handleGenerateAllotmentRegisterPDF}
                   >
-                    <PiUserListFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    <PiUserListFill className="mr-2 h-4 w-4" />
                     Allotment Register
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={handleGenerateDeductionRegisterPDF}
                   >
-                    <PiReceiptFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    <PiReceiptFill className="mr-2 h-4 w-4" />
                     Deduction Register
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleGeneratePayslipPDF}>
-                    <PiFileTextFill className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    <PiFileTextFill className="mr-2 h-4 w-4" />
+                    Allotment / Payslip
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Excel Summary Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    className="h-10 px-4 text-sm"
+                    disabled={printLoading || isDataLoading}
+                  >
+                    <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                    {printLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Printing...
+                      </>
+                    ) : (
+                      "Excel Summary"
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="text-sm w-48">
+                  <DropdownMenuItem
+                    onClick={handleGenerateAllotmentRegisterExcel}
+                  >
+                    <PiUserListFill className="mr-2 h-4 w-4" />
+                    Allotment Register
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleGenerateDeductionRegisterExcel}
+                  >
+                    <PiReceiptFill className="mr-2 h-4 w-4" />
+                    Deduction Register
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleGeneratePayslipExcel}>
+                    <PiFileTextFill className="mr-2 h-4 w-4" />
                     Allotment / Payslip
                   </DropdownMenuItem>
                 </DropdownMenuContent>
