@@ -175,65 +175,65 @@ export default function Allotment() {
   const vesselId = searchParams.get("vesselId");
 
   useEffect(() => {
-    getVesselAllotmentRegister(
-      vesselId ? vesselId : null,
-      month ? parseInt(month) : null,
-      year ? parseInt(year) : null
-    )
-      .then((response) => {
-        if (response.success && Array.isArray(response.data)) {
-          setAllotmentRegisterData(response.data);
-        } else {
-          console.log("Unexpected API response format:", response);
-          setAllotmentRegisterData([]);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching allotment register data:", error);
-        setAllotmentRegisterData([]);
-      });
+    // getVesselAllotmentRegister(
+    //   vesselId ? vesselId : null,
+    //   month ? parseInt(month) : null,
+    //   year ? parseInt(year) : null
+    // )
+    //   .then((response) => {
+    //     if (response.success && Array.isArray(response.data)) {
+    //       setAllotmentRegisterData(response.data);
+    //     } else {
+    //       console.log("Unexpected API response format:", response);
+    //       setAllotmentRegisterData([]);
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error fetching allotment register data:", error);
+    //     setAllotmentRegisterData([]);
+    //   });
   }, [vesselId, month, year]);
 
   useEffect(() => {
-    getVesselDeductionRegister(
-      vesselId ? vesselId : null,
-      month ? parseInt(month) : null,
-      year ? parseInt(year) : null
-    )
-      .then((response) => {
-        if (response.success && Array.isArray(response.data)) {
-          setAllotmentDeductionData(response.data);
-        } else {
-          console.log("Unexpected API response format:", response);
-          setAllotmentRegisterData([]);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching deduction register data:", error);
-        setAllotmentRegisterData([]);
-      });
+    // getVesselDeductionRegister(
+    //   vesselId ? vesselId : null,
+    //   month ? parseInt(month) : null,
+    //   year ? parseInt(year) : null
+    // )
+    //   .then((response) => {
+    //     if (response.success && Array.isArray(response.data)) {
+    //       setAllotmentDeductionData(response.data);
+    //     } else {
+    //       console.log("Unexpected API response format:", response);
+    //       setAllotmentRegisterData([]);
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error fetching deduction register data:", error);
+    //     setAllotmentRegisterData([]);
+    //   });
   }, [vesselId, month, year]);
 
   useEffect(() => {
-    getVesselPayslipV2(
-      vesselId ? vesselId : null,
-      month ? parseInt(month) : null,
-      year ? parseInt(year) : null
-    )
-      .then((response) => {
-        if (response.success) {
-          setAllotmentPayslipData(response.data);
-        } else {
-          toast({
-            title: "Error",
-            description: "Failed to fetch payslip data.",
-            variant: "destructive",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching payslip data:", error);
-      });
+    // getVesselPayslipV2(
+    //   vesselId ? vesselId : null,
+    //   month ? parseInt(month) : null,
+    //   year ? parseInt(year) : null
+    // )
+    //   .then((response) => {
+    //     if (response.success) {
+    //       setAllotmentPayslipData(response.data);
+    //     } else {
+    //       toast({
+    //         title: "Error",
+    //         description: "Failed to fetch payslip data.",
+    //         variant: "destructive",
+    //       });
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error fetching payslip data:", error);
+    //   });
   }, [vesselId, month, year]);
 
   // Fetch data when filters change
@@ -242,7 +242,7 @@ export default function Allotment() {
 
     const fetchDashboardData = async () => {
       try {
-        const dashboardResponse = await getDashboardList();
+        //const dashboardResponse = await getDashboardList();
         const forexRate = await getForex(monthFilter, yearFilter);
         console.log("Forex rate", forexRate);
 
@@ -263,14 +263,14 @@ export default function Allotment() {
           );
           setForexRate(result?.ExchangeRate || 0);
         }
-        if (dashboardResponse.success && dashboardResponse.data) {
-          //setForexRate(dashboardResponse.data.ForexRate);
-        } else {
-          console.error(
-            "Failed to fetch dashboard data:",
-            dashboardResponse.message
-          );
-        }
+        // if (dashboardResponse.success && dashboardResponse.data) {
+        //   //setForexRate(dashboardResponse.data.ForexRate);
+        // } else {
+        //   console.error(
+        //     "Failed to fetch dashboard data:",
+        //     dashboardResponse.message
+        //   );
+        // }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       }
@@ -559,54 +559,104 @@ export default function Allotment() {
     p.vesselName.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
-  const handleGenerateAllotmentRegisterPDF = () => {
-    if (allotmentRegisterData && allotmentRegisterData.length > 0) {
-      // Get month name from month number
-      const monthNames = [
-        "JANUARY",
-        "FEBRUARY",
-        "MARCH",
-        "APRIL",
-        "MAY",
-        "JUNE",
-        "JULY",
-        "AUGUST",
-        "SEPTEMBER",
-        "OCTOBER",
-        "NOVEMBER",
-        "DECEMBER",
-      ];
+  const handleGenerateAllotmentRegisterPDF = async () => {
+    setIsDataLoading(true)
+    const response = await getVesselAllotmentRegister(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    )
+      // .then((response) => {
+      //   if (response.success && Array.isArray(response.data)) {
+      //     setAllotmentRegisterData(response.data);
+      //   } else {
+      //     console.log("Unexpected API response format:", response);
+      //     setAllotmentRegisterData([]);
+      //   }
+      // })
+      // .catch((error) => {
+      //   console.error("Error fetching allotment register data:", error);
+      //   setAllotmentRegisterData([]);
+      // });
 
-      generateAllotmentPDF(
-        allotmentRegisterData,
+      const monthNames = [
+      "JANUARY",
+      "FEBRUARY",
+      "MARCH",
+      "APRIL",
+      "MAY",
+      "JUNE",
+      "JULY",
+      "AUGUST",
+      "SEPTEMBER",
+      "OCTOBER",
+      "NOVEMBER",
+      "DECEMBER",
+    ];
+
+    await generateAllotmentPDF(
+        response.data,
         monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
         year ? parseInt(year) : new Date().getFullYear(),
         Number(forexRate)
       );
-    } else {
-      console.error("No allotment register data available");
-    }
+    setIsDataLoading(false)
+
+    // if (allotmentRegisterData && allotmentRegisterData.length > 0) {
+    //   // Get month name from month number
+     
+
+    //   // const monthName = monthNames[selectedMonth - 1];
+
+      
+    // } else {
+    //   console.error("No allotment register data available");
+    // }
   };
 
-  const handleGenerateDeductionRegisterPDF = () => {
+  const handleGenerateDeductionRegisterPDF = async () => {
+    setIsDataLoading(true)
+    const response = await getVesselDeductionRegister(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    )
+      // .then((response) => {
+      //   if (response.success && Array.isArray(response.data)) {
+      //     setAllotmentDeductionData(response.data);
+      //   } else {
+      //     console.log("Unexpected API response format:", response);
+      //     setAllotmentRegisterData([]);
+      //   }
+      // })
+      // .catch((error) => {
+      //   console.error("Error fetching deduction register data:", error);
+      //   setAllotmentRegisterData([]);
+      // });
+
     generateDeductionAllotmentV2PDF(
-      allotmentDeductionData,
+      response.data,
       Number(month),
       Number(year),
-      Number(forexRate)
-    );
+      Number(forexRate),
+    )
+    setIsDataLoading(false)
   };
 
-  const handleGeneratePayslipPDF = () => {
-    if (!allotmentPayslipData) {
-      console.error("No payslip data available for PDF generation.");
-      return;
-    }
+  const handleGeneratePayslipPDF = async () => {
+    setIsDataLoading(true)
+    const response = await getVesselPayslipV2(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    )
+
     generatePayrollPDF(
-      allotmentPayslipData,
+      response.data,
       undefined,
       vesselId ? parseInt(vesselId) : undefined
     );
+    setIsDataLoading(false)
   };
 
   // EXCEL
