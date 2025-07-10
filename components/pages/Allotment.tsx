@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CircleAlert, Loader2, MoreHorizontal, Search } from "lucide-react";
+import { CircleAlert, Loader, Loader2, MoreHorizontal, Search } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
@@ -660,53 +660,68 @@ export default function Allotment() {
   };
 
   // EXCEL
-  const handleGenerateAllotmentRegisterExcel = () => {
-    if (allotmentRegisterData && allotmentRegisterData.length > 0) {
+  const handleGenerateAllotmentRegisterExcel = async () => {
+    setIsDataLoading(true)
+    const response = await getVesselAllotmentRegister(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    )
       const monthNames = [
-        "JANUARY",
-        "FEBRUARY",
-        "MARCH",
-        "APRIL",
-        "MAY",
-        "JUNE",
-        "JULY",
-        "AUGUST",
-        "SEPTEMBER",
-        "OCTOBER",
-        "NOVEMBER",
-        "DECEMBER",
-      ];
+      "JANUARY",
+      "FEBRUARY",
+      "MARCH",
+      "APRIL",
+      "MAY",
+      "JUNE",
+      "JULY",
+      "AUGUST",
+      "SEPTEMBER",
+      "OCTOBER",
+      "NOVEMBER",
+      "DECEMBER",
+    ];
 
-      generateAllotmentExcel(
-        allotmentRegisterData,
+    await generateAllotmentExcel(
+        response.data,
         monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
         year ? parseInt(year) : new Date().getFullYear(),
         Number(forexRate)
       );
-    } else {
-      console.error("No allotment register data available");
-    }
+    setIsDataLoading(false)
   };
 
-  const handleGenerateDeductionRegisterExcel = () => {
+  const handleGenerateDeductionRegisterExcel = async () => {
+    setIsDataLoading(true)
+    const response = await getVesselDeductionRegister(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    )
+
     generateDeductionAllotmentExcel(
-      allotmentDeductionData,
+      response.data,
       Number(month),
       Number(year),
-      Number(forexRate)
-    );
+      Number(forexRate),
+    )
+    setIsDataLoading(false)
   };
 
-  const handleGeneratePayslipExcel = () => {
-    if (!allotmentPayslipData) {
-      console.error("No payslip data available for PDF generation.");
-      return;
-    }
+  const handleGeneratePayslipExcel = async () => {
+    setIsDataLoading(true)
+    const response = await getVesselPayslipV2(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    )
+
     generatePayrollExcel(
-      allotmentPayslipData,
+      response.data,
       undefined,
       vesselId ? parseInt(vesselId) : undefined
     );
+    setIsDataLoading(false)
   };
 
   return (
@@ -974,7 +989,11 @@ export default function Allotment() {
 
           <div className="bg-white rounded-md border pb-3">
             {isDataLoading ? (
-              <TableSkeleton />
+              <div className="flex flex-col items-center justify-center py-10 text-gray-500 text-sm space-y-4">
+                <Loader className="w-6 h-6 animate-spin text-primary" />
+                <p className="animate-pulse pb-2">Please wait, loading data...</p>
+                <TableSkeleton />
+              </div>
             ) : (
               <DataTable
                 columns={columns}
