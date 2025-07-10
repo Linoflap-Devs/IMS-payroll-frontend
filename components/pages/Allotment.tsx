@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CircleAlert, Loader2, MoreHorizontal } from "lucide-react";
+import { CircleAlert, Loader2, MoreHorizontal, Search } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
@@ -159,19 +159,14 @@ export default function Allotment() {
     (currentYear - 15 + i).toString()
   );
 
-  // Payroll ALlotment Regsiter Data
-
-  // Allotment Register Data
   const [allotmentRegisterData, setAllotmentRegisterData] = useState<
     AllotmentRegisterData[]
   >([]);
 
-  // Allotment Deduction Register Data
   const [allotmentDeductionData, setAllotmentDeductionData] = useState<
     DeductionRegisterData[]
   >([]);
 
-  // Allotment Payslip Statement
   const [allotmentPayslipData, setAllotmentPayslipData] =
     useState<PayslipData>();
 
@@ -916,12 +911,16 @@ export default function Allotment() {
               </Card>
             </div>
           )}
-
-          <Input
-            placeholder="Search Vessel Name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+            <Input
+              placeholder="Search Vessel Name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-10 bg-[#EAEBF9]"
+            />
+          </div>
 
           <div className="bg-white rounded-md border pb-3">
             {isDataLoading ? (
