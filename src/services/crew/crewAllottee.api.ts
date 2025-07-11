@@ -29,7 +29,6 @@ export const addCrewAllottee = async (
     );
     return response.data;
   } catch (error) {
-    console.log("Request to add allottee failed:", error);
     throw error;
   }
 };

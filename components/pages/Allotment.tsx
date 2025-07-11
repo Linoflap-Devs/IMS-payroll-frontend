@@ -181,67 +181,11 @@ export default function Allotment() {
   const year = searchParams.get("year");
   const vesselId = searchParams.get("vesselId");
 
-  useEffect(() => {
-    // getVesselAllotmentRegister(
-    //   vesselId ? vesselId : null,
-    //   month ? parseInt(month) : null,
-    //   year ? parseInt(year) : null
-    // )
-    //   .then((response) => {
-    //     if (response.success && Array.isArray(response.data)) {
-    //       setAllotmentRegisterData(response.data);
-    //     } else {
-    //       console.log("Unexpected API response format:", response);
-    //       setAllotmentRegisterData([]);
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error fetching allotment register data:", error);
-    //     setAllotmentRegisterData([]);
-    //   });
-  }, [vesselId, month, year]);
+  useEffect(() => {}, [vesselId, month, year]);
 
-  useEffect(() => {
-    // getVesselDeductionRegister(
-    //   vesselId ? vesselId : null,
-    //   month ? parseInt(month) : null,
-    //   year ? parseInt(year) : null
-    // )
-    //   .then((response) => {
-    //     if (response.success && Array.isArray(response.data)) {
-    //       setAllotmentDeductionData(response.data);
-    //     } else {
-    //       console.log("Unexpected API response format:", response);
-    //       setAllotmentRegisterData([]);
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error fetching deduction register data:", error);
-    //     setAllotmentRegisterData([]);
-    //   });
-  }, [vesselId, month, year]);
+  useEffect(() => {}, [vesselId, month, year]);
 
-  useEffect(() => {
-    // getVesselPayslipV2(
-    //   vesselId ? vesselId : null,
-    //   month ? parseInt(month) : null,
-    //   year ? parseInt(year) : null
-    // )
-    //   .then((response) => {
-    //     if (response.success) {
-    //       setAllotmentPayslipData(response.data);
-    //     } else {
-    //       toast({
-    //         title: "Error",
-    //         description: "Failed to fetch payslip data.",
-    //         variant: "destructive",
-    //       });
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error fetching payslip data:", error);
-    //   });
-  }, [vesselId, month, year]);
+  useEffect(() => {}, [vesselId, month, year]);
 
   // Fetch data when filters change
   useEffect(() => {
@@ -249,19 +193,8 @@ export default function Allotment() {
 
     const fetchDashboardData = async () => {
       try {
-        //const dashboardResponse = await getDashboardList();
         const forexRate = await getForex(monthFilter, yearFilter);
-        console.log("Forex rate", forexRate);
 
-        console.log("Filters: ", monthFilter, yearFilter);
-        console.log(
-          "Result",
-          forexRate.find(
-            (item) =>
-              item.ExchangeRateMonth === Number(monthFilter) &&
-              item.ExchangeRateYear === Number(yearFilter)
-          )
-        );
         if (forexRate.length > 0) {
           const result = forexRate.find(
             (item) =>
@@ -270,39 +203,10 @@ export default function Allotment() {
           );
           setForexRate(result?.ExchangeRate || 0);
         }
-        // if (dashboardResponse.success && dashboardResponse.data) {
-        //   //setForexRate(dashboardResponse.data.ForexRate);
-        // } else {
-        //   console.error(
-        //     "Failed to fetch dashboard data:",
-        //     dashboardResponse.message
-        //   );
-        // }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       }
     };
-
-    // fetchDashboardData();
-
-    // getPayrollList(Number(monthFilter), Number(yearFilter))
-    //   .then((res) => {
-    //     if (res.success) {
-    //       const mapped: Payroll[] = res.data.map((item) => ({
-    //         vesselId: item.VesselId,
-    //         vesselName: item.VesselName,
-    //         onBoardCrew: item.OnBoardCrew,
-    //         grossAllotment: item.GrossAllotment,
-    //         totalDeductions: item.TotalDeduction,
-    //         netAllotment: item.NetAllotment,
-    //       }));
-
-    //       setPayrollData(mapped);
-    //     } else {
-    //       console.error("Failed to fetch payroll list:", res.message);
-    //     }
-    //   })
-    //   .catch((err) => console.error("Error fetching payroll list:", err))
 
     const fetchPayrollData = async () => {
       try {

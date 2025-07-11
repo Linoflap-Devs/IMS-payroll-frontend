@@ -53,7 +53,7 @@ export default function AddCrew() {
       reader.readAsDataURL(file);
     } else {
       setCrewPhotoFile(null);
-      setImagePreview("/image.png"); // Revert to default or placeholder
+      setImagePreview("/image.png");
     }
   };
 
@@ -366,7 +366,7 @@ export default function AddCrew() {
           icon: "success",
           confirmButtonColor: "#3085d6",
         }).then(() => {
-          refreshCrewList(); // Refresh the crew list in the store
+          refreshCrewList();
           router.push("/home/crew");
         });
       } else {
@@ -382,12 +382,10 @@ export default function AddCrew() {
     } catch (error: unknown) {
       console.log(error);
 
-      // Define interface for the error response structure
       interface ApiErrorResponse {
         message: string | unknown[];
       }
 
-      // Check if error is an AxiosError
       if (
         error &&
         typeof error === "object" &&
@@ -403,7 +401,6 @@ export default function AddCrew() {
           (responseData.message.includes("Unique constraint failed") ||
             responseData.message.includes("dbo.CrewData"))
         ) {
-          // Display a user-friendly message specifically for duplicate crew code
           Swal.fire({
             title: "Duplicate Crew Code",
             text: "This Crew Code already exists in the system. Please use a different Crew Code.",
@@ -456,7 +453,6 @@ export default function AddCrew() {
       }
     } finally {
       setIsSubmitting(false);
-      // setDuplicateError(false); // Reset duplicate error state
     }
   };
 
@@ -534,7 +530,6 @@ export default function AddCrew() {
     <>
       <div className="h-full w-full p-4 pt-3">
         <div className="flex flex-col space-y-6">
-          {/* Header with back button and title */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <Link href="/home/crew">
@@ -545,14 +540,13 @@ export default function AddCrew() {
               <h1 className="text-3xl font-semibold">Add Crew</h1>
             </div>
             <div className="flex gap-2">
-              {/* Navigation Buttons */}
               <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
                   onClick={
                     activeTab === "details" ? handleCancel : handlePrevious
                   }
-                  disabled={isSubmitting} // Disable when submitting
+                  disabled={isSubmitting}
                   className="px-4"
                 >
                   {activeTab === "details" ? (
@@ -568,9 +562,9 @@ export default function AddCrew() {
                   )}
                 </Button>
                 <Button
-                  onClick={handleNext} // This now also calls handleSubmit on the last tab
+                  onClick={handleNext}
                   className="bg-primary hover:bg-primary/90 px-4"
-                  disabled={isSubmitting} // Disable when submitting
+                  disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
@@ -579,7 +573,7 @@ export default function AddCrew() {
                         className="w-4 h-4 mr-2"
                       />
                       Submitting...
-                    </>
+                    </> 
                   ) : activeTab === tabOrder[tabOrder.length - 1] ? (
                     "Finish & Submit"
                   ) : (

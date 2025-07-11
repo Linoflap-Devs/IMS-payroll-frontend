@@ -4,10 +4,20 @@ import {
   LogOut,
   ChevronRight as ChevronRightIcon,
   ChevronDown,
+  MoreVertical,
+  User2,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
   routes: {
@@ -54,18 +64,20 @@ export function Sidebar({
         className={cn(
           "flex h-full flex-col rounded-xl bg-background text-sidebar-foreground transition-all duration-300 gap-y-3",
           isCollapsed ? "w-18" : "w-full"
-        )}>
-        {/* Logo and Title */}
+        )}
+      >
         <div
           className={cn(
             "flex h-20 items-center bg-[#F9F9F9] rounded-lg shadow-sm",
             isCollapsed ? "justify-center px-2" : "px-4"
-          )}>
+          )}
+        >
           <div
             className={cn(
               "flex h-15 w-15 items-center justify-center",
               isCollapsed ? "mr-0" : "mr-3"
-            )}>
+            )}
+          >
             <Image
               src="/logo.png"
               alt="Profile Logo"
@@ -82,7 +94,6 @@ export function Sidebar({
           )}
         </div>
 
-        {/* Navigation */}
         <div className="flex-1 overflow-auto py-6 bg-[#F9F9F9] rounded-lg shadow-sm">
           <nav className={cn("grid gap-2", isCollapsed ? "px-2" : "px-4")}>
             {routes.map((route) => (
@@ -110,7 +121,8 @@ export function Sidebar({
                           toggleDropdown(route.label);
                         }
                       }}
-                      title={isCollapsed ? route.label : ""}>
+                      title={isCollapsed ? route.label : ""}
+                    >
                       <route.icon
                         className={cn(
                           "h-6 w-6",
@@ -142,7 +154,8 @@ export function Sidebar({
                               subItem.active
                                 ? "bg-white text-primary font-medium shadow-sm"
                                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                            )}>
+                            )}
+                          >
                             {subItem.label}
                           </Link>
                         ))}
@@ -163,7 +176,8 @@ export function Sidebar({
                           )
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     )}
-                    title={isCollapsed ? route.label : ""}>
+                    title={isCollapsed ? route.label : ""}
+                  >
                     <route.icon
                       className={cn(
                         "h-6 w-6",
@@ -178,21 +192,23 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* User Profile */}
         <div
           className={cn(
             "mt-auto bg-[#F9F9F9] rounded-lg shadow-sm",
             isCollapsed ? "p-2" : "p-4"
-          )}>
+          )}
+        >
           <div
             className={cn(
               "flex items-center rounded-lg",
               isCollapsed ? "justify-center py-2" : "gap-3 px-3 py-2"
-            )}>
+            )}
+          >
             <Avatar
               className={cn(
                 isCollapsed ? "h-10 w-10 flex-shrink-0" : "flex-shrink-0"
-              )}>
+              )}
+            >
               <AvatarImage src="" />
               <AvatarFallback className="bg-primary text-primary-foreground text-base">
                 {userEmail ? userEmail.substring(0, 2).toUpperCase() : ""}
@@ -208,9 +224,39 @@ export function Sidebar({
                     {userEmail || "Not logged in"}
                   </p>
                 </div>
-                <button onClick={onLogout} className="ml-auto flex-shrink-0">
-                  <LogOut className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="h-7 sm:h-8 w-7 sm:w-8 p-0"
+                    >
+                      <span className="sr-only">Open menu</span>
+                      <MoreVertical className="h-4 sm:h-4 w-3.5 sm:w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="text-xs sm:text-sm"
+                  >
+                    <DropdownMenuItem className="text-xs sm:text-sm">
+                      <Link
+                        href={`/home/profile`}
+                        className="flex items-center gap-2"
+                      >
+                        <User2 className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
+                        User Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive cursor-pointer"
+                      onClick={onLogout}
+                    >
+                      <LogOut className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
           </div>

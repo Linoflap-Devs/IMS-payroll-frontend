@@ -83,7 +83,6 @@ export default function CrewApplication() {
     useState<Application | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [isClose, setClose] = useState(false);
-  //const handleClose = () => setShowDetailsDialog(false);
 
   useEffect(() => {
     fetchApplications();

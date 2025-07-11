@@ -26,8 +26,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Plus } from "lucide-react";
-import { useEffect } from "react";
+import { Eye, EyeOff, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "../ui/use-toast";
 import {
   AddUserPayload,
@@ -80,6 +80,7 @@ export function AddUserDialog({
 
   const { reset, formState } = form;
   const { isSubmitting } = formState;
+  const [showPassword, setShowPassword] = useState(false);
 
   const roleOptions = [
     { label: "System Admin", value: 1 },
@@ -221,19 +222,32 @@ export function AddUserDialog({
               )}
             />
 
-            {/* Password */}
             <FormField
               control={form.control}
               name="password"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem className="w-full gap-2 mt-1">
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Enter password"
-                      {...field}
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter New Password"
+                        {...field}
+                        className={fieldState.invalid ? "border-red-500 focus-visible:ring-red-300 focus-visible:border-transparent" : ""}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

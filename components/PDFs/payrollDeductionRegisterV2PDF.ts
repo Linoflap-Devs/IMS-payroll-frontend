@@ -294,7 +294,7 @@ export function generateDeductionAllotmentV2Register(
         // Function to add a footer to the current pages
         function addPageFooter(currentPage: number, totalPages: number): void {
             // Draw page number box at bottom
-            console.log(pageHeight, margins.bottom);
+            //console.log(pageHeight, margins.bottom);
             doc.rect(margins.left, pageHeight - margins.bottom + 3, pageWidth - margins.left - margins.right, 8);
             doc.setFontSize(7);
             doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 6, pageHeight - margins.bottom + 8, { align: 'right' });
