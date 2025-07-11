@@ -121,10 +121,10 @@ export interface UpdatePasswordResponse {
 }
 
 // `/auth/update-password/${userId}`
-// userId: number, 
+// userId: number,
 export const updatePassword = async (passwordData: UpdatePasswordItem ): Promise<UpdatePasswordResponse> => {
   try {
-    const response = await axiosInstance.put("/auth/update-password", passwordData);
+    const response = await axiosInstance.patch("/auth/update-password", passwordData);
     return {
       success: true,
       data: response.data,

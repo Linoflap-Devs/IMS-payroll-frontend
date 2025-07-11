@@ -58,7 +58,8 @@ export interface Crew {
     FileExtension: string;
     ContentType: string;
   }
-  allottees?: Allottee[];  
+  allottees?: Allottee[];
+ crewPhoto?: File; 
 }
 
 export const mapMaritalStatus = (status: string): string => {

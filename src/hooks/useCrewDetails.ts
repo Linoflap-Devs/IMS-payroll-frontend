@@ -76,7 +76,8 @@ export function useCrewDetails(crewId: string | null) {
         seamansBookNumber: crewDetails.SRIBNumber,
         seamansBookIssueDate: crewDetails.SRIBIssueDate,
         seamansBookExpiryDate: crewDetails.SRIBExpiredDate,
-        profileImage: crewDetails.ProfileImage,
+        //profileImage: crewDetails.ProfileImage,
+       // crewPhoto: crewDetails || undefined,      
       };
 
       setCrew(mappedCrew);
@@ -92,18 +93,19 @@ export function useCrewDetails(crewId: string | null) {
   };
 
   const saveChanges = async () => {
-
     if (!editedCrew || !editedCrew.id) {
       console.warn("Cannot save. editedCrew or editedCrew.id is missing");
       return;
     }
 
+    console.log("Starting saveChanges...");
     setIsEditLoading(true);
 
     const updatedCrew = {
       ...editedCrew,
       name: `${editedCrew.firstName} ${editedCrew.lastName}`,
     };
+    console.log("updatedCrew object:", updatedCrew);
 
     const crewToBeUpdated = {
       status: updatedCrew.status,
@@ -142,20 +144,28 @@ export function useCrewDetails(crewId: string | null) {
       passportNumber: updatedCrew.passportNumber,
       passportIssueDate: updatedCrew.passportIssueDate,
       passportExpiryDate: updatedCrew.passportExpiryDate,
-      
+
       seamanBookNumber: updatedCrew.seamansBookNumber,
       seamanBookIssueDate: updatedCrew.seamansBookIssueDate,
       seamanBookExpiryDate: updatedCrew.seamansBookExpiryDate,
+      //crewPhoto: updatedCrew.crewPhoto,
     };
+
+    console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
 
     try {
       const response = await updateCrew(editedCrew.id, crewToBeUpdated);
 
+      console.log("Response from updateCrew:", response);
+
       if (response.success) {
+        console.log("Refetching crew data...");
         await Promise.all([
           fetchCrewBasic(editedCrew.id),
           fetchCrewDetails(editedCrew.id),
-        ]); // re-fetch
+        ]);
+
+        console.log("Crew data updated and refetched.");
 
         toast({
           title: "Success",
@@ -180,6 +190,7 @@ export function useCrewDetails(crewId: string | null) {
         variant: "destructive",
       });
     } finally {
+      console.log("Cleaning up... set loading to false.");
       setIsEditLoading(false);
     }
   };

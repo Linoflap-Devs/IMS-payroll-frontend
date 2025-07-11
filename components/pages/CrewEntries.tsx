@@ -113,6 +113,8 @@ export default function Deduction() {
       .finally(() => setIsLoading((prev) => ({ ...prev, vessels: false })));
   }, []);
 
+  //console.log('Crew Deduction Data: ', crewDeductionData);
+  ``
   // Memoize filtered data to prevent unnecessary recalculations
   const filteredCrewDeduction = useMemo(() => {
     return crewDeductionData.filter((item) => {
@@ -290,6 +292,7 @@ export default function Deduction() {
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectItem value="all">All Vessels</SelectItem>
+                      <SelectItem value="off-board">Off-board</SelectItem>
                       {vessels.map((vessel) => (
                         <SelectItem
                           key={vessel.VesselID}

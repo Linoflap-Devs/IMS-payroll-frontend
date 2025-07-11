@@ -696,7 +696,7 @@ export default function Allotment() {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <div className="flex items-center justify-center space-x-4 px-4">
-                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white">
+                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white hover:text-white">
                       No, Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction

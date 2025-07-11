@@ -47,7 +47,6 @@ export interface CrewDetails {
     FileExtension: string;
     ContentType: string;
   }
-
 }
 
 export interface CrewDetailsResponse {
@@ -237,9 +236,6 @@ export interface AddCrewResponse {
   message: string;
   data?: AddCrewSuccessData | []; // any[] to accommodate `data: []` in error responses from controller
 }
-
-
-
 
 export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewResponse> => {
   const formData = new FormData();
