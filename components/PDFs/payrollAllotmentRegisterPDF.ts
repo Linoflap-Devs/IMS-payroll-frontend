@@ -394,7 +394,7 @@ export function generateAllotmentPayrollRegister(
                             tableStartY = currentY;
                         }
                         
-                        const netAllotment = allottee.Currency === 1 ? allottee.NetAllotment * vessel.ExchangeRate : allottee.NetAllotment;
+                        const netAllotment = allottee.NetAllotment || 0;
 
                         // Add allottee details - using the updated property names
                         doc.text(truncateText(allottee.AllotteeName, 22), colPositions[9] + 5, y + 5, { align: 'left' });

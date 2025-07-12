@@ -454,9 +454,9 @@ function generateCrewPayrollPage(
                 currencyType = 'USD';
             }
 
-            const toPeso = allottee.currency === 1 ? allottee.amount * exchangeRate : allottee.amount;
+            //const toPeso = allottee.currency === 1 ? allottee.amount * exchangeRate : allottee.amount;
 
-            doc.text(formatWithCurrency(toPeso, 'PHP'), pageWidth - 12, y + index * 8, { align: 'right' });
+            doc.text(formatWithCurrency(allottee.amount, 'PHP'), pageWidth - 12, y + index * 8, { align: 'right' });
         });
     } else {
         // No allottees - show a message
