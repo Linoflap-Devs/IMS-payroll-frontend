@@ -395,13 +395,13 @@ export default function DeductionEntries() {
     philhealthDeductionItem[]
   >([]);
   const [selectedPhilhealthYear, setSelectedPhilhealthYear] =
-    useState<string>("");
+    useState<string>(new Date().getFullYear().toString());
   const [philhealthYears, setPhilhealthYears] = useState<string[]>([]);
   const [philhealthLoading, setPhilhealthLoading] = useState<boolean>(false);
 
   // SSS states
   const [sssData, setSSSData] = useState<sssDeductionItem[]>([]);
-  const [selectedSSSYear, setSelectedSSSYear] = useState<string>("");
+  const [selectedSSSYear, setSelectedSSSYear] = useState<string>(new Date().getFullYear().toString());
   const [sssYears, setSSSYears] = useState<string[]>([]);
   const [sssLoading, setSSSLoading] = useState<boolean>(false);
   //console.log("deductionEntries", deductionEntries);
@@ -528,6 +528,7 @@ export default function DeductionEntries() {
 
       try {
         const response = await getCrewSSS(crewCode, year);
+        console.log("SSS response", response)
 
         if (response.success) {
           const mappedData = response.data.map((item) => ({
@@ -578,8 +579,10 @@ export default function DeductionEntries() {
   useEffect(() => {
     if (!crewCode) return;
 
-    fetchPhilhealthData(crewCode, 0);
-    fetchSSSData(crewCode, 0);
+    const today = new Date().getFullYear()
+
+    fetchPhilhealthData(crewCode, today);
+    fetchSSSData(crewCode, today);
   }, [crewCode, fetchPhilhealthData, fetchSSSData]);
 
   useEffect(() => {
