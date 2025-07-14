@@ -130,6 +130,8 @@ export interface PayrollDetails {
 }
 
 export interface CrewPayroll {
+  PayrollMonth?: number,
+  PayrollYear?: number,
   crewId: number;
   crewCode: string;
   crewName: string;

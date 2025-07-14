@@ -6,6 +6,7 @@ import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
 import { toast } from "../ui/use-toast";
 import { CrewPayroll, PayslipPeriod, Payroll, PayslipData } from "@/src/services/payroll/payroll.api";
+import { format } from "date-fns";
 
 // Format currency with commas and 2 decimal places
 function formatCurrency(amount: number): string {
@@ -37,17 +38,18 @@ function formatDate(date: Date): string {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-export function generatePayrollPDF(
-    payslipData: PayslipData,
+export function generatePayrollPDFSingle(
+    payslipData: CrewPayroll,
+    month: number,
+    year: number,
     currentUser: string = 'admin',
-    vesselFilter?: number,
 ): boolean {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
         return false;
     }
 
-    if (!payslipData || !payslipData.vessels || !payslipData.vessels.length) {
+    if (!payslipData) {
         toast({
             title: 'Error',
             description: 'No payroll data available to generate PDF.',
@@ -57,25 +59,6 @@ export function generatePayrollPDF(
     }
 
     try {
-        // Filter vessels if vesselFilter is provided
-        const vesselsToProcess = vesselFilter
-            ? payslipData.vessels.filter(v => v.vesselId === vesselFilter)
-            : payslipData.vessels;
-
-        if (vesselsToProcess.length === 0) {
-            toast({
-                title: 'Error',
-                description: 'No vessel found with the specified ID.',
-                variant: 'destructive'
-            });
-            return false;
-        }
-
-        // Count total crew members across all vessels for logging
-        const totalCrewCount = vesselsToProcess.reduce((total, vessel) =>
-            total + (vessel.payrolls ? vessel.payrolls.length : 0), 0);
-
-        //console.log(`Generating PDF with ${totalCrewCount} crew members from ${vesselsToProcess.length} vessels`);
 
         // Create a single PDF document for all crew members
         const doc = new jsPDF({
@@ -87,63 +70,34 @@ export function generatePayrollPDF(
         addFont(doc);
 
         // Set document properties for the combined PDF
-        const pdfTitle = vesselsToProcess.length === 1
-            ? `Payroll Statement - ${vesselsToProcess[0].vesselName} - ${payslipData.period.formattedPeriod}`
-            : `Payroll Statement - Multiple Vessels - ${payslipData.period.formattedPeriod}`;
+        const pdfTitle = `Payroll Statement - ${payslipData.crewName} - ${month} ${year}`
 
         doc.setProperties({
             title: pdfTitle,
-            subject: `Payroll Statements for ${vesselsToProcess.length} Vessels`,
+            subject: `Payroll Statement for ${payslipData.crewName}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
 
-        // Track if we've added any pages yet
-        let firstPage = true;
+        const dateFormat = format(new Date(year, month, 1), 'MMMM yyyy')
 
-        // Process each vessel
-        vesselsToProcess.forEach((vessel) => {
-            // Skip vessels with no payroll data
-            if (!vessel.payrolls || vessel.payrolls.length === 0) {
-                return;
-            }
-
-            // Generate each crew member's page in the same PDF
-            vessel.payrolls.forEach((crew) => {
-                // Add a new page for each crew member after the first one
-                if (!firstPage) {
-                    doc.addPage();
-                } else {
-                    firstPage = false;
-                }
-
-                // Generate the page for this crew member
-                generateCrewPayrollPage(doc, payslipData.period, vessel, crew, currentUser);
-            });
-        });
-
+        generateCrewPayrollPage(doc, dateFormat, payslipData.vesselName, payslipData, currentUser);
         // If no pages were generated, return false
-        if (firstPage) {
-            toast({
-                title: 'Error',
-                description: 'No crew members found in the selected vessel(s).',
-                variant: 'destructive'
-            });
-            return false;
-        }
+        // if (firstPage) {
+        //     toast({
+        //         title: 'Error',
+        //         description: 'No crew members found in the selected vessel(s).',
+        //         variant: 'destructive'
+        //     });
+        //     return false;
+        // }
 
         // Generate filename based on selected vessels
         let fileName: string;
-        if (vesselsToProcess.length === 1) {
-            fileName = `payroll-${vesselsToProcess[0].vesselName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${payslipData.period.formattedPeriod.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
-        } else {
-            fileName = `payroll-multiple-vessels-${payslipData.period.formattedPeriod.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
-        }
+        fileName=`Payroll-${payslipData.crewName.replace(' ','_')}-${month}_${year}`
 
         // Save the combined PDF
         doc.save(fileName);
-
-        //console.log(`Successfully generated combined PDF with ${totalCrewCount} crew members from ${vesselsToProcess.length} vessels`);
         return true;
     } catch (error) {
         console.error("Error in PDF generation process:", error);
@@ -156,18 +110,10 @@ export function generatePayrollPDF(
     }
 }
 
-/**
- * Generate a single page for a crew member
- * @param doc The jsPDF document
- * @param period The period information
- * @param vessel The vessel information
- * @param crewData The crew member's payroll data
- * @param currentUser Current user login name
- */
 function generateCrewPayrollPage(
     doc: jsPDF,
-    period: PayslipPeriod,
-    vessel: Payroll,
+    period: string,
+    vessel: string,
     crewData: CrewPayroll,
     currentUser: string
 ) {
@@ -198,7 +144,7 @@ function generateCrewPayrollPage(
     doc.setFontSize(10);
     doc.setFont('NotoSans', 'normal');
     doc.rect(pageWidth - 60, y, 50, 15);
-    doc.text(period.formattedPeriod, pageWidth - 55, y + 9);
+    doc.text(period, pageWidth - 55, y + 9);
 
     // Add payroll statement box
     doc.rect(pageWidth - 60, y + 15, 50, 15);
@@ -229,7 +175,7 @@ function generateCrewPayrollPage(
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(11);
     doc.setFont('NotoSans', 'bold');
-    doc.text(vessel.vesselName, pageWidth - 12, y + 12, { align: 'right' });
+    doc.text(vessel, pageWidth - 12, y + 12, { align: 'right' });
 
     // Horizontal gray line
     y += 20;
@@ -358,8 +304,6 @@ function generateCrewPayrollPage(
     y += 20;
     doc.setFont('NotoSans', 'normal');
     doc.setFontSize(10);
-
-    const exchangeRate = period.exchangeRate
 
     if (crewData.allotteeDistribution && crewData.allotteeDistribution.length > 0) {
         crewData.allotteeDistribution.forEach((allottee, index) => {

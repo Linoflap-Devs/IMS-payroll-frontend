@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Ship, ChevronLeft, Loader2 } from "lucide-react";
+import { Search, Ship, ChevronLeft, Loader2, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -20,6 +20,7 @@ import { useSearchParams } from "next/navigation";
 import { generatePayrollPDF } from "@/components/PDFs/payrollStatementPDF";
 import { toast } from "@/components/ui/use-toast";
 import { generatePayrollExcel } from "@/components/Excels/payrollStatementPDF";
+import { generatePayrollPDFSingle } from "@/components/PDFs/payrollStatementPDFSingle";
 
 export default function VesselPayslip() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,6 +44,7 @@ export default function VesselPayslip() {
             setPayslipPDFData(res.data);
             setPayslipData(res.data);
             setPayslipCrewData(res.data.vessels[0]?.payrolls || []);
+            console.log('Data loaded.')
           } else {
             console.error("Failed to fetch payslip data:", res.message);
           }
@@ -85,6 +87,16 @@ export default function VesselPayslip() {
         </div>
       ),
     },
+    {
+      header: "Action",
+      cell: ({ row }) => (
+        <div className="text-xs sm:text-sm text-center">
+          <Button variant={'ghost'} onClick={() => generatePayrollPDFCrew(row.original.crewCode)}>
+            <Download />
+          </Button>
+        </div>
+      )
+    }
   ];
 
   const filteredCrew = payslipCrewData.filter(
@@ -94,6 +106,7 @@ export default function VesselPayslip() {
   );
 
   const generatePayrollPDFs = () => {
+    console.log(PayslipPDFData)
     if (!PayslipPDFData) {
       console.error("No payslip data available for PDF generation.");
       toast({
@@ -103,7 +116,36 @@ export default function VesselPayslip() {
       });
       return;
     }
+
     generatePayrollPDF(PayslipPDFData);
+  };
+
+  const generatePayrollPDFCrew = (crewCode?: string) => {
+    console.log(PayslipPDFData)
+    if (!PayslipPDFData) {
+      console.error("No payslip data available for PDF generation.");
+      toast({
+        title: "Error",
+        description: "No payslip data available for PDF generation.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const data = PayslipPDFData.vessels[0].payrolls.find((crew: CrewPayroll) => crew.crewCode === crewCode);
+
+    if(!data) {
+      console.error("No crew data available for PDF generation.");
+      toast({
+        title: "Error",
+        description: "No crew data available for PDF generation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log(data)
+    generatePayrollPDFSingle(data, PayslipPDFData.period.month, PayslipPDFData.period.year);
   };
 
   const handleGeneratePayslipExcel = () => {
