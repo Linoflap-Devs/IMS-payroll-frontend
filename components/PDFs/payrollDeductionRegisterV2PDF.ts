@@ -433,7 +433,7 @@ export function generateDeductionAllotmentV2Register(
             addPageFooter(i, totalPages)
         }
         // Save the final PDF
-        const fileName = `allotment-payroll-register-multiple-vessels-${periodMonth.toLowerCase()}-${year}.pdf`;
+        const fileName = `deduction-register-multiple-vessels-${periodMonth.toLowerCase()}-${year}.pdf`;
         doc.save(fileName)
         // // Save the PDF using the updated content with correct page numbers
         // const blob = dataURItoBlob(updatedPdfText);
