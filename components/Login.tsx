@@ -116,23 +116,25 @@ export default function Login() {
                 <FormField
                   control={form.control}
                   name="email"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
                       <FormLabel
                         className={`text-sm ${
-                          errorMessage ? "text-red-600" : ""
-                        }`}>
+                          fieldState.error ? "text-red-600" : ""
+                        }`}
+                      >
                         Email Address
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Enter email address"
-                          {...field}
-                          className={`h-10 text-sm  ${
-                            errorMessage
-                              ? "border-red-500 ring-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
-                              : ""
-                          }`}
+                            type="text" 
+                            placeholder="Enter email address"
+                            {...field}
+                            className={`h-10 text-sm pr-12 ${
+                              fieldState.error
+                                ? "border-red-500 ring-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
+                                : ""
+                            }`}
                         />
                       </FormControl>
                       <div className="flex items-center gap-1">
@@ -144,12 +146,13 @@ export default function Login() {
                 <FormField
                   control={form.control}
                   name="password"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
                       <FormLabel
                         className={`text-sm ${
-                          errorMessage ? "text-red-600" : ""
-                        }`}>
+                          fieldState.error ? "text-red-600" : ""
+                        }`}
+                      >
                         Password
                       </FormLabel>
                       <FormControl>
@@ -159,7 +162,7 @@ export default function Login() {
                             placeholder="Enter password"
                             {...field}
                             className={`h-10 text-sm pr-12 ${
-                              errorMessage
+                              fieldState.error
                                 ? "border-red-500 ring-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
                                 : ""
                             }`}
@@ -167,7 +170,8 @@ export default function Login() {
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                          >
                             {showPassword ? (
                               <PiEyeSlash size={20} />
                             ) : (
@@ -176,9 +180,7 @@ export default function Login() {
                           </button>
                         </div>
                       </FormControl>
-                      <div className="flex items-center gap-1">
-                        <FormMessage className="text-base" />
-                      </div>
+                      <FormMessage className="text-base" />
                     </FormItem>
                   )}
                 />
@@ -194,7 +196,8 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90"
-                disabled={isLoading}>
+                disabled={isLoading}
+              >
                 {isLoading ? "Logging in..." : "Log in"}
               </Button>
             </form>
@@ -222,7 +225,8 @@ export default function Login() {
                   <DialogClose asChild className="mt-2">
                     <Button
                       variant="outline"
-                      className="py-5 px-9 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white">
+                      className="py-5 px-9 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white"
+                    >
                       Okay
                     </Button>
                   </DialogClose>

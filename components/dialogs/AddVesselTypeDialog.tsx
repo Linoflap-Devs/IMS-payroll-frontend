@@ -24,13 +24,11 @@ import { AxiosError } from "axios";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 
-// Define form schema with Zod
 const formSchema = z.object({
   vesselTypeCode: z.string().min(1, "Vessel Code is required"),
   vesselTypeName: z.string().min(1, "Vessel Type Name is required"),
 });
 
-// Type for form values
 type FormValues = z.infer<typeof formSchema>;
 
 interface AddVesselTypeDialogProps {

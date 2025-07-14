@@ -61,7 +61,6 @@ export default function PhilhealthContribution() {
             setVesselInfo(null);
             setSSSDeductionData([]);
           }
-          console.log("Fetched Philhealth deduction data:", vesselData);
         } else {
           console.error("Unexpected response format:", response);
           setVesselInfo(null);

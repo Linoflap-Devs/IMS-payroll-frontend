@@ -108,3 +108,33 @@ export const loginHistory = async (): Promise<LoginHistoryResponse> => {
   const response = await axiosInstance.get<LoginHistoryResponse>("/users/login-history");
   return response.data;
 };
+
+export interface UpdatePasswordItem {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface UpdatePasswordResponse {
+  success: boolean;
+  data?: any;
+  message?: string;
+}
+
+// `/auth/update-password/${userId}`
+// userId: number,
+export const updatePassword = async (passwordData: UpdatePasswordItem ): Promise<UpdatePasswordResponse> => {
+  try {
+    const response = await axiosInstance.patch("/auth/update-password", passwordData);
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error: any) {
+    console.error("Error resetting password:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to reset the password",
+    };
+  }
+};
+

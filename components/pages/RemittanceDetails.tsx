@@ -518,7 +518,6 @@ export default function RemittanceDetails() {
         try {
           const response = await getCrewRemittanceDetails(crewCode);
           if (response.success) {
-            // Update available years if needed
             const years = [...new Set(response.data.map((item) => item.Year))];
             setAvailableYears(years.sort((a, b) => b - a));
 

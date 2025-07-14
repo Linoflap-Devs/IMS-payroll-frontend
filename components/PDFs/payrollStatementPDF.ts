@@ -156,7 +156,7 @@ export function generatePayrollPDF(
         const totalCrewCount = vesselsToProcess.reduce((total, vessel) =>
             total + (vessel.payrolls ? vessel.payrolls.length : 0), 0);
 
-        console.log(`Generating PDF with ${totalCrewCount} crew members from ${vesselsToProcess.length} vessels`);
+        //console.log(`Generating PDF with ${totalCrewCount} crew members from ${vesselsToProcess.length} vessels`);
 
         // Create a single PDF document for all crew members
         const doc = new jsPDF({
@@ -224,7 +224,7 @@ export function generatePayrollPDF(
         // Save the combined PDF
         doc.save(fileName);
 
-        console.log(`Successfully generated combined PDF with ${totalCrewCount} crew members from ${vesselsToProcess.length} vessels`);
+        //console.log(`Successfully generated combined PDF with ${totalCrewCount} crew members from ${vesselsToProcess.length} vessels`);
         return true;
     } catch (error) {
         console.error("Error in PDF generation process:", error);

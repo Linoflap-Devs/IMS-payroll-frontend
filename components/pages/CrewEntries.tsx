@@ -40,14 +40,13 @@ export default function Deduction() {
   const [rankFilter, setRankFilter] = useState("all");
   const [vesselFilter, setVesselFilter] = useState("all");
   const [ranks, setRanks] = useState<CrewRankItem[]>([]);
-  const [vessels, setVessels] = useState<VesselItem[]>([]);
+  //const [vessels, setVessels] = useState<VesselItem[]>([]);
   const [crewDeductionData, setCrewDeductionData] = useState<CrewDeduction[]>(
     []
   );
   const [isLoading, setIsLoading] = useState({
     crew: true,
     ranks: true,
-    vessels: true,
   });
 
   const clearFilters = () => {
@@ -81,7 +80,6 @@ export default function Deduction() {
     getCrewRankList()
       .then((response) => {
         if (response.success) {
-          // Pre-filter valid ranks to avoid doing it during render
           const validRanks = response.data.filter(
             (rank) => rank.RankName && rank.RankName.trim() !== ""
           );
@@ -92,25 +90,6 @@ export default function Deduction() {
       })
       .catch((error) => console.error("Error fetching crew ranks:", error))
       .finally(() => setIsLoading((prev) => ({ ...prev, ranks: false })));
-  }, []);
-
-  // Load vessels with loading state
-  useEffect(() => {
-    setIsLoading((prev) => ({ ...prev, vessels: true }));
-    getVesselList()
-      .then((response) => {
-        if (response.success) {
-          // Pre-filter valid vessels to avoid doing it during render
-          const validVessels = response.data.filter(
-            (vessel) => vessel.VesselName && vessel.VesselName.trim() !== ""
-          );
-          setVessels(validVessels);
-        } else {
-          console.error("Failed to fetch vessels:", response.message);
-        }
-      })
-      .catch((error) => console.error("Error fetching vessels:", error))
-      .finally(() => setIsLoading((prev) => ({ ...prev, vessels: false })));
   }, []);
 
   // Memoize filtered data to prevent unnecessary recalculations
@@ -258,7 +237,6 @@ export default function Deduction() {
             <div className="flex justify-between items-center">
               <h1 className="text-3xl font-semibold mb-0">Crew Entries</h1>
             </div>
-
             <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
               {/* Search and Filters */}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
@@ -275,14 +253,10 @@ export default function Deduction() {
                   <Select
                     value={vesselFilter}
                     onValueChange={setVesselFilter}
-                    disabled={isLoading.vessels}
+                    //disabled={isLoading.vessels}
                   >
                     <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                      {isLoading.vessels ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
-                      )}
+                      <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
                       <SelectValue
                         defaultValue="all"
                         placeholder="All Vessels"
@@ -290,12 +264,13 @@ export default function Deduction() {
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectItem value="all">All Vessels</SelectItem>
-                      {vessels.map((vessel) => (
-                        <SelectItem
-                          key={vessel.VesselID}
-                          value={vessel.VesselName || ""}
-                        >
-                          {vessel.VesselName}
+                      {[
+                        ...new Set(
+                          crewDeductionData.map((item) => item.VesselName)
+                        ),
+                      ].map((vesselName) => (
+                        <SelectItem key={vesselName} value={vesselName || ""}>
+                          {vesselName}
                         </SelectItem>
                       ))}
                     </SelectContent>

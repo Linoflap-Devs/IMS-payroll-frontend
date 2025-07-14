@@ -2,6 +2,7 @@ import axiosInstance from "@/src/lib/axios";
 import { DeductionDescriptionItem } from "./deductionDescription.api";
 
 export interface CrewDeductionItem {
+  vesselId: any;
   CrewCode: string;
   FirstName: string;
   LastName: string;

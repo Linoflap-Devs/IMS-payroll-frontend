@@ -6,6 +6,8 @@ import { calculateAge } from "@/types/crew";
 import Base64Image from "./Base64Image";
 import Image from "next/image";
 import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { useRef, useState } from "react";
 
 interface CrewSidebarProps {
   crew: Crew;
@@ -22,12 +24,41 @@ export function CrewSidebar({
   handleInputChange,
   submitted,
 }: CrewSidebarProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null); // For triggering file input
+  const [crewPhotoFile, setCrewPhotoFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>("/image.png"); // For image preview
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setCrewPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setCrewPhotoFile(null);
+      setImagePreview("/image.png");
+    }
+  };
+
+  //console.log(editedCrew);
+
   return (
     <div className="md:col-span-1">
       <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
         <CardContent className="p-4 flex flex-col items-center text-center overflow-y-auto scrollbar-hide flex-1">
           <div className="w-60 h-60 min-w-[160px] bg-white rounded-md mb-3 flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
-            {crew.profileImage ? (
+            {isEditing ? (
+              <Image
+                width={256}
+                height={160}
+                src={imagePreview || "/image.png"}
+                alt="Preview Photo"
+                className="object-cover w-full h-full"
+              />
+            ) : crew.profileImage ? (
               <Base64Image
                 imageType={crew.profileImage.ContentType}
                 alt="Crew Profile Image"
@@ -46,6 +77,26 @@ export function CrewSidebar({
               />
             )}
           </div>
+          
+          {isEditing && (
+            <div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-1 mb-3 w-60"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Update Photo
+              </Button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                accept="image/*,.jpeg,.jpg,.png"
+                onChange={handleFileChange}
+              />
+            </div>
+          )}
 
           <h2 className="text-lg font-bold mb-1 w-full">
             {isEditing
@@ -104,17 +155,15 @@ export function CrewSidebar({
               </div>
             </div>
 
-           
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-gray-500">Age</div>
-                  <div className="text-sm font-medium truncate">
-                    {calculateAge(crew.dateOfBirth)}
-                  </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm text-gray-500">Age</div>
+                <div className="text-sm font-medium truncate">
+                  {calculateAge(crew.dateOfBirth)}
                 </div>
               </div>
-            
+            </div>
           </div>
 
           <div className="w-full mt-4 pt-4 border-t min-w-0">

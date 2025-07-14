@@ -3,6 +3,9 @@ import { create } from 'zustand';
 type User = {
   Email: string;
   UserType: number;
+  FirstName?: string;
+  LastName?: string;
+  UserTypeName?: string;
 };
 
 type AuthState = {
