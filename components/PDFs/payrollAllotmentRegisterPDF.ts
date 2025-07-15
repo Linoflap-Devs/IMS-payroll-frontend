@@ -122,22 +122,54 @@ export function generateAllotmentPayrollRegister(
         const pageHeight = doc.internal.pageSize.height;
         const margins = { left: 10, right: 10, top: 10, bottom: 20 }; // Reduced bottom margin
 
+        const mainTableWidth = pageWidth - margins.left - margins.right;
+        console.log(mainTableWidth)
+
         // Define table column widths for the main data table
         const colWidths = [
-            55,  // CREW NAME
-            30,  // RANK
-            28,  // BASIC WAGE
-            22,  // FIXED OT
-            24,  // GUAR OT
-            28,  // DOLLAR GROSS
-            28,  // PESO GROSS
-            30,  // TOTAL DED
-            30,  // NET
-            48,  // ALLOTTEE NAME
-            38,  // ACCOUNT NUMBER
-            38,  // BANK
-            40   // ALLOTMENT
+            mainTableWidth * 0.15,  // CREW NAME
+            mainTableWidth * 0.10,  // RANK
+            mainTableWidth * 0.06,  // BASIC WAGE
+            mainTableWidth * 0.06,  // FIXED OT
+            mainTableWidth * 0.06,  // GUAR OT
+            mainTableWidth * 0.07,  // DOLLAR GROSS
+            mainTableWidth * 0.07,  // PESO GROSS
+            mainTableWidth * 0.07,  // TOTAL DED
+            mainTableWidth * 0.07,  // NET
+            mainTableWidth * 0.15,  // ALLOTTEE NAME
+            mainTableWidth * 0.07,  // ACCOUNT NUMBER
+            mainTableWidth * 0.10,  // BANK
+            mainTableWidth * 0.07   // ALLOTMENT
         ];
+
+         // DEBUG: Function to draw red column borders
+        // function drawDebugColumnBorders(startY: number, endY: number): void {
+            
+        //     // Set red color for debug lines
+        //     doc.setDrawColor(255, 0, 0); // Red color
+        //     doc.setLineWidth(0.5); // Thicker line for visibility
+            
+        //     // Draw vertical lines for each column position
+        //     colPositions.forEach((position, index) => {
+        //         doc.line(position, startY, position, endY);
+                
+        //         // Add column index labels at the top for identification
+        //         if (startY === currentY) {
+        //             doc.setFontSize(6);
+        //             doc.setTextColor(255, 0, 0); // Red text
+        //             doc.text(`C${index}`, position + 1, startY - 2);
+        //         }
+        //     });
+            
+        //     // Also draw the final right border
+        //     const finalPosition = colPositions[colPositions.length - 1];
+        //     doc.line(finalPosition, startY, finalPosition, endY);
+            
+        //     // Restore original draw settings
+        //     doc.setDrawColor(0, 0, 0); // Back to black
+        //     doc.setLineWidth(1);
+        //     doc.setTextColor(0, 0, 0); // Back to black text
+        // }
 
         // Calculate total table width and scale if needed
         const totalWidth = colWidths.reduce((a, b) => a + b, 0);
@@ -258,8 +290,8 @@ export function generateAllotmentPayrollRegister(
 
             // Draw header text
             const headers = [
-                "CREW NAME", "RANK", "BASIC WAGE", "FIXED OT", "GUAR OT", "DOLLAR GROSS",
-                "PESO GROSS", "TOTAL DED.", "NET", "ALLOTTEE NAME", "ACCOUNT NUMBER", "BANK", "ALLOTMENT"
+                "CREW NAME", "RANK", "BASIC", "FOT", "GOT", "GROSS ($)",
+                "GROSS (₱)", "TOTAL DED.", "NET", "ALLOTTEE", "ACCOUNT NO.", "BANK", "ALLOTMENT"
             ];
 
             doc.setFontSize(7);
@@ -271,7 +303,7 @@ export function generateAllotmentPayrollRegister(
                     // Left align crew name header (same as data)
                     doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
                 }
-                else if(header === "ALLOTTEE NAME" || header === "BANK"){
+                else if(header === "ALLOTTEE" || header === "BANK" || header === "ALLOTMENT" || header === "ACCOUNT NO.") {
                     doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
                 } 
                 else {
@@ -284,6 +316,9 @@ export function generateAllotmentPayrollRegister(
             doc.line(margins.left, currentY + tableHeaderHeight, pageWidth - margins.right, currentY + tableHeaderHeight);
 
             currentY += tableHeaderHeight;
+
+             // DEBUG: Draw red column borders for the header area
+            //  drawDebugColumnBorders(currentY - tableHeaderHeight, currentY);
         }
 
         // Function to add a footer to the current pages
@@ -329,7 +364,7 @@ export function generateAllotmentPayrollRegister(
                 }
 
                 // Set font for data
-                doc.setFontSize(7);
+                doc.setFontSize(6);
                 doc.setFont('NotoSans', 'normal');
 
                 const columnKeys: string[] = [
@@ -348,10 +383,10 @@ export function generateAllotmentPayrollRegister(
                 columnKeys.forEach((key, i) => {
                     if(i == 0) {
                         // Crew Name
-                        doc.text(truncateText(crew[key as keyof AllotmentRegisterCrew].toString(), 22), colPositions[0] + 5, y + 5, {align: 'left'});
+                        doc.text(crew[key as keyof AllotmentRegisterCrew].toString(), colPositions[0] + 5, y + 5, {align: 'left'});
                     }
                     else if(key === 'Rank') {
-                        doc.text(truncateText(crew[key as keyof AllotmentRegisterCrew].toString(), 22), colPositions[i] + 5,  y + 5, {align: 'left'});
+                        doc.text(crew[key as keyof AllotmentRegisterCrew].toString(), colPositions[i] + 5,  y + 5, {align: 'left'});
                     }
                     else {
                         const value = crew[key as keyof AllotmentRegisterCrew];
@@ -397,7 +432,7 @@ export function generateAllotmentPayrollRegister(
                         const netAllotment = allottee.NetAllotment || 0;
 
                         // Add allottee details - using the updated property names
-                        doc.text(truncateText(allottee.AllotteeName, 22), colPositions[9] + 5, y + 5, { align: 'left' });
+                        doc.text(allottee.AllotteeName, colPositions[9] + 5, y + 5, { align: 'left' });
                         doc.text(allottee.AccountNumber, colPositions[10] + 9, y + 5, { align: 'left' });
                         doc.text(allottee.Bank, colPositions[11] + 5, y + 5, { align: 'left' });
                         doc.text(formatCurrency(netAllotment), colPositions[12] + colWidths[12] * scaleFactor - 5, y + 5, { align: 'right' });

@@ -138,9 +138,9 @@ export function generateDeductionAllotmentV2Register(
 
         // Define table column widths for the main data table
         const colWidths = [
-            mainTableWidth * 0.20, // CREW NAME
-            mainTableWidth * 0.14, // RANK
-            mainTableWidth * 0.09, // SALARY
+            mainTableWidth * 0.22, // CREW NAME
+            mainTableWidth * 0.10, // RANK
+            mainTableWidth * 0.08, // SALARY
             mainTableWidth * 0.10, // GROSS
             mainTableWidth * 0.50  // Deduction details
         ];
@@ -348,10 +348,10 @@ export function generateDeductionAllotmentV2Register(
                 columnKeys.forEach((key, i) => {
                     if(i == 0) {
                         // Crew Name
-                        doc.text(truncateText(crew[key as keyof DeductionRegisterCrew].toString(), 32), colPositions[0] + 5, y + 5, {align: 'left'});
+                        doc.text(crew[key as keyof DeductionRegisterCrew].toString(), colPositions[0] + 5, y + 5, {align: 'left'});
                     }
                     else if(key === 'Rank') {
-                        doc.text(truncateText(crew[key as keyof DeductionRegisterCrew].toString(), 22), colPositions[i] + 5,  y + 5, {align: 'left'});
+                        doc.text(crew[key as keyof DeductionRegisterCrew].toString(), colPositions[i] + 5,  y + 5, {align: 'left'});
                     }
                     else {
                         const value = crew[key as keyof DeductionRegisterCrew];
@@ -387,12 +387,10 @@ export function generateDeductionAllotmentV2Register(
 
                          // Format the deduction details - important to use fixed positions that match the image
                         const currencyLabel = deduction.Currency === 1 ? "Usd" : "PhP";
-                        const amountWithRate = deduction.Currency === 1 ? `${formatCurrency(deduction.Amount)} X ${deduction.ExchangeRate}` : `${formatCurrency(deduction.Amount)}`;
+                        const amountWithRate = deduction.Currency === 1 ? `${formatCurrency(deduction.Amount / deduction.ExchangeRate)} X ${deduction.ExchangeRate}` : `${formatCurrency(deduction.Amount)}`;
 
                         // Calculate dollar amount based on currency
-                        const dollarAmount = deduction.Currency === 1
-                            ? deduction.Amount * deduction.ExchangeRate
-                            : deduction.Amount;
+                        const dollarAmount = deduction.Amount
 
                         // Define fixed positions for deduction details based on the sample image
                         const namePosition = margins.left + mainTableWidth * 0.5; // Deduction name position
