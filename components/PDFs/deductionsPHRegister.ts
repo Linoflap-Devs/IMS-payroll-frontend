@@ -120,11 +120,11 @@ export function generatePHRegisterPDF(
 
         // Define columns for the main table
         const colWidths = [
-            mainTableWidth * 0.25, // CREW NAME
+            mainTableWidth * 0.35, // CREW NAME
             mainTableWidth * 0.15, // PH Number
             mainTableWidth * 0.15, // DOB
-            mainTableWidth * 0.15, // EE
-            mainTableWidth * 0.15, // ER
+            mainTableWidth * 0.1, // EE
+            mainTableWidth * 0.1, // ER
             mainTableWidth * 0.15, // Total  
         ];
 
@@ -343,10 +343,10 @@ export function generatePHRegisterPDF(
             columnKeys.forEach((key, i) => {
                 if(i === 0) {
                     // Crew Name
-                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 27), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    doc.text(crew[key as keyof CrewMember].toString(), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'PHNumber' || key === 'DateOfBirth'){
-                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    doc.text(crew[key as keyof CrewMember].toString(), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'Total') {
                     const value = Number(crew.EE) + Number(crew.ER);

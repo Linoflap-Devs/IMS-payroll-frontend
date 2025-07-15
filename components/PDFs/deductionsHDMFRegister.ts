@@ -110,13 +110,13 @@ export function generateHDMFRegisterPDF(
 
         // Define columns for the main table
         const colWidths = [
-            mainTableWidth * 0.25, // CREW NAME
+            mainTableWidth * 0.3, // CREW NAME
             mainTableWidth * 0.15, // HDMF Number
             mainTableWidth * 0.1, // DOB
             mainTableWidth * 0.1, // YYYYMMDD
-            mainTableWidth * 0.1, // GROSS
-            mainTableWidth * 0.1, // EE
-            mainTableWidth * 0.1, // ER
+            mainTableWidth * 0.08, // GROSS
+            mainTableWidth * 0.08, // EE
+            mainTableWidth * 0.08, // ER
             mainTableWidth * 0.1, // Total  
         ];
 
@@ -312,10 +312,10 @@ export function generateHDMFRegisterPDF(
             columnKeys.forEach((key, i) => {
                 if(i === 0) {
                     // Crew Name
-                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    doc.text(crew[key as keyof CrewMember].toString(), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'HDMFNumber' || key === 'DateOfBirth' || key === 'YYYYMMDD') {
-                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    doc.text(crew[key as keyof CrewMember].toString(), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'Total') {
                     const value = Number(crew.EE) + Number(crew.ER);

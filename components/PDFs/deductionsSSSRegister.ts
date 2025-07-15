@@ -124,14 +124,14 @@ export function generateSSSRegisterPDF(
 
         // Define columns for the main table
         const colWidths = [
-            mainTableWidth * 0.2, // CREW NAME
-            mainTableWidth * 0.1, // SS Number
-            mainTableWidth * 0.1, // GROSS
-            mainTableWidth * 0.1, // EESS
-            mainTableWidth * 0.1, // ERSS 
-            mainTableWidth * 0.1, // EEMF 
-            mainTableWidth * 0.1, // ERMF 
-            mainTableWidth * 0.1, // EC
+            mainTableWidth * 0.3, // CREW NAME
+            mainTableWidth * 0.15, // SS Number
+            mainTableWidth * 0.08, // GROSS
+            mainTableWidth * 0.08, // EESS
+            mainTableWidth * 0.08, // ERSS 
+            mainTableWidth * 0.08, // EEMF 
+            mainTableWidth * 0.08, // ERMF 
+            mainTableWidth * 0.05, // EC
             mainTableWidth * 0.1, // Total 
             
         ];
@@ -355,10 +355,10 @@ export function generateSSSRegisterPDF(
             columnKeys.forEach((key, i) => {
                 if(i === 0) {
                     // Crew Name
-                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    doc.text(crew[key as keyof CrewMember].toString(), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'SSNumber'){
-                    doc.text(truncateText(crew[key as keyof CrewMember].toString(), 22), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    doc.text(crew[key as keyof CrewMember].toString(), colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (key === 'Total') {
                     const value = Number(crew.EESS) + Number(crew.ERSS) + Number(crew.EEMF) + Number(crew.ERMF) + Number(crew.EC);
