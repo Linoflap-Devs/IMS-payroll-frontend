@@ -345,7 +345,7 @@ export default function GovermentDeductions() {
                           <span>Export</span>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="csv">Export as CSV</SelectItem>
+                          <SelectItem value="csv">Export as Excel</SelectItem>
                           <SelectItem value="pdf">Export as PDF</SelectItem>
                         </SelectContent>
                       </Select>
@@ -404,7 +404,7 @@ export default function GovermentDeductions() {
                           <span>Export</span>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="csv">Export as CSV</SelectItem>
+                          <SelectItem value="csv">Export as Excel</SelectItem>
                           <SelectItem value="pdf">Export as PDF</SelectItem>
                         </SelectContent>
                       </Select>
