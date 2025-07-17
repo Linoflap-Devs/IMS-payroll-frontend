@@ -16,27 +16,21 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
   Plus,
   MoreHorizontal,
-  Trash,
   Filter,
   IdCard,
-  FolderClock,
-  Users,
   ArrowUpDown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import Swal from "sweetalert2";
-import { CrewItem, deleteCrew } from "../../src/services/crew/crew.api";
+import { CrewItem } from "../../src/services/crew/crew.api";
 
-// Function to convert status or account validation value to a badge style
 const getStatusBgColor = (status: string) => {
   switch (status.toLowerCase().trim()) {
     case "on board":
@@ -57,7 +51,7 @@ const getStatusBgColor = (status: string) => {
       return "bg-gray-100 text-gray-800 rounded-full";
   }
 };
-    
+
 const columns: ColumnDef<CrewItem>[] = [
   {
     accessorKey: "CrewCode",
@@ -126,7 +120,6 @@ const columns: ColumnDef<CrewItem>[] = [
     accessorKey: "CrewStatusID",
     header: "Status",
     cell: ({ row }) => {
-      // Here, convert the CrewStatusID or map to a proper status label if needed.
       const status =
         row.getValue("CrewStatusID") === 1 ? "On Board" : "Off board";
       return (
@@ -143,92 +136,10 @@ const columns: ColumnDef<CrewItem>[] = [
     },
   },
   {
-    accessorKey: "AccountValidation",
-    header: "Account Validation",
-    cell: ({ row }) => {
-      const isActive = row.getValue("AccountValidation");
-
-      let validation: string;
-      if (isActive === 1) validation = "Verified";
-      else if (isActive === 0) validation = "Pending";
-      else validation = "Not Registered";
-
-      return (
-        <div className="text-center">
-          <Badge
-            variant="outline"
-            className={`mx-auto justify-center text-xs sm:text-sm font-medium px-2 sm:px-2.5 py-0.5 flex items-center gap-1.5 sm:gap-2 w-24 sm:w-28 ${getStatusBgColor(
-              validation
-            )}`}
-          >
-            {validation}
-          </Badge>
-        </div>
-      );
-    },
-  },
-  {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
       const crew = row.original;
-
-      const handleDelete = async (crewId: string) => {
-        const swalWithBootstrapButtons = Swal.mixin({
-          customClass: {
-            confirmButton:
-              "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
-            cancelButton:
-              "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
-          },
-          buttonsStyling: false,
-        });
-
-        swalWithBootstrapButtons
-          .fire({
-            title: "Are you sure?",
-            text: "Are you sure you want to delete this crew member? This action cannot be undone.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-            cancelButtonText: "No, cancel!",
-            reverseButtons: true,
-          })
-          .then(async (result) => {
-            if (result.isConfirmed) {
-              // Place your delete logic here, e.g. API call or state update
-
-              try {
-                // Delete the crew member
-                await deleteCrew(crewId);
-
-                // Refresh the crew list after successful deletion
-
-                useCrewStore.getState().fetchCrews();
-
-                swalWithBootstrapButtons.fire({
-                  title: "Deleted!",
-                  text: "The crew has been successfully deleted.",
-                  icon: "success",
-                });
-              } catch (error) {
-                console.error("Error deleting crew:", error);
-                swalWithBootstrapButtons.fire({
-                  title: "Error!",
-                  text: "There was an error deleting the crew member.",
-                  icon: "error",
-                });
-              }
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-              swalWithBootstrapButtons.fire({
-                title: "Cancelled",
-                text: "Your crew member is safe :)",
-                icon: "error",
-              });
-            }
-          });
-      };
-
       return (
         <div className="text-center">
           <DropdownMenu>
@@ -240,42 +151,10 @@ const columns: ColumnDef<CrewItem>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="text-xs sm:text-sm">
               <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                <Link href={`/home/crew/details?id=${crew.CrewCode}`}>
+                <Link href={`/home/crew-payroll/history?id=${crew.CrewCode}`}>
                   <IdCard className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  View Crew Details
+                  View Payroll History
                 </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                <Link
-                  href={`/home/crew/details?id=${crew.CrewCode}&tab=movement`}
-                >
-                  <FolderClock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  View Crew Movement
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                <Link
-                  href={`/home/crew/details?id=${crew.CrewCode}&tab=allottee`}
-                >
-                  <Users className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  View Allottee
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                <Link
-                  href={`/home/crew/details?id=${crew.CrewCode}&tab=validation`}
-                >
-                  <Users className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  View Account Validation
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleDelete(crew.CrewCode)}
-                className="text-destructive text-xs sm:text-sm cursor-pointer"
-              >
-                <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -285,26 +164,22 @@ const columns: ColumnDef<CrewItem>[] = [
   },
 ];
 
-export default function CrewList() {
+export default function CrewPayroll() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [rankFilter, setRankFilter] = useState("all");
-  const [validationFilter, setValidationFilter] = useState("all");
   const {crews, isLoading, error, fetchCrews} = useCrewStore();
 
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("all");
     setRankFilter("all");
-    setValidationFilter("all");
   };
 
-  // Fetch crew data on component mount
   useEffect(() => {
     fetchCrews();
   }, [fetchCrews]);
 
-  // Filter crew based on search term and filters
   const filteredCrew = crews.filter((crew) => {
     const matchesSearch =
       crew.FirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -321,17 +196,10 @@ export default function CrewList() {
       rankFilter === "all" ||
       crew.RankID.toString() === rankFilter.toLowerCase();
 
-    const matchesValidation =
-      validationFilter === "all" ||
-      (crew.AccountValidation === 1 &&
-        validationFilter.toLowerCase() === "verified") ||
-      (crew.AccountValidation === 0 &&
-        validationFilter.toLowerCase() === "pending") ||
-      (crew.AccountValidation === null &&
-        validationFilter.toLowerCase() === "not registered");
-
-    return matchesSearch && matchesStatus && matchesRank && matchesValidation;
+    return matchesSearch && matchesStatus && matchesRank;
   });
+  
+  console.log('CREW: ', filteredCrew);
 
   const uniqueRanks = Array.from(
     new Map(crews.map((crew) => [crew.RankID, crew.Rank])).entries()
@@ -356,7 +224,7 @@ export default function CrewList() {
       <div className="h-full overflow-y-auto scrollbar-hide">
         <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-semibold mb-0">Crew List</h1>
+            <h1 className="text-3xl font-semibold mb-0">Crew and Payroll</h1>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
             <div className="relative w-full md:flex-1">
@@ -392,21 +260,6 @@ export default function CrewList() {
                   <SelectItem value="all">All Filter by Status</SelectItem>
                   <SelectItem value="active">On Board</SelectItem>
                   <SelectItem value="inactive">Off Board</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={validationFilter}
-                onValueChange={setValidationFilter}
-              >
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by validation" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Account Validations</SelectItem>
-                  <SelectItem value="verified">Verified</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="not registered">Not Registered</SelectItem>
                 </SelectContent>
               </Select>
               <Button

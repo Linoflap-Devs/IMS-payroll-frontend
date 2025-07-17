@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ship, CircleMinus, UserCheck } from "lucide-react";
+import { LayoutDashboard, Users, Ship, CircleMinus, UserCheck, SquareUserRound } from "lucide-react";
 import { RiCoinsFill } from "react-icons/ri";
 import { TbCurrencyDollarOff } from "react-icons/tb";
 import { BiReceipt } from "react-icons/bi";
@@ -83,6 +83,13 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       icon: BiReceipt,
       href: "/home/allotment",
       active: pathname.startsWith("/home/allotment"),
+      allowedUserTypes: [3, 4],
+    },
+    {
+      label: "Crew Records",
+      icon: SquareUserRound,
+      href: "/home/crew-payroll",
+      active: pathname.startsWith("/home/crew-payroll"),
       allowedUserTypes: [3, 4],
     },
     {

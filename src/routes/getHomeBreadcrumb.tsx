@@ -25,6 +25,7 @@ export const getHomeBreadcrumb = (pathname: string, userType: number) => {
   if (pathname.startsWith("/home/allotment/payslip")) return match("/home/allotment", "Allotment Payroll", "Allotment Payslip");
   if (pathname.startsWith("/home/remittance/details")) return match("/home/remittance/details", "Remittance", "Crew Remittance Details");
   if (pathname.startsWith("/home/profile")) { return match("/home/profile", "Profile", "User Profile");}
+  if (pathname.startsWith("/home/crew-payroll/history")) return match("/home/crew-payroll",  "Crew Payroll", "Crew Payroll History");
 
   // fallback: check against route config
   const route = routes.find(r => r.href === pathname);
