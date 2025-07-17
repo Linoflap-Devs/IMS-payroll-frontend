@@ -10,11 +10,11 @@ import { Button } from "./ui/button";
 import { useRef, useState } from "react";
 
 interface CrewSidebarProps {
-  crew: Crew;
-  isEditing: boolean;
-  editedCrew: Crew | null;
-  handleInputChange: (field: keyof Crew, value: string) => void;
-  submitted: boolean;
+  crew: Crew | null;
+  isEditing?: boolean;
+  editedCrew?: Crew | null;
+  handleInputChange?: (field: keyof Crew, value: string) => void;
+  submitted?: boolean;
 }
 
 export function CrewSidebar({
@@ -43,8 +43,6 @@ export function CrewSidebar({
     }
   };
 
-  //console.log(editedCrew);
-
   return (
     <div className="md:col-span-1">
       <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
@@ -58,7 +56,7 @@ export function CrewSidebar({
                 alt="Preview Photo"
                 className="object-cover w-full h-full"
               />
-            ) : crew.profileImage ? (
+            ) : crew?.profileImage ? (
               <Base64Image
                 imageType={crew.profileImage.ContentType}
                 alt="Crew Profile Image"
@@ -101,29 +99,29 @@ export function CrewSidebar({
           <h2 className="text-lg font-bold mb-1 w-full">
             {isEditing
               ? `${editedCrew?.firstName} ${editedCrew?.lastName}`
-              : crew.name}
+              : crew?.name}
           </h2>
 
           <div className="flex items-center gap-3 mb-3 flex-wrap justify-center">
             <div
               className={`text-sm px-2 py-0.5 rounded-full border flex items-center gap-1 flex-shrink-0 ${
-                crew.status === "On board"
+                crew?.status === "On board"
                   ? "bg-green-100 text-green-800 border-green-300"
-                  : crew.status === "Off board"
+                  : crew?.status === "Off board"
                   ? "bg-[#F5ECE4] text-orange-800 border-orange-300"
                   : "bg-gray-100 text-gray-800 border-gray-300" // Default styling if status is neither
               }`}
             >
               <p
                 className={`p-0.5 px-2 ${
-                  crew.status === "On board"
+                  crew?.status === "On board"
                     ? "text-green-800"
-                    : crew.status === "Off board"
+                    : crew?.status === "Off board"
                     ? "text-orange-800"
                     : "text-gray-800"
                 }`}
               >
-                {crew.status}
+                {crew?.status}
               </p>
             </div>
           </div>
@@ -133,7 +131,7 @@ export function CrewSidebar({
               <User className="h-4 w-4 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-gray-500">Crew Code</div>
-                <div className="text-sm font-medium truncate">{crew.id}</div>
+                <div className="text-sm font-medium truncate">{crew?.id}</div>
               </div>
             </div>
 
@@ -141,7 +139,7 @@ export function CrewSidebar({
               <RiShieldStarLine className="h-4 w-4 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-gray-500">Rank</div>
-                <div className="text-sm font-medium truncate">{crew.rank}</div>
+                <div className="text-sm font-medium truncate">{crew?.rank}</div>
               </div>
             </div>
 
@@ -150,7 +148,7 @@ export function CrewSidebar({
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-gray-500">Current Vessel</div>
                 <div className="text-sm font-medium truncate">
-                  {crew.vessel || "N/A"}
+                  {crew?.vessel || "N/A"}
                 </div>
               </div>
             </div>
@@ -160,7 +158,7 @@ export function CrewSidebar({
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-gray-500">Age</div>
                 <div className="text-sm font-medium truncate">
-                  {calculateAge(crew.dateOfBirth)}
+                  {calculateAge(crew?.dateOfBirth)}
                 </div>
               </div>
             </div>
@@ -181,9 +179,11 @@ export function CrewSidebar({
                       <Input
                         placeholder="Enter mobile number"
                         value={editedCrew?.phone || ""}
-                        onChange={(e) =>
-                          handleInputChange("phone", e.target.value)
-                        }
+                        onChange={(e) => {
+                          if (handleInputChange) {
+                            handleInputChange("phone", e.target.value);
+                          }
+                        }}                        
                         className={`h-9 ${
                           submitted &&
                           (!editedCrew?.phone ||
@@ -222,9 +222,11 @@ export function CrewSidebar({
                       <Input
                         placeholder="Enter landline number"
                         value={editedCrew?.landline || ""}
-                        onChange={(e) =>
-                          handleInputChange("landline", e.target.value)
-                        }
+                        onChange={(e) => {
+                          if (handleInputChange) {
+                            handleInputChange("landline", e.target.value);
+                          }
+                        }}
                         className={`h-9 ${
                           submitted &&
                           (!editedCrew?.landline ||
@@ -266,9 +268,11 @@ export function CrewSidebar({
                       <Input
                         placeholder="Enter email address"
                         value={editedCrew?.email || ""}
-                        onChange={(e) =>
-                          handleInputChange("email", e.target.value)
-                        }
+                        onChange={(e) => {
+                          if (handleInputChange) {
+                            handleInputChange("email", e.target.value);
+                          }
+                        }}
                         className={`h-9 ${
                           submitted &&
                           (!editedCrew?.email ||
