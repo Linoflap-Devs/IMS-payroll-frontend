@@ -3,7 +3,7 @@ import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
-import { formatCurrency, getMonthName, truncateText } from "@/lib/utils";
+import { capitalizeFirstLetter, formatCurrency, getMonthName, truncateText } from "@/lib/utils";
 import { DeductionResponse, HDMFDeductionCrew } from "@/src/services/deduction/governmentReports.api";
 
 interface CrewMember {
@@ -354,7 +354,9 @@ export function generateHDMFRegisterPDF(
         }
 
         // Save the PDF
-        const fileName = `hdmf-register-${vesselData.VesselName.toLowerCase().replace(/\s+/g, '-')}-${period.month.toLowerCase()}-${period.year}.pdf`;
+        const fileName = mode === 'vessel' ?
+        `HDMF_${capitalizeFirstLetter(vesselData.VesselName)}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
+        `HDMF_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.pdf`;
         doc.save(fileName);
 
         return true;

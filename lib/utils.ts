@@ -32,3 +32,5 @@ export function getMonthName(monthNum: number): string {
     ];
     return months[monthNum - 1];
 }
+
+export const capitalizeFirstLetter = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);

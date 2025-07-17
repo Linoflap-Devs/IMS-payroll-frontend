@@ -6,6 +6,7 @@ import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
 import { toast } from "../ui/use-toast";
 import { CrewPayroll, PayslipPeriod, Payroll, PayslipData } from "@/src/services/payroll/payroll.api";
+import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
 
 // Format currency with commas and 2 decimal places
 function formatCurrency(amount: number): string {
@@ -135,11 +136,11 @@ export function generatePayrollPDF(
         // Generate filename based on selected vessels
         let fileName: string;
         if (vesselsToProcess.length === 1) {
-            fileName = `payroll-${vesselsToProcess[0].vesselName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${payslipData.period.formattedPeriod.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+            fileName = `Payroll_${capitalizeFirstLetter(vesselsToProcess[0].vesselName)}_${capitalizeFirstLetter(getMonthName(payslipData.period.month))}-${payslipData.period.year}.pdf`
         } else {
-            fileName = `payroll-multiple-vessels-${payslipData.period.formattedPeriod.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+            fileName = `Payroll_ALL_${capitalizeFirstLetter(getMonthName(payslipData.period.month))}-${payslipData.period.year}.pdf`;
         }
-
+        
         // Save the combined PDF
         doc.save(fileName);
 

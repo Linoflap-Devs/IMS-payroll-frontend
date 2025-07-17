@@ -94,7 +94,7 @@ export function generatePayrollPDFSingle(
 
         // Generate filename based on selected vessels
         let fileName: string;
-        fileName=`Payroll-${payslipData.crewName.replace(' ','_')}-${month}_${year}`
+        fileName=`Payslip-${payslipData.crewName.replace(' ','-')}_${month}-${year}`
 
         // Save the combined PDF
         doc.save(fileName);

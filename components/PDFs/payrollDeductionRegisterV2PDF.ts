@@ -4,7 +4,7 @@ import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
-import { truncateText } from "@/lib/utils";
+import { capitalizeFirstLetter, truncateText } from "@/lib/utils";
 import { Deductions } from "@/src/services/payroll/payroll.api";
 
 // Define interfaces based on your updated data structure
@@ -431,7 +431,9 @@ export function generateDeductionAllotmentV2Register(
             addPageFooter(i, totalPages)
         }
         // Save the final PDF
-        const fileName = `deduction-register-multiple-vessels-${periodMonth.toLowerCase()}-${year}.pdf`;
+        const fileName = vesselData.length > 1
+                    ? `Deduction_ALL_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`
+                    : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName)}_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`;
         doc.save(fileName)
         // // Save the PDF using the updated content with correct page numbers
         // const blob = dataURItoBlob(updatedPdfText);

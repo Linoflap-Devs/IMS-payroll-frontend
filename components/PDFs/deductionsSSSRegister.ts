@@ -4,7 +4,7 @@ import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
-import { formatCurrency, getMonthName, truncateText } from "@/lib/utils";
+import { capitalizeFirstLetter, formatCurrency, getMonthName, truncateText } from "@/lib/utils";
 import { DeductionResponse, SSSDeductionCrew } from "@/src/services/deduction/governmentReports.api";
 
 interface CrewMember {
@@ -405,7 +405,9 @@ export function generateSSSRegisterPDF(
         // doc.text("Current User's Login: " + currentUser, margins.left, pageHeight - margins.bottom - 15);
 
         // Save the PDF
-        const fileName = `deduction-register-${vesselData.VesselName.toLowerCase()}-${period.month.toLowerCase()}-${period.year}.pdf`;
+        const fileName = mode === 'vessel' ?
+        `SSS_${capitalizeFirstLetter(vesselData.VesselName)}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
+        `SSS_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.pdf`;
         doc.save(fileName);
 
         return true;

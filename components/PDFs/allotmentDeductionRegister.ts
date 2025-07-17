@@ -4,7 +4,8 @@ import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
-import { truncateText } from "@/lib/utils";
+import { capitalizeFirstLetter, truncateText } from "@/lib/utils";
+import { getMonth } from "date-fns";
 
 // Define interfaces based on your actual data structure
 export interface Deductions {
@@ -443,8 +444,8 @@ export function generateDeductionRegisterPDF(
 
         // Save the PDF with an appropriate filename
         const fileName = vesselData.length > 1
-            ? `deduction-register-all-vessels-${periodMonth.toLowerCase()}-${periodYear}.pdf`
-            : `deduction-register-${vesselData[0].VesselName.toLowerCase().replace(/\s+/g, '-')}-${periodMonth.toLowerCase()}-${periodYear}.pdf`;
+            ? `Deduction_ALL_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`
+            : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName)}_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`;
 
         doc.save(fileName);
 
