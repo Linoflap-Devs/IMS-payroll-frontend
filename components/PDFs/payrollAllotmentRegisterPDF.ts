@@ -4,7 +4,7 @@ import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
-import { truncateText } from "@/lib/utils";
+import { capitalizeFirstLetter, getMonthName, truncateText } from "@/lib/utils";
 
 // Define interfaces based on your updated data structure
 export interface Allottee {
@@ -466,7 +466,9 @@ export function generateAllotmentPayrollRegister(
             addPageFooter(i, totalPages)
         }
         // Save the final PDF
-        const fileName = `allotment-payroll-register-multiple-vessels-${month.toLowerCase()}-${year}.pdf`;
+        const fileName = vesselData.length > 1
+                            ? `Allotment_ALL_${capitalizeFirstLetter(month)}-${year}.pdf`
+                            : `Allotment_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(month)}-${year}.pdf`;
         doc.save(fileName)
         // // Save the PDF using the updated content with correct page numbers
         // const blob = dataURItoBlob(updatedPdfText);

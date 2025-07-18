@@ -445,7 +445,7 @@ export function generateDeductionRegisterPDF(
         // Save the PDF with an appropriate filename
         const fileName = vesselData.length > 1
             ? `Deduction_ALL_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`
-            : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName)}_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`;
+            : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`;
 
         doc.save(fileName);
 

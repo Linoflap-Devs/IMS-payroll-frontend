@@ -355,7 +355,7 @@ export function generateHDMFRegisterPDF(
 
         // Save the PDF
         const fileName = mode === 'vessel' ?
-        `HDMF_${capitalizeFirstLetter(vesselData.VesselName)}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
+        `HDMF_${capitalizeFirstLetter(vesselData.VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
         `HDMF_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.pdf`;
         doc.save(fileName);
 

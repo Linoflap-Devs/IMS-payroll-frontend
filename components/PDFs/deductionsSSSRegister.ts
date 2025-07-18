@@ -406,7 +406,7 @@ export function generateSSSRegisterPDF(
 
         // Save the PDF
         const fileName = mode === 'vessel' ?
-        `SSS_${capitalizeFirstLetter(vesselData.VesselName)}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
+        `SSS_${capitalizeFirstLetter(vesselData.VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
         `SSS_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.pdf`;
         doc.save(fileName);
 

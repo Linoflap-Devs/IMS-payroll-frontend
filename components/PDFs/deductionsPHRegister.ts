@@ -395,7 +395,7 @@ export function generatePHRegisterPDF(
 
         // Save the PDF
         const fileName = mode === 'vessel' ?
-                `Philhealth_${capitalizeFirstLetter(vesselData.VesselName)}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
+                `Philhealth_${capitalizeFirstLetter(vesselData.VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
                 `Philhealth_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.pdf`;
         doc.save(fileName);
 

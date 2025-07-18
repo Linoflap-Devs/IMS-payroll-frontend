@@ -433,7 +433,7 @@ export function generateDeductionAllotmentV2Register(
         // Save the final PDF
         const fileName = vesselData.length > 1
                     ? `Deduction_ALL_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`
-                    : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName)}_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`;
+                    : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`;
         doc.save(fileName)
         // // Save the PDF using the updated content with correct page numbers
         // const blob = dataURItoBlob(updatedPdfText);

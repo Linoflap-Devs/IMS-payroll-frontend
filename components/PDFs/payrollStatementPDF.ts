@@ -136,7 +136,7 @@ export function generatePayrollPDF(
         // Generate filename based on selected vessels
         let fileName: string;
         if (vesselsToProcess.length === 1) {
-            fileName = `Payroll_${capitalizeFirstLetter(vesselsToProcess[0].vesselName)}_${capitalizeFirstLetter(getMonthName(payslipData.period.month))}-${payslipData.period.year}.pdf`
+            fileName = `Payroll_${capitalizeFirstLetter(vesselsToProcess[0].vesselName.replace(' ', '-'))}_${capitalizeFirstLetter(getMonthName(payslipData.period.month))}-${payslipData.period.year}.pdf`
         } else {
             fileName = `Payroll_ALL_${capitalizeFirstLetter(getMonthName(payslipData.period.month))}-${payslipData.period.year}.pdf`;
         }
