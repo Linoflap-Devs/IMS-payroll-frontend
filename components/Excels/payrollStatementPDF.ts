@@ -3,6 +3,7 @@
 import * as XLSX from "xlsx";
 import { toast } from "../ui/use-toast";
 import { PayslipData } from "@/src/services/payroll/payroll.api";
+import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -131,7 +132,13 @@ export function generatePayrollExcel(
       });
     });
 
-    const fileName = `payroll-crewwise-${payslipData.period.formattedPeriod.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.xlsx`;
+    //const fileName = `payroll-crewwise-${payslipData.period.formattedPeriod.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.xlsx`;
+    let fileName = ""
+    if (payslipData.vessels.length === 1) {
+        fileName = `Payroll_${capitalizeFirstLetter(payslipData.vessels[0].vesselName.replace(' ', '-'))}_${capitalizeFirstLetter(getMonthName(payslipData.period.month))}-${payslipData.period.year}.xlsx`
+    } else {
+        fileName = `Payroll_ALL_${capitalizeFirstLetter(getMonthName(payslipData.period.month))}-${payslipData.period.year}.pdf`;
+    }
     XLSX.writeFile(workbook, fileName);
     return true;
   } catch (error) {

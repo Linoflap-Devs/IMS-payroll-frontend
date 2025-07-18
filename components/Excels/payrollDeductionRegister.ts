@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import dayjs from "dayjs";
 import { Deductions } from "../PDFs/allotmentDeductionRegister";
+import { capitalizeFirstLetter } from "@/lib/utils";
 
 export interface DeductionRegisterCrew {
   CrewID: number;
@@ -140,6 +141,10 @@ export function generateDeductionAllotmentExcel(
     XLSX.utils.book_append_sheet(workbook, ws, sheetName);
   });
 
-  const fileName = `deduction_allotment_register_${monthName.toLowerCase()}_${year}.xlsx`;
+  //const fileName = `deduction_allotment_register_${monthName.toLowerCase()}_${year}.xlsx`;
+
+  const fileName = vesselData.length > 1
+              ? `Deduction_ALL_${capitalizeFirstLetter(getMonthName(month))}-${year}.xlsx`
+              : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(getMonthName(month))}-${year}.xlsx`;
   XLSX.writeFile(workbook, fileName);
 }

@@ -1,3 +1,4 @@
+import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
 import * as XLSX from "xlsx";
 
 export interface Allottee {
@@ -144,6 +145,10 @@ export function generateAllotmentExcel(
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
   });
 
-  const fileName = `allotment-register-${month.toLowerCase()}-${year}.xlsx`;
+  // const fileName = `allotment-register-${month.toLowerCase()}-${year}.xlsx`;
+
+  const fileName = allotmentData.length > 1
+              ? `Allotment_ALL_${capitalizeFirstLetter(month)}-${year}.xlsx`
+              : `Allotment_${capitalizeFirstLetter(allotmentData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(month)}-${year}.xlsx`;
   XLSX.writeFile(wb, fileName);
 }
