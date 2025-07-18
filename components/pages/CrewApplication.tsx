@@ -30,6 +30,7 @@ import { AddAllotteeReqDialog } from "@/components/dialogs/AddAllotteeReqDialog"
 import { DeleteAllotteeReqDialog } from "@/components/dialogs/DeleteAllotteeReqDialog";
 import { HDMFUpgradeReqDialog } from "@/components/dialogs/HDMFUpgradeReqDialog";
 import { PiUserListFill } from "react-icons/pi";
+import { format } from "date-fns";
 
 interface AllotteeRequestData {
   AllotteeRequestID: number;
@@ -63,10 +64,12 @@ interface HDMFUpgradeRequestData {
 interface Application {
   ApplicationRequestID: number;
   CrewCode: string;
+  CreatedAt: Date;
   FirstName: string;
   MiddleName: string;
   LastName: string;
   Rank: string;
+  ProcessedAt: Date;
   ApplicationStatus: string;
   ApplicationType: string;
   ApplicationOperation: string;
@@ -160,6 +163,23 @@ export default function CrewApplication() {
     {
       accessorKey: "ApplicationOperation",
       header: "Application Operation",
+    },
+    {
+      accessorKey: "CreatedAt",
+      header: "Date Requested",
+      cell: ({ row }) => {
+        const date = format(new Date(row.original.CreatedAt), "MMM dd, yyyy | hh:mm aa");
+        return <span>{date}</span>
+      }
+    },
+    {
+      accessorKey: "ProcessedAt",
+      header: "Date Processed",
+      enableHiding: true,
+      cell: ({ row }) => {
+        let value = row.original.ProcessedAt ? format(new Date(row.original.ProcessedAt), "MMM dd, yyyy | hh:mm aa") : "-"
+        return <span>{value}</span>
+      }
     },
     {
       id: "actions",

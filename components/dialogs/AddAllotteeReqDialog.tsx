@@ -246,7 +246,7 @@ export function AddAllotteeReqDialog({
                 </label>
                 <Input
                   id="allotment"
-                  value={`${requestData.Allotment}%`}
+                  value={`${requestData.Allotment}`}
                   className="w-full bg-white text-black"
                   disabled
                 />

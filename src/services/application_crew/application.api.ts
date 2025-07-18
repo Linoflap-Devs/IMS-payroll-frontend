@@ -24,10 +24,12 @@ interface RequestData {
 interface Application {
     ApplicationRequestID: number;
     CrewCode: string;
+    CreatedAt: Date;
     FirstName: string;
     MiddleName: string;
     LastName: string;
     Rank: string;
+    ProcessedAt: Date;
     ApplicationStatus: string;
     ApplicationType: string;
     ApplicationOperation: string;
