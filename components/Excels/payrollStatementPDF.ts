@@ -137,7 +137,7 @@ export function generatePayrollExcel(
     if (payslipData.vessels.length === 1) {
         fileName = `Payroll_${capitalizeFirstLetter(payslipData.vessels[0].vesselName.replace(' ', '-'))}_${capitalizeFirstLetter(getMonthName(payslipData.period.month))}-${payslipData.period.year}.xlsx`
     } else {
-        fileName = `Payroll_ALL_${capitalizeFirstLetter(getMonthName(payslipData.period.month))}-${payslipData.period.year}.pdf`;
+        fileName = `Payroll_ALL_${capitalizeFirstLetter(getMonthName(payslipData.period.month))}-${payslipData.period.year}.xlsx`;
     }
     XLSX.writeFile(workbook, fileName);
     return true;
