@@ -76,6 +76,7 @@ export default function AddCrew() {
     birthdate: "",
     city: "",
     province: "",
+    address: "",
     // Add Government IDs fields
     sssNumber: "",
     taxIdNumber: "",
@@ -344,6 +345,7 @@ export default function AddCrew() {
       dateOfBirth: formData.birthdate, // HTML date input provides YYYY-MM-DD
       city: formData.city, // Assuming this is CityID as string
       province: formData.province, // Assuming this is ProvinceID as string
+      address: formData.address,
       sssNumber: formData.sssNumber,
       tinNumber: formData.taxIdNumber, // Mapping from taxIdNumber
       philhealthNumber: formData.philhealthNumber,
@@ -1297,6 +1299,25 @@ export default function AddCrew() {
                                 </p>
                               )}
                           </div>
+                          <div className="md:col-span-2">
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                              Unit / Block / Street / Barangay / ZIP Code
+                            </label>
+                            <Input
+                              placeholder="Enter home address"
+                              value={formData.address}
+                              onChange={(e) =>
+                                handleInputChange("address", e.target.value)
+                              }
+                              // className={`${
+                              //   submitted["details"] &&
+                              //   (formData.address.length === 0 ||
+                              //     !/^[a-zA-Z\s]+$/.test(formData.address))
+                              //     ? "border-red-500 focus:!ring-red-500/50"
+                              //     : ""
+                              // }`}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1865,6 +1886,16 @@ export default function AddCrew() {
                                     formData.province
                                 )?.ProvinceName
                               }
+                              disabled
+                              className="bg-gray-50"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                              Unit  Unit / Block / Street / Barangay / ZIP Code
+                            </label>
+                            <Input
+                              value={formData.address}
                               disabled
                               className="bg-gray-50"
                             />

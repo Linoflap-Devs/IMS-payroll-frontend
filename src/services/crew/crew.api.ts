@@ -32,6 +32,7 @@ export interface CrewDetails {
   Birthday: string;
   City: string;
   Province: string;
+  HomeAddress: string;
   SSSNumber: string;
   HDMFNumber: string;
   TaxIDNumber: string;
@@ -183,6 +184,7 @@ export interface AddCrewDataForm {
   dateOfBirth: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
   city: string; // Backend's Zod schema: z.string().min(2).max(50)
   province: string; // Backend's Zod schema: z.string().min(2).max(50)
+  address: string;
   sssNumber: string;
   tinNumber: string;
   philhealthNumber: string;
@@ -265,6 +267,7 @@ export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewRespons
   appendIfExists("dateOfBirth", crewData.dateOfBirth);
   appendIfExists("city", crewData.city);
   appendIfExists("province", crewData.province);
+  appendIfExists("address", crewData.address)
   appendIfExists("sssNumber", crewData.sssNumber);
   appendIfExists("tinNumber", crewData.tinNumber);
   appendIfExists("philhealthNumber", crewData.philhealthNumber);

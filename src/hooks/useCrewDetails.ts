@@ -66,6 +66,7 @@ export function useCrewDetails(crewId: string | null) {
         dateOfBirth: crewDetails.Birthday,
         city: crewDetails.City,
         province: crewDetails.Province,
+        address: crewDetails.HomeAddress,
         sssNumber: crewDetails.SSSNumber,
         taxIdNumber: crewDetails.TaxIDNumber,
         philhealthNumber: crewDetails.PhilhealthNumber,

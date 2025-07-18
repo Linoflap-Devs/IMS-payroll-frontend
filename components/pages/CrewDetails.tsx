@@ -870,7 +870,29 @@ export default function CrewDetails() {
                             </p>
                           )}
                         </div>
+
+                        { /* Home address */}
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            Unit / Block / Street / Barangay / ZIP Code
+                          </label>
+                          <Input
+                            value={
+                              isEditing
+                                ? editedCrew?.address || ""
+                                : crew.address || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("address", e.target.value)
+                            }
+                            readOnly={!isEditing}
+                            className={isEditing ? "border-primary" : ""}
+                          />
+                        </div>
                       </div>
+
+                    
+                      
                     </div>
 
                     {/* Government IDs Section */}
