@@ -7,6 +7,7 @@ import { logoBase64Image } from "./lib/base64items";
 import { toast } from "../ui/use-toast";
 import { CrewPayroll, PayslipPeriod, Payroll, PayslipData } from "@/src/services/payroll/payroll.api";
 import { format } from "date-fns";
+import { resolve } from "path";
 
 // Format currency with commas and 2 decimal places
 function formatCurrency(amount: number): string {
@@ -43,7 +44,8 @@ export function generatePayrollPDFSingle(
     month: number,
     year: number,
     currentUser: string = 'admin',
-): boolean {
+    downloadImmediate: boolean = true
+): boolean | Promise<{blob: Blob, filename: string}> {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
         return false;
@@ -94,10 +96,16 @@ export function generatePayrollPDFSingle(
 
         // Generate filename based on selected vessels
         let fileName: string;
-        fileName=`Payslip-${payslipData.crewName.replace(' ','-')}_${month}-${year}`
+        fileName = `Payslip-${payslipData.crewName.replace(/[^\w\s]/g, '').replace(/\s+/g, '-')}_${month}-${year}.pdf`
 
         // Save the combined PDF
-        doc.save(fileName);
+        if(downloadImmediate){
+            doc.save(fileName);
+        }
+        else {
+            const pdfBlob = doc.output('blob');
+            return Promise.resolve({blob: pdfBlob, filename: fileName});
+        }
         return true;
     } catch (error) {
         console.error("Error in PDF generation process:", error);

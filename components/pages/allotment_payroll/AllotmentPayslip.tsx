@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Ship, ChevronLeft, Loader2, Download } from "lucide-react";
+import { Search, Ship, ChevronLeft, Loader2, Download, View } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -21,6 +21,7 @@ import { generatePayrollPDF } from "@/components/PDFs/payrollStatementPDF";
 import { toast } from "@/components/ui/use-toast";
 import { generatePayrollExcel } from "@/components/Excels/payrollStatementPDF";
 import { generatePayrollPDFSingle } from "@/components/PDFs/payrollStatementPDFSingle";
+import PDFPreview from "@/components/dialogs/PDFPreviewModal";
 
 export default function VesselPayslip() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,6 +30,11 @@ export default function VesselPayslip() {
   const [PayslipPDFData, setPayslipPDFData] = useState<PayslipData>();
   const [payslipCrewData, setPayslipCrewData] = useState<CrewPayroll[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<Blob | null>();
+
+  const [fileName, setFileName] = useState("");
 
   useEffect(() => {
     const fetchPayslipData = async () => {
@@ -94,6 +100,9 @@ export default function VesselPayslip() {
           <Button variant={'ghost'} onClick={() => generatePayrollPDFCrew(row.original.crewCode)}>
             <Download />
           </Button>
+           <Button variant={'ghost'} onClick={() => previewPayrollPDFCrew(row.original.crewCode)}>
+            <View />
+          </Button>
         </div>
       )
     }
@@ -148,6 +157,72 @@ export default function VesselPayslip() {
     generatePayrollPDFSingle(data, PayslipPDFData.period.month, PayslipPDFData.period.year);
   };
 
+  const previewPayrollPDFCrew = async (crewCode?: string) => {
+    console.log(PayslipPDFData);
+    if (!PayslipPDFData) {
+      console.error("No payslip data available for PDF generation.");
+      toast({
+        title: "Error",
+        description: "No payslip data available for PDF generation.",
+        variant: "destructive",
+      });
+      return;
+    }
+  
+    const data = PayslipPDFData.vessels[0].payrolls.find((crew: CrewPayroll) => crew.crewCode === crewCode);
+    if (!data) {
+      console.error("No crew data available for PDF generation.");
+      toast({
+        title: "Error",
+        description: "No crew data available for PDF generation.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log(data);
+    const blob = await generatePayrollPDFSingle(data, PayslipPDFData.period.month, PayslipPDFData.period.year, '', false);
+    
+    // Set preview data and show the preview
+    setPreviewData((blob as {blob: Blob, filename: string}).blob);
+    setFileName((blob as {blob: Blob, filename: string}).filename);
+    setShowPreview(true);
+  };
+
+  // const handleDownloadFromPreview = async () => {
+  //   if (!previewData) return;
+    
+  //   try {
+  //     // Generate PDF blob
+  //     const blob = await generatePayrollPDFBlob(
+  //       previewData.data,
+  //       previewData.month,
+  //       previewData.year
+  //     );
+      
+  //     // Download the blob
+  //     const fileName = `Payslip-${previewData.data.crewName.replace(' ', '-')}_${previewData.month}-${previewData.year}.pdf`;
+  //     downloadBlob(blob, fileName);
+      
+  //     // Close the preview
+  //     setShowPreview(false);
+  //     setPreviewData(null);
+      
+  //     toast({
+  //       title: "Success",
+  //       description: "PDF downloaded successfully!",
+  //       variant: "default",
+  //     });
+  //   } catch (error) {
+  //     console.error("Error downloading PDF:", error);
+  //     toast({
+  //       title: "Error",
+  //       description: "Failed to download PDF. Please try again.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
   const handleGeneratePayslipExcel = () => {
     if (!PayslipPDFData) {
       console.error("No payslip data available for PDF generation.");
@@ -170,6 +245,18 @@ export default function VesselPayslip() {
           scrollbar-width: none;
         }
       `}</style>
+
+      {previewData && (
+        <PDFPreview
+          isOpen={showPreview}
+          onClose={() => {
+            setShowPreview(false);
+            setPreviewData(null);
+          }}
+          blob={previewData}
+          filename={fileName}
+        />
+      )}
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
           <Link href="/home/allotment">
