@@ -3,6 +3,7 @@ import { useCrewStore } from "@/src/store/useCrewStore";
 import { Crew, mapMaritalStatus, mapGender } from "@/types/crew";
 import { updateCrew } from "../services/crew/crew.api";
 import { toast } from "@/components/ui/use-toast";
+import { add } from "date-fns";
 
 export function useCrewDetails(crewId: string | null) {
   const [crew, setCrew] = useState<Crew | null>(null);
@@ -112,7 +113,7 @@ export function useCrewDetails(crewId: string | null) {
       status: updatedCrew.status,
       emailAddress: updatedCrew.email,
       mobileNumber: updatedCrew.phone,
-      landlineNumber: updatedCrew.landline,
+      landlineNumber: updatedCrew.landline || undefined,
 
       firstName: updatedCrew.firstName,
       lastName: updatedCrew.lastName,
@@ -138,6 +139,7 @@ export function useCrewDetails(crewId: string | null) {
       dateOfBirth: updatedCrew.dateOfBirth,
       city: updatedCrew.city,
       province: updatedCrew.province,
+      address: updatedCrew.address,
       sssNumber: updatedCrew.sssNumber,
       philhealthNumber: updatedCrew.philhealthNumber,
       taxIdNumber: updatedCrew.taxIdNumber,
