@@ -44,6 +44,17 @@ export function generatePayrollExcel(
       ? payslipData.vessels.filter(v => v.vesselId === vesselFilter)
       : payslipData.vessels;
 
+    const noCrewData = vessels.every((v) => !v.payrolls?.length);
+
+    if (noCrewData) {
+      toast({
+        title: "Error",
+        description: "No crew members found in the selected vessel(s).",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     vessels.forEach((vessel) => {
       if (!vessel.payrolls?.length) return;
 
@@ -126,9 +137,9 @@ export function generatePayrollExcel(
 
         ws["!cols"] = colWidths;
 
-        //const safeCrewName = crew.crewName.slice(0, 25).replace(/[^a-z0-9]/gi, "_").toLowerCase();
-        const sheetName = `${crew.crewName}-${index}`;
-        XLSX.utils.book_append_sheet(workbook, ws, sheetName);
+        const safeCrewName = crew.crewName.slice(0, 25).replace(/[^a-z0-9]/gi, "_").toLowerCase();
+        //const sheetName = {safeCrewName};
+        XLSX.utils.book_append_sheet(workbook, ws, safeCrewName);
       });
     });
 

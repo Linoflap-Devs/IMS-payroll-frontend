@@ -21,14 +21,27 @@ import { useCrewDetails } from "@/src/hooks/useCrewDetails";
 import { CrewSidebar } from "../CrewSidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
 import { PiUserListFill } from "react-icons/pi";
+import { CrewAllotteeDistribution } from "../dialogs/CrewAllotteeDistributionDialog";
+import { CrewDeductionDistribution } from "../dialogs/CrewDeductionDistributionDialog";
+import { generatePayrollPDFSingle } from "../PDFs/payrollStatementPDFSingle";
+import { CrewPayroll } from "@/src/services/payroll/payroll.api";
+import PDFPreview from "../dialogs/PDFPreviewModal";
 
 export default function CrewPayrollHistory() {
   const [payrollData, setPayrollData] = useState<CrewPayrollHistoryItem[]>([]);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
   //const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString());
   //const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
-  const [monthFilter, setMonthFilter] = useState("all"); // Show all months by default
-  const [yearFilter, setYearFilter] = useState("all"); // Show all years by default
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [yearFilter, setYearFilter] = useState("all");
+
+  const [selectedCrewPayrollItem, setSelectedCrewPayrollItem] = useState<CrewPayrollHistoryItem | null>(null);
+  const [isViewSelectedAllotteeDistributionDialogOpen, setViewselectedAllotteeDistributionDialogOpen] = useState(false);
+  const [isViewSelectedDeductionDialogOpen, setViewSelectedDeductionDialogOpen] = useState(false);
+
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<Blob | null>();
+  const [fileName, setFileName] = useState("");
 
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -36,7 +49,8 @@ export default function CrewPayrollHistory() {
 
   const { crew, isLoading } = useCrewDetails(id);
 
-  console.log(crew);
+  //console.log(crew);
+  //console.log("PAYROLL DATA: ", payrollData);
 
   const monthNames = [
     "January",
@@ -194,10 +208,10 @@ export default function CrewPayrollHistory() {
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
-                  // onClick={() => {
-                  //   setSelectedSSSData(row.original);
-                  //   setEditselectedSSSDialogOpen(true);
-                  // }}
+                  onClick={() => {
+                    setSelectedCrewPayrollItem(row.original);
+                    setViewselectedAllotteeDistributionDialogOpen(true);
+                  }}
                 >
                   <PiUserListFill className="mr-2 h-4 w-4" />
                   Allottee Distribution
@@ -205,10 +219,10 @@ export default function CrewPayrollHistory() {
 
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
-                  // onClick={() => {
-                  //   setSelectedSSSData(row.original);
-                  //   setEditselectedSSSDialogOpen(true);
-                  // }}
+                  onClick={() => {
+                    setSelectedCrewPayrollItem(row.original);
+                    setViewSelectedDeductionDialogOpen(true);
+                  }}
                 >
                   <PiUserListFill className="mr-2 h-4 w-4" />
                   Deduction Distribution
@@ -216,10 +230,7 @@ export default function CrewPayrollHistory() {
 
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
-                  // onClick={() => {
-                  //   setSelectedSSSData(row.original);
-                  //   setEditselectedSSSDialogOpen(true);
-                  // }}
+                  onClick={() => previewPayrollPDFCrew(row.original)}
                 >
                   <PiUserListFill className="mr-2 h-4 w-4" />
                   Payslip
@@ -229,7 +240,7 @@ export default function CrewPayrollHistory() {
           </div>
         );
       },
-    }
+    },
   ];
 
   const filteredPayrollData = payrollData.filter((item) => {
@@ -249,6 +260,67 @@ export default function CrewPayrollHistory() {
     setYearFilter("all");
   };
 
+  function convertHistoryItemToCrewPayroll(
+    item: CrewPayrollHistoryItem
+  ): CrewPayroll {
+    return {
+      ...item,
+      payrollDetails: {
+        ...item.payrollDetails,
+        basicWage: Number(item.payrollDetails.basicWage),
+        fixedOT: Number(item.payrollDetails.fixedOT),
+        guaranteedOT: Number(item.payrollDetails.guaranteedOT),
+        dollarGross: Number(item.payrollDetails.dollarGross),
+        pesoGross: Number(item.payrollDetails.pesoGross),
+        totalDeduction: Number(item.payrollDetails.totalDeduction),
+        netWage: Number(item.payrollDetails.netWage),
+      },
+      allotmentDeductions: item.allotmentDeductions.map((d) => ({
+        ...d,
+        amount: Number(d.amount),
+        forex: Number(d.forex),
+        dollar: Number(d.dollar),
+      })),
+      allotteeDistribution: item.allotteeDistribution.map((a) => ({
+        ...a,
+        amount: Number(a.amount),
+        currency:
+          typeof a.currency === "string"
+            ? a.currency
+            : a.currency === 1
+            ? "USD"
+            : "PHP",
+      })),
+    };
+  }
+  
+  const previewPayrollPDFCrew = async (crew: CrewPayrollHistoryItem) => {
+    const crewPayroll = convertHistoryItemToCrewPayroll(crew);
+    const month = crewPayroll.PayrollMonth ?? 1;
+    const year = crewPayroll.PayrollYear ?? new Date().getFullYear();
+
+    try {
+      const blob = await generatePayrollPDFSingle(
+        crewPayroll,
+        month,
+        year,
+        "",
+        false
+      );
+
+      const { blob: pdfBlob, filename } = blob as { blob: Blob; filename: string };
+      //const blobUrl = URL.createObjectURL(pdfBlob);
+      //window.open(blobUrl, "_blank");
+
+      setPreviewData(pdfBlob);
+      setFileName(filename);
+      setShowPreview(true);
+
+    } catch (error) {
+      console.error("Error generating payroll PDF:", error);
+    }
+  };
+
   return (
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
@@ -256,9 +328,10 @@ export default function CrewPayrollHistory() {
           <CrewSidebar crew={crew} />
           <div className="md:col-span-3">
             <Card className="h-[calc(100vh-180px)] flex flex-col p-4 overflow-auto">
+            
               <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 items-center">
                 <Select value={monthFilter} onValueChange={setMonthFilter}>
-                  <SelectTrigger className="bg-white h-10 px-4 text-sm flex items-center min-w-[290px]">
+                  <SelectTrigger className="bg-white w-full h-10 px-4 text-sm flex items-center">
                     <div className="flex items-center justify-between w-full -mx-4">
                       <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md">
                         <span className="text-muted-foreground text-base">
@@ -283,7 +356,7 @@ export default function CrewPayrollHistory() {
                 </Select>
 
                 <Select value={yearFilter} onValueChange={setYearFilter}>
-                  <SelectTrigger className="bg-white h-10 px-4 text-sm flex items-center min-w-[290px]">
+                  <SelectTrigger className="bg-white w-full h-10 px-4 text-sm flex items-center">
                     <div className="flex items-center justify-between w-full -mx-4">
                       <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md">
                         <span className="text-muted-foreground text-base">
@@ -326,6 +399,29 @@ export default function CrewPayrollHistory() {
           </div>
         </div>
       </div>
+      <CrewAllotteeDistribution
+        crewPayroll={selectedCrewPayrollItem}
+        open={isViewSelectedAllotteeDistributionDialogOpen}
+        onOpenChange={setViewselectedAllotteeDistributionDialogOpen}
+      />
+
+      <CrewDeductionDistribution
+        crewPayroll={selectedCrewPayrollItem}
+        open={isViewSelectedDeductionDialogOpen}
+        onOpenChange={setViewSelectedDeductionDialogOpen}
+      />
+      
+      {previewData && (
+        <PDFPreview
+          isOpen={showPreview}
+          onClose={() => {
+            setShowPreview(false);
+            setPreviewData(null);
+          }}
+          blob={previewData}
+          filename={fileName}
+        />
+      )}
     </div>
   );
 }
