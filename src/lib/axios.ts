@@ -9,16 +9,16 @@ const axiosInstance = axios.create({
 });
 
 // response interceptor to catch 401
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== "undefined") {
-        window.location.href = "/"; // Redirect to login/root
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+// axiosInstance.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response?.status === 401) {
+//       if (typeof window !== "undefined") {
+//         window.location.href = "/"; // Redirect to login/root
+//       }
+//     }
+//     return Promise.reject(error);
+//   }
+// );
 
 export default axiosInstance;

@@ -8,6 +8,7 @@ import {
   ChevronRight as ChevronRightIcon,
   PanelLeft,
   PanelLeftClose,
+  Loader,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -18,13 +19,16 @@ import { getHomeBreadcrumb } from "@/src/routes/getHomeBreadcrumb";
 import { Sidebar } from "@/src/routes/sidebar";
 import { useAuth } from "@/src/store/useAuthStore";
 
-// Define the Sidebar component interface
-export default function HomeLayout({ children }: { children: React.ReactNode }) {
+export default function HomeLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
-  
-  const { user } = useAuth();
-  const userType = user?.UserType ?? -1; // fallback to -1 (unauthorized)
+
+  const { user, logout } = useAuth();
+  const userType = user?.UserType;
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -33,11 +37,32 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
     setUserEmail(localStorage.getItem("userEmail"));
   }, []);
 
+  // useEffect(() => {
+  //   if (userType === undefined) {
+  //     router.push("/");
+  //   }
+  // }, [userType, router]);
+  
   const handleLogout = async () => {
-    await logoutUser();
+    try {
+      await logoutUser(); // server-side logout
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+
+    logout(); // Zustand
     localStorage.removeItem("userEmail");
-    router.push("/");
+    router.push("/"); // Clean redirect
   };
+
+  if (userType === undefined) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen gap-2 text-gray-700">
+        <Loader className="animate-spin w-6 h-6" />
+        <span>Loading...</span>
+      </div>
+    );
+  }
 
   const routes = getHomeRoutes(pathname, userType);
 
@@ -45,7 +70,11 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
     <div className="flex h-screen overflow-hidden bg-background">
       <Sheet>
         <SheetTrigger asChild className="md:hidden">
-          <Button variant="outline" size="icon" className="absolute left-4 top-4 z-40">
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute left-4 top-4 z-40"
+          >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle navigation</span>
           </Button>
@@ -62,7 +91,13 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
       </Sheet>
 
       {/* Desktop Sidebar */}
-      <div className={cn("hidden md:block transition-all duration-300 mr-0", isSidebarCollapsed ? "md:w-20 mr-3" : "md:w-64", "md:p-4")}>
+      <div
+        className={cn(
+          "hidden md:block transition-all duration-300 mr-0",
+          isSidebarCollapsed ? "md:w-20 mr-3" : "md:w-64",
+          "md:p-4"
+        )}
+      >
         <Sidebar
           routes={routes}
           isCollapsed={isSidebarCollapsed}
@@ -81,7 +116,9 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
               className="cursor-pointer mr-4 hidden md:flex hover:bg-gray-50"
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && setIsSidebarCollapsed(!isSidebarCollapsed)}
+              onKeyDown={(e) =>
+                e.key === "Enter" && setIsSidebarCollapsed(!isSidebarCollapsed)
+              }
             >
               {isSidebarCollapsed ? (
                 <PanelLeft className="h-5 w-5 text-primary" />
@@ -90,7 +127,9 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
               )}
             </span>
             <div className="flex items-center text-base text-muted-foreground">
-              <div className="font-medium text-foreground text-sm">{getHomeBreadcrumb(pathname, userType)}</div>
+              <div className="font-medium text-foreground text-sm">
+                {getHomeBreadcrumb(pathname, userType)}
+              </div>
             </div>
           </div>
           <main className="flex-1 overflow-auto bg-[#F9F9F9]">{children}</main>

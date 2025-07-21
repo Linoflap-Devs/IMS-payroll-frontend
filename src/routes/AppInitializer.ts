@@ -1,47 +1,46 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/src/store/useAuthStore";
 import { getCurrentUser } from "@/src/services/auth/auth.api";
 
 export default function AppInitializer() {
   const pathname = usePathname();
-  const { setUser, setInitialized, setLoading, user } = useAuth();
+  const router = useRouter();
+  const { user, setUser, setInitialized, setLoading, initialized } = useAuth();
 
   useEffect(() => {
     const init = async () => {
-      const isPublicRoute = pathname === "/" || pathname === "/register";
-
-      if (isPublicRoute) {
-        setInitialized(true);
-        setLoading(false);
-        return;
-      }
-
-      if (user) {
-        // User is already set (e.g., from login)
-        setInitialized(true);
-        setLoading(false);
-        return;
-      }
+      setLoading(true); // show spinner
 
       try {
-        const user = await getCurrentUser();
-        if (user) {
-          setUser(user); // fallback for refresh
+        const fetchedUser = await getCurrentUser();
+        if (fetchedUser) {
+          setUser(fetchedUser);
         } else {
-          setInitialized(true);
-          setLoading(false);
+          router.replace("/"); // no session
         }
-      } catch (err) {
+      } catch {
+        router.replace("/");
+      } finally {
         setInitialized(true);
         setLoading(false);
       }
     };
 
-    init();
-  }, [pathname, user, setUser, setInitialized, setLoading]);
+    // Run only if not yet initialized
+    if (!initialized) {
+      init();
+    }
+  }, [initialized]);
+
+  // After initialized and `user` exists, and on login page? Redirect!
+  useEffect(() => {
+    if (initialized && user && pathname === "/") {
+      router.replace("/home/dashboard");
+    }
+  }, [initialized, user, pathname]);
 
   return null;
 }
