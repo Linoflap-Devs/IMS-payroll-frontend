@@ -21,15 +21,23 @@ import { useCrewDetails } from "@/src/hooks/useCrewDetails";
 import { CrewSidebar } from "../CrewSidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
 import { PiUserListFill } from "react-icons/pi";
+import { CrewAllotteeDistribution } from "../dialogs/CrewAllotteeDistributionDialog";
+import { CrewDeductionDistribution } from "../dialogs/CrewDeductionDistributionDialog";
+import { CrewPayslipDistribution } from "../dialogs/CrewPayslipDialog";
 
 export default function CrewPayrollHistory() {
   const [payrollData, setPayrollData] = useState<CrewPayrollHistoryItem[]>([]);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
   //const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString());
   //const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
-  const [monthFilter, setMonthFilter] = useState("all"); // Show all months by default
-  const [yearFilter, setYearFilter] = useState("all"); // Show all years by default
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [yearFilter, setYearFilter] = useState("all");
 
+  const [selectedCrewPayrollItem, setSelectedCrewPayrollItem] = useState<CrewPayrollHistoryItem | null>(null);
+  const [isViewSelectedAllotteeDistributionDialogOpen, setViewselectedAllotteeDistributionDialogOpen] = useState(false);
+  const [isViewSelectedDeductionDialogOpen, setViewSelectedDeductionDialogOpen] = useState(false);
+  const [isViewSelectedCrewPayslipDialogOpen, setViewSelectedCrewPayslipDialogOpen] = useState(false);
+  
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
   const crewCode = id ? Number(id) : null;
@@ -37,6 +45,7 @@ export default function CrewPayrollHistory() {
   const { crew, isLoading } = useCrewDetails(id);
 
   console.log(crew);
+  console.log("PAYROLL DATA: ", payrollData);
 
   const monthNames = [
     "January",
@@ -194,10 +203,10 @@ export default function CrewPayrollHistory() {
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
-                  // onClick={() => {
-                  //   setSelectedSSSData(row.original);
-                  //   setEditselectedSSSDialogOpen(true);
-                  // }}
+                  onClick={() => {
+                    setSelectedCrewPayrollItem(row.original);
+                    setViewselectedAllotteeDistributionDialogOpen(true);
+                  }}
                 >
                   <PiUserListFill className="mr-2 h-4 w-4" />
                   Allottee Distribution
@@ -205,10 +214,10 @@ export default function CrewPayrollHistory() {
 
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
-                  // onClick={() => {
-                  //   setSelectedSSSData(row.original);
-                  //   setEditselectedSSSDialogOpen(true);
-                  // }}
+                  onClick={() => {
+                    setSelectedCrewPayrollItem(row.original);
+                    setViewSelectedDeductionDialogOpen(true);
+                  }}
                 >
                   <PiUserListFill className="mr-2 h-4 w-4" />
                   Deduction Distribution
@@ -216,10 +225,10 @@ export default function CrewPayrollHistory() {
 
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
-                  // onClick={() => {
-                  //   setSelectedSSSData(row.original);
-                  //   setEditselectedSSSDialogOpen(true);
-                  // }}
+                  onClick={() => {
+                    setSelectedCrewPayrollItem(row.original);
+                    setViewSelectedCrewPayslipDialogOpen(true);
+                  }}
                 >
                   <PiUserListFill className="mr-2 h-4 w-4" />
                   Payslip
@@ -229,7 +238,7 @@ export default function CrewPayrollHistory() {
           </div>
         );
       },
-    }
+    },
   ];
 
   const filteredPayrollData = payrollData.filter((item) => {
@@ -326,6 +335,24 @@ export default function CrewPayrollHistory() {
           </div>
         </div>
       </div>
+
+      <CrewAllotteeDistribution
+        crewPayroll={selectedCrewPayrollItem}
+        open={isViewSelectedAllotteeDistributionDialogOpen}
+        onOpenChange={setViewselectedAllotteeDistributionDialogOpen}
+      />
+
+      <CrewDeductionDistribution
+        crewPayroll={selectedCrewPayrollItem}
+        open={isViewSelectedDeductionDialogOpen}
+        onOpenChange={setViewSelectedDeductionDialogOpen}
+      />
+
+      <CrewPayslipDistribution
+        crewPayroll={selectedCrewPayrollItem}
+        open={isViewSelectedCrewPayslipDialogOpen}
+        onOpenChange={setViewSelectedCrewPayslipDialogOpen}
+      />
     </div>
   );
 }

@@ -126,7 +126,8 @@ const columns: ColumnDef<CrewItem>[] = [
         <div className="text-center">
           <Badge
             variant="outline"
-            className={`mx-auto justify-center text-xs sm:text-sm font-medium px-2 sm:px-2.5 py-0.5 flex items-center gap-1.5 sm:gap-2 w-24 sm:w-28 
+            className={`mx-auto justify-center text-xs sm:text-sm font-medium px-2 sm:px-2.5 
+                py-0.5 flex items-center gap-1.5 sm:gap-2 w-24 sm:w-28 
               ${getStatusBgColor(status)}`}
           >
             {status}
@@ -199,7 +200,7 @@ export default function CrewPayroll() {
     return matchesSearch && matchesStatus && matchesRank;
   });
   
-  console.log('CREW: ', filteredCrew);
+  console.log('CREW IN CREW PAYROLL: ', filteredCrew);
 
   const uniqueRanks = Array.from(
     new Map(crews.map((crew) => [crew.RankID, crew.Rank])).entries()
@@ -269,15 +270,6 @@ export default function CrewPayroll() {
               >
                 Clear Filters
               </Button>
-              <Link href="/home/crew/add-crew">
-                <Button
-                  className="whitespace-nowrap h-9 sm:h-10 px-5 sm:px-7 text-xs sm:text-sm w-full sm:w-auto"
-                  size="default"
-                >
-                  <Plus className="mr-3 sm:mr-5 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
-                  <p className="mr-4">Add Crew</p>
-                </Button>
-              </Link>
             </div>
           </div>
           {isLoading ? (

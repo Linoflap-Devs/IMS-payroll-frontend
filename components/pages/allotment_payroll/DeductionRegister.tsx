@@ -212,7 +212,6 @@ export default function DeductionRegisterComponent() {
       </div>
 
       <div className="flex flex-col gap-4">
-        {/* Vessel Info Card */}
         <Card className="p-6 bg-[#F5F6F7]">
           <div className="flex justify-between items-start">
             <div className="space-y-1">

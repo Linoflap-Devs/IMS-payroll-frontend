@@ -8,7 +8,7 @@ export default function page() {
   return (
     <AccessGuard allowedTypes={[3, 4]}>
       <Suspense fallback={<div>Loading...</div>}>
-        <DeductionRegister />;
+        <DeductionRegister />
       </Suspense>
     </AccessGuard>
   );
