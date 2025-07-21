@@ -23,7 +23,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
 import { PiUserListFill } from "react-icons/pi";
 import { CrewAllotteeDistribution } from "../dialogs/CrewAllotteeDistributionDialog";
 import { CrewDeductionDistribution } from "../dialogs/CrewDeductionDistributionDialog";
-import { toast } from "../ui/use-toast";
 import { generatePayrollPDFSingle } from "../PDFs/payrollStatementPDFSingle";
 import { CrewPayroll } from "@/src/services/payroll/payroll.api";
 import PDFPreview from "../dialogs/PDFPreviewModal";
@@ -295,32 +294,32 @@ export default function CrewPayrollHistory() {
     };
   }
   
-const previewPayrollPDFCrew = async (crew: CrewPayrollHistoryItem) => {
-  const crewPayroll = convertHistoryItemToCrewPayroll(crew);
-  const month = crewPayroll.PayrollMonth ?? 1;
-  const year = crewPayroll.PayrollYear ?? new Date().getFullYear();
+  const previewPayrollPDFCrew = async (crew: CrewPayrollHistoryItem) => {
+    const crewPayroll = convertHistoryItemToCrewPayroll(crew);
+    const month = crewPayroll.PayrollMonth ?? 1;
+    const year = crewPayroll.PayrollYear ?? new Date().getFullYear();
 
-  try {
-    const blob = await generatePayrollPDFSingle(
-      crewPayroll,
-      month,
-      year,
-      "",
-      false
-    );
+    try {
+      const blob = await generatePayrollPDFSingle(
+        crewPayroll,
+        month,
+        year,
+        "",
+        false
+      );
 
-    const { blob: pdfBlob, filename } = blob as { blob: Blob; filename: string };
-    //const blobUrl = URL.createObjectURL(pdfBlob);
-    //window.open(blobUrl, "_blank");
+      const { blob: pdfBlob, filename } = blob as { blob: Blob; filename: string };
+      //const blobUrl = URL.createObjectURL(pdfBlob);
+      //window.open(blobUrl, "_blank");
 
-    setPreviewData(pdfBlob);
-    setFileName(filename);
-    setShowPreview(true);
+      setPreviewData(pdfBlob);
+      setFileName(filename);
+      setShowPreview(true);
 
-  } catch (error) {
-    console.error("Error generating payroll PDF:", error);
-  }
-};
+    } catch (error) {
+      console.error("Error generating payroll PDF:", error);
+    }
+  };
 
   return (
     <div className="h-full w-full p-4 pt-3">
