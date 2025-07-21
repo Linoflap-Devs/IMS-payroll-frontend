@@ -19,7 +19,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import { generatePayrollPDF } from "@/components/PDFs/payrollStatementPDF";
 import { toast } from "@/components/ui/use-toast";
-import { generatePayrollExcel } from "@/components/Excels/payrollStatementPDF";
+import { generatePayrollExcel } from "@/components/Excels/payrollStatementExcel";
 import { generatePayrollPDFSingle } from "@/components/PDFs/payrollStatementPDFSingle";
 import PDFPreview from "@/components/dialogs/PDFPreviewModal";
 
