@@ -29,17 +29,14 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent } from "../ui/card";
 import { AiOutlinePrinter } from "react-icons/ai";
 import {
-  AllotmentRegisterData,
   getForex,
   getPayrollList,
   getVesselAllotmentRegister,
   getVesselDeductionRegister,
   getVesselPayslipV2,
-  PayslipData,
   postPayrolls,
   postVesselPayrolls,
 } from "@/src/services/payroll/payroll.api";
-import { getDashboardList } from "@/src/services/dashboard/dashboard.api";
 import { MdFileUpload, MdOutlineFileUpload } from "react-icons/md";
 import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "../ui/use-toast";
@@ -55,13 +52,12 @@ import {
 } from "../ui/alert-dialog";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
-import { DeductionRegisterData } from "../PDFs/allotmentDeductionRegister";
 import { generatePayrollPDF } from "../PDFs/payrollStatementPDF";
 import { PiFileTextFill, PiReceiptFill, PiUserListFill } from "react-icons/pi";
 import { generateDeductionAllotmentV2PDF } from "../PDFs/payrollDeductionRegisterV2PDF";
 import { generateAllotmentExcel } from "../Excels/allotmentAllotmentRegister";
 import { generateDeductionAllotmentExcel } from "../Excels/payrollDeductionRegister";
-import { generatePayrollExcel } from "../Excels/payrollStatementPDF";
+import { generatePayrollExcel } from "../Excels/payrollStatementExcel";
 
 type Payroll = {
   vesselId: number;
