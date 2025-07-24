@@ -462,6 +462,7 @@ export function generateAllotmentPayrollRegister(
         // Loop through all pages and add page numbers
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
+            doc.setFont('helvetica', 'italic');
             // Draw page number box at bottom
             addPageFooter(i, totalPages)
         }
