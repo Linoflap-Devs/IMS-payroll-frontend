@@ -79,12 +79,12 @@ export function useCrewDetails(crewId: string | null) {
         seamansBookIssueDate: crewDetails.SRIBIssueDate,
         seamansBookExpiryDate: crewDetails.SRIBExpiredDate,
         //profileImage: crewDetails.ProfileImage,
-       // crewPhoto: crewDetails || undefined,      
+        crewPhoto: undefined, // include this explicitly
       };
 
       setCrew(mappedCrew);
       setEditedCrew(mappedCrew);
-    }
+    } 
   }, [crewDetails, crewBasic]);
 
   const toggleEditMode = () => {
@@ -147,11 +147,13 @@ export function useCrewDetails(crewId: string | null) {
       passportNumber: updatedCrew.passportNumber,
       passportIssueDate: updatedCrew.passportIssueDate,
       passportExpiryDate: updatedCrew.passportExpiryDate,
-
       seamanBookNumber: updatedCrew.seamansBookNumber,
       seamanBookIssueDate: updatedCrew.seamansBookIssueDate,
       seamanBookExpiryDate: updatedCrew.seamansBookExpiryDate,
-      //crewPhoto: updatedCrew.crewPhoto,
+      crewPhoto:
+        updatedCrew.crewPhoto instanceof File
+          ? updatedCrew.crewPhoto
+          : undefined,
     };
 
     console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
@@ -198,13 +200,23 @@ export function useCrewDetails(crewId: string | null) {
     }
   };
 
-  const handleInputChange = (field: keyof Crew, value: string) => {
+  // const handleInputChange = (field: keyof Crew, value: string) => {
+  //   setEditedCrew((prev) => {
+  //     const updated = {
+  //       ...prev,
+  //       [field]: value,
+  //     };
+  //     return updated;
+  //   });
+  // };
+
+  const handleInputChange = <K extends keyof Crew>(field: K, value: Crew[K]) => {
     setEditedCrew((prev) => {
-      const updated = {
+      if (!prev) return prev;
+      return {
         ...prev,
         [field]: value,
       };
-      return updated;
     });
   };
 

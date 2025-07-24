@@ -13,7 +13,7 @@ interface CrewSidebarProps {
   crew: Crew | null;
   isEditing?: boolean;
   editedCrew?: Crew | null;
-  handleInputChange?: (field: keyof Crew, value: string) => void;
+handleInputChange?: <K extends keyof Crew>(field: K, value: Crew[K]) => void;
   submitted?: boolean;
 }
 
@@ -37,6 +37,8 @@ export function CrewSidebar({
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+
+      handleInputChange?.("crewPhoto", file);
     } else {
       setCrewPhotoFile(null);
       setImagePreview("/image.png");
@@ -109,7 +111,7 @@ export function CrewSidebar({
                   ? "bg-green-100 text-green-800 border-green-300"
                   : crew?.status === "Off board"
                   ? "bg-[#F5ECE4] text-orange-800 border-orange-300"
-                  : "bg-gray-100 text-gray-800 border-gray-300" // Default styling if status is neither
+                  : "bg-gray-100 text-gray-800 border-gray-300"
               }`}
             >
               <p
