@@ -24,6 +24,7 @@ export const getCrewList = async (): Promise<CrewResponse> => {
 };
 
 export interface CrewDetails {
+  crewPhoto: any;
   FirstName: string;
   MiddleName: string;
   LastName: string;

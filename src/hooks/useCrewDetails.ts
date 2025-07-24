@@ -78,8 +78,8 @@ export function useCrewDetails(crewId: string | null) {
         seamansBookNumber: crewDetails.SRIBNumber,
         seamansBookIssueDate: crewDetails.SRIBIssueDate,
         seamansBookExpiryDate: crewDetails.SRIBExpiredDate,
-        //profileImage: crewDetails.ProfileImage,
-        crewPhoto: undefined, // include this explicitly
+        crewPhoto: crewDetails.crewPhoto, // include this explicitly
+        ProfileImage: crewDetails.ProfileImage,
       };
 
       setCrew(mappedCrew);
@@ -100,14 +100,14 @@ export function useCrewDetails(crewId: string | null) {
       return;
     }
 
-    console.log("Starting saveChanges...");
+    //console.log("Starting saveChanges...");
     setIsEditLoading(true);
 
     const updatedCrew = {
       ...editedCrew,
       name: `${editedCrew.firstName} ${editedCrew.lastName}`,
     };
-    console.log("updatedCrew object:", updatedCrew);
+    //console.log("updatedCrew object:", updatedCrew);
 
     const crewToBeUpdated = {
       status: updatedCrew.status,
@@ -156,21 +156,21 @@ export function useCrewDetails(crewId: string | null) {
           : undefined,
     };
 
-    console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
+    //console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
 
     try {
       const response = await updateCrew(editedCrew.id, crewToBeUpdated);
 
-      console.log("Response from updateCrew:", response);
+      //console.log("Response from updateCrew:", response);
 
       if (response.success) {
-        console.log("Refetching crew data...");
+        //console.log("Refetching crew data...");
         await Promise.all([
           fetchCrewBasic(editedCrew.id),
           fetchCrewDetails(editedCrew.id),
         ]);
 
-        console.log("Crew data updated and refetched.");
+        //console.log("Crew data updated and refetched.");
 
         toast({
           title: "Success",

@@ -53,7 +53,7 @@ export interface Crew {
   issuedDate?: string;
   expirationDate?: string;
   movements?: [];
-  profileImage?: {
+  ProfileImage?: {
     FileContent: string;
     FileExtension: string;
     ContentType: string;

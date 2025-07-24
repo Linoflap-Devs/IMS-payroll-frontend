@@ -340,6 +340,8 @@ export default function CrewList() {
   if (error) {
     return <div className="text-center text-red-500">Error: {error}</div>;
   }
+
+  //console.log('CREWS: ', crews);
   return (
     <div className="h-full w-full p-4 pt-2">
       <style jsx global>{`

@@ -78,6 +78,7 @@ export default function CrewDetails() {
     setTriggerAdd((prev) => !prev);
   };
 
+
   const {
     crew,
     editedCrew,
@@ -95,6 +96,7 @@ export default function CrewDetails() {
   } = useCrewDetails(crewId);
 
   const { fetchCrewValidationDetails } = useCrewStore();
+  //console.log('CREW IN CREW DETAILS: ', crew);
 
   useEffect(() => {
     if (handleVerify) {
