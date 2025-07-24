@@ -237,118 +237,129 @@ const apiDeductionColumns = ({
     cell: ({ row }) => {
       const getStatusColor = (statusCode: string) => {
         switch (statusCode) {
-          case "Completed": // Completed
+          case "Completed":
             return "bg-green-100 text-green-800";
-          case "Pending": // Pending
+          case "Pending":
             return "bg-yellow-100 text-yellow-800";
-          case "Adjusted": // Adjusted
+          case "Adjusted":
             return "bg-blue-100 text-blue-800";
-          case "Failed": // Failed
+          case "Failed":
             return "bg-red-100 text-red-800";
-          case "On Hold": // On Hold
+          case "On Hold":
             return "bg-gray-100 text-gray-800";
           default:
             return "bg-gray-100 text-gray-800";
         }
       };
 
+      const statusTextMap: Record<string, string> = {
+        Completed: "Posted",
+        Pending: "Not Posted",
+        Adjusted: "Adjusted",
+        Failed: "Failed",
+        "On Hold": "On Hold",
+      };
+
+      const rawStatus = row.original.Status.toString(10);
+      const displayText = statusTextMap[rawStatus] ?? rawStatus;
+
       return (
         <div className="flex justify-center">
           <span
             className={`px-2 py-1 w-full rounded-full text-xs ${getStatusColor(
-              row.original.Status.toString(10)
+              rawStatus
             )}`}
           >
-            {row.original.Status.toString(10)}
+            {displayText}
           </span>
         </div>
       );
     },
   },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const deductionId = row.original.DeductionDetailID;
+  // {
+  //   id: "actions",
+  //   header: "Actions",
+  //   cell: ({ row }) => {
+  //     const deductionId = row.original.DeductionDetailID;
 
-      const statusMap: Record<number, string> = {
-        1: "Completed",
-        0: "Pending",
-        2: "Declined",
-        3: "On Hold",
-      };
+  //     const statusMap: Record<number, string> = {
+  //       1: "Completed",
+  //       0: "Pending",
+  //       2: "Declined",
+  //       3: "On Hold",
+  //     };
 
-      const handleEdit = (status: number) => {
-        if (!crewCode) {
-          console.error(
-            "Crew code is not available for updating deduction entry."
-          );
-          return;
-        }
+  //     const handleEdit = (status: number) => {
+  //       if (!crewCode) {
+  //         console.error(
+  //           "Crew code is not available for updating deduction entry."
+  //         );
+  //         return;
+  //       }
 
-        const payload = {
-          status,
-        };
+  //       const payload = {
+  //         status,
+  //       };
 
-        updateCrewDeductionEntry(crewCode, deductionId, payload)
-          .then((response) => {
-            if (response.success) {
-              toast({
-                title: "Deduction entry updated successfully",
-                description: `Status changed to ${statusMap[status]}`,
-                variant: "success",
-              });
-              setOnSuccess(true);
-            } else {
-              toast({
-                title: "Failed to update deduction entry",
-                description: response.message || "Unknown error",
-                variant: "destructive",
-              });
-            }
-          })
-          .catch((error) => {
-            console.error("Error updating deduction entry:", error);
-            toast({
-              title: "Error updating deduction entry",
-              description: error.message || "An error occurred",
-              variant: "destructive",
-            });
-          });
-      };
+  //       updateCrewDeductionEntry(crewCode, deductionId, payload)
+  //         .then((response) => {
+  //           if (response.success) {
+  //             toast({
+  //               title: "Deduction entry updated successfully",
+  //               description: `Status changed to ${statusMap[status]}`,
+  //               variant: "success",
+  //             });
+  //             setOnSuccess(true);
+  //           } else {
+  //             toast({
+  //               title: "Failed to update deduction entry",
+  //               description: response.message || "Unknown error",
+  //               variant: "destructive",
+  //             });
+  //           }
+  //         })
+  //         .catch((error) => {
+  //           console.error("Error updating deduction entry:", error);
+  //           toast({
+  //             title: "Error updating deduction entry",
+  //             description: error.message || "An error occurred",
+  //             variant: "destructive",
+  //           });
+  //         });
+  //     };
 
-      return (
-        <div className="text-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-              <DropdownMenuItem onClick={() => handleEdit(1)}>
-                <CircleCheck strokeWidth={2} />
-                Completed
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleEdit(0)}>
-                <CircleEllipsis strokeWidth={2} />
-                Pending
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleEdit(2)}>
-                <CircleX strokeWidth={2} />
-                Declined
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleEdit(3)}>
-                <CircleDot strokeWidth={2} />
-                On Hold
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-  },
+  //     return (
+  //       <div className="text-center">
+  //         <DropdownMenu>
+  //           <DropdownMenuTrigger asChild>
+  //             <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+  //               <span className="sr-only">Open menu</span>
+  //               <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+  //             </Button>
+  //           </DropdownMenuTrigger>
+  //           <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+  //             <DropdownMenuItem onClick={() => handleEdit(1)}>
+  //               <CircleCheck strokeWidth={2} />
+  //               Completed
+  //             </DropdownMenuItem>
+  //             <DropdownMenuItem onClick={() => handleEdit(0)}>
+  //               <CircleEllipsis strokeWidth={2} />
+  //               Pending
+  //             </DropdownMenuItem>
+  //             <DropdownMenuItem onClick={() => handleEdit(2)}>
+  //               <CircleX strokeWidth={2} />
+  //               Declined
+  //             </DropdownMenuItem>
+  //             <DropdownMenuItem onClick={() => handleEdit(3)}>
+  //               <CircleDot strokeWidth={2} />
+  //               On Hold
+  //             </DropdownMenuItem>
+  //           </DropdownMenuContent>
+  //         </DropdownMenu>
+  //       </div>
+  //     );
+  //   },
+  // },
 ];
 
 export default function DeductionEntries() {
@@ -528,7 +539,7 @@ export default function DeductionEntries() {
 
       try {
         const response = await getCrewSSS(crewCode, year);
-        console.log("SSS response", response)
+        //console.log("SSS response", response)
 
         if (response.success) {
           const mappedData = response.data.map((item) => ({
