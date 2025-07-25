@@ -59,6 +59,8 @@ import {
   philhealthDeductionItem,
   getCrewSSS,
   sssDeductionItem,
+  HDMFHistoryEntry,
+  
 } from "@/src/services/deduction/crewDeduction.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
@@ -188,6 +190,50 @@ const crewSSSColumns = ({ } = {}): ColumnDef<sssDeductionItemWithMonth>[] => [
       return <div className="text-center">{row.original.EEMF}</div>;
     },
   },
+];
+
+const crewHDMFColumns = ({ } = {}): ColumnDef<HDMFHistoryEntry>[] => [
+  {
+    accessorKey: "PayMonth",
+    header: "Pay Month",
+    cell: ({ row }) => {
+      const monthIndex = Number(row.original.PayMonth) - 1;
+      const monthName = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ][monthIndex] || "";
+
+      return <div className="text-center">{monthName}</div>;
+    },
+  },
+  {
+    accessorKey: "PayYear",
+    header: "PayYear",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.PayYear}</div>;
+    },
+  },
+  {
+    accessorKey: "Salary",
+    header: "Salary",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.Salary}</div>;
+    },
+  },
+  {
+    accessorKey: "EE",
+    header: "EE",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.EE}</div>;
+    },
+  },
+  {
+    accessorKey: "ER",
+    header: "ER",
+    cell: ({ row }) => {
+      return <div className="text-center">{row.original.ER}</div>;
+    },
+  }
 ];
 
 const apiDeductionColumns = ({
@@ -374,7 +420,6 @@ export default function DeductionEntries() {
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [isAddDeductionOpen, setIsAddDeductionOpen] = useState(false);
-  const [isDollar, setIsDollar] = useState(false);
   const [crewData, setCrewData] = useState({
     name: "",
     rank: "",
@@ -397,14 +442,19 @@ export default function DeductionEntries() {
   >([]);
   const [error, setError] = useState<string | null>(null);
   const [onSuccess, setOnSuccess] = useState(false);
+
   const [HDMFUpgradeAmount, setHDMFUpgradeAmount] = useState<number>(0);
+  const [isDollar, setIsDollar] = useState<boolean>(false);
+  const [HDMFHistoryAmount, setHDMFHistoryAmount] = useState<HDMFHistoryEntry[]>([]);
+  const [selectedHDMFYear, setSelectedHDMFYear] =
+    useState<string>(new Date().getFullYear().toString());
   const [hdmfLoading, setHdmfLoading] = useState(false);
+  const [hdmfYears, sethdmfYears] = useState<string[]>([]);
+
   const [onSuccessHDMF, setOnSuccessHDMF] = useState(false);
 
   // PhilHealth states
-  const [philhealthData, setPhilhealthData] = useState<
-    philhealthDeductionItem[]
-  >([]);
+  const [philhealthData, setPhilhealthData] = useState<philhealthDeductionItem[]>([]);
   const [selectedPhilhealthYear, setSelectedPhilhealthYear] =
     useState<string>(new Date().getFullYear().toString());
   const [philhealthYears, setPhilhealthYears] = useState<string[]>([]);
@@ -670,10 +720,17 @@ export default function DeductionEntries() {
       try {
         const response = await getCrewHDMFUpgrade(crewData.crewCode);
         if (response.success && response.data) {
-          const res = response.data;
-          const amountInfo = res.Amount;
-          setHDMFUpgradeAmount(amountInfo?.HDMFAmount ?? 0);
-          setIsDollar(amountInfo?.DollarCurrency === 1);
+          const { Amount, History } = response.data;
+
+          setHDMFUpgradeAmount(Amount.HDMFAmount ?? 0);
+          setIsDollar(Amount.DollarCurrency === 1);
+          setHDMFHistoryAmount(History ?? []);
+          console.log("History:", History);
+
+          const uniqueYears = Array.from(
+            new Set((History ?? []).map((entry) => entry.PayYear.toString()))
+          ).sort((a, b) => Number(b) - Number(a));
+          sethdmfYears(uniqueYears);
         } else {
           console.error("Failed to fetch HDMF Upgrade:", response);
         }
@@ -689,8 +746,7 @@ export default function DeductionEntries() {
     };
 
     fetchCrewHDMFUpgrade();
-    setOnSuccessHDMF(false); // mark complete
-
+    setOnSuccessHDMF(false);
   }, [crewData.crewCode, onSuccessHDMF]);
 
   // Re-fetch data when month or year changes
@@ -766,6 +822,13 @@ export default function DeductionEntries() {
       (entry) => entry.PayrollYear.toString() === selectedPhilhealthYear
     );
   }, [philhealthData, selectedPhilhealthYear]);
+
+  const filteredHDMFData = useMemo(() => {
+    if (!selectedHDMFYear) return [];
+    return HDMFHistoryAmount.filter(
+      (entry) => entry.PayYear.toString() === selectedHDMFYear
+    );
+  }, [HDMFHistoryAmount, selectedHDMFYear]);
 
   // Filter SSS data by selected year
   const filteredSSSData = useMemo(() => {
@@ -1214,6 +1277,61 @@ export default function DeductionEntries() {
                               </>
                             )}
                           </Button>
+                        </div>
+                        
+                        {/* <h3 className="px-3 text-base">History Contributions</h3> */}
+                        <div className="mr-auto w-1/2">
+                          <Select
+                            value={selectedHDMFYear}
+                            onValueChange={setSelectedHDMFYear}
+                          >
+                            <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
+                              <div className="flex items-center w-full">
+                                <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
+                                  Select Year
+                                </span>
+                                <SelectValue className="text-black text-base pl-3" />
+                              </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {hdmfYears.length > 0 ? (
+                                hdmfYears.map((year) => (
+                                  <SelectItem key={year} value={year}>
+                                    {year}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <>
+                                  <SelectItem value="2025">2025</SelectItem>
+                                  <SelectItem value="2024">2024</SelectItem>
+                                  <SelectItem value="2023">2023</SelectItem>
+                                </>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
+                          {philhealthLoading ? (
+                            <div className="flex justify-center items-center py-10">
+                              <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                              <p>Loading HDMF data...</p>
+                            </div>
+                          ) : error ? (
+                            <div className="flex justify-center items-center py-10 text-red-500">
+                              <p>{error}</p>
+                            </div>
+                          ) : filteredPhilhealthData.length === 0 ? (
+                            <div className="flex justify-center items-center py-10">
+                              <p>No HDMF entries found for this year.</p>
+                            </div>
+                          ) : (
+                            <DataTable
+                              columns={crewHDMFColumns()}
+                              data={filteredHDMFData}
+                              pageSize={7}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>

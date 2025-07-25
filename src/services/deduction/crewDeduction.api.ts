@@ -79,16 +79,28 @@ export const addHDMFUpgrade = async (crewCode: string, hdmfAmount: number, isDol
   return response.data;
 }
 
-export interface hdmfUpgrade {
-  Amount?: any;
+export interface HDMFHistoryEntry {
+  EE: number;
+  ER: number;
+  PayMonth: number;
+  PayYear: number;
+  Salary: number;
+}
+
+export interface HDMFAmountInfo {
   HDMFAmount: number;
   DollarCurrency: number;
 }
 
+export interface HDMFUpgradeData {
+  Amount: HDMFAmountInfo;
+  History: HDMFHistoryEntry[];
+}
+
 export interface hdmfUpgradeResponse {
   success: boolean;
-  data: hdmfUpgrade;
-  message?: string;
+  data: HDMFUpgradeData;
+  message: string;
 }
 
 export const getCrewHDMFUpgrade = async (crewCode: string): Promise<hdmfUpgradeResponse> => {
