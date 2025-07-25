@@ -1,7 +1,31 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Login from "@/components/Login";
+import { useAuth } from "@/src/store/useAuthStore";
 import Image from "next/image";
+import { Loader } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
+  const { user, loading, initialized } = useAuth();
+
+  // useEffect(() => {
+  //   if (initialized && user) {
+  //     router.replace("/home/dashboard");
+  //   }
+  // }, [initialized, user]);
+
+  if (!initialized || loading || user) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen gap-2 text-gray-700">
+        <Loader className="animate-spin w-6 h-6" />
+        <span>Loading...</span>
+      </div>
+    );
+  }
+
   return (
     <main className="flex h-screen relative">
       <div className="hidden lg:block lg:w-3/4 bg-[#1e2f8d] relative pl-5">
@@ -13,16 +37,11 @@ export default function Home() {
         />
         <div className="relative z-10 p-12 text-white">
           <div className="flex items-center gap-3 mb-20">
-            <Image
-              src="/ims-logo.png"
-              alt="IMS PHIL Logo"
-              width={70}
-              height={70}
-            />
+            <Image src="/ims-logo.png" alt="IMS PHIL Logo" width={70} height={70} />
             <span className="text-2xl font-medium">IMS Phil Payroll</span>
           </div>
-          <div className="flex justify-center flex-col gap-1 ">
-            <h1 className=" text-8xl font-bold leading-tight mb-1 mt-15">
+          <div className="flex justify-center flex-col gap-1">
+            <h1 className="text-8xl font-bold leading-tight mb-1 mt-16">
               IMS
               <br />
               PHILIPPINES

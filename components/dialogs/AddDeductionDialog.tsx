@@ -42,9 +42,11 @@ const deductionFormSchema = z.object({
     .number({ invalid_type_error: "Amount is required" })
     .min(1, "Amount must be greater than 0"),
   remarks: z.string().min(1, "Remarks are required"),
-  status: z.enum(["0", "1", "2", "3", "5"], {
-    errorMap: () => ({ message: "Status is required" }),
-  }),
+  status: z
+    .enum(["0", "1", "2", "3", "5"], {
+      errorMap: () => ({ message: "Status is required" }),
+    })
+    .optional(),
 });
 
 type DeductionFormValues = z.infer<typeof deductionFormSchema>;
@@ -110,37 +112,37 @@ export function AddDeductionDialog({
       deductionID: Number(data.deductionId),
       deductionAmount: data.amount,
       deductionRemarks: data.remarks || "",
-      deductionStatus: Number(data.status),
+      deductionStatus: 0,
     };
 
-    await addCrewDeductionEntry(crewCode, payload)
-      .then((response) => {
-        if (response.success) {
-          toast({
-            title: "Deduction added successfully",
-            description: `Deduction has been added.`,
-            variant: "success",
-          });
-          setOnSuccess(true);
-          handleOpenChange(false);
-        } else {
-          toast({
-            title: "Error adding deduction",
-            description:
-              response.message ||
-              "An error occurred while adding the deduction.",
-            variant: "destructive",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error adding deduction:", error);
+    try {
+      const response = await addCrewDeductionEntry(crewCode, payload);
+      if (response.success) {
         toast({
-          title: "Error",
-          description: "An error occurred while adding the deduction.",
+          title: "Deduction added successfully",
+          description: `Deduction has been added.`,
+          variant: "success",
+        });
+        setOnSuccess(true);
+        handleOpenChange(false);
+      } else {
+        console.warn("API responded with error:", response.message);
+        toast({
+          title: "Error adding deduction",
+          description:
+            response.message ||
+            "An error occurred while adding the deduction.",
           variant: "destructive",
         });
+      }
+    } catch (error) {
+      console.error("Error during API call:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred while adding the deduction.",
+        variant: "destructive",
       });
+    }
   };
 
   return (
@@ -170,12 +172,11 @@ export function AddDeductionDialog({
                       onValueChange={field.onChange}
                       disabled={isSubmitting}>
                       <SelectTrigger
-                        className={`w-full border border-[#E0E0E0] rounded-md ${
-                          errors.deductionId ? "border-red-500" : ""
-                        }`}>
+                        className={`w-full border border-[#E0E0E0] rounded-md ${errors.deductionId ? "border-red-500" : ""
+                          }`}>
                         <SelectValue placeholder="Select deduction type" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-[24rem] overflow-y-auto text-sm">
                         {deductionDescription.map((item) => (
                           <SelectItem
                             key={item.DeductionID}
@@ -242,7 +243,7 @@ export function AddDeductionDialog({
               )}
             />
 
-            <FormField
+            {/* <FormField
               control={form.control}
               name="status"
               render={({ field }) => (
@@ -272,8 +273,7 @@ export function AddDeductionDialog({
                   <FormMessage />
                 </FormItem>
               )}
-            />
-
+            /> */}
             <div className="flex gap-3 pt-4">
               <Button
                 type="button"

@@ -49,8 +49,7 @@ export function Sidebar({
     [key: string]: boolean;
   }>({
     Deduction: true,
-  });
-
+  });  
   const toggleDropdown = (label: string) => {
     setOpenDropdowns((prev) => ({
       ...prev,

@@ -19,7 +19,10 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       label: "Crew List",
       icon: Users,
       href: "/home/crew",
-      active: pathname.startsWith("/home/crew"),
+      active:
+        pathname === "/home/crew" ||
+        (pathname.startsWith("/home/crew/") &&
+        !pathname.startsWith("/home/crew-payroll")),
       allowedUserTypes: [3],
     },
     {

@@ -78,13 +78,13 @@ export function useCrewDetails(crewId: string | null) {
         seamansBookNumber: crewDetails.SRIBNumber,
         seamansBookIssueDate: crewDetails.SRIBIssueDate,
         seamansBookExpiryDate: crewDetails.SRIBExpiredDate,
-        //profileImage: crewDetails.ProfileImage,
-       // crewPhoto: crewDetails || undefined,      
+        crewPhoto: crewDetails.crewPhoto, // include this explicitly
+        ProfileImage: crewDetails.ProfileImage,
       };
 
       setCrew(mappedCrew);
       setEditedCrew(mappedCrew);
-    }
+    } 
   }, [crewDetails, crewBasic]);
 
   const toggleEditMode = () => {
@@ -100,14 +100,14 @@ export function useCrewDetails(crewId: string | null) {
       return;
     }
 
-    console.log("Starting saveChanges...");
+    //console.log("Starting saveChanges...");
     setIsEditLoading(true);
 
     const updatedCrew = {
       ...editedCrew,
       name: `${editedCrew.firstName} ${editedCrew.lastName}`,
     };
-    console.log("updatedCrew object:", updatedCrew);
+    //console.log("updatedCrew object:", updatedCrew);
 
     const crewToBeUpdated = {
       status: updatedCrew.status,
@@ -147,28 +147,30 @@ export function useCrewDetails(crewId: string | null) {
       passportNumber: updatedCrew.passportNumber,
       passportIssueDate: updatedCrew.passportIssueDate,
       passportExpiryDate: updatedCrew.passportExpiryDate,
-
       seamanBookNumber: updatedCrew.seamansBookNumber,
       seamanBookIssueDate: updatedCrew.seamansBookIssueDate,
       seamanBookExpiryDate: updatedCrew.seamansBookExpiryDate,
-      //crewPhoto: updatedCrew.crewPhoto,
+      crewPhoto:
+        updatedCrew.crewPhoto instanceof File
+          ? updatedCrew.crewPhoto
+          : undefined,
     };
 
-    console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
+    //console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
 
     try {
       const response = await updateCrew(editedCrew.id, crewToBeUpdated);
 
-      console.log("Response from updateCrew:", response);
+      //console.log("Response from updateCrew:", response);
 
       if (response.success) {
-        console.log("Refetching crew data...");
+        //console.log("Refetching crew data...");
         await Promise.all([
           fetchCrewBasic(editedCrew.id),
           fetchCrewDetails(editedCrew.id),
         ]);
 
-        console.log("Crew data updated and refetched.");
+        //console.log("Crew data updated and refetched.");
 
         toast({
           title: "Success",
@@ -198,13 +200,23 @@ export function useCrewDetails(crewId: string | null) {
     }
   };
 
-  const handleInputChange = (field: keyof Crew, value: string) => {
+  // const handleInputChange = (field: keyof Crew, value: string) => {
+  //   setEditedCrew((prev) => {
+  //     const updated = {
+  //       ...prev,
+  //       [field]: value,
+  //     };
+  //     return updated;
+  //   });
+  // };
+
+  const handleInputChange = <K extends keyof Crew>(field: K, value: Crew[K]) => {
     setEditedCrew((prev) => {
-      const updated = {
+      if (!prev) return prev;
+      return {
         ...prev,
         [field]: value,
       };
-      return updated;
     });
   };
 

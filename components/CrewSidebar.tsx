@@ -13,7 +13,7 @@ interface CrewSidebarProps {
   crew: Crew | null;
   isEditing?: boolean;
   editedCrew?: Crew | null;
-  handleInputChange?: (field: keyof Crew, value: string) => void;
+  handleInputChange?: <K extends keyof Crew>(field: K, value: Crew[K]) => void;
   submitted?: boolean;
 }
 
@@ -27,7 +27,7 @@ export function CrewSidebar({
   const fileInputRef = useRef<HTMLInputElement>(null); // For triggering file input
   const [crewPhotoFile, setCrewPhotoFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>("/image.png"); // For image preview
-
+  
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -37,9 +37,11 @@ export function CrewSidebar({
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+
+      handleInputChange?.("crewPhoto", file);
     } else {
       setCrewPhotoFile(null);
-      setImagePreview("/image.png");
+      setImagePreview("");
     }
   };
 
@@ -49,18 +51,37 @@ export function CrewSidebar({
         <CardContent className="p-4 flex flex-col items-center text-center overflow-y-auto scrollbar-hide flex-1">
           <div className="w-60 h-60 min-w-[160px] bg-white rounded-md mb-3 flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
             {isEditing ? (
-              <Image
-                width={256}
-                height={160}
-                src={imagePreview || "/image.png"}
-                alt="Preview Photo"
-                className="object-cover w-full h-full"
-              />
-            ) : crew?.profileImage ? (
+              imagePreview ? (
+                <Image
+                  width={256}
+                  height={160}
+                  src={imagePreview}
+                  alt="Preview Photo"
+                  className="object-cover w-full h-full"
+                />
+              ) : crew?.ProfileImage?.FileContent ? (
+                <Base64Image
+                  imageType={crew.ProfileImage.ContentType}
+                  alt="Crew Profile Image"
+                  base64String={crew.ProfileImage.FileContent}
+                  width={60}
+                  height={60}
+                  className="object-contain w-full h-full"
+                />
+              ) : (
+                <Image
+                  width={256}
+                  height={160}
+                  src="/image.png"
+                  alt="Selfie with ID Attachment"
+                  className="object-cover w-full h-full"
+                />
+              )
+            ) : crew?.ProfileImage ? (
               <Base64Image
-                imageType={crew.profileImage.ContentType}
+                imageType={crew.ProfileImage.ContentType}
                 alt="Crew Profile Image"
-                base64String={crew.profileImage.FileContent}
+                base64String={crew.ProfileImage.FileContent}
                 width={60}
                 height={60}
                 className="object-contain w-full h-full"
@@ -75,7 +96,7 @@ export function CrewSidebar({
               />
             )}
           </div>
-          
+        
           {isEditing && (
             <div>
               <Button
@@ -109,7 +130,7 @@ export function CrewSidebar({
                   ? "bg-green-100 text-green-800 border-green-300"
                   : crew?.status === "Off board"
                   ? "bg-[#F5ECE4] text-orange-800 border-orange-300"
-                  : "bg-gray-100 text-gray-800 border-gray-300" // Default styling if status is neither
+                  : "bg-gray-100 text-gray-800 border-gray-300"
               }`}
             >
               <p

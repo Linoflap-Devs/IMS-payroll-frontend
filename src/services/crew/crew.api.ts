@@ -24,6 +24,7 @@ export const getCrewList = async (): Promise<CrewResponse> => {
 };
 
 export interface CrewDetails {
+  crewPhoto: any;
   FirstName: string;
   MiddleName: string;
   LastName: string;
@@ -224,6 +225,7 @@ export interface UpdateCrewDataForm {
   seamanBookIssueDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
   seamanBookExpiryDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
   crewPhoto?: File; // Optional file upload
+  //profileImage?: string | File;
 }
 
 export interface AddCrewSuccessData {
@@ -233,10 +235,24 @@ export interface AddCrewSuccessData {
   EmailAddress: string;
 }
 
+export interface UpdateCrewSuccessData {
+  CrewID: number;
+  FirstName: string;
+  LastName: string;
+  EmailAddress: string;
+  crewPhoto: File | undefined;
+}
+
 export interface AddCrewResponse {
   success: boolean;
   message: string;
-  data?: AddCrewSuccessData | []; // any[] to accommodate `data: []` in error responses from controller
+  data?: AddCrewSuccessData | [];
+}
+
+export interface UpdateCrewResponse {
+  success: boolean;
+  message: string;
+  data?: UpdateCrewSuccessData | [];
 }
 
 export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewResponse> => {
@@ -298,7 +314,62 @@ export const deleteCrew = async (crewCode: string): Promise<AddCrewResponse> => 
   return response.data;
 }
 
-export const updateCrew = async (crewCode: string, crewData: UpdateCrewDataForm): Promise<AddCrewResponse> => {
-  const response = await axiosInstance.patch<AddCrewResponse>(`/crew/${crewCode}`, crewData);
+export const updateCrew = async (
+  crewCode: string,
+  crewData: UpdateCrewDataForm
+): Promise<UpdateCrewResponse> => {
+  const formData = new FormData();
+
+  const appendIfExists = (
+    key: string,
+    value: string | number | File | undefined | null
+  ) => {
+    if (value !== undefined && value !== null) {
+      if (value instanceof File) {
+        formData.append(key, value);
+      } else {
+        formData.append(key, String(value));
+      }
+    }
+  };
+
+  //appendIfExists("status", crewData.status);
+  appendIfExists("emailAddress", crewData.emailAddress);
+  appendIfExists("mobileNumber", crewData.mobileNumber);
+  appendIfExists("landlineNumber", crewData.landlineNumber);
+  appendIfExists("firstName", crewData.firstName);
+  appendIfExists("lastName", crewData.lastName);
+  appendIfExists("middleName", crewData.middleName);
+  appendIfExists("maritalStatus", crewData.maritalStatus);
+  appendIfExists("sex", crewData.sex);
+  appendIfExists("dateOfBirth", crewData.dateOfBirth);
+  appendIfExists("city", crewData.city);
+  appendIfExists("province", crewData.province);
+  //appendIfExists("address", crewData.address);
+  appendIfExists("sssNumber", crewData.sssNumber);
+  appendIfExists("philhealthNumber", crewData.philhealthNumber);
+  //appendIfExists("taxIdNumber", crewData.taxIdNumber);
+  appendIfExists("hdmfNumber", crewData.hdmfNumber);
+  appendIfExists("passportNumber", crewData.passportNumber);
+  appendIfExists("passportIssueDate", crewData.passportIssueDate);
+  appendIfExists("passportExpiryDate", crewData.passportExpiryDate);
+  appendIfExists("seamanBookNumber", crewData.seamanBookNumber);
+  appendIfExists("seamanBookIssueDate", crewData.seamanBookIssueDate);
+  appendIfExists("seamanBookExpiryDate", crewData.seamanBookExpiryDate);
+
+  if (crewData.crewPhoto) {
+    formData.append("crewPhoto", crewData.crewPhoto);
+  }
+
+  const response = await axiosInstance.patch<UpdateCrewResponse>(
+    `/crew/${crewCode}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
   return response.data;
-}
+};
