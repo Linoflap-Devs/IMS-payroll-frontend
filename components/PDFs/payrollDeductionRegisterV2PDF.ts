@@ -76,6 +76,41 @@ function getMonthName(monthNum: number): string {
     return months[monthNum - 1];
 }
 
+function calculateVesselDeductionTotals(vessel: DeductionRegisterData): { [key: string]: number } {
+    // Define the standard deduction types
+    const standardDeductions = [
+        'SSS Premium',
+        'Pag-Ibig Contribution', 
+        'Philhealth Contribution',
+        'SSS Provident'
+    ];
+    
+    // Initialize totals object with standard deductions
+    const totals: { [key: string]: number } = {
+        'SSS Premium': 0,
+        'Pag-Ibig Contribution': 0,
+        'Philhealth Contribution': 0,
+        'SSS Provident': 0,
+        'Other Deductions': 0
+    };
+    
+    vessel.Crew.forEach(crew => {
+        if (crew.Deductions) {
+            crew.Deductions.forEach(deduction => {
+                if (standardDeductions.includes(deduction.Name)) {
+                    // Add to the specific standard deduction category
+                    totals[deduction.Name] += deduction.Amount;
+                } else {
+                    // Add to "Other Deductions" for any non-standard deductions
+                    totals['Other Deductions'] += deduction.Amount;
+                }
+            });
+        }
+    });
+    
+    return totals;
+}
+
 /**
  * Generate allotment payroll register PDF directly from AllotmentRegisterData array
  * @param vesselData Array of vessel data
@@ -171,8 +206,113 @@ export function generateDeductionAllotmentV2Register(
         let currentY = margins.top;
         let isFirstPage = true;
 
+        // Add this function to draw the summary section
+        function drawVesselSummary(doc: jsPDF, vessel: DeductionRegisterData, currentY: number, margins: any, pageWidth: number, colPositions: number[], colWidths: number[], scaleFactor: number): number {
+            const totals = calculateVesselDeductionTotals(vessel);
+            
+            // Check if we have any totals to display
+            if (Object.keys(totals).length === 0) {
+                return currentY;
+            }
+            
+            let y = currentY;
+            const summaryRowHeight = 8;
+            const summaryHeaderHeight = 10;
+            
+            // Add some spacing before summary
+            y += 5;
+            
+            // Draw summary header
+            doc.setFillColor(220, 220, 220); // Darker gray for summary header
+            doc.rect(margins.left, y, pageWidth - margins.left - margins.right, summaryHeaderHeight, "FD");
+            
+            doc.setFontSize(8);
+            doc.setFont('NotoSans', 'bold');
+            doc.text(`${vessel.VesselName.toUpperCase()} - DEDUCTION SUMMARY`, margins.left + 5, y + summaryHeaderHeight / 2 + 1);
+            
+            y += summaryHeaderHeight;
+            
+            // Draw summary rows
+            doc.setFontSize(7);
+            doc.setFont('NotoSans', 'normal');
+            
+            // Define the order of deductions you want to show
+            const deductionOrder = [
+                'SSS Premium',
+                'Pag-Ibig Contribution', 
+                'Philhealth Contribution',
+                'SSS Provident',
+                'Deductions'
+            ];
+            
+            // First show the standard deductions in order
+            deductionOrder.forEach(deductionName => {
+                if (totals[deductionName]) {
+                    // Draw summary row background (alternating)
+                    doc.setFillColor(248, 248, 248);
+                    doc.rect(margins.left, y, pageWidth - margins.left - margins.right, summaryRowHeight, "F");
+                    
+                    // Draw the deduction name in the deduction details column area
+                    const namePosition = margins.left + (colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]) * scaleFactor + 20;
+                    doc.text(deductionName, namePosition, y + summaryRowHeight / 2 + 1);
+                    
+                    // Draw the total amount in the rightmost column
+                    doc.text(formatCurrency(totals[deductionName]), pageWidth - margins.right - 5, y + summaryRowHeight / 2 + 1, { align: 'right' });
+                    
+                    // Draw horizontal line
+                    doc.line(margins.left, y + summaryRowHeight, pageWidth - margins.right, y + summaryRowHeight);
+                    
+                    y += summaryRowHeight;
+                }
+            });
+            
+            // Then show other deductions
+            Object.keys(totals).forEach(deductionName => {
+                if (!deductionOrder.includes(deductionName)) {
+                    // Draw summary row background
+                    doc.setFillColor(248, 248, 248);
+                    doc.rect(margins.left, y, pageWidth - margins.left - margins.right, summaryRowHeight, "F");
+                    
+                    // Draw the deduction name
+                    const namePosition = margins.left + (colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]) * scaleFactor + 20;
+                    doc.text(deductionName, namePosition, y + summaryRowHeight / 2 + 1);
+                    
+                    // Draw the total amount
+                    doc.text(formatCurrency(totals[deductionName]), pageWidth - margins.right - 5, y + summaryRowHeight / 2 + 1, { align: 'right' });
+                    
+                    // Draw horizontal line
+                    doc.line(margins.left, y + summaryRowHeight, pageWidth - margins.right, y + summaryRowHeight);
+                    
+                    y += summaryRowHeight;
+                }
+            });
+            
+            // Calculate and display grand total
+            const grandTotal = Object.values(totals).reduce((sum, amount) => sum + amount, 0);
+            
+            // Draw grand total row with different styling
+            doc.setFillColor(200, 200, 200);
+            doc.rect(margins.left, y, pageWidth - margins.left - margins.right, summaryRowHeight, "FD");
+            
+            doc.setFont('NotoSans', 'bold');
+            const namePosition = margins.left + (colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]) * scaleFactor + 20;
+            doc.text('TOTAL DEDUCTIONS', namePosition, y + summaryRowHeight / 2 + 1);
+            doc.text(formatCurrency(grandTotal), pageWidth - margins.right - 5, y + summaryRowHeight / 2 + 1, { align: 'right' });
+            
+            y += summaryRowHeight;
+            
+            // Draw vertical lines for the summary section
+            doc.line(margins.left, currentY + 5, margins.left, y);
+            doc.line(pageWidth - margins.right, currentY + 5, pageWidth - margins.right, y);
+            
+            // Add extra spacing after summary
+            y += 10;
+            
+            return y;
+        }
+
         // Function to add headers to a page
-        function addPageHeaders(vessel: DeductionRegisterData): void {
+        function addPageHeaders(vessel: DeductionRegisterData, withTableHeader: boolean = true): void {
             // If not the first page, add a new page
             if (!isFirstPage) {
                 doc.addPage();
@@ -257,44 +397,46 @@ export function generateDeductionAllotmentV2Register(
 
             currentY += 8; // Just space for the separator
 
-            // Draw table header
-            doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
-            doc.setFillColor(235, 235, 235); // Light gray background
-            doc.rect(margins.left, currentY, pageWidth - 20, tableHeaderHeight, "FD"); // Header row background
+            if(withTableHeader){
 
-            // Draw header text
-            const headers = [
-                "CREW NAME", "RANK", "SALARY", "GROSS"
-            ];
-
-            doc.setFontSize(7);
-            doc.setFont('NotoSans', 'normal');
-            headers.forEach((header, index) => {
-                const colWidth = colWidths[index] * scaleFactor;
-                const colX = colPositions[index];
-                 if (index <= 1) {
-                    // Left align crew name header (same as data)
-                    doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
-                }
-                else if(header === "ALLOTTEE NAME" || header === "BANK"){
-                    doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
-                } 
-                else {
-                    // Right align numeric headers (same as data)
-                    doc.text(header, colX + colWidth - 5, currentY + tableHeaderHeight / 2 + 1, { align: 'right' });
-                }
-            });
-
-            // Draw horizontal line after headers
-            doc.line(margins.left, currentY + tableHeaderHeight, pageWidth - margins.right, currentY + tableHeaderHeight);
-
-            currentY += tableHeaderHeight;
+                // Draw table header
+                doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
+                doc.setFillColor(235, 235, 235); // Light gray background
+                doc.rect(margins.left, currentY, pageWidth - 20, tableHeaderHeight, "FD"); // Header row background
+    
+                // Draw header text
+                const headers = [
+                    "CREW NAME", "RANK", "SALARY", "GROSS"
+                ];
+    
+                doc.setFontSize(7);
+                doc.setFont('NotoSans', 'normal');
+                headers.forEach((header, index) => {
+                    const colWidth = colWidths[index] * scaleFactor;
+                    const colX = colPositions[index];
+                     if (index <= 1) {
+                        // Left align crew name header (same as data)
+                        doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
+                    }
+                    else if(header === "ALLOTTEE NAME" || header === "BANK"){
+                        doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' });
+                    } 
+                    else {
+                        // Right align numeric headers (same as data)
+                        doc.text(header, colX + colWidth - 5, currentY + tableHeaderHeight / 2 + 1, { align: 'right' });
+                    }
+                });
+    
+                // Draw horizontal line after headers
+                doc.line(margins.left, currentY + tableHeaderHeight, pageWidth - margins.right, currentY + tableHeaderHeight);
+    
+                currentY += tableHeaderHeight;
+            }
         }
 
         // Function to add a footer to the current pages
         function addPageFooter(currentPage: number, totalPages: number): void {
             // Draw page number box at bottom
-            //console.log(pageHeight, margins.bottom);
             doc.rect(margins.left, pageHeight - margins.bottom + 3, pageWidth - margins.left - margins.right, 8);
             doc.setFontSize(7);
             doc.text(`Page ${currentPage} out of ${totalPages}`, pageWidth - margins.right - 6, pageHeight - margins.bottom + 8, { align: 'right' });
@@ -413,9 +555,19 @@ export function generateDeductionAllotmentV2Register(
             doc.line(margins.left, tableStartY, margins.left, y); // Left vertical line
             doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, y); // Right vertical line
 
+            // ADD VESSEL SUMMARY HERE
+            // Check if we need a new page for the summary
+            const estimatedSummaryHeight = 100; // Rough estimate
+            if (y + estimatedSummaryHeight > pageHeight - margins.bottom - 8) {
+                addPageHeaders(vessel, false);
+                y = currentY;
+            }
             
+            // Draw the vessel summary
+            y = drawVesselSummary(doc, vessel, y, margins, pageWidth, colPositions, colWidths, scaleFactor);
+            currentY = y;
 
-            // If there are more vessels, prepare for the next vessel (forcing new page)
+            // If there are more vessels, prepare for the next vessel
             if (vesselIndex < vesselData.length - 1) {
                 isFirstPage = false;
             }
@@ -436,19 +588,6 @@ export function generateDeductionAllotmentV2Register(
                     ? `Deduction_ALL_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`
                     : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`;
         doc.save(fileName)
-        // // Save the PDF using the updated content with correct page numbers
-        // const blob = dataURItoBlob(updatedPdfText);
-        // const url = URL.createObjectURL(blob);
-        // const link = document.createElement('a');
-        // link.href = url;
-        // link.download = fileName;
-        // link.click();
-
-        // // Clean up
-        // setTimeout(() => {
-        //     URL.revokeObjectURL(url);
-        // }, 100);
-
         return true;
     } catch (error) {
         console.error("Error generating PDF:", error);
