@@ -769,7 +769,7 @@ export default function Wages() {
                             <div className="flex items-center justify-between w-full">
                               <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border-r rounded-l-md -ml-3 sm:-ml-4">
                                 <span className="text-gray-700 font-medium whitespace-nowrap">
-                                  Select Vessel
+                                  Select Vessel Type
                                 </span>
                               </div>
                               <div className="flex-grow text-left px-2 truncate">
