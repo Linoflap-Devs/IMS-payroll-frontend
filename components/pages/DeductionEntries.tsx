@@ -60,7 +60,7 @@ import {
   getCrewSSS,
   sssDeductionItem,
   HDMFHistoryEntry,
-  
+
 } from "@/src/services/deduction/crewDeduction.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
@@ -1183,6 +1183,7 @@ export default function DeductionEntries() {
                           </SelectContent>
                         </Select>
                       </div>
+
                       <div className="w-full">
                         <div className="flex justify-end w-full mt-2">
                           <Button
@@ -1231,7 +1232,7 @@ export default function DeductionEntries() {
                   className="p-6 mt-0 overflow-y-auto flex-1"
                 >
                   <div className="space-y-6">
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="bg-white p-4 mb-10 rounded-lg border border-gray-200">
                       <div className="space-y-6">
                         <div>
                           <div className="flex items-center justify-end mb-2">
@@ -1278,62 +1279,60 @@ export default function DeductionEntries() {
                             )}
                           </Button>
                         </div>
-                        
-                        {/* <h3 className="px-3 text-base">History Contributions</h3> */}
-                        <div className="mr-auto w-1/2">
-                          <Select
-                            value={selectedHDMFYear}
-                            onValueChange={setSelectedHDMFYear}
-                          >
-                            <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
-                              <div className="flex items-center w-full">
-                                <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
-                                  Select Year
-                                </span>
-                                <SelectValue className="text-black text-base pl-3" />
-                              </div>
-                            </SelectTrigger>
-                            <SelectContent>
-                              {hdmfYears.length > 0 ? (
-                                hdmfYears.map((year) => (
-                                  <SelectItem key={year} value={year}>
-                                    {year}
-                                  </SelectItem>
-                                ))
-                              ) : (
-                                <>
-                                  <SelectItem value="2025">2025</SelectItem>
-                                  <SelectItem value="2024">2024</SelectItem>
-                                  <SelectItem value="2023">2023</SelectItem>
-                                </>
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
-                          {philhealthLoading ? (
-                            <div className="flex justify-center items-center py-10">
-                              <Loader2 className="h-8 w-8 animate-spin mr-2" />
-                              <p>Loading HDMF data...</p>
-                            </div>
-                          ) : error ? (
-                            <div className="flex justify-center items-center py-10 text-red-500">
-                              <p>{error}</p>
-                            </div>
-                          ) : filteredPhilhealthData.length === 0 ? (
-                            <div className="flex justify-center items-center py-10">
-                              <p>No HDMF entries found for this year.</p>
-                            </div>
-                          ) : (
-                            <DataTable
-                              columns={crewHDMFColumns()}
-                              data={filteredHDMFData}
-                              pageSize={7}
-                            />
-                          )}
-                        </div>
                       </div>
+
+                    </div>
+                    <div className="ml-auto w-1/2">
+                      <Select
+                        value={selectedHDMFYear}
+                        onValueChange={setSelectedHDMFYear}
+                      >
+                        <SelectTrigger className="bg-white border border-gray-200 rounded-xs h-12 w-full pl-0">
+                          <div className="flex items-center w-full">
+                            <span className="text-gray-500 text-base bg-[#F6F6F6] rounded-l-xs px-3 py-1.5 mr-5">
+                              Select Year
+                            </span>
+                            <SelectValue className="text-black text-base pl-3" />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {hdmfYears.length > 0 ? (
+                            hdmfYears.map((year) => (
+                              <SelectItem key={year} value={year}>
+                                {year}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <>
+                              <SelectItem value="2025">2025</SelectItem>
+                              <SelectItem value="2024">2024</SelectItem>
+                              <SelectItem value="2023">2023</SelectItem>
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="bg-[#F9F9F9] rounded-xl border border-gray-200 overflow-hidden pb-3">
+                      {philhealthLoading ? (
+                        <div className="flex justify-center items-center py-10">
+                          <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                          <p>Loading HDMF data...</p>
+                        </div>
+                      ) : error ? (
+                        <div className="flex justify-center items-center py-10 text-red-500">
+                          <p>{error}</p>
+                        </div>
+                      ) : filteredPhilhealthData.length === 0 ? (
+                        <div className="flex justify-center items-center py-10">
+                          <p>No HDMF entries found for this year.</p>
+                        </div>
+                      ) : (
+                        <DataTable
+                          columns={crewHDMFColumns()}
+                          data={filteredHDMFData}
+                          pageSize={7}
+                        />
+                      )}
                     </div>
                   </div>
                 </TabsContent>
