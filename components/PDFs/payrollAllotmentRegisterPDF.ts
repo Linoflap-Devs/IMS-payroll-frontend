@@ -142,35 +142,6 @@ export function generateAllotmentPayrollRegister(
             mainTableWidth * 0.07   // ALLOTMENT
         ];
 
-         // DEBUG: Function to draw red column borders
-        // function drawDebugColumnBorders(startY: number, endY: number): void {
-            
-        //     // Set red color for debug lines
-        //     doc.setDrawColor(255, 0, 0); // Red color
-        //     doc.setLineWidth(0.5); // Thicker line for visibility
-            
-        //     // Draw vertical lines for each column position
-        //     colPositions.forEach((position, index) => {
-        //         doc.line(position, startY, position, endY);
-                
-        //         // Add column index labels at the top for identification
-        //         if (startY === currentY) {
-        //             doc.setFontSize(6);
-        //             doc.setTextColor(255, 0, 0); // Red text
-        //             doc.text(`C${index}`, position + 1, startY - 2);
-        //         }
-        //     });
-            
-        //     // Also draw the final right border
-        //     const finalPosition = colPositions[colPositions.length - 1];
-        //     doc.line(finalPosition, startY, finalPosition, endY);
-            
-        //     // Restore original draw settings
-        //     doc.setDrawColor(0, 0, 0); // Back to black
-        //     doc.setLineWidth(1);
-        //     doc.setTextColor(0, 0, 0); // Back to black text
-        // }
-
         // Calculate total table width and scale if needed
         const totalWidth = colWidths.reduce((a, b) => a + b, 0);
         const scaleFactor = (pageWidth - margins.left - margins.right) / totalWidth;
@@ -189,6 +160,7 @@ export function generateAllotmentPayrollRegister(
         const vesselInfoHeight = 16;
         const tableHeaderHeight = 10;
         const rowHeight = 8;
+        const summaryRowHeight = 10; // Height for summary row
 
         // Keep track of pagination
         let currentPage = 1;
@@ -196,6 +168,54 @@ export function generateAllotmentPayrollRegister(
         // Variables to track current position
         let currentY = margins.top;
         let isFirstPage = true;
+
+        function addVesselSummaryRow(vessel: AllotmentRegisterData, y: number): number {
+            const totals = calculateVesselTotals(vessel);
+            
+            // Set background color for summary row
+            doc.setFillColor(245, 245, 245); // Light gray background
+            doc.rect(margins.left, y, pageWidth - margins.left - margins.right, summaryRowHeight, "F");
+            
+            // Draw border around summary row
+            doc.setLineWidth(0.2);
+            doc.rect(margins.left, y, pageWidth - margins.left - margins.right, summaryRowHeight);
+            doc.setLineWidth(0.1); // Reset line width
+            
+            // Set font for summary text
+            doc.setFontSize(7);
+            doc.setFont('NotoSans', 'bold');
+            
+            // Add "VESSEL TOTAL:" label
+            doc.text(`TOTAL`, colPositions[0] + 5, y + summaryRowHeight / 2 + 1, { align: 'left' });
+            
+            // Add totals in respective columns
+            doc.text(formatCurrency(totals.totalPesoGross), colPositions[6] + colWidths[6] * scaleFactor - 5, y + summaryRowHeight / 2 + 1, { align: 'right' });
+            doc.text(formatCurrency(totals.totalDeduction), colPositions[7] + colWidths[7] * scaleFactor - 5, y + summaryRowHeight / 2 + 1, { align: 'right' });
+            doc.text(formatCurrency(totals.totalNet), colPositions[8] + colWidths[8] * scaleFactor - 5, y + summaryRowHeight / 2 + 1, { align: 'right' });
+            
+            return y + summaryRowHeight;
+        }
+
+        function calculateVesselTotals(vessel: AllotmentRegisterData) {
+            let totalDollarGross = 0;
+            let totalPesoGross = 0;
+            let totalDeduction = 0;
+            let totalNet = 0;
+
+            vessel.Crew.forEach(crew => {
+                totalDollarGross += Number(crew.DollarGross) || 0;
+                totalPesoGross += Number(crew.PesoGross) || 0;
+                totalDeduction += Number(crew.TotalDeduction) || 0;
+                totalNet += Number(crew.Net) || 0;
+            });
+
+            return {
+                totalDollarGross,
+                totalPesoGross,
+                totalDeduction,
+                totalNet
+            };
+        }
 
         // Function to add headers to a page
         function addPageHeaders(vessel: AllotmentRegisterData): void {
@@ -341,11 +361,19 @@ export function generateAllotmentPayrollRegister(
             let y = currentY;
             let tableStartY = currentY; // Start of current table section
 
+            let totalGross = 0
+            let totalDeductions = 0
+            let totalNet = 0
+
             // Process each crew member
             vessel.Crew.forEach((crew) => {
                 // Calculate how much space this crew entry will need
                 const allotteeCount = crew.Allottee ? crew.Allottee.length : 0;
                 const crewEntryHeight = rowHeight + (allotteeCount * rowHeight);
+
+                totalGross =+ crew.PesoGross
+                totalDeductions =+ crew.TotalDeduction
+                totalNet =+ crew.Net
 
                 // Check if we need a new page
                 if (y + crewEntryHeight > pageHeight - margins.bottom - 8) {
@@ -393,15 +421,6 @@ export function generateAllotmentPayrollRegister(
                         doc.text(formatCurrency(Number(value) || 0), colPositions[i] + colWidths[i] * scaleFactor - 5, y + 5, { align: 'right' });
                     }
                 });
-                // doc.text(crew.CrewName, colPositions[0] + 5, y + 5, { align: 'left' });
-                // doc.text(crew.Rank, colPositions[1] + 5, y + 5, { align: 'left' });
-                // doc.text(formatCurrency(crew.BasicWage), colPositions[2] + colWidths[2] * scaleFactor - 5, y + 5, { align: 'right' });
-                // doc.text(formatCurrency(crew.FixedOT), colPositions[3] + colWidths[3] * scaleFactor - 5, y + 5, { align: 'right' });
-                // doc.text(formatCurrency(crew.GuarOT), colPositions[4] + colWidths[4] * scaleFactor - 5, y + 5, { align: 'right' });
-                // doc.text(formatCurrency(crew.DollarGross), colPositions[5] + colWidths[5] * scaleFactor - 5, y + 5, { align: 'right' });
-                // doc.text(formatCurrency(crew.PesoGross), colPositions[6] + colWidths[6] * scaleFactor - 5, y + 5, { align: 'right' });
-                // doc.text(formatCurrency(crew.TotalDeduction), colPositions[7] + colWidths[7] * scaleFactor - 5, y + 5, { align: 'right' });
-                // doc.text(formatCurrency(crew.Net), colPositions[8] + colWidths[8] * scaleFactor - 5, y + 5, { align: 'right' });
 
                 // Draw horizontal line at bottom of crew row
                 doc.line(margins.left, y + rowHeight, pageWidth - margins.right, y + rowHeight);
@@ -418,8 +437,6 @@ export function generateAllotmentPayrollRegister(
                             // Draw vertical lines on left and right sides of the table for this page
                             doc.line(margins.left, tableStartY, margins.left, y); // Left vertical line
                             doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, y); // Right vertical line
-
-                            
 
                             // Start a new page with headers
                             addPageHeaders(vessel);
@@ -444,15 +461,31 @@ export function generateAllotmentPayrollRegister(
                 doc.line(margins.left, y, pageWidth - margins.right, y);
             });
 
-            // Draw vertical lines on left and right sides of the table for the last section
+           // Draw vertical lines on left and right sides of the table for the last section
             doc.line(margins.left, tableStartY, margins.left, y); // Left vertical line
             doc.line(pageWidth - margins.right, tableStartY, pageWidth - margins.right, y); // Right vertical line
 
-            
+            // ADD VESSEL SUMMARY ROW AFTER EACH VESSEL
+            // Check if we have space for the summary row
+            if (y + summaryRowHeight > pageHeight - margins.bottom - 8) {
+                // Start a new page for the summary row
+                addPageHeaders(vessel);
+                y = currentY;
+                tableStartY = currentY;
+            }
+
+            // Add the vessel summary row
+            y = addVesselSummaryRow(vessel, y);
+
+            // Draw vertical lines for the summary row section
+            doc.line(margins.left, y - summaryRowHeight, margins.left, y); // Left vertical line
+            doc.line(pageWidth - margins.right, y - summaryRowHeight, pageWidth - margins.right, y); // Right vertical line
 
             // If there are more vessels, prepare for the next vessel (forcing new page)
             if (vesselIndex < vesselData.length - 1) {
                 isFirstPage = false;
+                // Add some spacing before the next vessel
+                currentY = y + 5;
             }
         });
 
@@ -462,6 +495,7 @@ export function generateAllotmentPayrollRegister(
         // Loop through all pages and add page numbers
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
+            doc.setFont('helvetica', 'italic');
             // Draw page number box at bottom
             addPageFooter(i, totalPages)
         }
@@ -470,18 +504,6 @@ export function generateAllotmentPayrollRegister(
                             ? `Allotment_ALL_${capitalizeFirstLetter(month)}-${year}.pdf`
                             : `Allotment_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(month)}-${year}.pdf`;
         doc.save(fileName)
-        // // Save the PDF using the updated content with correct page numbers
-        // const blob = dataURItoBlob(updatedPdfText);
-        // const url = URL.createObjectURL(blob);
-        // const link = document.createElement('a');
-        // link.href = url;
-        // link.download = fileName;
-        // link.click();
-
-        // // Clean up
-        // setTimeout(() => {
-        //     URL.revokeObjectURL(url);
-        // }, 100);
 
         return true;
     } catch (error) {
