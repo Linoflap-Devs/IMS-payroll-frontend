@@ -398,19 +398,20 @@ export function PromoteCrewDialog({
 
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <RiShieldStarLine className="h-4 w-4 text-gray-500" />
-                <div>
-                  <div className="text-gray-500">Rank</div>
-                  <div>{crewMember.rank}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-gray-500" />
                 <div>
                   <div className="text-gray-500">Crew Code</div>
                   <div>{crewMember.crewCode}</div>
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+                <RiShieldStarLine className="h-4 w-4 text-gray-500" />
+                <div>
+                  <div className="text-gray-500">Rank</div>
+                  <div>{crewMember.rank}</div>
+                </div>
+              </div>
+
               {/* <div className="flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-gray-500" />
                 <div>

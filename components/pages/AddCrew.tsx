@@ -1301,7 +1301,7 @@ export default function AddCrew() {
                           </div>
                           <div className="md:col-span-2">
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
-                              Unit / Block / Street / Barangay / ZIP Code
+                              Address (House/Unit No., Lot/Block, Street, Subdivision/Village, Barangay, ZIP Code)
                             </label>
                             <Input
                               placeholder="Enter home address"
@@ -1892,7 +1892,7 @@ export default function AddCrew() {
                           </div>
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
-                              Unit  Unit / Block / Street / Barangay / ZIP Code
+                              Address (House/Unit No., Lot/Block, Street, Subdivision/Village, Barangay, ZIP Code)
                             </label>
                             <Input
                               value={formData.address}
