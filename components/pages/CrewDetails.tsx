@@ -876,7 +876,7 @@ export default function CrewDetails() {
                         { /* Home address */}
                         <div className="md:col-span-2">
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
-                            Unit / Block / Street / Barangay / ZIP Code
+                            Address (House/Unit No., Lot/Block, Street, Subdivision/Village, Barangay, ZIP Code)
                           </label>
                           <Input
                             value={
@@ -892,9 +892,6 @@ export default function CrewDetails() {
                           />
                         </div>
                       </div>
-
-                    
-                      
                     </div>
 
                     {/* Government IDs Section */}
