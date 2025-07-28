@@ -114,22 +114,33 @@ export default function AddCrew() {
   // Add navigation functions
   const handleNext = () => {
     const currentIndex = tabOrder.indexOf(activeTab);
+    //console.log("Current Tab:", activeTab);
+    //console.log("Current Tab Index:", currentIndex);
 
-    const isValid = validateTab(activeTab);
+    const skipValidation = activeTab === "movement"; // Skip validation for "movement"
+    const isValid = skipValidation ? true : validateTab(activeTab);
+    //console.log(`Validation result for "${activeTab}":`, isValid);
+
     setSubmitted((prev) => ({ ...prev, [activeTab]: true }));
+    //console.log("Submitted tabs updated.");
 
     if (!isValid) {
       setTabErrors((prev) => ({ ...prev, [activeTab]: true }));
-      return; // Don't move forward if invalid
+      //console.log(`Tab "${activeTab}" is invalid. Setting error and stopping.`);
+      return;
     }
 
     if (!completedTabs.includes(activeTab)) {
       setCompletedTabs([...completedTabs, activeTab]);
+      //console.log(`Marking tab "${activeTab}" as completed.`);
     }
 
     if (currentIndex < tabOrder.length - 1) {
-      setActiveTab(tabOrder[currentIndex + 1]);
+      const nextTab = tabOrder[currentIndex + 1];
+      setActiveTab(nextTab);
+      //console.log(`Moving to next tab: ${nextTab}`);
     } else {
+      //console.log("All tabs completed. Submitting...");
       handleSubmit();
     }
   };
@@ -179,7 +190,6 @@ export default function AddCrew() {
     const provinceValid = isLocationValid(formData.province);
     const cityValid = isLocationValid(formData.city);
 
-    // Return true if all required fields are valid
     return (
       lastNameValid &&
       firstNameValid &&
@@ -192,17 +202,18 @@ export default function AddCrew() {
     );
   };
 
-  const validateMovementTab = () => {
-    const sssValid = formData.sssNumber.length === 10;
+// Validations Temporarily removed
+  // const validateMovementTab = () => {
+  //   const sssValid = formData.sssNumber.length === 10;
 
-    const taxIdLength = formData.taxIdNumber.length;
-    const taxIdValid = taxIdLength > 8 && taxIdLength < 13;
+  //   const taxIdLength = formData.taxIdNumber.length;
+  //   const taxIdValid = taxIdLength > 8 && taxIdLength < 13;
 
-    const philhealthValid = formData.philhealthNumber.length === 12;
-    const hdmfValid = formData.hdmfNumber.length === 12;
+  //   const philhealthValid = formData.philhealthNumber.length === 12;
+  //   const hdmfValid = formData.hdmfNumber.length === 12;
 
-    return sssValid && taxIdValid && philhealthValid && hdmfValid;
-  };
+  //   return sssValid && taxIdValid && philhealthValid && hdmfValid;
+  // };
 
   const validateTravelTab = (): boolean => {
     const passportValid =
@@ -245,10 +256,10 @@ export default function AddCrew() {
     switch (tab) {
       case "details":
         return validateDetailsTab();
-      case "movement":
-        return validateMovementTab();
+      // case "movement":
+      //   return validateMovementTab();
       case "travel":
-        return validateTravelTab();
+         return validateTravelTab();
       default:
         return true;
     }
@@ -292,10 +303,10 @@ export default function AddCrew() {
       "province",
       "mobileNumber",
       "emailAddress",
-      "sssNumber",
-      "taxIdNumber",
-      "philhealthNumber",
-      "hdmfNumber",
+      // "sssNumber",
+      // "taxIdNumber",
+      // "philhealthNumber",
+      // "hdmfNumber",
       "passportNumber",
       "passportIssueDate",
       "passportExpiryDate",
@@ -346,10 +357,10 @@ export default function AddCrew() {
       city: formData.city, // Assuming this is CityID as string
       province: formData.province, // Assuming this is ProvinceID as string
       address: formData.address,
-      sssNumber: formData.sssNumber,
-      tinNumber: formData.taxIdNumber, // Mapping from taxIdNumber
-      philhealthNumber: formData.philhealthNumber,
-      hdmfNumber: formData.hdmfNumber,
+      //sssNumber: formData.sssNumber,
+      //tinNumber: formData.taxIdNumber, // Mapping from taxIdNumber
+      //philhealthNumber: formData.philhealthNumber,
+      //hdmfNumber: formData.hdmfNumber,
       passportNumber: formData.passportNumber,
       passportIssueDate: formData.passportIssueDate,
       passportExpiryDate: formData.passportExpiryDate,
@@ -397,12 +408,15 @@ export default function AddCrew() {
         const axiosError = error as AxiosError<ApiErrorResponse>;
         const responseData = axiosError.response?.data;
 
-        if (
-          responseData?.message &&
-          typeof responseData.message === "string" &&
-          (responseData.message.includes("Unique constraint failed") ||
-            responseData.message.includes("dbo.CrewData"))
-        ) {
+          if (
+            responseData?.message &&
+            typeof responseData.message === "string" &&
+            (
+              responseData.message.includes("Unique constraint failed") ||
+              responseData.message.includes("Duplicate Crew Code") ||
+              responseData.message.includes("dbo.CrewData")
+            )
+          ) {
           Swal.fire({
             title: "Duplicate Crew Code",
             text: "This Crew Code already exists in the system. Please use a different Crew Code.",
@@ -1344,20 +1358,21 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("sssNumber", e.target.value)
                               }
-                              className={`${
-                                submitted["movement"] &&
-                                formData.sssNumber.length !== 10
-                                  ? "border-red-500 focus:!ring-red-500/50"
-                                  : ""
-                              }`}
+                              className="border-gray-300 focus:ring-primary/50"
+                              // className={`${
+                              //   submitted["movement"] &&
+                              //   formData.sssNumber.length !== 10
+                              //     ? "border-red-500 focus:!ring-red-500/50"
+                              //     : ""
+                              // }`}
                             />
-                            {submitted["movement"] &&
+                            {/* {submitted["movement"] &&
                               formData.sssNumber.length !== 10 && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
                                   Please enter a valid SSS number.
                                 </p>
-                              )}
+                              )} */}
                           </div>
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -1369,22 +1384,23 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("taxIdNumber", e.target.value)
                               }
-                              className={`${
-                                (submitted["movement"] &&
-                                  formData.taxIdNumber.length <= 8) ||
-                                formData.taxIdNumber.length >= 13
-                                  ? "border-red-500 focus:!ring-red-500/50"
-                                  : ""
-                              }`}
+                              className="border-gray-300 focus:ring-primary/50"
+                              // className={`${
+                              //   (submitted["movement"] &&
+                              //     formData.taxIdNumber.length <= 8) ||
+                              //   formData.taxIdNumber.length >= 13
+                              //     ? "border-red-500 focus:!ring-red-500/50"
+                              //     : ""
+                              // }`}
                             />
-                            {((submitted["movement"] &&
+                            {/* {((submitted["movement"] &&
                               formData.taxIdNumber.length <= 8) ||
                               formData.taxIdNumber.length >= 13) && (
                               <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                 <Info className="w-4 h-4" />
                                 Please enter a valid Tax ID number.
                               </p>
-                            )}
+                            )} */}
                           </div>
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -1399,20 +1415,21 @@ export default function AddCrew() {
                                   e.target.value
                                 )
                               }
-                              className={`${
-                                submitted["movement"] &&
-                                formData.philhealthNumber.length !== 12
-                                  ? "border-red-500 focus:!ring-red-500/50"
-                                  : ""
-                              }`}
+                              className="border-gray-300 focus:ring-primary/50"
+                              // className={`${
+                              //   submitted["movement"] &&
+                              //   formData.philhealthNumber.length !== 12
+                              //     ? "border-red-500 focus:!ring-red-500/50"
+                              //     : ""
+                              // }`}
                             />
-                            {submitted["movement"] &&
+                            {/* {submitted["movement"] &&
                               formData.philhealthNumber.length !== 12 && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
                                   Please enter a valid Philhealth number.
                                 </p>
-                              )}
+                              )} */}
                           </div>
                           <div>
                             <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -1424,20 +1441,21 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("hdmfNumber", e.target.value)
                               }
-                              className={`${
-                                submitted["movement"] &&
-                                formData.hdmfNumber.length !== 12
-                                  ? "border-red-500 focus:!ring-red-500/50"
-                                  : ""
-                              }`}
+                              className="border-gray-300 focus:ring-primary/50"
+                              // className={`${
+                              //   submitted["movement"] &&
+                              //   formData.hdmfNumber.length !== 12
+                              //     ? "border-red-500 focus:!ring-red-500/50"
+                              //     : ""
+                              // }`}
                             />
-                            {submitted["movement"] &&
+                            {/* {submitted["movement"] &&
                               formData.hdmfNumber.length !== 12 && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
                                   Please enter a valid HDMF number.
                                 </p>
-                              )}
+                              )} */}
                           </div>
                         </div>
                       </div>
