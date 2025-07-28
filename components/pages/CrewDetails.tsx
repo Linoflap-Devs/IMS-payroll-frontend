@@ -499,25 +499,29 @@ export default function CrewDetails() {
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-between space-x-0">
                       <TabsTrigger
                         value="details"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                        disabled={isEditingAllottee}
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Crew Details
                       </TabsTrigger>
                       <TabsTrigger
                         value="movement"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                        disabled={isEditing || isEditingAllottee}
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Crew Movement
                       </TabsTrigger>
                       <TabsTrigger
                         value="allottee"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                        disabled={isEditing}
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Allottee Profile
                       </TabsTrigger>
                       <TabsTrigger
                         value="validation"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                        disabled={isEditing || isEditingAllottee}
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Account Validation
                       </TabsTrigger>
