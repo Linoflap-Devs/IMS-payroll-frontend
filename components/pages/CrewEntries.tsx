@@ -317,8 +317,9 @@ export default function Deduction() {
               {/* DataTable with custom styling */}
               <div className="bg-[#F9F9F9] rounded-md border pb-3">
                 {isLoading.crew ? (
-                  <div className="flex justify-center items-center h-48">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <div className="flex flex-col justify-center items-center py-10 gap-2 text-gray-700">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+                    <span className="text-muted-foreground">Loading crew entries...</span>
                   </div>
                 ) : (
                   <DataTable
