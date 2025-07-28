@@ -48,7 +48,6 @@ export default function Remittance() {
   useEffect(() => {
     const fetchCrewRemittance = async () => {
       setLoadingRemittance(true);
-
       try {
         const res = await getCrewRemittanceList();
 
@@ -185,7 +184,6 @@ export default function Remittance() {
 
     return matchesSearch && matchesVesselFilter && matchesRankFilter;
   });
-
   return (
     <div className="h-full w-full p-4 pt-2">
       <style jsx global>{`
@@ -223,8 +221,12 @@ export default function Remittance() {
                 </SelectTrigger>
                 <SelectContent className="max-h-80">
                   <SelectItem value="all">All Vessels</SelectItem>
-                  {vessels.map((vessel) => (
-                    <SelectItem key={vessel} value={vessel}>
+                  {[
+                    ...new Set(
+                      crewData.map((item) => item.vessel)
+                    ),
+                  ].map((vessel) => (
+                    <SelectItem key={vessel} value={vessel || ""}>
                       {vessel}
                     </SelectItem>
                   ))}
@@ -238,8 +240,12 @@ export default function Remittance() {
                 </SelectTrigger>
                 <SelectContent className="max-h-80">
                   <SelectItem value="all">All Ranks</SelectItem>
-                  {ranks.map((rank) => (
-                    <SelectItem key={rank} value={rank}>
+                  {[
+                    ...new Set(
+                      crewData.map((item) => item.rank)
+                    ),
+                  ].map((rank) => (
+                    <SelectItem key={rank} value={rank || ""}>
                       {rank}
                     </SelectItem>
                   ))}
