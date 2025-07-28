@@ -151,15 +151,15 @@ export default function VesselProfile() {
       prevData.map((vessel) =>
         vessel.vesselId === updatedVessel.VesselID
           ? {
-              vesselId: updatedVessel.VesselID,
-              vesselCode: updatedVessel.VesselCode,
-              vesselName: updatedVessel.VesselName,
-              vesselType: parseInt(updatedVessel.VesselType),
-              vesselTypeName: updatedVessel.VesselType,
-              principalName: updatedVessel.Principal,
-              principalID: parseInt(updatedVessel.Principal),
-              status: updatedVessel.IsActive === 1 ? "Active" : "Inactive",
-            }
+            vesselId: updatedVessel.VesselID,
+            vesselCode: updatedVessel.VesselCode,
+            vesselName: updatedVessel.VesselName,
+            vesselType: parseInt(updatedVessel.VesselType),
+            vesselTypeName: updatedVessel.VesselType,
+            principalName: updatedVessel.Principal,
+            principalID: parseInt(updatedVessel.Principal),
+            status: updatedVessel.IsActive === 1 ? "Active" : "Inactive",
+          }
           : vessel
       )
     );
@@ -170,10 +170,10 @@ export default function VesselProfile() {
       prevData.map((item) =>
         item.vesselTypeId === updatedVesselType.VesselTypeID
           ? {
-              vesselTypeId: updatedVesselType.VesselTypeID,
-              vesselTypeCode: updatedVesselType.VesselTypeCode,
-              vesselTypeName: updatedVesselType.VesselTypeName,
-            }
+            vesselTypeId: updatedVesselType.VesselTypeID,
+            vesselTypeCode: updatedVesselType.VesselTypeCode,
+            vesselTypeName: updatedVesselType.VesselTypeName,
+          }
           : item
       )
     );
@@ -186,10 +186,10 @@ export default function VesselProfile() {
       prevData.map((item) =>
         item.vesselPrincipalId === updatedVesselPrincipal.PrincipalID
           ? {
-              vesselPrincipalId: updatedVesselPrincipal.PrincipalID,
-              vesselPrincipalCode: updatedVesselPrincipal.PrincipalCode,
-              vesselPrincipalName: updatedVesselPrincipal.PrincipalName,
-            }
+            vesselPrincipalId: updatedVesselPrincipal.PrincipalID,
+            vesselPrincipalCode: updatedVesselPrincipal.PrincipalCode,
+            vesselPrincipalName: updatedVesselPrincipal.PrincipalName,
+          }
           : item
       )
     );
@@ -226,8 +226,18 @@ export default function VesselProfile() {
             prevData.filter((v) => v.vesselTypeId !== vesselType.vesselTypeId)
           );
         } else {
-          throw new Error(response.message);
+          swal.fire({
+            title: "Error!",
+            text: response.message || "Failed to delete vessel.",
+            icon: "error",
+          });
         }
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        swal.fire({
+          title: "Cancelled",
+          text: "Process cancelled.",
+          icon: "error",
+        });
       }
     } catch (error) {
       swal.fire(
@@ -273,15 +283,24 @@ export default function VesselProfile() {
             "The vessel principal has been deleted.",
             "success"
           );
-          // Remove the deleted vessel principal from the state
           setVesselPrincipalData((prevData) =>
             prevData.filter(
               (v) => v.vesselPrincipalId !== vesselPrincipal.vesselPrincipalId
             )
           );
         } else {
-          throw new Error(response.message);
+          swal.fire({
+            title: "Error!",
+            text: response.message || "Failed to delete vessel.",
+            icon: "error",
+          });
         }
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        swal.fire({
+          title: "Cancelled",
+          text: "Process cancelled.",
+          icon: "error",
+        });
       }
     } catch (error) {
       swal.fire(
@@ -414,11 +433,10 @@ export default function VesselProfile() {
         return (
           <div className="text-justify">
             <Badge
-              className={`text-xs sm:text-sm w-full rounded-full bg-[#E7F0F9] text-[#1F279C]/90 ${
-                statusRow === "Active"
-                  ? "bg-[#E7F0F9] text-[#1F279C]/90"
-                  : "bg-red-500/20 text-red-800"
-              }`}
+              className={`text-xs sm:text-sm w-full rounded-full bg-[#E7F0F9] text-[#1F279C]/90 ${statusRow === "Active"
+                ? "bg-[#E7F0F9] text-[#1F279C]/90"
+                : "bg-red-500/20 text-red-800"
+                }`}
             >
               {statusRow}
             </Badge>
@@ -436,7 +454,7 @@ export default function VesselProfile() {
           const swal = Swal.mixin({
             customClass: {
               confirmButton:
-                "bg-[#1F279C] hover:bg-[#151d73] text-white font-bold py-2 px-4 mx-2 rounded",
+                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
               cancelButton:
                 "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
             },
@@ -468,8 +486,18 @@ export default function VesselProfile() {
                   prevData.filter((v) => v.vesselId !== vessel.vesselId)
                 );
               } else {
-                throw new Error(response.message);
+                swal.fire({
+                  title: "Error!",
+                  text: response.message || "Failed to delete vessel.",
+                  icon: "error",
+                });
               }
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+              swal.fire({
+                title: "Cancelled",
+                text: "Process cancelled.",
+                icon: "error",
+              });
             }
           } catch (error) {
             swal.fire({

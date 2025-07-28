@@ -359,11 +359,11 @@ export default function Wages() {
                   "success"
                 );
               } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire(
-                  "Cancelled",
-                  "Item is safe.",
-                  "error"
-                );
+                Swal.fire({
+                  title: "Cancelled",
+                  text: "Process cancelled.",
+                  icon: "error",
+                });
               }
             });
         };
@@ -448,14 +448,25 @@ export default function Wages() {
       cell: ({ row }) => {
         const wageDescription = row.original;
         const handleDelete = (wageCode: string) => {
-          Swal.fire({
-            title: "Are you sure?",
-            text: "Delete this wage type?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-            cancelButtonText: "No, cancel!",
-          })
+          const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+              confirmButton:
+                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
+              cancelButton:
+                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+            },
+            buttonsStyling: false,
+          });
+          swalWithBootstrapButtons
+            .fire({
+              title: "Are you sure?",
+              text: `Delete ${wageDescription.WageName}? This cannot be undone.`,
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "Yes, delete it!",
+              cancelButtonText: "No, cancel!",
+              reverseButtons: true,
+            })
             .then((result) => {
               if (result.isConfirmed) {
                 deleteWageDescription(wageDescription.WageID).then(
@@ -464,22 +475,20 @@ export default function Wages() {
                       Swal.fire("Deleted!", "Wage type deleted.", "success");
                       setOnSuccessAdd(true);
                     } else {
-                      Swal.fire(
-                        "Error!",
-                        response.message || "Failed to delete wage type.",
-                        "error"
-                      );
+                      Swal.fire({
+                        title: "Error!",
+                        text: response.message || "Failed to delete vessel.",
+                        icon: "error",
+                      });
                     }
-                  }
-                );
+                  });
+              } else if (result.dismiss === Swal.DismissReason.cancel) {
+                Swal.fire({
+                  title: "Cancelled",
+                  text: "Process cancelled.",
+                  icon: "error",
+                });
               }
-            })
-            .catch((err) => {
-              Swal.fire(
-                "Error!",
-                err.message || "Failed to delete wage type.",
-                "error"
-              );
             });
         };
         return (
@@ -576,28 +585,46 @@ export default function Wages() {
           (forex.year === currentYear && forex.month < currentMonth);
 
         const handleDelete = (id: number) => {
-          Swal.fire({
-            title: "Are you sure?",
-            text: "Delete this forex entry?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-            cancelButtonText: "No, cancel!",
-          }).then(async (result) => {
-            if (result.isConfirmed) {
-              try {
-                const response = await deleteWageForex(id);
-                if (response.success) {
-                  Swal.fire("Deleted!", "Forex entry deleted.", "success");
-                  setOnSuccess(true);
-                } else {
-                  Swal.fire("Error!", response.message || "Failed to delete forex entry.", "error");
-                }
-              } catch (error: any) {
-                Swal.fire("Error!", error.message || "Failed to delete forex entry.", "error");
-              }
-            }
+          const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+              confirmButton:
+                "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
+              cancelButton:
+                "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+            },
+            buttonsStyling: false,
           });
+          swalWithBootstrapButtons
+            .fire({
+              title: "Are you sure?",
+              text: `Delete Forex dated ${forex.year}, ${forex.month} with an exchange rate of ${forex.exchangeRate}? This action cannot be undone.`,
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "Yes, delete it!",
+              cancelButtonText: "No, cancel!",
+              reverseButtons: true,
+            })
+            .then(async (result) => {
+              if (result.isConfirmed) {
+                try {
+                  const response = await deleteWageForex(id);
+                  if (response.success) {
+                    Swal.fire("Deleted!", "Forex entry deleted.", "success");
+                    setOnSuccess(true);
+                  } else {
+                    Swal.fire("Error!", response.message || "Failed to delete forex entry.", "error");
+                  }
+                } catch (error: any) {
+                  Swal.fire("Error!", error.message || "Failed to delete forex entry.", "error");
+                }
+              } else if (result.dismiss === Swal.DismissReason.cancel) {
+                Swal.fire({
+                  title: "Cancelled",
+                  text: "Process cancelled.",
+                  icon: "error",
+                });
+              }
+            });
         };
 
         if (isPast) {
@@ -722,13 +749,13 @@ export default function Wages() {
                             tabValue === "salary"
                               ? "Salary Scale"
                               : tabValue
-                                  .split("-")
-                                  .map(
-                                    (word) =>
-                                      word.charAt(0).toUpperCase() +
-                                      word.slice(1)
-                                  )
-                                  .join(" ");
+                                .split("-")
+                                .map(
+                                  (word) =>
+                                    word.charAt(0).toUpperCase() +
+                                    word.slice(1)
+                                )
+                                .join(" ");
 
                           return (
                             <TabsTrigger
@@ -1042,10 +1069,10 @@ export default function Wages() {
         setOnSuccessAdd={setOnSuccessAdd}
         open={AddWageDescriptionDialogOpen}
         onOpenChange={setAddWageDescriptionDialogOpen}
-        // onSuccess={(newWageDescription) => {
-        //   setWageDescriptionItems((prev) => [...prev, newWageDescription]);
-        //   // Optionally refetch wage descriptions or rely on local update if AddWageDescriptionDialog returns full item
-        // }}
+      // onSuccess={(newWageDescription) => {
+      //   setWageDescriptionItems((prev) => [...prev, newWageDescription]);
+      //   // Optionally refetch wage descriptions or rely on local update if AddWageDescriptionDialog returns full item
+      // }}
       />
 
       <AddForexDialog

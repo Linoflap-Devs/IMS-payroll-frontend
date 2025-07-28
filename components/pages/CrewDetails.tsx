@@ -421,7 +421,7 @@ export default function CrewDetails() {
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithBootstrapButtons.fire({
             title: "Cancelled",
-            text: "Your allottee is safe :)",
+            text: "Your allottee is safe.",
             icon: "error",
           });
         }
