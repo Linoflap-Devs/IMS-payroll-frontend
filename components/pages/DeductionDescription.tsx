@@ -151,7 +151,7 @@ export default function Deduction() {
           swalWithBootstrapButtons
             .fire({
               title: "Are you sure?",
-              text: "Are you sure you want to delete this crew in the deduction? This action cannot be undone.",
+              text: `Are you sure you want to delete ${deduction.DeductionName}? This action cannot be undone.`,
               icon: "warning",
               showCancelButton: true,
               confirmButtonText: "Yes, delete it!",
@@ -180,9 +180,9 @@ export default function Deduction() {
                   }
                 );
               } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
+                Swal.fire({
                   title: "Cancelled",
-                  text: "Your deduction is safe :)",
+                  text: "Process cancelled.",
                   icon: "error",
                 });
               }

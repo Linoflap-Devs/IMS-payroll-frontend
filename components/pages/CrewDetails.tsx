@@ -413,15 +413,15 @@ export default function CrewDetails() {
       })
       .then((result) => {
         if (result.isConfirmed) {
-          swalWithBootstrapButtons.fire({
-            title: "Deleted!",
-            text: "The allottee has been successfully deleted.",
-            icon: "success",
+          Swal.fire({
+            title: "Cancelled",
+            text: "Process cancelled.",
+            icon: "error",
           });
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithBootstrapButtons.fire({
             title: "Cancelled",
-            text: "Your allottee is safe :)",
+            text: "Your allottee is safe.",
             icon: "error",
           });
         }
@@ -499,25 +499,29 @@ export default function CrewDetails() {
                     <TabsList className="bg-transparent p-0 h-8 w-full flex justify-between space-x-0">
                       <TabsTrigger
                         value="details"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                        disabled={isEditingAllottee}
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Crew Details
                       </TabsTrigger>
                       <TabsTrigger
                         value="movement"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                        disabled={isEditing || isEditingAllottee}
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Crew Movement
                       </TabsTrigger>
                       <TabsTrigger
                         value="allottee"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                        disabled={isEditing}
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Allottee Profile
                       </TabsTrigger>
                       <TabsTrigger
                         value="validation"
-                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                        disabled={isEditing || isEditingAllottee}
+                        className="flex-1 px-0 pb-4 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Account Validation
                       </TabsTrigger>
@@ -553,13 +557,12 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted &&
-                                    (!editedCrew?.lastName ||
-                                      editedCrew.lastName.length < 2)
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted &&
+                                  (!editedCrew?.lastName ||
+                                    editedCrew.lastName.length < 2)
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -589,13 +592,12 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted &&
-                                    (!editedCrew?.firstName ||
-                                      editedCrew.firstName.length < 2)
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted &&
+                                  (!editedCrew?.firstName ||
+                                    editedCrew.firstName.length < 2)
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -644,11 +646,10 @@ export default function CrewDetails() {
                             <SelectTrigger
                               className={
                                 isEditing
-                                  ? `w-full ${
-                                      submitted && !editedCrew?.maritalStatus
-                                        ? "border-red-500 focus:!ring-red-500/50"
-                                        : "border-primary "
-                                    }`
+                                  ? `w-full ${submitted && !editedCrew?.maritalStatus
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : "border-primary "
+                                  }`
                                   : "w-full"
                               }
                             >
@@ -685,11 +686,10 @@ export default function CrewDetails() {
                             <SelectTrigger
                               className={
                                 isEditing
-                                  ? `w-full ${
-                                      submitted && !editedCrew?.sex
-                                        ? "border-red-500 focus:!ring-red-500/50"
-                                        : "border-primary"
-                                    }`
+                                  ? `w-full ${submitted && !editedCrew?.sex
+                                    ? "border-red-500 focus:!ring-red-500/50"
+                                    : "border-primary"
+                                  }`
                                   : "w-full"
                               }
                             >
@@ -720,8 +720,8 @@ export default function CrewDetails() {
                                   ? new Date(editedCrew.dateOfBirth).toISOString().split("T")[0]
                                   : ""
                                 : crew.dateOfBirth
-                                ? new Date(crew.dateOfBirth).toISOString().split("T")[0]
-                                : ""
+                                  ? new Date(crew.dateOfBirth).toISOString().split("T")[0]
+                                  : ""
                             }
                             onChange={(e) =>
                               handleInputChange("dateOfBirth", e.target.value)
@@ -729,11 +729,10 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted && !editedCrew?.dateOfBirth
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted && !editedCrew?.dateOfBirth
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -917,14 +916,13 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted &&
-                                    (!editedCrew?.sssNumber ||
-                                      (editedCrew.sssNumber &&
-                                        editedCrew.sssNumber.length !== 10))
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted &&
+                                  (!editedCrew?.sssNumber ||
+                                    (editedCrew.sssNumber &&
+                                      editedCrew.sssNumber.length !== 10))
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -959,15 +957,14 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted &&
-                                    (!editedCrew?.taxIdNumber ||
-                                      (editedCrew.taxIdNumber &&
-                                        (editedCrew.taxIdNumber.length < 9 ||
-                                          editedCrew.taxIdNumber.length > 12)))
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted &&
+                                  (!editedCrew?.taxIdNumber ||
+                                    (editedCrew.taxIdNumber &&
+                                      (editedCrew.taxIdNumber.length < 9 ||
+                                        editedCrew.taxIdNumber.length > 12)))
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -1008,15 +1005,14 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted &&
-                                    (!editedCrew?.philhealthNumber ||
-                                      (editedCrew.philhealthNumber &&
-                                        editedCrew.philhealthNumber.length !==
-                                          12))
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted &&
+                                  (!editedCrew?.philhealthNumber ||
+                                    (editedCrew.philhealthNumber &&
+                                      editedCrew.philhealthNumber.length !==
+                                      12))
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -1053,14 +1049,13 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted &&
-                                    (!editedCrew?.hdmfNumber ||
-                                      (editedCrew.hdmfNumber &&
-                                        editedCrew.hdmfNumber.length !== 12))
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted &&
+                                  (!editedCrew?.hdmfNumber ||
+                                    (editedCrew.hdmfNumber &&
+                                      editedCrew.hdmfNumber.length !== 12))
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -1109,16 +1104,15 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted &&
-                                    (!editedCrew?.passportNumber ||
-                                      (editedCrew.passportNumber &&
-                                        (editedCrew.passportNumber.length < 7 ||
-                                          editedCrew.passportNumber.length >
-                                            9)))
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted &&
+                                  (!editedCrew?.passportNumber ||
+                                    (editedCrew.passportNumber &&
+                                      (editedCrew.passportNumber.length < 7 ||
+                                        editedCrew.passportNumber.length >
+                                        9)))
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -1140,7 +1134,7 @@ export default function CrewDetails() {
                               </p>
                             )}
                         </div>
-                       <div>
+                        <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Passport Issue Date
                           </label>
@@ -1153,8 +1147,8 @@ export default function CrewDetails() {
                                   ? new Date(editedCrew.passportIssueDate).toISOString().split("T")[0]
                                   : ""
                                 : crew.passportIssueDate
-                                ? new Date(crew.passportIssueDate).toISOString().split("T")[0]
-                                : ""
+                                  ? new Date(crew.passportIssueDate).toISOString().split("T")[0]
+                                  : ""
                             }
                             onChange={(e) =>
                               handleInputChange(
@@ -1165,11 +1159,10 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted && !editedCrew?.passportIssueDate
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted && !editedCrew?.passportIssueDate
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -1180,7 +1173,7 @@ export default function CrewDetails() {
                                 Passport issue date is required.
                               </p>
                             )}
-                        </div> 
+                        </div>
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Passport Expiration Date
@@ -1194,8 +1187,8 @@ export default function CrewDetails() {
                                   ? new Date(editedCrew.passportExpiryDate).toISOString().split("T")[0]
                                   : ""
                                 : crew.passportExpiryDate
-                                ? new Date(crew.passportExpiryDate).toISOString().split("T")[0]
-                                : ""
+                                  ? new Date(crew.passportExpiryDate).toISOString().split("T")[0]
+                                  : ""
                             }
                             onChange={(e) =>
                               handleInputChange(
@@ -1206,11 +1199,10 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted && !editedCrew?.passportExpiryDate
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted && !editedCrew?.passportExpiryDate
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -1239,15 +1231,14 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted &&
-                                    (!editedCrew?.seamansBookNumber ||
-                                      (editedCrew.seamansBookNumber &&
-                                        (editedCrew.seamansBookNumber.length < 7 ||
+                                ? `${submitted &&
+                                  (!editedCrew?.seamansBookNumber ||
+                                    (editedCrew.seamansBookNumber &&
+                                      (editedCrew.seamansBookNumber.length < 7 ||
                                         editedCrew.seamansBookNumber.length > 9)))
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -1260,7 +1251,7 @@ export default function CrewDetails() {
                             isEditing &&
                             editedCrew?.seamansBookNumber &&
                             (editedCrew.seamansBookNumber.length < 7 ||
-                            editedCrew.seamansBookNumber.length > 9) && (
+                              editedCrew.seamansBookNumber.length > 9) && (
                               <p className="text-red-500 text-sm mt-1">
                                 Seaman Book number should be between 7–9 characters.
                               </p>
@@ -1279,8 +1270,8 @@ export default function CrewDetails() {
                                   ? new Date(editedCrew.seamansBookIssueDate).toISOString().split("T")[0]
                                   : ""
                                 : crew.seamansBookIssueDate
-                                ? new Date(crew.seamansBookIssueDate).toISOString().split("T")[0]
-                                : ""
+                                  ? new Date(crew.seamansBookIssueDate).toISOString().split("T")[0]
+                                  : ""
                             }
                             onChange={(e) =>
                               handleInputChange(
@@ -1291,12 +1282,11 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted &&
-                                    !editedCrew?.seamansBookIssueDate
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted &&
+                                  !editedCrew?.seamansBookIssueDate
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -1321,8 +1311,8 @@ export default function CrewDetails() {
                                   ? new Date(editedCrew.seamansBookExpiryDate).toISOString().split("T")[0]
                                   : ""
                                 : crew.seamansBookExpiryDate
-                                ? new Date(crew.seamansBookExpiryDate).toISOString().split("T")[0]
-                                : ""
+                                  ? new Date(crew.seamansBookExpiryDate).toISOString().split("T")[0]
+                                  : ""
                             }
                             onChange={(e) =>
                               handleInputChange(
@@ -1333,12 +1323,11 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${
-                                    submitted &&
-                                    !editedCrew?.seamansBookExpiryDate
-                                      ? "border-red-500 focus:!ring-red-500/50"
-                                      : "border-primary"
-                                  }`
+                                ? `${submitted &&
+                                  !editedCrew?.seamansBookExpiryDate
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
                                 : ""
                             }
                           />
@@ -1405,24 +1394,22 @@ export default function CrewDetails() {
                           Crew Sign up Details
                         </h3>
                         <div
-                          className={`text-sm px-5 mb-4 py-1 ${
-                            crewValidationDetails?.IsVerified === 1
+                          className={`text-sm px-5 mb-4 py-1 ${crewValidationDetails?.IsVerified === 1
                               ? "bg-green-100 text-green-800 border-green-600"
                               : "bg-yellow-100 text-yellow-800 border-yellow-600"
-                          } rounded-full border  flex items-center gap-1 flex-shrink-0`}
+                            } rounded-full border  flex items-center gap-1 flex-shrink-0`}
                         >
                           <p
-                            className={`${
-                              crewValidationDetails?.IsVerified === 1
+                            className={`${crewValidationDetails?.IsVerified === 1
                                 ? "text-green-800"
                                 : "text-yellow-800"
-                            }`}
+                              }`}
                           >
                             {crewValidationDetails?.IsVerified === 1
                               ? "Verified"
                               : crewValidationDetails?.IsVerified === null
-                              ? "Not Registered"
-                              : "Pending Verification"}
+                                ? "Not Registered"
+                                : "Pending Verification"}
                           </p>
                         </div>
                       </div>
@@ -1434,11 +1421,10 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             type="text"
-                            className={`${
-                              crewValidationDetails?.RegisterDate
+                            className={`${crewValidationDetails?.RegisterDate
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             value={
                               formatDate(
                                 crewValidationDetails?.RegisterDate?.toString()
@@ -1453,11 +1439,10 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             type="text"
-                            className={`${
-                              crewValidationDetails?.VerificationDate
+                            className={`${crewValidationDetails?.VerificationDate
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             value={
                               formatDate(
                                 crewValidationDetails?.VerificationDate?.toString()
@@ -1471,11 +1456,10 @@ export default function CrewDetails() {
                             Last Name
                           </label>
                           <Input
-                            className={`${
-                              crewValidationDetails?.LastName
+                            className={`${crewValidationDetails?.LastName
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             value={
                               crewValidationDetails?.LastName ||
                               "Not Registered"
@@ -1488,11 +1472,10 @@ export default function CrewDetails() {
                             First Name
                           </label>
                           <Input
-                            className={`${
-                              crewValidationDetails?.FirstName
+                            className={`${crewValidationDetails?.FirstName
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             value={
                               crewValidationDetails?.FirstName ||
                               "Not Registered"
@@ -1505,11 +1488,10 @@ export default function CrewDetails() {
                             Middle Name
                           </label>
                           <Input
-                            className={`${
-                              crewValidationDetails?.MiddleName
+                            className={`${crewValidationDetails?.MiddleName
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             value={
                               crewValidationDetails?.MiddleName ||
                               "Not Registered"
@@ -1522,11 +1504,10 @@ export default function CrewDetails() {
                             Contact Number
                           </label>
                           <Input
-                            className={`${
-                              crewValidationDetails?.ContactNumber
+                            className={`${crewValidationDetails?.ContactNumber
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             value={
                               crewValidationDetails?.ContactNumber ||
                               "Not Registered."
@@ -1540,9 +1521,8 @@ export default function CrewDetails() {
                             City
                           </label>
                           <Input
-                            className={`${
-                              crewValidationDetails?.City ? "" : "text-gray-400"
-                            }`}
+                            className={`${crewValidationDetails?.City ? "" : "text-gray-400"
+                              }`}
                             placeholder="Enter city"
                             value={
                               crewValidationDetails?.City || "Not Registered"
@@ -1555,11 +1535,10 @@ export default function CrewDetails() {
                             Province
                           </label>
                           <Input
-                            className={`${
-                              crewValidationDetails?.Province
+                            className={`${crewValidationDetails?.Province
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             placeholder="Enter province"
                             value={
                               crewValidationDetails?.Province ||
@@ -1584,11 +1563,10 @@ export default function CrewDetails() {
                             ID Type
                           </label>
                           <Input
-                            className={`${
-                              crewValidationDetails?.Documents?.[0]?.IDType
+                            className={`${crewValidationDetails?.Documents?.[0]?.IDType
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             value={
                               crewValidationDetails?.Documents?.[0]?.IDType ||
                               "Not Registered"
@@ -1601,11 +1579,10 @@ export default function CrewDetails() {
                             ID Number
                           </label>
                           <Input
-                            className={`${
-                              crewValidationDetails?.Documents?.[0]?.IDNumber
+                            className={`${crewValidationDetails?.Documents?.[0]?.IDNumber
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             value={
                               crewValidationDetails?.Documents?.[0]?.IDNumber ||
                               "Not Registered"
@@ -1620,16 +1597,15 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             type="text"
-                            className={`${
-                              crewValidationDetails?.Documents?.[0]?.IDIssueDate
+                            className={`${crewValidationDetails?.Documents?.[0]?.IDIssueDate
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             value={
                               crewValidationDetails?.Documents?.[0]?.IDIssueDate
                                 ? formatDate(
-                                    crewValidationDetails.Documents?.[0].IDIssueDate?.toString()
-                                  )
+                                  crewValidationDetails.Documents?.[0].IDIssueDate?.toString()
+                                )
                                 : "Not Registered"
                             }
                             readOnly
@@ -1642,18 +1618,17 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             placeholder="Expiration Date"
-                            className={`${
-                              crewValidationDetails?.Documents?.[0]
+                            className={`${crewValidationDetails?.Documents?.[0]
                                 ?.IDExpiryDate
                                 ? ""
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             value={
                               crewValidationDetails?.Documents?.[0]
                                 ?.IDExpiryDate
                                 ? formatDate(
-                                    crewValidationDetails.Documents?.[0].IDExpiryDate?.toString()
-                                  )
+                                  crewValidationDetails.Documents?.[0].IDExpiryDate?.toString()
+                                )
                                 : "Not Registered"
                             }
                             readOnly
@@ -1746,7 +1721,7 @@ export default function CrewDetails() {
                           </label>
                           <div className="border border-gray-200 rounded-lg p-4">
                             {crewValidationDetails?.Documents?.[0]?.IDImages &&
-                            crewValidationDetails.Documents[0].IDImages.length >
+                              crewValidationDetails.Documents[0].IDImages.length >
                               1 ? (
                               <>
                                 <h4 className="text-sm font-medium text-gray-800 mb-2">
@@ -1782,9 +1757,8 @@ export default function CrewDetails() {
                                             .IDImages[currentSelfieIndex + 1]
                                             ?.ContentType || "image/jpeg"
                                         }
-                                        alt={`Selfie with ID ${
-                                          currentSelfieIndex + 1
-                                        }`}
+                                        alt={`Selfie with ID ${currentSelfieIndex + 1
+                                          }`}
                                         base64String={
                                           crewValidationDetails.Documents[0]
                                             .IDImages[currentSelfieIndex + 1]
@@ -1846,7 +1820,7 @@ export default function CrewDetails() {
                                                 ?.length || 0) - 1;
                                             setCurrentSelfieIndex((prev) =>
                                               prev ===
-                                              Math.max(0, totalImages - 1)
+                                                Math.max(0, totalImages - 1)
                                                 ? 0
                                                 : prev + 1
                                             );
@@ -1884,11 +1858,10 @@ export default function CrewDetails() {
                                         }).map((_, index) => (
                                           <button
                                             key={index}
-                                            className={`h-2 w-2 rounded-full ${
-                                              currentSelfieIndex === index
+                                            className={`h-2 w-2 rounded-full ${currentSelfieIndex === index
                                                 ? "bg-blue-500"
                                                 : "bg-gray-300"
-                                            }`}
+                                              }`}
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               setCurrentSelfieIndex(index);

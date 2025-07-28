@@ -186,10 +186,10 @@ export interface AddCrewDataForm {
   city: string; // Backend's Zod schema: z.string().min(2).max(50)
   province: string; // Backend's Zod schema: z.string().min(2).max(50)
   address: string;
-  sssNumber: string;
-  tinNumber: string;
-  philhealthNumber: string;
-  hdmfNumber: string;
+  sssNumber?: string;
+  tinNumber?: string;
+  philhealthNumber?: string;
+  hdmfNumber?: string;
   passportNumber: string;
   passportIssueDate: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
   passportExpiryDate: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()

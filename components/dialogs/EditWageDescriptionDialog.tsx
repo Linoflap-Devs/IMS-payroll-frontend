@@ -79,7 +79,7 @@ export function EditWageDescriptionDialog({
       if (response.success) {
         toast({
           title: "Success",
-          description: "Wage description updated successfully.",
+          description: "Wage type  updated successfully.",
           variant: "success",
         });
         if (onUpdateSuccess && response.data) {
@@ -91,7 +91,7 @@ export function EditWageDescriptionDialog({
       const err = error as Error;
       toast({
         title: "Error",
-        description: err.message || "Failed to update wage description.",
+        description: err.message || "Failed to update wage type .",
         variant: "destructive",
       });
     } finally {
@@ -105,7 +105,7 @@ export function EditWageDescriptionDialog({
         <DialogHeader className="p-4 pb-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-semibold text-primary w-full text-center">
-              Edit Wage Description
+              Edit Wage Type
             </DialogTitle>
           </div>
         </DialogHeader>
@@ -165,7 +165,7 @@ export function EditWageDescriptionDialog({
               disabled={isSubmitting}
             >
               <Pencil className="mr-2 h-4 w-4" />
-              {isSubmitting ? "Updating..." : "Update Wage Description"}
+              {isSubmitting ? "Updating..." : "Update Wage Type"}
             </Button>
           </div>
         </div>

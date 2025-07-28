@@ -245,7 +245,7 @@ export function EditDeductionTypeDialog({
                 ) : (
                   <>
                     <Save className="w-4 h-4 mr-2" />
-                    Save Changes
+                    Update Description
                   </>
                 )}
               </Button>

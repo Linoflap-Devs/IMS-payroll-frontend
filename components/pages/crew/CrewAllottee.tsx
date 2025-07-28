@@ -638,7 +638,7 @@ export function CrewAllottee({
   return (
     <div className="space-y-6">
       {isLoadingAllottees ? (
-        <div className="text-center">Loading allottee data...</div>
+        <div className="text-center pt-6">Loading allottee data...</div>
       ) : (
         <>
           {/* Allottee selection */}

@@ -177,11 +177,11 @@ export default function Allotment() {
   const year = searchParams.get("year");
   const vesselId = searchParams.get("vesselId");
 
-  useEffect(() => {}, [vesselId, month, year]);
+  useEffect(() => { }, [vesselId, month, year]);
 
-  useEffect(() => {}, [vesselId, month, year]);
+  useEffect(() => { }, [vesselId, month, year]);
 
-  useEffect(() => {}, [vesselId, month, year]);
+  useEffect(() => { }, [vesselId, month, year]);
 
   // Fetch data when filters change
   useEffect(() => {
@@ -261,8 +261,7 @@ export default function Allotment() {
           title: wasAllAlreadyPosted ? "Nothing to Post" : "Payroll Processed",
           description:
             response.message ||
-            `Payroll for ${
-              monthNames[parseInt(monthFilter) - 1]
+            `Payroll for ${monthNames[parseInt(monthFilter) - 1]
             } ${yearFilter} has been processed successfully.`,
           variant: wasAllAlreadyPosted ? "default" : "success",
         });
@@ -408,11 +407,10 @@ export default function Allotment() {
           <DropdownMenuContent align="end" className="text-xs sm:text-sm">
             <DropdownMenuItem asChild>
               <Link
-                href={`/home/allotment/allotment_register?vesselId=${
-                  row.original.vesselId
-                }&month=${parseInt(monthFilter)}&year=${parseInt(
-                  yearFilter
-                )}&forex=${forexRate || 0}`}
+                href={`/home/allotment/allotment_register?vesselId=${row.original.vesselId
+                  }&month=${parseInt(monthFilter)}&year=${parseInt(
+                    yearFilter
+                  )}&forex=${forexRate || 0}`}
               >
                 <PiUserListFill className="mr-2 h-4 w-4" />
                 Allotment Register
@@ -421,11 +419,10 @@ export default function Allotment() {
 
             <DropdownMenuItem asChild>
               <Link
-                href={`/home/allotment/deduction_register?vesselId=${
-                  row.original.vesselId
-                }&month=${parseInt(monthFilter)}&year=${parseInt(
-                  yearFilter
-                )}&forex=${forexRate || 0}`}
+                href={`/home/allotment/deduction_register?vesselId=${row.original.vesselId
+                  }&month=${parseInt(monthFilter)}&year=${parseInt(
+                    yearFilter
+                  )}&forex=${forexRate || 0}`}
               >
                 <PiReceiptFill className="mr-2 h-4 w-4" />
                 Deduction Register
@@ -434,11 +431,10 @@ export default function Allotment() {
 
             <DropdownMenuItem asChild>
               <Link
-                href={`/home/allotment/payslip?vesselId=${
-                  row.original.vesselId
-                }&month=${parseInt(monthFilter)}&year=${parseInt(
-                  yearFilter
-                )}&forex=${forexRate || 0}`}
+                href={`/home/allotment/payslip?vesselId=${row.original.vesselId
+                  }&month=${parseInt(monthFilter)}&year=${parseInt(
+                    yearFilter
+                  )}&forex=${forexRate || 0}`}
               >
                 <PiFileTextFill className="mr-2 h-4 w-4" />
                 Pay Slip
@@ -880,7 +876,11 @@ export default function Allotment() {
                 data={filteredAllotment}
                 pageSize={7}
               />
-            ) : null}
+            ) : (
+              <div className="flex items-center justify-center py-10 text-gray-500 text-sm">
+                No results found.
+              </div>
+            )}
 
             {selectedVessel && (
               <AlertDialog

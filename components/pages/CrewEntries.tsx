@@ -23,7 +23,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { PiUserListFill } from "react-icons/pi";
 import { getCrewDeductionList } from "@/src/services/deduction/crewDeduction.api";
 import { CrewRankItem, getCrewRankList } from "@/src/services/crew/crew.api";
-import { getVesselList, VesselItem } from "@/src/services/vessel/vessel.api";
 
 type CrewDeduction = {
   CrewCode: string;
@@ -54,6 +53,7 @@ export default function Deduction() {
     setRankFilter("all");
     setVesselFilter("all");
   };
+  console.debug(crewDeductionData);
 
   // Load crew deduction data
   useEffect(() => {
@@ -121,16 +121,9 @@ export default function Deduction() {
     },
     {
       accessorKey: "crewName",
-      header: () => <div className="text-justify">Name</div>,
+      header: () => <div className="text-justify">Crew Name</div>,
       cell: ({ row }) => (
         <div className="text-justify">{row.getValue("crewName")}</div>
-      ),
-    },
-    {
-      accessorKey: "VesselName",
-      header: () => <div className="text-center">Vessel</div>,
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("VesselName")}</div>
       ),
     },
     {
@@ -138,6 +131,13 @@ export default function Deduction() {
       header: () => <div className="text-center">Rank</div>,
       cell: ({ row }) => (
         <div className="text-center">{row.getValue("Rank")}</div>
+      ),
+    },
+    {
+      accessorKey: "VesselName",
+      header: () => <div className="text-center">Vessel</div>,
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("VesselName")}</div>
       ),
     },
     {
@@ -292,12 +292,13 @@ export default function Deduction() {
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectItem value="all">All Ranks</SelectItem>
-                      {ranks.map((rank) => (
-                        <SelectItem
-                          key={rank.RankID}
-                          value={rank.RankName || ""}
-                        >
-                          {rank.RankName}
+                      {[
+                        ...new Set(
+                          crewDeductionData.map((item) => item.Rank)
+                        ),
+                      ].map((Rank) => (
+                        <SelectItem key={Rank} value={Rank || ""}>
+                          {Rank}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -316,8 +317,9 @@ export default function Deduction() {
               {/* DataTable with custom styling */}
               <div className="bg-[#F9F9F9] rounded-md border pb-3">
                 {isLoading.crew ? (
-                  <div className="flex justify-center items-center h-48">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <div className="flex flex-col justify-center items-center py-10 gap-2 text-gray-700">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+                    <span className="text-muted-foreground">Loading crew entries...</span>
                   </div>
                 ) : (
                   <DataTable
