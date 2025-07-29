@@ -39,12 +39,22 @@ function formatDate(date: Date): string {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
+function getMonthName(monthNumber: number): string {
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  return months[monthNumber - 1]; // Because JS Date months are 0-based
+}
+
 export function generatePayrollPDFSingle(
     payslipData: CrewPayroll,
     month: number,
     year: number,
     currentUser: string = 'admin',
-    downloadImmediate: boolean = true
+    downloadImmediate: boolean = true,
+    monthName?: string,
+    //returnBlobOnly = true
 ): boolean | Promise<{blob: Blob, filename: string}> {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
@@ -71,7 +81,6 @@ export function generatePayrollPDFSingle(
 
         addFont(doc);
 
-        // Set document properties for the combined PDF
         const pdfTitle = `Payroll Statement - ${payslipData.crewName} - ${month} ${year}`
 
         doc.setProperties({
@@ -96,7 +105,15 @@ export function generatePayrollPDFSingle(
 
         // Generate filename based on selected vessels
         let fileName: string;
-        fileName = `Payslip-${payslipData.crewName.replace(/[^\w\s]/g, '').replace(/\s+/g, '-')}_${month}-${year}.pdf`
+        const monthName = getMonthName(month);
+        const MONTH_NAMES = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December",
+        ];
+
+        const displayMonth = monthName ?? MONTH_NAMES[month - 1];
+        
+        fileName = `Payslip-${payslipData.crewName.replace(/[^\w\s]/g, '').replace(/\s+/g, '-')}_${displayMonth}-${year}.pdf`
 
         // Save the combined PDF
         if(downloadImmediate){

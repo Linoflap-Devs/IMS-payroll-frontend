@@ -57,7 +57,7 @@ export default function HMDFContribution() {
             setVesselInfo(null);
             setHMDFDeductionData([]);
           }
-          console.log("Fetched HMDF deduction data:", vesselData);
+          //console.log("Fetched HMDF deduction data:", vesselData);
         } else {
           console.error("Unexpected response format:", response);
           setVesselInfo(null);

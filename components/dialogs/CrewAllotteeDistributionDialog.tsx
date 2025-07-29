@@ -27,7 +27,6 @@ export function CrewAllotteeDistribution({
   onOpenChange,
   crewPayroll,
 }: CrewAllotteeDistributionDialogProps) {
-  console.log('CREW PAYROLL DATA IN THE CREW ALLOTTEE DIALOG: ', crewPayroll);
 
   const columns: ColumnDef<AllotteeDistribution>[] = [
     {
