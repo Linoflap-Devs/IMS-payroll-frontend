@@ -501,9 +501,6 @@ export default function AuditLog() {
             </Button>
           </div>
         )}
-
-
-        
       </div>
     </div>
   );

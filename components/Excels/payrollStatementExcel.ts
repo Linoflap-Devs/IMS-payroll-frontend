@@ -48,9 +48,9 @@ export function generatePayrollExcel(
 
     if (noCrewData) {
       toast({
-        title: "Error",
+        //title: "Error",
         description: "No crew members found in the selected vessel(s).",
-        variant: "destructive",
+        variant: "default",
       });
       return false;
     }

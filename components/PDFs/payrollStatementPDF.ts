@@ -126,9 +126,9 @@ export function generatePayrollPDF(
         // If no pages were generated, return false
         if (firstPage) {
             toast({
-                title: 'Error',
+                //title: 'Error',
                 description: 'No crew members found in the selected vessel(s).',
-                variant: 'destructive'
+                variant: 'default'
             });
             return false;
         }

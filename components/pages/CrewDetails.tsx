@@ -77,8 +77,7 @@ export default function CrewDetails() {
   const handleTriggerAdd = () => {
     setTriggerAdd((prev) => !prev);
   };
-
-
+  
   const {
     crew,
     editedCrew,

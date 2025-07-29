@@ -200,8 +200,6 @@ export default function CrewPayroll() {
     return matchesSearch && matchesStatus && matchesRank;
   });
   
-  console.log('CREW IN CREW PAYROLL: ', filteredCrew);
-
   const uniqueRanks = Array.from(
     new Map(crews.map((crew) => [crew.RankID, crew.Rank])).entries()
   ).map(([id, name]) => ({ id, name }));
