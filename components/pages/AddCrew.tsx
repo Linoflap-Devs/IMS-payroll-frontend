@@ -21,6 +21,7 @@ import Image from "next/image";
 import { AxiosError } from "axios";
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
+import { GovIDCardInput } from "../ui/govtinputs";
 
 export default function AddCrew() {
   const router = useRouter();
@@ -114,33 +115,26 @@ export default function AddCrew() {
   // Add navigation functions
   const handleNext = () => {
     const currentIndex = tabOrder.indexOf(activeTab);
-    //console.log("Current Tab:", activeTab);
-    //console.log("Current Tab Index:", currentIndex);
 
-    const skipValidation = activeTab === "movement"; // Skip validation for "movement"
-    const isValid = skipValidation ? true : validateTab(activeTab);
-    //console.log(`Validation result for "${activeTab}":`, isValid);
+    //const skipValidation = activeTab === "movement"; // Skip validation for "movement"
+    //const isValid = skipValidation ? true : validateTab(activeTab);
+    const isValid = validateTab(activeTab);
 
     setSubmitted((prev) => ({ ...prev, [activeTab]: true }));
-    //console.log("Submitted tabs updated.");
 
     if (!isValid) {
       setTabErrors((prev) => ({ ...prev, [activeTab]: true }));
-      //console.log(`Tab "${activeTab}" is invalid. Setting error and stopping.`);
       return;
     }
 
     if (!completedTabs.includes(activeTab)) {
       setCompletedTabs([...completedTabs, activeTab]);
-      //console.log(`Marking tab "${activeTab}" as completed.`);
     }
 
     if (currentIndex < tabOrder.length - 1) {
       const nextTab = tabOrder[currentIndex + 1];
       setActiveTab(nextTab);
-      //console.log(`Moving to next tab: ${nextTab}`);
     } else {
-      //console.log("All tabs completed. Submitting...");
       handleSubmit();
     }
   };
@@ -202,18 +196,23 @@ export default function AddCrew() {
     );
   };
 
-// Validations Temporarily removed
-  // const validateMovementTab = () => {
-  //   const sssValid = formData.sssNumber.length === 10;
+  // Validations Temporarily removed
+  const validateMovementTab = () => {
+    const sssValid =
+      !formData.sssNumber || formData.sssNumber.length === 10;
 
-  //   const taxIdLength = formData.taxIdNumber.length;
-  //   const taxIdValid = taxIdLength > 8 && taxIdLength < 13;
+    const taxIdLength = formData.taxIdNumber.length;
+    const taxIdValid =
+      !formData.taxIdNumber || (taxIdLength > 8 && taxIdLength < 13);
 
-  //   const philhealthValid = formData.philhealthNumber.length === 12;
-  //   const hdmfValid = formData.hdmfNumber.length === 12;
+    const philhealthValid =
+      !formData.philhealthNumber || formData.philhealthNumber.length === 12;
 
-  //   return sssValid && taxIdValid && philhealthValid && hdmfValid;
-  // };
+    const hdmfValid =
+      !formData.hdmfNumber || formData.hdmfNumber.length === 12;
+
+    return sssValid && taxIdValid && philhealthValid && hdmfValid;
+  };
 
   const validateTravelTab = (): boolean => {
     const passportValid =
@@ -256,10 +255,10 @@ export default function AddCrew() {
     switch (tab) {
       case "details":
         return validateDetailsTab();
-      // case "movement":
-      //   return validateMovementTab();
+      case "movement":
+        return validateMovementTab();
       case "travel":
-         return validateTravelTab();
+        return validateTravelTab();
       default:
         return true;
     }
@@ -286,7 +285,6 @@ export default function AddCrew() {
     setSubmitted((prev) => ({ ...prev, [nextTab]: false }));
   };
 
-  // Handle form submission
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setSubmitted((prev) => ({ ...prev, [activeTab]: true }));
@@ -303,10 +301,6 @@ export default function AddCrew() {
       "province",
       "mobileNumber",
       "emailAddress",
-      // "sssNumber",
-      // "taxIdNumber",
-      // "philhealthNumber",
-      // "hdmfNumber",
       "passportNumber",
       "passportIssueDate",
       "passportExpiryDate",
@@ -317,21 +311,20 @@ export default function AddCrew() {
 
     for (const field of requiredFields) {
       if (!formData[field] || formData[field].trim() === "") {
+        console.warn(`Missing required field: ${field}`);
         toast({
           title: "Missing Information",
-          description: `Please fill in the '${field.replace(
-            /([A-Z])/g,
-            " $1"
-          )}' field.`, // Add spaces for readability
+          description: `Please fill in the '${field.replace(/([A-Z])/g, " $1")}' field.`,
           variant: "destructive",
         });
         setIsSubmitting(false);
-        // Optionally, navigate to the tab where the missing field is
         return;
       }
     }
+
     // Email validation
     if (formData.emailAddress && !/\S+@\S+\.\S+/.test(formData.emailAddress)) {
+      console.warn("Invalid email entered:", formData.emailAddress);
       toast({
         title: "Invalid Email",
         description: "Please enter a valid email address.",
@@ -343,32 +336,33 @@ export default function AddCrew() {
 
     const payload: AddCrewDataForm = {
       crewCode: formData.crewCode,
-      rank: formData.rank, // Assuming this is RankID as string
-      vessel: formData.currentVessel || undefined, // Optional
+      rank: formData.rank,
+      vessel: formData.currentVessel || undefined,
       mobileNumber: formData.mobileNumber,
-      landlineNumber: formData.landlineNumber || undefined, // Optional
+      landlineNumber: formData.landlineNumber || undefined,
       emailAddress: formData.emailAddress,
       lastName: formData.lastName,
       firstName: formData.firstName,
-      middleName: formData.middleName || undefined, // Optional
-      sex: formData.sex, // Assuming this is "1" for Male, "2" for Female, etc.
-      maritalStatus: formData.maritalStatus, // Convert string to number
-      dateOfBirth: formData.birthdate, // HTML date input provides YYYY-MM-DD
-      city: formData.city, // Assuming this is CityID as string
-      province: formData.province, // Assuming this is ProvinceID as string
+      middleName: formData.middleName || undefined,
+      sex: formData.sex,
+      maritalStatus: formData.maritalStatus,
+      dateOfBirth: formData.birthdate,
+      city: formData.city,
+      province: formData.province,
       address: formData.address,
-      //sssNumber: formData.sssNumber,
-      //tinNumber: formData.taxIdNumber, // Mapping from taxIdNumber
-      //philhealthNumber: formData.philhealthNumber,
-      //hdmfNumber: formData.hdmfNumber,
       passportNumber: formData.passportNumber,
       passportIssueDate: formData.passportIssueDate,
       passportExpiryDate: formData.passportExpiryDate,
-      seamanBookNumber: formData.seamansBook, // Mapping from seamansBook
+      seamanBookNumber: formData.seamansBook,
       seamanBookIssueDate: formData.seamansBookIssueDate,
       seamanBookExpiryDate: formData.seamansBookExpiryDate,
       crewPhoto: crewPhotoFile || undefined,
+      ...(formData.sssNumber && formData.sssNumber.length >= 10 && { sssNumber: formData.sssNumber }),
+      ...(formData.taxIdNumber && formData.taxIdNumber.length >= 9 && { tinNumber: formData.taxIdNumber }),
+      ...(formData.philhealthNumber && formData.philhealthNumber.length >= 12 && { philhealthNumber: formData.philhealthNumber }),
+      ...(formData.hdmfNumber && formData.hdmfNumber.length >= 12 && { hdmfNumber: formData.hdmfNumber }),
     };
+
     try {
       const response = await addCrew(payload);
 
@@ -379,21 +373,20 @@ export default function AddCrew() {
           icon: "success",
           confirmButtonColor: "#3085d6",
         }).then(() => {
+          console.log("🔄 Refreshing crew list and redirecting");
           refreshCrewList();
           router.push("/home/crew");
         });
       } else {
-        console.error("API Error:", response);
+        console.error("API returned an error response:", response);
         Swal.fire({
           title: "Error!",
-          text:
-            response.message ||
-            "Failed to add crew member. Please check the details and try again.",
+          text: response.message || "Failed to add crew member. Please check the details and try again.",
           icon: "error",
         });
       }
     } catch (error: unknown) {
-      console.log(error);
+      console.log("Caught error during API call:", error);
 
       interface ApiErrorResponse {
         message: string | unknown[];
@@ -407,16 +400,18 @@ export default function AddCrew() {
       ) {
         const axiosError = error as AxiosError<ApiErrorResponse>;
         const responseData = axiosError.response?.data;
+        console.error("Axios error response:", responseData);
 
-          if (
-            responseData?.message &&
-            typeof responseData.message === "string" &&
-            (
-              responseData.message.includes("Unique constraint failed") ||
-              responseData.message.includes("Duplicate Crew Code") ||
-              responseData.message.includes("dbo.CrewData")
-            )
-          ) {
+        if (
+          responseData?.message &&
+          typeof responseData.message === "string" &&
+          (
+            responseData.message.includes("Unique constraint failed") ||
+            responseData.message.includes("Duplicate Crew Code") ||
+            responseData.message.includes("dbo.CrewData")
+          )
+        ) {
+          //console.warn("Duplicate Crew Code detected");
           Swal.fire({
             title: "Duplicate Crew Code",
             text: "This Crew Code already exists in the system. Please use a different Crew Code.",
@@ -443,7 +438,6 @@ export default function AddCrew() {
             }
           }
 
-          // Rest of your error handling...
           Swal.fire({
             title: errorMessage,
             html: errorDetails || axiosError.name,
@@ -455,8 +449,9 @@ export default function AddCrew() {
           });
         }
       } else {
-        // This is a regular error
         const err = error as Error;
+        console.error("Non-Axios error:", err);
+
         Swal.fire({
           title: err.message,
           html: err.name,
@@ -589,7 +584,7 @@ export default function AddCrew() {
                         className="w-4 h-4 mr-2"
                       />
                       Submitting...
-                    </> 
+                    </>
                   ) : activeTab === tabOrder[tabOrder.length - 1] ? (
                     "Finish & Submit"
                   ) : (
@@ -662,12 +657,11 @@ export default function AddCrew() {
                         onChange={(e) =>
                           handleInputChange("crewCode", e.target.value)
                         }
-                        className={`h-8 mt-1 text-sm ${
-                          submitted["details"] &&
+                        className={`h-8 mt-1 text-sm ${submitted["details"] &&
                           (duplicateError || formData.crewCode.length === 0)
-                            ? "border-red-500 focus:!ring-red-500/50"
-                            : ""
-                        }`}
+                          ? "border-red-500 focus:!ring-red-500/50"
+                          : ""
+                          }`}
                       />
                       {submitted["details"] &&
                         formData.crewCode.length == 0 && (
@@ -696,11 +690,10 @@ export default function AddCrew() {
                           }
                         >
                           <SelectTrigger
-                            className={`w-full ${
-                              submitted["details"] && formData.rank.length == 0
-                                ? "border-red-500 focus:!ring-red-500/60"
-                                : ""
-                            }`}
+                            className={`w-full ${submitted["details"] && formData.rank.length == 0
+                              ? "border-red-500 focus:!ring-red-500/60"
+                              : ""
+                              }`}
                           >
                             <SelectValue placeholder="Select rank" />
                           </SelectTrigger>
@@ -759,13 +752,12 @@ export default function AddCrew() {
                             const onlyNums = e.target.value.replace(/\D/g, "");
                             handleInputChange("mobileNumber", onlyNums);
                           }}
-                          className={`h-8 text-sm ${
-                            submitted["details"] &&
+                          className={`h-8 text-sm ${submitted["details"] &&
                             (!formData.mobileNumber ||
                               !/^09\d{9}$/.test(formData.mobileNumber))
-                              ? "border-red-500 focus:!ring-red-500/50"
-                              : ""
-                          }`}
+                            ? "border-red-500 focus:!ring-red-500/50"
+                            : ""
+                            }`}
                         />
 
                         {submitted["details"] &&
@@ -812,15 +804,14 @@ export default function AddCrew() {
                           onChange={(e) =>
                             handleInputChange("emailAddress", e.target.value)
                           }
-                          className={`h-8 text-sm ${
-                            submitted["details"] &&
+                          className={`h-8 text-sm ${submitted["details"] &&
                             (!formData.emailAddress ||
                               !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
                                 formData.emailAddress
                               ))
-                              ? "border-red-500 focus:!ring-red-500/50"
-                              : ""
-                          }`}
+                            ? "border-red-500 focus:!ring-red-500/50"
+                            : ""
+                            }`}
                         />
 
                         {submitted["details"] && !formData.emailAddress && (
@@ -987,13 +978,12 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("lastName", e.target.value)
                               }
-                              className={`${
-                                submitted["details"] &&
+                              className={`${submitted["details"] &&
                                 (formData.lastName.length === 0 ||
                                   !/^[a-zA-Z\s]+$/.test(formData.lastName))
-                                  ? "border-red-500 focus:!ring-red-500/50"
-                                  : ""
-                              }`}
+                                ? "border-red-500 focus:!ring-red-500/50"
+                                : ""
+                                }`}
                             />
 
                             {submitted["details"] &&
@@ -1023,13 +1013,12 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("firstName", e.target.value)
                               }
-                              className={`${
-                                submitted["details"] &&
+                              className={`${submitted["details"] &&
                                 (formData.firstName.length === 0 ||
                                   !/^[a-zA-Z\s]+$/.test(formData.firstName))
-                                  ? "border-red-500 focus:!ring-red-500/50"
-                                  : ""
-                              }`}
+                                ? "border-red-500 focus:!ring-red-500/50"
+                                : ""
+                                }`}
                             />
 
                             {submitted["details"] &&
@@ -1096,12 +1085,11 @@ export default function AddCrew() {
                               }
                             >
                               <SelectTrigger
-                                className={`w-full ${
-                                  submitted["details"] &&
+                                className={`w-full ${submitted["details"] &&
                                   formData.maritalStatus.length == 0
-                                    ? "border-red-500 focus:!ring-red-500/50"
-                                    : ""
-                                }`}
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                                  }`}
                               >
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
@@ -1135,12 +1123,11 @@ export default function AddCrew() {
                               }
                             >
                               <SelectTrigger
-                                className={`w-full ${
-                                  submitted["details"] &&
+                                className={`w-full ${submitted["details"] &&
                                   formData.sex.length == 0
-                                    ? "border-red-500 focus:!ring-red-500/50"
-                                    : ""
-                                }`}
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                                  }`}
                               >
                                 <SelectValue placeholder="Select an option" />
                               </SelectTrigger>
@@ -1175,12 +1162,11 @@ export default function AddCrew() {
                                 onChange={(e) =>
                                   handleInputChange("birthdate", e.target.value)
                                 }
-                                className={`${
-                                  submitted["details"] &&
+                                className={`${submitted["details"] &&
                                   formData.birthdate.length == 0
-                                    ? "border-red-500 focus:!ring-red-500/50"
-                                    : ""
-                                }`}
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                                  }`}
                               />
                               {submitted["details"] &&
                                 formData.birthdate.length == 0 && (
@@ -1202,12 +1188,11 @@ export default function AddCrew() {
                               }
                             >
                               <SelectTrigger
-                                className={`w-full ${
-                                  submitted["details"] &&
+                                className={`w-full ${submitted["details"] &&
                                   formData.province.length == 0
-                                    ? "border-red-500 focus:!ring-red-500/50"
-                                    : ""
-                                }`}
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                                  }`}
                               >
                                 <SelectValue placeholder="Select a province" />
                               </SelectTrigger>
@@ -1261,12 +1246,11 @@ export default function AddCrew() {
                               }
                             >
                               <SelectTrigger
-                                className={`w-full ${
-                                  submitted["details"] &&
+                                className={`w-full ${submitted["details"] &&
                                   formData.city.length == 0
-                                    ? "border-red-500 focus:!ring-red-500/50"
-                                    : ""
-                                }`}
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                                  }`}
                                 disabled={!formData.province}
                               >
                                 <SelectValue placeholder="Select a city" />
@@ -1323,13 +1307,13 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("address", e.target.value)
                               }
-                              // className={`${
-                              //   submitted["details"] &&
-                              //   (formData.address.length === 0 ||
-                              //     !/^[a-zA-Z\s]+$/.test(formData.address))
-                              //     ? "border-red-500 focus:!ring-red-500/50"
-                              //     : ""
-                              // }`}
+                            // className={`${
+                            //   submitted["details"] &&
+                            //   (formData.address.length === 0 ||
+                            //     !/^[a-zA-Z\s]+$/.test(formData.address))
+                            //     ? "border-red-500 focus:!ring-red-500/50"
+                            //     : ""
+                            // }`}
                             />
                           </div>
                         </div>
@@ -1349,33 +1333,27 @@ export default function AddCrew() {
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
-                              SSS Number
-                            </label>
-                            <Input
-                              placeholder="Enter SSS number"
+                            <GovIDCardInput
+                              label="SSS Number"
                               value={formData.sssNumber}
-                              onChange={(e) =>
-                                handleInputChange("sssNumber", e.target.value)
+                              onChange={(val) => handleInputChange("sssNumber", val)}
+                              placeholder="Enter SSS number"
+                              isInvalid={
+                                Boolean(
+                                  submitted["movement"] && formData.sssNumber && formData.sssNumber.length !== 10
+                                )
                               }
-                              className="border-gray-300 focus:ring-primary/50"
-                              // className={`${
-                              //   submitted["movement"] &&
-                              //   formData.sssNumber.length !== 10
-                              //     ? "border-red-500 focus:!ring-red-500/50"
-                              //     : ""
-                              // }`}
                             />
-                            {/* {submitted["movement"] &&
-                              formData.sssNumber.length !== 10 && (
-                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                  <Info className="w-4 h-4" />
-                                  Please enter a valid SSS number.
-                                </p>
-                              )} */}
+
+                            {submitted["movement"] && formData.sssNumber && formData.sssNumber.length !== 10 && (
+                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                <Info className="w-4 h-4" />
+                                Enter your 10-digit SSS Number (e.g., 01-2345678-9).
+                              </p>
+                            )}
                           </div>
                           <div>
-                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            {/* <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Tax ID Number
                             </label>
                             <Input
@@ -1384,26 +1362,38 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("taxIdNumber", e.target.value)
                               }
-                              className="border-gray-300 focus:ring-primary/50"
-                              // className={`${
-                              //   (submitted["movement"] &&
-                              //     formData.taxIdNumber.length <= 8) ||
-                              //   formData.taxIdNumber.length >= 13
-                              //     ? "border-red-500 focus:!ring-red-500/50"
-                              //     : ""
-                              // }`}
+                              //className="border-gray-300 focus:ring-primary/50"
+                              className={`${
+                                 (submitted["movement"] &&
+                                   formData.taxIdNumber.length <= 8) ||
+                                 formData.taxIdNumber.length >= 13
+                                   ? "border-red-500 focus:!ring-red-500/50"
+                                   : ""
+                               }`}
+                            /> */}
+                            <GovIDCardInput
+                              label="Tax Number"
+                              value={formData.taxIdNumber}
+                              onChange={(val) => handleInputChange("taxIdNumber", val)}
+                              placeholder="Enter Tax ID number"
+                              isInvalid={Boolean(
+                                submitted["movement"] &&
+                                formData.taxIdNumber &&
+                                (formData.taxIdNumber.length <= 8 || formData.taxIdNumber.length >= 13)
+                              )}
                             />
-                            {/* {((submitted["movement"] &&
-                              formData.taxIdNumber.length <= 8) ||
-                              formData.taxIdNumber.length >= 13) && (
-                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                <Info className="w-4 h-4" />
-                                Please enter a valid Tax ID number.
-                              </p>
-                            )} */}
+
+                            {submitted["movement"] &&
+                              formData.taxIdNumber &&
+                              (formData.taxIdNumber.length <= 8 || formData.taxIdNumber.length >= 13) && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  Please enter a 9-digit Tax ID Number.
+                                </p>
+                              )}
                           </div>
                           <div>
-                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            {/* <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Philhealth Number
                             </label>
                             <Input
@@ -1415,24 +1405,36 @@ export default function AddCrew() {
                                   e.target.value
                                 )
                               }
-                              className="border-gray-300 focus:ring-primary/50"
-                              // className={`${
-                              //   submitted["movement"] &&
-                              //   formData.philhealthNumber.length !== 12
-                              //     ? "border-red-500 focus:!ring-red-500/50"
-                              //     : ""
-                              // }`}
+                              //className="border-gray-300 focus:ring-primary/50"
+                              className={`${
+                                 submitted["movement"] &&
+                                 formData.philhealthNumber.length !== 12
+                                   ? "border-red-500 focus:!ring-red-500/50"
+                                   : ""
+                               }`}
+                            /> */}
+                            <GovIDCardInput
+                              label="Philhealth Number"
+                              value={formData.philhealthNumber}
+                              onChange={(val) => handleInputChange("philhealthNumber", val)}
+                              placeholder="Enter Philhealth number"
+                              isInvalid={
+                                Boolean(
+                                  submitted["movement"] && formData.philhealthNumber && formData.philhealthNumber.length !== 12
+                                )
+                              }
                             />
-                            {/* {submitted["movement"] &&
+                            {submitted["movement"] &&
+                              formData.philhealthNumber &&
                               formData.philhealthNumber.length !== 12 && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
-                                  Please enter a valid Philhealth number.
+                                  Please enter a 12-digit Philhealth Number.
                                 </p>
-                              )} */}
+                              )}
                           </div>
                           <div>
-                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            {/* <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               HDMF Number
                             </label>
                             <Input
@@ -1441,21 +1443,34 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("hdmfNumber", e.target.value)
                               }
-                              className="border-gray-300 focus:ring-primary/50"
-                              // className={`${
-                              //   submitted["movement"] &&
-                              //   formData.hdmfNumber.length !== 12
-                              //     ? "border-red-500 focus:!ring-red-500/50"
-                              //     : ""
-                              // }`}
+                              //className="border-gray-300 focus:ring-primary/50"
+                              className={`${
+                                 submitted["movement"] &&
+                                 formData.hdmfNumber.length !== 12
+                                   ? "border-red-500 focus:!ring-red-500/50"
+                                   : ""
+                               }`}
+                            /> */}
+                            <GovIDCardInput
+                              label="HDMF Number"
+                              value={formData.hdmfNumber}
+                              onChange={(val) => handleInputChange("hdmfNumber", val)}
+                              placeholder="Enter HDMF number"
+                              isInvalid={
+                                Boolean(
+                                  submitted["movement"] && formData.hdmfNumber && formData.hdmfNumber.length !== 12
+                                )
+                              }
                             />
-                            {/* {submitted["movement"] &&
+
+                            {submitted["movement"] &&
+                              formData.hdmfNumber &&
                               formData.hdmfNumber.length !== 12 && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
-                                  Please enter a valid HDMF number.
+                                  Please enter a 12-digit HDMF Number.
                                 </p>
-                              )} */}
+                              )}
                           </div>
                         </div>
                       </div>
@@ -1486,13 +1501,11 @@ export default function AddCrew() {
                                   e.target.value
                                 )
                               }
-                              className={`${
-                                (submitted["travel"] &&
-                                  formData.passportNumber.length <= 6) ||
-                                formData.passportNumber.length >= 10
+                              className={`${submitted["travel"] &&
+                                  (formData.passportNumber.length <= 6 || formData.passportNumber.length >= 10)
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
-                              }`}
+                                }`}
                             />
                             {submitted["travel"] &&
                               (formData.passportNumber.length <= 6 ||
@@ -1518,17 +1531,16 @@ export default function AddCrew() {
                                     e.target.value
                                   )
                                 }
-                                className={`${
-                                  submitted["travel"] &&
+                                className={`${submitted["travel"] &&
                                   (!formData.passportIssueDate ||
                                     formData.passportIssueDate ===
-                                      formData.passportExpiryDate ||
+                                    formData.passportExpiryDate ||
                                     (formData.passportExpiryDate &&
                                       formData.passportExpiryDate <
-                                        formData.passportIssueDate))
-                                    ? "border-red-500 focus:!ring-red-500/50"
-                                    : ""
-                                }`}
+                                      formData.passportIssueDate))
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                                  }`}
                               />
 
                               {submitted["travel"] &&
@@ -1542,7 +1554,7 @@ export default function AddCrew() {
                               {submitted["travel"] &&
                                 formData.passportIssueDate &&
                                 formData.passportIssueDate ===
-                                  formData.passportExpiryDate && (
+                                formData.passportExpiryDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Issue Date and Expiration Date cannot be the
@@ -1554,7 +1566,7 @@ export default function AddCrew() {
                                 formData.passportIssueDate &&
                                 formData.passportExpiryDate &&
                                 formData.passportExpiryDate <
-                                  formData.passportIssueDate && (
+                                formData.passportIssueDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Expiration Date cannot be earlier than Issue
@@ -1578,17 +1590,16 @@ export default function AddCrew() {
                                     e.target.value
                                   )
                                 }
-                                className={`${
-                                  submitted["travel"] &&
+                                className={`${submitted["travel"] &&
                                   (!formData.passportExpiryDate ||
                                     formData.passportIssueDate ===
-                                      formData.passportExpiryDate ||
+                                    formData.passportExpiryDate ||
                                     (formData.passportIssueDate &&
                                       formData.passportExpiryDate <
-                                        formData.passportIssueDate))
-                                    ? "border-red-500 focus:!ring-red-500/50"
-                                    : ""
-                                }`}
+                                      formData.passportIssueDate))
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                                  }`}
                               />
 
                               {submitted["travel"] &&
@@ -1603,7 +1614,7 @@ export default function AddCrew() {
                               {submitted["travel"] &&
                                 formData.passportExpiryDate &&
                                 formData.passportIssueDate ===
-                                  formData.passportExpiryDate && (
+                                formData.passportExpiryDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Issue Date and Expiration Date cannot be the
@@ -1615,7 +1626,7 @@ export default function AddCrew() {
                                 formData.passportExpiryDate &&
                                 formData.passportIssueDate &&
                                 formData.passportExpiryDate <
-                                  formData.passportIssueDate && (
+                                formData.passportIssueDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Expiration Date cannot be earlier than Issue
@@ -1635,22 +1646,19 @@ export default function AddCrew() {
                               onChange={(e) =>
                                 handleInputChange("seamansBook", e.target.value)
                               }
-                              className={`${
-                                (submitted["travel"] &&
-                                  formData.seamansBook.length <= 6) ||
-                                formData.seamansBook.length >= 10
+                              className={`${submitted["travel"] &&
+                                  (formData.seamansBook.length <= 6 || formData.seamansBook.length >= 10)
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
-                              }`}
+                                }`}
                             />
-                            {((submitted["travel"] &&
-                              formData.seamansBook.length <= 6) ||
-                              formData.seamansBook.length >= 10) && (
-                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                <Info className="w-4 h-4" />
-                                Please enter a Seamans Book.
-                              </p>
-                            )}
+                            {submitted["travel"] &&
+                                (formData.seamansBook.length <= 6 || formData.seamansBook.length >= 10) && (
+                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                    <Info className="w-4 h-4" />
+                                    Please enter a valid Seamans Book.
+                                  </p>
+                              )}
                           </div>
 
                           <div>
@@ -1668,17 +1676,16 @@ export default function AddCrew() {
                                     e.target.value
                                   )
                                 }
-                                className={`${
-                                  submitted["travel"] &&
+                                className={`${submitted["travel"] &&
                                   (!formData.seamansBookIssueDate ||
                                     formData.seamansBookIssueDate ===
-                                      formData.seamansBookExpiryDate ||
+                                    formData.seamansBookExpiryDate ||
                                     (formData.seamansBookExpiryDate &&
                                       formData.seamansBookExpiryDate <
-                                        formData.seamansBookIssueDate))
-                                    ? "border-red-500 focus:!ring-red-500/50"
-                                    : ""
-                                }`}
+                                      formData.seamansBookIssueDate))
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                                  }`}
                               />
 
                               {submitted["travel"] &&
@@ -1693,7 +1700,7 @@ export default function AddCrew() {
                               {submitted["travel"] &&
                                 formData.seamansBookIssueDate &&
                                 formData.seamansBookIssueDate ===
-                                  formData.seamansBookExpiryDate && (
+                                formData.seamansBookExpiryDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Issue Date and Expiration Date cannot be the
@@ -1705,7 +1712,7 @@ export default function AddCrew() {
                                 formData.seamansBookIssueDate &&
                                 formData.seamansBookExpiryDate &&
                                 formData.seamansBookExpiryDate <
-                                  formData.seamansBookIssueDate && (
+                                formData.seamansBookIssueDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Expiration Date cannot be earlier than Issue
@@ -1730,17 +1737,16 @@ export default function AddCrew() {
                                     e.target.value
                                   )
                                 }
-                                className={`${
-                                  submitted["travel"] &&
+                                className={`${submitted["travel"] &&
                                   (!formData.seamansBookExpiryDate ||
                                     formData.seamansBookExpiryDate ===
-                                      formData.seamansBookIssueDate ||
+                                    formData.seamansBookIssueDate ||
                                     (formData.seamansBookIssueDate &&
                                       formData.seamansBookExpiryDate <
-                                        formData.seamansBookIssueDate))
-                                    ? "border-red-500 focus:!ring-red-500/50"
-                                    : ""
-                                }`}
+                                      formData.seamansBookIssueDate))
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : ""
+                                  }`}
                               />
 
                               {submitted["travel"] &&
@@ -1755,7 +1761,7 @@ export default function AddCrew() {
                               {submitted["travel"] &&
                                 formData.seamansBookExpiryDate &&
                                 formData.seamansBookExpiryDate ===
-                                  formData.seamansBookIssueDate && (
+                                formData.seamansBookIssueDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Issue Date and Expiration Date cannot be the
@@ -1767,7 +1773,7 @@ export default function AddCrew() {
                                 formData.seamansBookExpiryDate &&
                                 formData.seamansBookIssueDate &&
                                 formData.seamansBookExpiryDate <
-                                  formData.seamansBookIssueDate && (
+                                formData.seamansBookIssueDate && (
                                   <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                     <Info className="w-4 h-4" />
                                     Expiration Date cannot be earlier than Issue
