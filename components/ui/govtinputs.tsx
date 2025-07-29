@@ -24,7 +24,9 @@ const tooltipMessages: Record<string, string> = {
   "SSS Number": "This field is optional. If applicable, please enter your 10-digit SSS Number (e.g., 01-2345678-9).",
   "Tax Number": "This field is optional. If applicable, please enter your 9-digit Tax Identification Number (TIN) as issued by the BIR.",
   "Philhealth Number": "This field is optional. If applicable, please provide your 12-digit PhilHealth Identification Number.",
-  "HDMF Number": "This field is optional. If applicable, please enter your 12-digit HDMF Number."
+  "HDMF Number": "This field is optional. If applicable, please enter your 12-digit HDMF Number.",
+  "Passport Number": "This field is required. Please enter a valid Passport Number with 6 to 7 digits.",
+  "Seamans Book": "This field is required. Please enter a valid Seaman's Book Number with 6 to 7 digits."
 };
 
   return (

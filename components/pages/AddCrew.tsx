@@ -1339,18 +1339,20 @@ export default function AddCrew() {
                               onChange={(val) => handleInputChange("sssNumber", val)}
                               placeholder="Enter SSS number"
                               isInvalid={
-                                Boolean(
-                                  submitted["movement"] && formData.sssNumber && formData.sssNumber.length !== 10
-                                )
+                                submitted["movement"] &&
+                                !!formData.sssNumber &&
+                                formData.sssNumber.length !== 10
                               }
                             />
 
-                            {submitted["movement"] && formData.sssNumber && formData.sssNumber.length !== 10 && (
-                              <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                <Info className="w-4 h-4" />
-                                Enter your 10-digit SSS Number (e.g., 01-2345678-9).
-                              </p>
-                            )}
+                            {submitted["movement"] &&
+                              !!formData.sssNumber &&
+                              formData.sssNumber.length !== 10 && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  Enter your 10-digit SSS Number (e.g., 01-2345678-9).
+                                </p>
+                              )}
                           </div>
                           <div>
                             {/* <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -1376,15 +1378,15 @@ export default function AddCrew() {
                               value={formData.taxIdNumber}
                               onChange={(val) => handleInputChange("taxIdNumber", val)}
                               placeholder="Enter Tax ID number"
-                              isInvalid={Boolean(
+                              isInvalid={
                                 submitted["movement"] &&
-                                formData.taxIdNumber &&
+                                !!formData.taxIdNumber &&
                                 (formData.taxIdNumber.length <= 8 || formData.taxIdNumber.length >= 13)
-                              )}
+                              }
                             />
 
                             {submitted["movement"] &&
-                              formData.taxIdNumber &&
+                              !!formData.taxIdNumber &&
                               (formData.taxIdNumber.length <= 8 || formData.taxIdNumber.length >= 13) && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
@@ -1419,13 +1421,14 @@ export default function AddCrew() {
                               onChange={(val) => handleInputChange("philhealthNumber", val)}
                               placeholder="Enter Philhealth number"
                               isInvalid={
-                                Boolean(
-                                  submitted["movement"] && formData.philhealthNumber && formData.philhealthNumber.length !== 12
-                                )
+                                submitted["movement"] &&
+                                !!formData.philhealthNumber &&
+                                formData.philhealthNumber.length !== 12
                               }
                             />
+
                             {submitted["movement"] &&
-                              formData.philhealthNumber &&
+                              !!formData.philhealthNumber &&
                               formData.philhealthNumber.length !== 12 && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
@@ -1457,14 +1460,14 @@ export default function AddCrew() {
                               onChange={(val) => handleInputChange("hdmfNumber", val)}
                               placeholder="Enter HDMF number"
                               isInvalid={
-                                Boolean(
-                                  submitted["movement"] && formData.hdmfNumber && formData.hdmfNumber.length !== 12
-                                )
+                                submitted["movement"] &&
+                                !!formData.hdmfNumber &&
+                                formData.hdmfNumber.length !== 12
                               }
                             />
 
                             {submitted["movement"] &&
-                              formData.hdmfNumber &&
+                              !!formData.hdmfNumber &&
                               formData.hdmfNumber.length !== 12 && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
@@ -1489,7 +1492,7 @@ export default function AddCrew() {
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="md:col-span-2">
-                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            {/* <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Passport Number
                             </label>
                             <Input
@@ -1506,6 +1509,17 @@ export default function AddCrew() {
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
                                 }`}
+                            /> */}
+                            <GovIDCardInput
+                              label="Passport Number"
+                              value={formData.passportNumber}
+                              onChange={(val) => handleInputChange("passportNumber", val)}
+                              placeholder="Enter passport number"
+                              isInvalid={
+                                Boolean(
+                                  submitted["travel"] && formData.passportNumber.length <= 6 || formData.passportNumber.length >= 10
+                                )
+                              }
                             />
                             {submitted["travel"] &&
                               (formData.passportNumber.length <= 6 ||
@@ -1637,7 +1651,7 @@ export default function AddCrew() {
                           </div>
 
                           <div className="md:col-span-2">
-                            <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            {/* <label className="text-sm font-semibold text-gray-500 mb-1 block">
                               Seamans Book
                             </label>
                             <Input
@@ -1651,13 +1665,24 @@ export default function AddCrew() {
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : ""
                                 }`}
+                            /> */}
+                            <GovIDCardInput
+                              label="Seamans Book"
+                              value={formData.seamansBook}
+                              onChange={(val) => handleInputChange("seamansBook", val)}
+                              placeholder="Enter seamans book number"
+                              isInvalid={
+                                Boolean(
+                                  submitted["travel"] && formData.seamansBook.length <= 6 || formData.seamansBook.length >= 10
+                                )
+                              }
                             />
                             {submitted["travel"] &&
-                                (formData.seamansBook.length <= 6 || formData.seamansBook.length >= 10) && (
-                                  <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
-                                    <Info className="w-4 h-4" />
-                                    Please enter a valid Seamans Book.
-                                  </p>
+                              (formData.seamansBook.length <= 6 || formData.seamansBook.length >= 10) && (
+                                <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
+                                  <Info className="w-4 h-4" />
+                                  Please enter a valid Seamans Book.
+                                </p>
                               )}
                           </div>
 
