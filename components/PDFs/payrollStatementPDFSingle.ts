@@ -53,8 +53,6 @@ export function generatePayrollPDFSingle(
     year: number,
     currentUser: string = 'admin',
     downloadImmediate: boolean = true,
-    monthName?: string,
-    //returnBlobOnly = true
 ): boolean | Promise<{blob: Blob, filename: string}> {
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
@@ -92,7 +90,15 @@ export function generatePayrollPDFSingle(
 
         const dateFormat = format(new Date(year, month, 1), 'MMMM yyyy')
 
-        generateCrewPayrollPage(doc, dateFormat, payslipData.vesselName, payslipData, currentUser);
+        const monthName = getMonthName(month);
+        const MONTH_NAMES = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December",
+        ];
+
+        const displayMonth = monthName ?? MONTH_NAMES[month - 1];
+
+        generateCrewPayrollPage(doc, dateFormat, payslipData.vesselName, payslipData, currentUser, displayMonth, year);
         // If no pages were generated, return false
         // if (firstPage) {
         //     toast({
@@ -105,13 +111,6 @@ export function generatePayrollPDFSingle(
 
         // Generate filename based on selected vessels
         let fileName: string;
-        const monthName = getMonthName(month);
-        const MONTH_NAMES = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December",
-        ];
-
-        const displayMonth = monthName ?? MONTH_NAMES[month - 1];
         
         fileName = `Payslip-${payslipData.crewName.replace(/[^\w\s]/g, '').replace(/\s+/g, '-')}_${displayMonth}-${year}.pdf`
 
@@ -140,9 +139,12 @@ function generateCrewPayrollPage(
     period: string,
     vessel: string,
     crewData: CrewPayroll,
-    currentUser: string
+    currentUser: string,
+    displayMonth: string,
+    year: number,
 ) {
     // Define page dimensions
+    //console.log('MONTH : ', displayMonth);
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     const margin = 10;
@@ -169,7 +171,8 @@ function generateCrewPayrollPage(
     doc.setFontSize(10);
     doc.setFont('NotoSans', 'normal');
     doc.rect(pageWidth - 60, y, 50, 15);
-    doc.text(period, pageWidth - 55, y + 9);
+    doc.text(`${displayMonth} ${year}`, pageWidth - 55, y + 9);
+    //doc.text(displayMonth, year, pageWidth - 55, y + 9);
 
     // Add payroll statement box
     doc.rect(pageWidth - 60, y + 15, 50, 15);
