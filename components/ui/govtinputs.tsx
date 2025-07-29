@@ -21,7 +21,7 @@ export const GovIDCardInput = ({
 }: GovIDInputProps) => {
 
 const tooltipMessages: Record<string, string> = {
-  "SSS Number": "This field is optional. If applicable, please enter your 10-digit SSS Number (e.g., 01-2345678-9).",
+  "SSS Number": "This field is optional. If applicable, please enter your 10-digit SSS Number.",
   "Tax Number": "This field is optional. If applicable, please enter your 9-digit Tax Identification Number (TIN) as issued by the BIR.",
   "Philhealth Number": "This field is optional. If applicable, please provide your 12-digit PhilHealth Identification Number.",
   "HDMF Number": "This field is optional. If applicable, please enter your 12-digit HDMF Number.",

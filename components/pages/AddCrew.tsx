@@ -1350,7 +1350,7 @@ export default function AddCrew() {
                               formData.sssNumber.length !== 10 && (
                                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                                   <Info className="w-4 h-4" />
-                                  Enter your 10-digit SSS Number (e.g., 01-2345678-9).
+                                  Enter your 10-digit SSS Number.
                                 </p>
                               )}
                           </div>
