@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ship, CircleMinus, UserCheck, SquareUserRound, ShipWheel } from "lucide-react";
+import { LayoutDashboard, Users, Ship, CircleMinus, UserCheck, SquareUserRound, ShipWheel, Footprints } from "lucide-react";
 import { RiCoinsFill } from "react-icons/ri";
 import { TbCurrencyDollarOff } from "react-icons/tb";
 import { BiReceipt } from "react-icons/bi";
@@ -22,48 +22,18 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       active:
         pathname === "/home/crew" ||
         (pathname.startsWith("/home/crew/") &&
-        !pathname.startsWith("/home/crew-payroll")),
+          !pathname.startsWith("/home/crew-payroll")),
       allowedUserTypes: [3],
     },
-    // {
-    //   label: "Vessel Profile",
-    //   icon: Ship,
-    //   href: "/home/vessel",
-    //   active:
-    //     pathname === "/home/vessel" ||
-    //     (pathname.startsWith("/home/vessel/") &&
-    //     !pathname.startsWith("home/vessel-movement/")),
-    //   allowedUserTypes: [3],
-    // },
-    // {
-    //   label: "Vessel Movement",
-    //   icon: ShipWheel,
-    //   href: "/home/vessel-movement",
-    //   active: pathname.startsWith("/home/vessel-movement"),
-    //   allowedUserTypes: [3],
-    // },
     {
-      label: "Vessels",
+      label: "Vessel Profile",
       icon: Ship,
       href: "/home/vessel",
-      active: pathname.startsWith("/home/vessel"),
+      active:
+        pathname === "/home/vessel" ||
+        (pathname.startsWith("/home/vessel/") &&
+          !pathname.startsWith("home/vessel-movement/")),
       allowedUserTypes: [3],
-      subItems: [
-        {
-          label: "Vessel Profile",
-          href: "/home/vessel",
-          active:
-            pathname === "/home/vessel"  ||
-            pathname === "/home/vessel",
-          allowedUserTypes: [3],
-        },
-        {
-          label: "Vessel Movement",
-          href: "/home/vessel-movement",
-          active: pathname === "/home/vessel-movement",
-          allowedUserTypes: [3],
-        },
-      ],
     },
     {
       label: "Wages",
@@ -71,7 +41,7 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       href: "/home/wages",
       active: pathname.startsWith("/home/wages"),
       allowedUserTypes: [3],
-    },  
+    },
     {
       label: "Deduction",
       icon: TbCurrencyDollarOff,
@@ -127,6 +97,13 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       href: "/home/crew-payroll",
       active: pathname.startsWith("/home/crew-payroll"),
       allowedUserTypes: [3, 4],
+    },
+    {
+      label: "Crew Movement",
+      icon: Footprints,
+      href: "/home/crew-movement",
+      active: pathname.startsWith("/home/crew-movement"),
+      allowedUserTypes: [3],
     },
     {
       label: "Applications",

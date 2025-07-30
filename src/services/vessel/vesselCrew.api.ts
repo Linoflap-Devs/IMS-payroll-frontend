@@ -17,8 +17,7 @@ export interface VesselCrewResponse {
     data: IOnBoardCrew
 }
 
-
-export const addCrewToVessel = async (crewCode: string, vesselId: number, portId: number, rankId: number, dateOnBoard: Date): Promise<VesselCrewResponse> => {
+export const addCrewToVessel = async (crewCode: string, vesselId: number, portId: number | undefined, rankId: number, dateOnBoard: Date): Promise<VesselCrewResponse> => {
     const response = await axiosInstance.post<VesselCrewResponse>(`/vessels/${vesselId}/crew/${crewCode}/sign-on`, {
         rankId: rankId,
         portId: portId,

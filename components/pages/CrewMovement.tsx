@@ -18,7 +18,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Search, MoreHorizontal, Filter, UserPen } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useDebounce } from "@/lib/useDebounce";
@@ -35,14 +34,12 @@ interface Vessel {
   status: string;
 }
 
-export default function VesselMovement() {
+export default function CrewMovement() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [vesselFilter, setVesselFilter] = useState("all");
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [loading, setLoading] = useState(false);
   const [loadingVessels, setLoadingVessels] = useState(false);
   const [vesselData, setVesselData] = useState<Vessel[]>([]);
-  const [statusFilter, setStatusFilter] = useState("all");
   const [vesselTypeFilter, setVesselTypeFilter] = useState("all");
 
   // Fetch vessel list on mount
@@ -105,26 +102,6 @@ export default function VesselMovement() {
         <div className="text-justify">{row.getValue("principalName")}</div>
       ),
     },
-    
-    {
-      accessorKey: "status",
-      header: () => <div className="text-justify">Status</div>,
-      cell: ({ row }) => {
-        const statusRow = row.getValue("status") as string;
-        return (
-          <div className="text-justify">
-            <Badge
-              className={`text-xs sm:text-sm w-full rounded-full bg-[#E7F0F9] text-[#1F279C]/90 ${statusRow === "Active"
-                ? "bg-[#E7F0F9] text-[#1F279C]/90"
-                : "bg-red-500/20 text-red-800"
-                }`}
-            >
-              {statusRow}
-            </Badge>
-          </div>
-        );
-      },
-    },
     {
       id: "actions",
       header: () => <div className="text-center">Actions</div>,
@@ -142,7 +119,7 @@ export default function VesselMovement() {
             <DropdownMenuContent align="end" className="text-sm">
               <DropdownMenuItem asChild>
                 <Link
-                  href={`/home/vessel-movement/crew-list?id=${vessel.vesselId}&vesselName=${vessel.vesselName}`}>
+                  href={`/home/crew-movement/crew-list?id=${vessel.vesselId}&vesselName=${vessel.vesselName}`}>
                   <UserPen className="mr-2 h-4 w-4" /> Manage Crew List
                 </Link>
               </DropdownMenuItem>
@@ -160,15 +137,12 @@ export default function VesselMovement() {
       v.vesselName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.vesselTypeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.principalName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" ||
-      v.status.toLowerCase() === statusFilter.toLowerCase();
 
     const matchesVesselType =
       vesselTypeFilter === "all" ||
       v.vesselTypeName.toLowerCase() === vesselTypeFilter.toLowerCase();
 
-    return matchesSearch && matchesStatus && matchesVesselType;
+    return matchesSearch && matchesVesselType;
   });
 
   return (
@@ -188,7 +162,7 @@ export default function VesselMovement() {
       <div className="h-full overflow-y-auto scrollbar-hide">
         <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-semibold mb-0">Vessel Movement</h1>
+            <h1 className="text-3xl font-semibold mb-0">Crew Movement</h1>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
             <div className="relative w-full md:flex-1">
@@ -219,24 +193,7 @@ export default function VesselMovement() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                  <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
-                  <SelectValue placeholder="Filter by vessel" />
-                </SelectTrigger>
-                <SelectContent className="max-h-80">
-                  <SelectItem value="all">All Status</SelectItem>
-                  {[
-                    ...new Set(
-                      vesselData.map((item) => item.status)
-                    ),
-                  ].map((Status) => (
-                    <SelectItem key={Status} value={String(Status || "")}>
-                      {Status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              
             </div>
           </div>
           <div className="text-center">

@@ -27,6 +27,16 @@ import { toast } from "../ui/use-toast";
 interface RepatriateCrewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  crewMembers: {
+    id: number;
+    name: string;
+    status: string;
+    rank: string;
+    crewCode: string;
+    currentVessel?: string;
+    country?: string;
+    vesselId: number;
+  }[];
   crewMember: {
     id: number;
     name: string;
@@ -36,7 +46,7 @@ interface RepatriateCrewDialogProps {
     currentVessel?: string;
     country?: string;
     vesselId: number;
-  };
+  }[];
   setOnSuccess: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -60,7 +70,6 @@ function SimpleSearchableSelect({
   const [filteredOptions, setFilteredOptions] = useState(options);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
   const selectedOption = options.find((option) => option.value === value);
 
   useEffect(() => {
@@ -176,8 +185,9 @@ function SimpleSearchableSelect({
 export function RepatriateCrewDialog({
   open,
   onOpenChange,
-  crewMember,
+  crewMembers,
   setOnSuccess,
+  crewMember,
 }: RepatriateCrewDialogProps) {
   const [crew, setCrew] = useState<CrewBasic | null>(null);
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
@@ -191,9 +201,10 @@ export function RepatriateCrewDialog({
 
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  //console.log("SELECTED CREWS IN THE REPATRIATE DIALOG:", crewMembers);
 
   useEffect(() => {
-    if (open) {
+    if (open) { 
       getCrewBasic(crewMember.crewCode)
         .then((response) => {
           if (response.success) {
@@ -477,6 +488,28 @@ export function RepatriateCrewDialog({
                 </p>
               )}
             </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Selected Crew(s) to Repatriate:</h3>
+
+              {crewMembers.length === 0 ? (
+                <p className="text-sm text-gray-500">No crew selected.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {crewMembers.map((crew, index) => (
+                    <li
+                      key={index}
+                      className="p-3 border rounded-md bg-gray-50 text-sm text-gray-700"
+                    >
+                      <p><strong>Name:</strong> {crew.name}</p>
+                      <p><strong>Status:</strong> {crew.status}</p>
+                      <p><strong>Rank:</strong> {crew.rank}</p>
+                      <p><strong>Crew Code:</strong> {crew.crewCode}</p>
+                      <p><strong>Vessel:</strong> {crew.currentVessel || "N/A"}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
 
@@ -492,7 +525,7 @@ export function RepatriateCrewDialog({
           <Button
             className="flex-1 bg-red-600 hover:bg-red-700"
             onClick={handleSubmit}
-            disabled={isLoading}
+            disabled={isLoading}  
           >
             {isLoading ? (
               <>

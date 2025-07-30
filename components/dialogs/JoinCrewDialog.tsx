@@ -13,7 +13,7 @@ import { Input } from "../ui/input";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { IOffBoardCrew } from "./SearchCrewDialog";
 import { useEffect, useState, useRef, Dispatch, SetStateAction } from "react";
-import { CrewBasic, getCrewBasic } from "@/src/services/crew/crew.api";
+import { CrewBasic, CrewRankItem, getCrewBasic, getCrewRankList } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
@@ -188,10 +188,13 @@ export function JoinCrewDialog({
 }: JoinCrewDialogProps) {
   const [crew, setCrew] = useState<CrewBasic | null>(null);
   const [vesselList, setVesselList] = useState<IVesselItem[]>([]);
+  const [rankList, setRankList] = useState<CrewRankItem[]>([]);
+
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
   const [allPorts, setAllPorts] = useState<IPort[]>([]);
   const [filteredPorts, setFilteredPorts] = useState<IPort[]>([]);
   const [selectedVessel, setSelectedVessel] = useState("");
+  const [selectedRank, setSelectedRank] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedPort, setSelectedPort] = useState("");
   const [signOnDate, setSignOnDate] = useState(() => {
@@ -200,7 +203,7 @@ export function JoinCrewDialog({
   });
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
+  
   useEffect(() => {
     if (open) {
       getCrewBasic(crewMember.CrewCode)
@@ -252,6 +255,22 @@ export function JoinCrewDialog({
       setSubmitted(false);
     }
   }, [open, SelectedVesselID]);
+
+  useEffect(() => {
+    if (open) {
+      getCrewRankList()
+        .then((response) => {
+          if (response.success) {
+            setRankList(response.data);
+          } else {
+            console.error("Failed to fetch rank list:", response.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching rank list:", error);
+        });
+    }
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -309,6 +328,12 @@ export function JoinCrewDialog({
     label: vessel.VesselName,
   }));
 
+  const rankOptions = rankList.map((rank) => ({
+    id: rank.RankID,
+    value: rank.RankID.toString(),
+    label: rank.RankName,
+  })) 
+
   const countriesWithPorts = [
     ...new Set(allPorts.map((port) => port.CountryID)),
   ];
@@ -329,14 +354,12 @@ export function JoinCrewDialog({
 
   const handleSubmit = () => {
     setSubmitted(true);
-    if (!selectedVessel || !selectedPort || !signOnDate) {
+    if (!selectedVessel || !signOnDate) {
       toast({
         title: "Error",
-        description:
-          "Please fill in all required fields. (Vessel, Port, Sign on date)",
+        description: "Please fill in all required fields. (Vessel, Sign on date)",
         variant: "destructive",
       });
-
       return;
     }
 
@@ -345,7 +368,7 @@ export function JoinCrewDialog({
     const joinCrewData = {
       crewCode: crewMember.CrewCode,
       vesselId: Number(selectedVessel),
-      portId: Number(selectedPort),
+      portId: Number(selectedPort) || undefined,
       dateOnBoard: signOnDate,
       rankId: crewMember.RankID,
     };
@@ -353,7 +376,7 @@ export function JoinCrewDialog({
     addCrewToVessel(
       joinCrewData.crewCode,
       joinCrewData.vesselId,
-      joinCrewData.portId,
+      joinCrewData.portId ,
       joinCrewData.rankId,
       new Date(joinCrewData.dateOnBoard)
     )
@@ -494,6 +517,19 @@ export function JoinCrewDialog({
             </div>
 
             <div className="space-y-2">
+              <label className="text-sm font-medium">Rank</label>
+              <SimpleSearchableSelect
+                options={rankOptions}
+                placeholder="Select rank"
+                value={selectedRank}
+                onChange={setSelectedVessel}
+                className={`w-full ${
+                  submitted && !selectedRank ? "border-red-500" : ""
+                }`}
+              />
+            </div>
+
+            <div className="space-y-2">
               <label className="text-sm font-medium">Country</label>
               <SimpleSearchableSelect
                 options={countryOptions}
@@ -515,17 +551,17 @@ export function JoinCrewDialog({
                 placeholder="Select port"
                 value={selectedPort}
                 onChange={setSelectedPort}
-                disabled={!selectedCountry} // Disable when country is not selected
-                className={`w-full ${
-                  submitted && !selectedPort && selectedCountry ? "border-red-500" : ""
-                }`}
+                disabled={!selectedCountry}
+                // className={`w-full ${
+                //   submitted && !selectedPort && selectedCountry ? "border-red-500" : ""
+                // }`}
               />
-              {submitted && !selectedPort && selectedCountry && (
+              {/* {submitted && !selectedPort && selectedCountry && (
                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
                   <Info className="w-4 h-4" />
                   Please select a port.
                 </p>
-              )}
+              )} */}
             </div>
 
             <div className="space-y-2">
