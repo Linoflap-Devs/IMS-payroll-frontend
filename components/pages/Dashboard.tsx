@@ -360,7 +360,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
         <Card>
           <CardHeader className="pb-1 p-3">
-            <CardTitle className="text-base">
+            <CardTitle className="text-lg">
               Total Vessel Net Allottment
             </CardTitle>
           </CardHeader>
@@ -418,7 +418,7 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="pb-1 p-3">
-            <CardTitle className="text-base">
+            <CardTitle className="text-lg">
               Total Salary Processed (₱)
             </CardTitle>
           </CardHeader>
@@ -490,7 +490,7 @@ export default function Dashboard() {
                                   Value
                                 </span>
                                 <span className="font-bold text-foreground">
-                                  ${payload[0].value.toLocaleString()}
+                                  ₱{payload[0].value.toLocaleString()}
                                 </span>
                               </div>
                             </div>

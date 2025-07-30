@@ -211,12 +211,7 @@ export default function LoginHistory() {
 
   return (
     <div className="h-full w-full p-6 pt-5 bg-[#F6F8FC]">
-      <div className="mb-2">
-        <span className="text-xs text-[#6B7280] font-medium cursor-pointer">
-          Login History
-        </span>
-      </div>
-      <h1 className="text-3xl font-semibold mb-6">Login History</h1>
+      <h1 className="text-3xl font-semibold my-4">Login History</h1>
 
       <div className="flex flex-wrap gap-4 items-center mb-6">
         <Select value={selectedUser} onValueChange={setSelectedUser}>
