@@ -60,11 +60,10 @@ export default function VesselCrewList() {
   const [vesselData, setVesselData] = useState<VesselCrewResponse | null>(null);
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
-  const [searchCrewDialogOpen, setSearchCrewDialogOpen] = useState(false);
-  const [joinCrewDialogOpen, setJoinCrewDialogOpen] = useState(false);
+  //const [searchCrewDialogOpen, setSearchCrewDialogOpen] = useState(false);
+  //const [joinCrewDialogOpen, setJoinCrewDialogOpen] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew>();
-  const [selectedOffBoardCrew, setSelectedOffBoardCrew] =
-    useState<IOffBoardCrew | null>(null);
+  //const [selectedOffBoardCrew, setSelectedOffBoardCrew] = useState<IOffBoardCrew | null>(null);
   const [onSuccess, setOnSuccess] = useState(false);
   const [selectedRank, setSelectedRank] = useState<string | null>(null);
 
@@ -208,7 +207,6 @@ export default function VesselCrewList() {
       header: "Action",
       cell: ({ row }) => {
         const crew = row.original;
-
         return (
           <div className="text-center">
             <DropdownMenu>
@@ -219,14 +217,6 @@ export default function VesselCrewList() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedCrew(crew);
-                    setRepatriateDialogOpen(true);
-                  }}>
-                  <TbShipOff />
-                  Repatriate
-                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedCrew(crew);
@@ -364,13 +354,6 @@ export default function VesselCrewList() {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button
-              className="gap-2 h-11 px-5"
-              onClick={() => setSearchCrewDialogOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-              Join Crew
-            </Button>
           </div>
         </div>
 
@@ -406,49 +389,6 @@ export default function VesselCrewList() {
               }
         }
       />
-
-      <RepatriateCrewDialog
-        open={repatriateDialogOpen}
-        onOpenChange={setRepatriateDialogOpen}
-        setOnSuccess={setOnSuccess}
-        crewMember={
-          selectedCrew
-            ? {
-                ...selectedCrew,
-                currentVessel: vesselName || "",
-                vesselId: vesselId ? Number(vesselId) : 0,
-              }
-            : {
-                id: 0,
-                name: "",
-                status: "",
-                rank: "",
-                crewCode: "",
-                currentVessel: "",
-                vesselId: 0,
-              }
-        }
-      />
-
-      <SearchCrewDialog
-        open={searchCrewDialogOpen}
-        onOpenChange={setSearchCrewDialogOpen}
-        onCrewSelect={(crew) => {
-          setSelectedOffBoardCrew(crew);
-          setJoinCrewDialogOpen(true);
-        }}
-      />
-
-      {selectedOffBoardCrew && (
-        <JoinCrewDialog
-          open={joinCrewDialogOpen}
-          setOnSuccess={setOnSuccess}
-          onOpenChange={setJoinCrewDialogOpen}
-          crewMember={selectedOffBoardCrew}
-          SelectedVesselID={Number(vesselId) || 0}
-          SelectedVesselName={vesselName ?? ""}
-        />
-      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Ship, CircleMinus, UserCheck, SquareUserRound } from "lucide-react";
+import { LayoutDashboard, Users, Ship, CircleMinus, UserCheck, SquareUserRound, ShipWheel } from "lucide-react";
 import { RiCoinsFill } from "react-icons/ri";
 import { TbCurrencyDollarOff } from "react-icons/tb";
 import { BiReceipt } from "react-icons/bi";
@@ -25,12 +25,45 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
         !pathname.startsWith("/home/crew-payroll")),
       allowedUserTypes: [3],
     },
+    // {
+    //   label: "Vessel Profile",
+    //   icon: Ship,
+    //   href: "/home/vessel",
+    //   active:
+    //     pathname === "/home/vessel" ||
+    //     (pathname.startsWith("/home/vessel/") &&
+    //     !pathname.startsWith("home/vessel-movement/")),
+    //   allowedUserTypes: [3],
+    // },
+    // {
+    //   label: "Vessel Movement",
+    //   icon: ShipWheel,
+    //   href: "/home/vessel-movement",
+    //   active: pathname.startsWith("/home/vessel-movement"),
+    //   allowedUserTypes: [3],
+    // },
     {
-      label: "Vessel Profile",
+      label: "Vessels",
       icon: Ship,
       href: "/home/vessel",
       active: pathname.startsWith("/home/vessel"),
       allowedUserTypes: [3],
+      subItems: [
+        {
+          label: "Vessel Profile",
+          href: "/home/vessel",
+          active:
+            pathname === "/home/vessel"  ||
+            pathname === "/home/vessel",
+          allowedUserTypes: [3],
+        },
+        {
+          label: "Vessel Movement",
+          href: "/home/vessel-movement",
+          active: pathname === "/home/vessel-movement",
+          allowedUserTypes: [3],
+        },
+      ],
     },
     {
       label: "Wages",

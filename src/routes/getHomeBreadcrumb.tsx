@@ -18,6 +18,7 @@ export const getHomeBreadcrumb = (pathname: string, userType: number) => {
   if (pathname.startsWith("/home/crew/details")) return match("/home/crew", "Crew List", "Crew Details");
   if (pathname.startsWith("/home/crew/add-crew")) return match("/home/crew", "Crew List", "Add Crew");
   if (pathname.startsWith("/home/vessel/crew-list")) return match("/home/vessel", "Vessel Profile", "View Crew List");
+  if (pathname.startsWith("/home/vessel-movement/crew-list")) return match("/home/vessel-movement", "Vessel Movement", "Manage Crew List");
   if (pathname.startsWith("/home/deduction/description")) return match("/home/deduction", "Deduction", "Deduction Description");
   if (pathname.startsWith("/home/deduction/deduction-entries")) return match("/home/deduction", "Deduction", "Deduction Entries");
   if (pathname.startsWith("/home/allotment/allotment_register")) return match("/home/allotment", "Allotment Payroll", "Allotment Register");
