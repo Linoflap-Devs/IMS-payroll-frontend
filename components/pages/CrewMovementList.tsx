@@ -9,6 +9,7 @@ import {
   Plus,
   ChevronLeft,
   ArrowDownUp,
+  Filter,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
@@ -20,14 +21,16 @@ import {
   VesselCrewResponse,
 } from "@/src/services/vessel/vessel.api";
 import { useSearchParams } from "next/navigation";
-import { IOffBoardCrew, SearchCrewDialog } from "../dialogs/SearchCrewDialog";
 import { JoinCrewDialog } from "../dialogs/JoinCrewDialog";
 import { RepatriateCrewDialog } from "../dialogs/RepatriateCrewDialog";
 import { Checkbox } from "../ui/checkbox";
 import { TbShipOff } from "react-icons/tb";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { useDebounce } from "@/lib/useDebounce";
+import { getCrewList } from "@/src/services/crew/crew.api";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
-export interface ISelectedCrew {
+interface ISelectedCrew {
   id: number;
   name: string;
   status: string;
@@ -35,8 +38,18 @@ export interface ISelectedCrew {
   crewCode: string;
   currentVessel?: string;
   vesselId?: number;
-  // signOnDate?: string;
-  // currentVessel?: string;
+}
+
+export interface IOffBoardCrew {
+  CrewCode: string;
+  LastName: string;
+  FirstName: string;
+  MiddleName: string;
+  RankID: number;
+  Rank: string;
+  CrewStatusID: number;
+  AccountValidation: number | null;
+  IsActive: number;
 }
 
 export default function CrewMovementList() {
@@ -44,38 +57,77 @@ export default function CrewMovementList() {
   const vesselId = searchParams.get("id");
   const vesselName = searchParams.get("vesselName");
   const [searchTerm, setSearchTerm] = useState("");
-  //const [statusFilter, setStatusFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("join-crew");
   const [vesselData, setVesselData] = useState<VesselCrewResponse | null>(null);
-  const [isLoading, setLoading] = useState(false);
   const [onSuccess, setOnSuccess] = useState(false);
-  const [selectedRank, setSelectedRank] = useState<string | null>(null);
-  const [searchCrewDialogOpen, setSearchCrewDialogOpen] = useState(false);
-  const [selectedOffBoardCrew, setSelectedOffBoardCrew] =
-    useState<IOffBoardCrew | null>(null);
+  const [selectedOffBoardCrew, setSelectedOffBoardCrew] = useState<IOffBoardCrew[] | null>([]);
   const [joinCrewDialogOpen, setJoinCrewDialogOpen] = useState(false);
-  //const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew>();
   const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew[]>([]);
   const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
-  const [isDisabled, setDisabled] = useState(true);
+
+  const debouncedSearch = useDebounce(searchTerm, 500);
+  const [displayedCrews, setDisplayedCrews] = useState<IOffBoardCrew[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [allCrews, setAllCrews] = useState<IOffBoardCrew[]>([]);
+  const [rankFilter, setRankFilter] = useState("all");
 
   useEffect(() => {
     const fetchVesselCrew = async () => {
       if (!vesselId) return;
-      setLoading(true);
+      setIsLoading(true);
       try {
         const response = await getVesselCrew(vesselId);
         setVesselData(response);
       } catch (error) {
         console.error("Error fetching vessel crew:", error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchVesselCrew();
   }, [vesselId, onSuccess]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    getCrewList()
+      .then((response) => {
+        if (response.success) {
+          const offBoardCrews = response.data.filter(
+            (crew) => crew.CrewStatusID === 2
+          );
+          setAllCrews(offBoardCrews);
+          setDisplayedCrews(offBoardCrews.slice(0, 50));
+        } else {
+          console.error("Failed to fetch crew list:", response.message);
+        }
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching crew list:", error);
+        setIsLoading(false);
+      });
+  }, []);
+
+  const selectedCrews = Object.keys(selectedRowIds)
+    .filter((id) => selectedRowIds[id])
+    .map((id) => displayedCrews[parseInt(id, 10)]);
+
+  useEffect(() => {
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase();
+      const filtered = allCrews.filter(
+        (crew) =>
+          crew.FirstName.toLowerCase().includes(searchLower) ||
+          crew.LastName.toLowerCase().includes(searchLower) ||
+          crew.CrewCode.toLowerCase().includes(searchLower)
+      );
+      setDisplayedCrews(filtered.slice(0, 50));
+    } else {
+      setDisplayedCrews(allCrews.slice(0, 50));
+    }
+  }, [debouncedSearch, allCrews]);
 
   const crewData = useMemo(
     () =>
@@ -90,32 +142,63 @@ export default function CrewMovementList() {
       })) || [],
     [vesselData]
   );
+
   const selectedRows = crewData.filter((row) => selectedRowIds[row.crewCode]);
 
-  // Extract unique ranks from crew data
-  const uniqueRanks = useMemo(() => {
-    const ranks = crewData.map((crew) => crew.rank);
-    return [...new Set(ranks)].sort();
-  }, [crewData]);
-
-  // Filter crew data based on search term and selected rank
   const filteredCrewData = useMemo(() => {
     return crewData.filter((crew) => {
       const matchesSearch = searchTerm
-        ? crew.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ? `${crew.name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
         crew.rank.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
 
-      const matchesRank = selectedRank ? crew.rank === selectedRank : true;
+      const matchesRank = rankFilter && rankFilter !== "all"
+        ? crew.rank.toLowerCase() === rankFilter.toLowerCase()
+        : true;
 
       return matchesSearch && matchesRank;
     });
-  }, [crewData, searchTerm, selectedRank]);
+  }, [crewData, searchTerm, rankFilter]);
 
-  const columns: ColumnDef<(typeof crewData)[number]>[] = [
+  const filteredJoinCrewData = useMemo(() => {
+    return displayedCrews.filter((crew) => {
+      const matchesSearch = searchTerm
+        ? `${crew.FirstName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        crew.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        crew.Rank.toLowerCase().includes(searchTerm.toLowerCase())
+        : true;
+
+      const matchesRank = rankFilter && rankFilter !== "all"
+        ? crew.Rank.toLowerCase() === rankFilter.toLowerCase()
+        : true;
+
+      return matchesSearch && matchesRank;
+    });
+  }, [displayedCrews, searchTerm, rankFilter]);
+
+  const columnJoin: ColumnDef<IOffBoardCrew>[] = [
     {
-      accessorKey: "crewCode",
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "CrewCode",
       header: ({ column }) => (
         <div
           className="flex items-center justify-center cursor-pointer text-left space-x-2"
@@ -126,41 +209,44 @@ export default function CrewMovementList() {
         </div>
       ),
       cell: ({ row }) => (
-        <div className="text-left">{row.getValue("crewCode")}</div>
+        <div className="text-left">{row.getValue("CrewCode")}</div>
       ),
     },
     {
-      accessorKey: "name",
+      id: "Crew Name",
       header: ({ column }) => (
         <div
           className="flex items-center justify-center cursor-pointer text-left space-x-2"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
           <p>Crew Name</p>
-
           <ArrowDownUp size={15} />
         </div>
       ),
-      cell: ({ row }) => (
-        <div className="text-left">{row.getValue("name")}</div>
-      ),
+      accessorFn: (row) => `${row.LastName}, ${row.FirstName}`, // for sorting
+      cell: ({ row }) => {
+        const lastName = row.original.LastName;
+        const firstName = row.original.FirstName;
+
+        return <div className="text-left">{`${lastName}, ${firstName}`}</div>;
+      },
     },
     {
-      accessorKey: "rank",
+      accessorKey: "Rank",
       header: ({ column }) => (
         <div
           className="flex items-center justify-center cursor-pointer text-left space-x-2"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           <p>Rank</p>
-
           <ArrowDownUp size={15} />
         </div>
       ),
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("rank")}</div>
+        <div className="text-center">{row.getValue("Rank")}</div>
       ),
     },
     {
-      accessorKey: "status",
+      accessorKey: "CrewStatusID",
       header: ({ column }) => (
         <div
           className="flex items-center cursor-pointer justify-center"
@@ -169,17 +255,16 @@ export default function CrewMovementList() {
         </div>
       ),
       cell: ({ row }) => {
-        const status = row.getValue("status") as string;
+        const status = row.getValue("CrewStatusID");
         return (
-          <div className="flex justify-center">
-            <Badge
-              variant="secondary"
-              className={`${status === "On board"
-                ? "bg-green-100 text-green-800 hover:bg-green-100/80"
-                : "bg-gray-100 text-gray-800 hover:bg-gray-100/80"
-                }`}>
-              {status}
-            </Badge>
+          <div>
+            <span
+              className={`${status === 2
+                ? "bg-red-100 text-red-600"
+                : "bg-green-100 text-green-600"
+                } px-2 py-0.5 rounded-full text-xs`}>
+              {status === 2 ? "Off board" : "On board"}
+            </span>
           </div>
         );
       },
@@ -300,6 +385,26 @@ export default function CrewMovementList() {
     setRepatriateDialogOpen(true);
   };
 
+  const handleJoin = () => {
+    if (!selectedCrews || selectedCrews.length === 0) {
+      console.log("No crews selected.");
+      return;
+    }
+
+    const mappedSelectedCrew: ISelectedCrew[] = selectedCrews.map((crew, idx) => ({
+      id: idx + 1,
+      name: `${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + " " : ""}${crew.LastName}`,
+      status: "Off board", // assuming all selected are off-board
+      rank: crew.Rank,
+      crewCode: crew.CrewCode,
+      vesselId: 0,
+    }));
+
+    setSelectedCrew(mappedSelectedCrew);
+    setSelectedOffBoardCrew(selectedCrews);
+    setJoinCrewDialogOpen(true);
+  };
+
   return (
     <div className="h-full w-full p-3 pt-3 overflow-hidden">
       <style jsx global>{`
@@ -339,48 +444,8 @@ export default function CrewMovementList() {
               </Link>
               <h1 className="text-3xl font-semibold mb-0">Vessel {vesselName}</h1>
             </div>
-
-            {/* <Card className="p-6 bg-[#F5F6F7]">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <div className="text-xl text-gray-500 uppercase">
-                    {vesselData?.data.VesselInfo.VesselCode}
-                  </div>
-                  <h2 className="text-2xl font-semibold">
-                    {vesselData?.data.VesselInfo.VesselName}
-                  </h2>
-                  <Badge
-                    variant="secondary"
-                    className={`mt-2 px-6 py-0 ${vesselData?.data.VesselInfo.Status === 1
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
-                      }`}
-                  >
-                    {vesselData?.data.VesselInfo.Status === 1
-                      ? "Active"
-                      : "Inactive"}
-                  </Badge>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg flex items-center gap-2">
-                    <Ship className="h-4 w-4" />
-                    {vesselData?.data.VesselInfo.VesselType}
-                  </div>
-                  <Card className="p-1 bg-[#FDFDFD] mt-2">
-                    <div className="text-sm text-center">
-                      <p className="flex items-center justify-center font-semibold px-3">
-                        {vesselData?.data.VesselInfo.Principal}
-                      </p>
-                      <div className="text-gray-500 text-xs flex items-center justify-center">
-                        Principal Name
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              </div>
-            </Card> */}
-
           </div>
+
           <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
             <Tabs
               defaultValue={activeTab}
@@ -395,20 +460,14 @@ export default function CrewMovementList() {
                       value="join-crew"
                       className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
                     >
-                      Join Crew
+                      Join Crews
                     </TabsTrigger>
                     <TabsTrigger
                       value="repatriate-crew"
                       className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
                     >
-                      Repatriate Crew(s)
+                      Repatriate Crews
                     </TabsTrigger>
-                    {/* <TabsTrigger
-                      value="promote-crew"
-                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
-                    >
-                      Promote Crew
-                    </TabsTrigger> */}
                   </TabsList>
                 </div>
               </div>
@@ -422,36 +481,72 @@ export default function CrewMovementList() {
                     <div className="relative w-full md:flex-1">
                       <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
                       <Input
-                        placeholder="Search crew by name, code, or rank..."
-                        className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
+                        placeholder="Search Crew name or Crew Code....."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 h-11 bg-[#EAEBF9]"
                       />
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-                      <Button
-                        className="gap-2 h-11 px-5"
-                        onClick={() => setSearchCrewDialogOpen(true)}
+                      <Select
+                        value={rankFilter}
+                        onValueChange={setRankFilter}
                       >
-                        <Plus className="h-4 w-4" />
-                        Join Crew
-                      </Button>
+                        <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                          <Filter className="h-4 w-4" />
+                          <SelectValue placeholder="All Ranks" />
+                        </SelectTrigger>
+
+                        <SelectContent className="max-h-60 overflow-y-auto">
+                          <SelectItem value="all">All Ranks</SelectItem>
+                          {[...new Set(displayedCrews.map((item) => item.Rank).filter(Boolean))].map(
+                            (rank) => (
+                              <SelectItem key={rank} value={rank}>
+                                {rank}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-block">
+                            <Button
+                              className="gap-2 h-11 px-5"
+                              onClick={handleJoin}
+                              disabled={selectedCrews.length === 0}
+                            >
+                              <Plus />
+                              Join Crew(s)
+                            </Button>
+                          </span>
+                        </TooltipTrigger>
+                        {selectedCrews.length === 0 && (
+                          <TooltipContent className="text-sm">
+                            Select Crew(s) to join.
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
                     </div>
                   </div>
-                  {isLoading ? (
-                    <div className="flex justify-center items-center h-40">
-                      <p className="text-muted-foreground">Loading vessel data...</p>
-                    </div>
-                  ) : (
-                    <div className="bg-[#F9F9F9] rounded-md border pb-3">
+
+                  <div className="rounded-md border overflow-y-auto">
+                    {isLoading ? (
+                      <div className="p-4 text-center">Loading crew data...</div>
+                    ) : (
                       <DataTable
-                        columns={columns}
-                        data={filteredCrewData}
-                        pageSize={7}
+                        columns={columnJoin}
+                        data={filteredJoinCrewData}
+                        pageSize={10}
+                        rowSelection={selectedRowIds}
+                        onRowSelectionChange={setSelectedRowIds}
                       />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </TabsContent>
 
@@ -472,6 +567,29 @@ export default function CrewMovementList() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+                      <Select
+                        value={rankFilter}
+                        onValueChange={setRankFilter}
+                      >
+                        <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                          <Filter className="h-4 w-4" />
+                          <SelectValue placeholder="All Ranks" />
+                        </SelectTrigger>
+
+                        <SelectContent className="max-h-60 overflow-y-auto">
+                          <SelectItem value="all">All Ranks</SelectItem>
+                          {[...new Set(crewData.map((item) => item.rank).filter(Boolean))].map(
+                            (rank) => (
+                              <SelectItem key={rank} value={rank}>
+                                {rank}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="inline-block">
@@ -481,28 +599,29 @@ export default function CrewMovementList() {
                               disabled={selectedRows.length === 0}
                             >
                               <TbShipOff />
-                              Repatriate Crew
+                              Repatriate Crews
                             </Button>
                           </span>
                         </TooltipTrigger>
-                          {selectedRows.length === 0 && (
-                            <TooltipContent className="text-sm">
-                              Select Crew(s) to repatriate.
-                            </TooltipContent>
-                          )}
+                        {selectedRows.length === 0 && (
+                          <TooltipContent className="text-sm">
+                            Select Crew(s) to repatriate.
+                          </TooltipContent>
+                        )}
                       </Tooltip>
                     </div>
+
                   </div>
                   {isLoading ? (
                     <div className="flex justify-center items-center h-40">
-                      <p className="text-muted-foreground">Loading vessel type data...</p>
+                      <p className="text-muted-foreground">Loading crew data...</p>
                     </div>
                   ) : (
                     <div className="bg-[#F9F9F9] rounded-md border pb-3">
                       <DataTable
                         columns={columRepatriate}
-                        data={crewData}
-                        pageSize={7}
+                        data={filteredCrewData}
+                        pageSize={10}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                       />
@@ -528,45 +647,36 @@ export default function CrewMovementList() {
           currentVessel?: string;
           country?: string;
           vesselId: number;
-        }[]} 
+        }[]}
         crewMember={[]}  // temporarily   
-        //selectedCrews={selectedCrew.length > 0 ? selectedCrew : []} 
-        // crewMember={{
-        //   id: 0,
-        //   name: "",
-        //   status: "",
-        //   rank: "",
-        //   crewCode: "",
-        //   currentVessel: undefined,
-        //   country: undefined,
-        //   vesselId: 0
-        // }}
-        // crewMember={
-        //   selectedCrew
-        //     ? {
-        //       ...selectedCrew,
-        //       currentVessel: vesselName || "",
-        //       vesselId: vesselId ? Number(vesselId) : 0,
-        //     }
-        //     : {
-        //       id: 0,
-        //       name: "",
-        //       status: "",
-        //       rank: "",
-        //       crewCode: "",
-        //       currentVessel: "",
-        //       vesselId: 0,
-        //     }
-        // }
-      />
-
-      <SearchCrewDialog
-        open={searchCrewDialogOpen}
-        onOpenChange={setSearchCrewDialogOpen}
-        onCrewSelect={(crew) => {
-          setSelectedOffBoardCrew(crew);
-          setJoinCrewDialogOpen(true);
-        }}
+      //selectedCrews={selectedCrew.length > 0 ? selectedCrew : []} 
+      // crewMember={{
+      //   id: 0,
+      //   name: "",
+      //   status: "",
+      //   rank: "",
+      //   crewCode: "",
+      //   currentVessel: undefined,
+      //   country: undefined,
+      //   vesselId: 0
+      // }}
+      // crewMember={
+      //   selectedCrew
+      //     ? {
+      //       ...selectedCrew,
+      //       currentVessel: vesselName || "",
+      //       vesselId: vesselId ? Number(vesselId) : 0,
+      //     }
+      //     : {
+      //       id: 0,
+      //       name: "",
+      //       status: "",
+      //       rank: "",
+      //       crewCode: "",
+      //       currentVessel: "",
+      //       vesselId: 0,
+      //     }
+      // }
       />
 
       {selectedOffBoardCrew && (
@@ -575,8 +685,10 @@ export default function CrewMovementList() {
           setOnSuccess={setOnSuccess}
           onOpenChange={setJoinCrewDialogOpen}
           crewMember={selectedOffBoardCrew}
+          crewMembers={selectedOffBoardCrew}
           SelectedVesselID={Number(vesselId) || 0}
           SelectedVesselName={vesselName ?? ""}
+        //crewMember={undefined}        
         />
       )}
     </div>

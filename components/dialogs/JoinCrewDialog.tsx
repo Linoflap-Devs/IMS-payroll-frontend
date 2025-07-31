@@ -11,7 +11,6 @@ import { Ship, MapPin, User, Check, ChevronDown, Loader2, Info } from "lucide-re
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { IOffBoardCrew } from "./SearchCrewDialog";
 import { useEffect, useState, useRef, Dispatch, SetStateAction } from "react";
 import { CrewBasic, CrewRankItem, getCrewBasic, getCrewRankList } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
@@ -26,11 +25,13 @@ import { cn } from "@/lib/utils";
 import { addCrewToVessel } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "../ui/use-toast";
 import { AxiosError } from "axios";
+import { IOffBoardCrew } from "../pages/CrewMovementList";
 
 interface JoinCrewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  crewMember: IOffBoardCrew;
+  crewMember: IOffBoardCrew[];
+  crewMembers: IOffBoardCrew[];
   SelectedVesselID: number;
   SelectedVesselName: string;
   setOnSuccess: Dispatch<SetStateAction<boolean>>;
@@ -181,6 +182,7 @@ function SimpleSearchableSelect({
 export function JoinCrewDialog({
   open,
   onOpenChange,
+  crewMembers,
   crewMember,
   SelectedVesselID,
   SelectedVesselName,
@@ -203,7 +205,8 @@ export function JoinCrewDialog({
   });
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+  console.log('selected crew members in join dialog:', crewMembers);
+
   useEffect(() => {
     if (open) {
       getCrewBasic(crewMember.CrewCode)
@@ -579,6 +582,29 @@ export function JoinCrewDialog({
                   <Info className="w-4 h-4" />
                   Please select a sign off date.
                 </p>
+              )}
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Selected Crew(s):</h3>
+
+              {crewMembers.length === 0 ? (
+                <p className="text-sm text-gray-500">No crew selected.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {crewMembers.map((crew, index) => (
+                    <li
+                      key={index}
+                      className="p-3 border rounded-md bg-gray-50 text-sm text-gray-700"
+                    >
+                      <p><strong>Name:</strong> {crew.FirstName} {crew.LastName}</p>
+                      {/* <p><strong>Status:</strong> {crew.status}</p>
+                      <p><strong>Rank:</strong> {crew.rank}</p>
+                      <p><strong>Crew Code:</strong> {crew.crewCode}</p>
+                      <p><strong>Vessel:</strong> {crew.Vessel || "N/A"}</p> */}
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           </div>

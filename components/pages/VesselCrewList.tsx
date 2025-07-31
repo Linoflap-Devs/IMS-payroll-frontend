@@ -9,16 +9,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  // DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
-  Plus,
   MoreHorizontal,
   Filter,
   Ship,
-  // Trash,
   ChevronLeft,
   Check,
   ArrowDownUp,
@@ -27,13 +24,8 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "../ui/card";
-import { TbShipOff } from "react-icons/tb";
 import { MdOutlineBadge } from "react-icons/md";
 import { PromoteCrewDialog } from "../dialogs/PromoteCrewDialog";
-import { RepatriateCrewDialog } from "../dialogs/RepatriateCrewDialog";
-import { IOffBoardCrew, SearchCrewDialog } from "../dialogs/SearchCrewDialog";
-import { JoinCrewDialog } from "../dialogs/JoinCrewDialog";
-// import Swal from "sweetalert2";
 import {
   getVesselCrew,
   type VesselCrewResponse,
@@ -47,8 +39,6 @@ interface ISelectedCrew {
   crewCode: string;
   currentVessel?: string;
   vesselId?: number;
-  // signOnDate?: string;
-  // currentVessel?: string;
 }
 
 export default function VesselCrewList() {
@@ -59,11 +49,7 @@ export default function VesselCrewList() {
   const [loading, setLoading] = useState(true);
   const [vesselData, setVesselData] = useState<VesselCrewResponse | null>(null);
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
-  const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
-  //const [searchCrewDialogOpen, setSearchCrewDialogOpen] = useState(false);
-  //const [joinCrewDialogOpen, setJoinCrewDialogOpen] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew>();
-  //const [selectedOffBoardCrew, setSelectedOffBoardCrew] = useState<IOffBoardCrew | null>(null);
   const [onSuccess, setOnSuccess] = useState(false);
   const [selectedRank, setSelectedRank] = useState<string | null>(null);
 
