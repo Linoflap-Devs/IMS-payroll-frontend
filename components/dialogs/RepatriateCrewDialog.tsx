@@ -7,14 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Ship, MapPin, User, Check, ChevronDown, Loader2, Info } from "lucide-react";
+import { Check, ChevronDown, Loader2, Info } from "lucide-react";
 import { useEffect, useState, useRef, Dispatch, SetStateAction } from "react";
-import { Card } from "../ui/card";
 import { Input } from "../ui/input";
-import { RiShieldStarLine } from "react-icons/ri";
-import { CrewBasic, getCrewBasic } from "@/src/services/crew/crew.api";
-import Image from "next/image";
-import Base64Image from "../Base64Image";
 import { getPortList, IPort } from "@/src/services/port/port.api";
 import {
   CountriesItem,
@@ -23,6 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 import { repatriateCrew } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "../ui/use-toast";
+import { DataTable } from "../ui/data-table";
+import { ColumnDef } from "@tanstack/react-table";
 
 interface RepatriateCrewDialogProps {
   open: boolean;
@@ -185,50 +182,20 @@ function SimpleSearchableSelect({
 export function RepatriateCrewDialog({
   open,
   onOpenChange,
-  crewMembers,
   setOnSuccess,
   crewMember,
+  crewMembers,
 }: RepatriateCrewDialogProps) {
-  const [crew, setCrew] = useState<CrewBasic | null>(null);
+  //const [crew, setCrew] = useState<CrewBasic | null>(null); // displaying crew details
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
   const [allPorts, setAllPorts] = useState<IPort[]>([]); // Store all ports
   const [filteredPorts, setFilteredPorts] = useState<IPort[]>([]); // Store filtered ports
-
-  // State for selected values
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedPort, setSelectedPort] = useState("");
   const [signOffDate, setSignOffDate] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  //console.log("SELECTED CREWS IN THE REPATRIATE DIALOG:", crewMembers);
-
-  useEffect(() => {
-    if (open) { 
-      getCrewBasic(crewMember.crewCode)
-        .then((response) => {
-          if (response.success) {
-            setCrew(response.data);
-          } else {
-            console.error("Failed to fetch crew details:", response.message);
-          }
-        })
-        .catch((error) => {
-          console.log("Error fetching crew details:", error);
-        });
-    } else {
-      // Reset state when dialog is closed
-      setCrew(null);
-      setCountryList([]);
-      setAllPorts([]);
-      setFilteredPorts([]);
-      setSelectedCountry("");
-      setSelectedPort("");
-      setSignOffDate("");
-      setSubmitted(false);
-      setIsLoading(false);
-    }
-  }, [open, crewMember.crewCode]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -299,6 +266,32 @@ export function RepatriateCrewDialog({
     label: port.PortName,
   }));
 
+  const columns: ColumnDef<typeof crewMembers[number]>[] = [
+    {
+      accessorKey: "crewCode",
+      header: "Crew Code",
+      cell: ({ row }) => (
+        <div className="text-xs sm:text-sm text-center">{row.getValue("crewCode")}</div>
+      ),
+    },
+    {
+      accessorKey: "name",
+      header: "Crew Name",
+      cell: ({ row }) => (
+        <div className="text-xs sm:text-sm text-left">{row.getValue("name")}</div>
+      ),
+    },
+    {
+      accessorKey: "rank",
+      header: "Rank",
+      cell: ({ row }) => (
+        <div className="text-xs sm:text-sm text-center">{row.getValue("rank")}</div>
+      ),
+    },
+  ];
+
+  console.log('CREW MEMBERS: ', crewMembers);
+
   const handleSubmit = () => {
     setSubmitted(true);
 
@@ -361,81 +354,17 @@ export function RepatriateCrewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-2 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
+      <DialogContent className="p-2 max-w-[870px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-2xl font-semibold text-[#2F3593] text-center">
-            Repatriate Crew
+            Repatriate Crews
           </DialogTitle>
         </DialogHeader>
-
-        <div className="flex p-6 pt-2 gap-6">
-          {/* Left side - Crew Info Card */}
-          <Card className="w-[300px] bg-[#FCFCFC] rounded-lg px-4 py-4 gap-2.5">
-            <div className="w-40 h-40 mx-auto overflow-hidden rounded-lg border border-gray-200">
-              {crew?.ProfileImage ? (
-                <Base64Image
-                  imageType={crew.ProfileImage.ContentType}
-                  alt="Crew Profile Image"
-                  base64String={crew.ProfileImage.FileContent}
-                  width={160}
-                  height={160}
-                  className="object-contain w-full h-full"
-                />
-              ) : (
-                <Image
-                  width={256}
-                  height={160}
-                  src="/image.png"
-                  alt="Selfie with ID Attachment"
-                  className="object-cover w-full h-full"
-                />
-              )}
-            </div>
-
-            <h3 className="text-xl font-semibold text-center mb-0">
-              {crewMember.name}
-            </h3>
-
-            <div className="flex items-center gap-1 justify-center">
-              <span className="text-green-600 bg-green-100 px-2 py-0.5 rounded-full text-xs">
-                On board
-              </span>
-            </div>
-
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-black-500" />
-                <div>
-                  <div className="text-gray-500">Crew Code</div>
-                  <div>{crewMember.crewCode}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <RiShieldStarLine className="h-4 w-4 text-gray-500" />
-                <div>
-                  <div className="text-gray-500">Rank</div>
-                  <div>{crewMember.rank}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Ship className="w-4 h-4 text-gray-500" />
-                <div>
-                  <div className="text-gray-500">Current Vessel</div>
-                  <div>{crewMember.currentVessel}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-gray-500" />
-                <div>
-                  <div className="text-gray-500">Country</div>
-                  <div>{crewMember.country}</div>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Right side - Form Fields */}
-          <div className="flex-1 space-y-6">
+        
+        <div className="flex p-6 py-4 gap-6">
+          {/* Left Column */}
+          <div className="flex-[1] space-y-6 mb-10">
+            {/* Country Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Country</label>
               <SimpleSearchableSelect
@@ -451,6 +380,7 @@ export function RepatriateCrewDialog({
               )}
             </div>
 
+            {/* Port Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Port</label>
               <SimpleSearchableSelect
@@ -459,9 +389,8 @@ export function RepatriateCrewDialog({
                 value={selectedPort}
                 disabled={!selectedCountry}
                 onChange={setSelectedPort}
-                className={`${
-                  submitted && !selectedPort && selectedCountry ? "border-red-500" : ""
-                }`}
+                className={`${submitted && !selectedPort && selectedCountry ? "border-red-500" : ""
+                  }`}
               />
               {submitted && !selectedPort && selectedCountry && (
                 <p className="text-red-500 text-sm flex items-center gap-1 mt-1">
@@ -471,13 +400,13 @@ export function RepatriateCrewDialog({
               )}
             </div>
 
+            {/* Sign Off Date */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Sign off date</label>
               <Input
                 type="date"
-                className={`w-full ${
-                  submitted && !signOffDate ? "border-red-500" : ""
-                }`}
+                className={`w-full ${submitted && !signOffDate ? "border-red-500" : ""
+                  }`}
                 value={signOffDate}
                 onChange={(e) => setSignOffDate(e.target.value)}
               />
@@ -488,33 +417,26 @@ export function RepatriateCrewDialog({
                 </p>
               )}
             </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Selected Crew(s) to Repatriate:</h3>
+          </div>
 
-              {crewMembers.length === 0 ? (
-                <p className="text-sm text-gray-500">No crew selected.</p>
+          {/* Right Column */}
+          <div className="flex-[2.4] space-y-3">
+            <div className="rounded-md border max-h-[410px] overflow-y-auto">
+              {loading ? (
+                <div className="flex justify-center items-center h-32">Loading...</div>
               ) : (
-                <ul className="space-y-2">
-                  {crewMembers.map((crew, index) => (
-                    <li
-                      key={index}
-                      className="p-3 border rounded-md bg-gray-50 text-sm text-gray-700"
-                    >
-                      <p><strong>Name:</strong> {crew.name}</p>
-                      <p><strong>Status:</strong> {crew.status}</p>
-                      <p><strong>Rank:</strong> {crew.rank}</p>
-                      <p><strong>Crew Code:</strong> {crew.crewCode}</p>
-                      <p><strong>Vessel:</strong> {crew.currentVessel || "N/A"}</p>
-                    </li>
-                  ))}
-                </ul>
+                <DataTable
+                  columns={columns}
+                  data={crewMembers}
+                  pagination={false}
+                />
               )}
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex gap-4 p-6 border-t">
+        <div className="flex gap-4 p-6">
           <Button
             variant="outline"
             className="flex-1"
@@ -525,7 +447,7 @@ export function RepatriateCrewDialog({
           <Button
             className="flex-1 bg-red-600 hover:bg-red-700"
             onClick={handleSubmit}
-            disabled={isLoading}  
+            disabled={isLoading}
           >
             {isLoading ? (
               <>
@@ -533,7 +455,7 @@ export function RepatriateCrewDialog({
                 Repatriating...
               </>
             ) : (
-              "Repatriate Crew"
+              "Repatriate Crew(s)"
             )}
           </Button>
         </div>
