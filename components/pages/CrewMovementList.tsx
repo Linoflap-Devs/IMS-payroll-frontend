@@ -20,8 +20,7 @@ import {
   getVesselCrew,
   VesselCrewResponse,
 } from "@/src/services/vessel/vessel.api";
-import { useSearchParams } from "next/navigation";
-import { JoinCrewDialog } from "../dialogs/JoinCrewDialog";
+import { useRouter, useSearchParams } from "next/navigation";
 import { RepatriateCrewDialog } from "../dialogs/RepatriateCrewDialog";
 import { Checkbox } from "../ui/checkbox";
 import { TbShipOff } from "react-icons/tb";
@@ -29,6 +28,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useDebounce } from "@/lib/useDebounce";
 import { getCrewList } from "@/src/services/crew/crew.api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { useJoinCrewStore } from "@/src/store/useJoinCrewStore";
 
 interface ISelectedCrew {
   id: number;
@@ -53,6 +53,7 @@ export interface IOffBoardCrew {
 }
 
 export default function CrewMovementList() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const vesselId = searchParams.get("id");
   const vesselName = searchParams.get("vesselName");
@@ -65,24 +66,25 @@ export default function CrewMovementList() {
   const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew[]>([]);
   const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
+  const [isLoadingRepatriate, setIsLoadingRepatriate] = useState(false);
 
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [displayedCrews, setDisplayedCrews] = useState<IOffBoardCrew[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingJoin, setIsLoadingJoin] = useState(false);
   const [allCrews, setAllCrews] = useState<IOffBoardCrew[]>([]);
   const [rankFilter, setRankFilter] = useState("all");
 
   useEffect(() => {
     const fetchVesselCrew = async () => {
       if (!vesselId) return;
-      setIsLoading(true);
+      setIsLoadingRepatriate(true);
       try {
         const response = await getVesselCrew(vesselId);
         setVesselData(response);
       } catch (error) {
         console.error("Error fetching vessel crew:", error);
       } finally {
-        setIsLoading(false);
+        setIsLoadingRepatriate(false);
       }
     };
 
@@ -90,7 +92,7 @@ export default function CrewMovementList() {
   }, [vesselId, onSuccess]);
 
   useEffect(() => {
-    setIsLoading(true);
+    setIsLoadingJoin(true);
     getCrewList()
       .then((response) => {
         if (response.success) {
@@ -102,11 +104,11 @@ export default function CrewMovementList() {
         } else {
           console.error("Failed to fetch crew list:", response.message);
         }
-        setIsLoading(false);
+        setIsLoadingJoin(false);
       })
       .catch((error) => {
         console.error("Error fetching crew list:", error);
-        setIsLoading(false);
+        setIsLoadingJoin(false);
       });
   }, []);
 
@@ -381,28 +383,27 @@ export default function CrewMovementList() {
 
     setSelectedCrew(enrichedSelectedRows);
 
-    console.log(enrichedSelectedRows); // now working
+    //console.log(enrichedSelectedRows); // now working
     setRepatriateDialogOpen(true);
   };
 
   const handleJoin = () => {
     if (!selectedCrews || selectedCrews.length === 0) {
-      console.log("No crews selected.");
+      console.warn("No crews selected.");
       return;
     }
 
     const mappedSelectedCrew: ISelectedCrew[] = selectedCrews.map((crew, idx) => ({
       id: idx + 1,
       name: `${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + " " : ""}${crew.LastName}`,
-      status: "Off board", // assuming all selected are off-board
+      status: "Off board",
       rank: crew.Rank,
       crewCode: crew.CrewCode,
       vesselId: 0,
     }));
 
-    setSelectedCrew(mappedSelectedCrew);
-    setSelectedOffBoardCrew(selectedCrews);
-    setJoinCrewDialogOpen(true);
+    useJoinCrewStore.getState().setSelectedCrew(mappedSelectedCrew); 
+    router.push("/home/crew-movement/join-crew");
   };
 
   return (
@@ -534,9 +535,11 @@ export default function CrewMovementList() {
                     </div>
                   </div>
 
-                  <div className="rounded-md border overflow-y-auto">
-                    {isLoading ? (
-                      <div className="p-4 text-center">Loading crew data...</div>
+                  <div className="rounded-md border overflow-y-auto pb-3">
+                    {isLoadingJoin ? (
+                      <div className="flex justify-center items-center h-40">
+                        <p className="text-muted-foreground">Loading crew data...</p>
+                      </div>
                     ) : (
                       <DataTable
                         columns={columnJoin}
@@ -612,7 +615,7 @@ export default function CrewMovementList() {
                     </div>
 
                   </div>
-                  {isLoading ? (
+                  {isLoadingRepatriate ? (
                     <div className="flex justify-center items-center h-40">
                       <p className="text-muted-foreground">Loading crew data...</p>
                     </div>
@@ -679,7 +682,7 @@ export default function CrewMovementList() {
       // }
       />
 
-      {selectedOffBoardCrew && (
+      {/* {selectedOffBoardCrew && (
         <JoinCrewDialog
           open={joinCrewDialogOpen}
           setOnSuccess={setOnSuccess}
@@ -690,7 +693,7 @@ export default function CrewMovementList() {
           SelectedVesselName={vesselName ?? ""}
         //crewMember={undefined}        
         />
-      )}
+      )} */}
     </div>
   );
 }

@@ -290,81 +290,79 @@ export function RepatriateCrewDialog({
     },
   ];
 
-  console.log('CREW MEMBERS: ', crewMembers);
+  //console.log('CREW MEMBERS: ', crewMembers);
 
-  const handleSubmit = () => {
-    setSubmitted(true);
+  // const handleSubmit = () => {
+  //   setSubmitted(true);
 
-    if (!selectedPort || !signOffDate) {
-      toast({
-        title: "Error",
-        description:
-          "Please fill in all required fields. (Port, Sign off date)",
-        variant: "destructive",
-      });
-      return;
-    }
+  //   if (!selectedPort || !signOffDate) {
+  //     toast({
+  //       title: "Error",
+  //       description:
+  //         "Please fill in all required fields. (Port, Sign off date)",
+  //       variant: "destructive",
+  //     });
+  //     return;
+  //   }
 
-    setIsLoading(true);
+  //   setIsLoading(true);
 
-    const repatriateData = {
-      crewId: crewMember.id,
-      crewCode: crewMember.crewCode,
-      countryId: Number(selectedCountry),
-      portId: Number(selectedPort),
-      signOffDate: signOffDate,
-    };
+  //   const repatriateData = {
+  //     crewId: crewMember.id,
+  //     crewCode: crewMember.crewCode,
+  //     countryId: Number(selectedCountry),
+  //     portId: Number(selectedPort),
+  //     signOffDate: signOffDate,
+  //   };
 
-    repatriateCrew(
-      repatriateData.crewCode,
-      crewMember.vesselId,
-      Number(selectedPort),
-      new Date(signOffDate)
-    )
-      .then((response) => {
-        if (response.success) {
-          toast({
-            title: "Crew Repatriated",
-            description: `Crew ${crewMember.name} has been successfully repatriated.`,
-            variant: "success",
-          });
-          onOpenChange(false);
-          setSubmitted(false);
-        } else {
-          toast({
-            title: "Failed to Repatriate Crew",
-            description: response.message,
-            variant: "destructive",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error repatriating crew:", error);
-        toast({
-          title: "Error Repatriating Crew",
-          description: "An error occurred while repatriating the crew.",
-          variant: "destructive",
-        });
-      })
-      .finally(() => {
-        setIsLoading(false);
-        setOnSuccess(true);
-      });
-  };
+  //   repatriateCrew(
+  //     repatriateData.crewCode,
+  //     crewMember.vesselId,
+  //     Number(selectedPort),
+  //     new Date(signOffDate)
+  //   )
+  //     .then((response) => {
+  //       if (response.success) {
+  //         toast({
+  //           title: "Crew Repatriated",
+  //           description: `Crew ${crewMember.name} has been successfully repatriated.`,
+  //           variant: "success",
+  //         });
+  //         onOpenChange(false);
+  //         setSubmitted(false);
+  //       } else {
+  //         toast({
+  //           title: "Failed to Repatriate Crew",
+  //           description: response.message,
+  //           variant: "destructive",
+  //         });
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error repatriating crew:", error);
+  //       toast({
+  //         title: "Error Repatriating Crew",
+  //         description: "An error occurred while repatriating the crew.",
+  //         variant: "destructive",
+  //       });
+  //     })
+  //     .finally(() => {
+  //       setIsLoading(false);
+  //       setOnSuccess(true);
+  //     });
+  // };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-2 max-w-[870px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
-        <DialogHeader className="p-6 pb-2">
+      <DialogContent className="p-2 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
+        <DialogHeader className="p-7 pb-2">
           <DialogTitle className="text-2xl font-semibold text-[#2F3593] text-center">
             Repatriate Crews
           </DialogTitle>
         </DialogHeader>
         
-        <div className="flex p-6 py-4 gap-6">
-          {/* Left Column */}
+        <div className="flex p-8 py-4 gap-6">
           <div className="flex-[1] space-y-6 mb-10">
-            {/* Country Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Country</label>
               <SimpleSearchableSelect
@@ -419,9 +417,8 @@ export function RepatriateCrewDialog({
             </div>
           </div>
 
-          {/* Right Column */}
           <div className="flex-[2.4] space-y-3">
-            <div className="rounded-md border max-h-[410px] overflow-y-auto">
+            <div className="rounded-md border max-h-[440px] overflow-y-auto">
               {loading ? (
                 <div className="flex justify-center items-center h-32">Loading...</div>
               ) : (
@@ -446,7 +443,7 @@ export function RepatriateCrewDialog({
           </Button>
           <Button
             className="flex-1 bg-red-600 hover:bg-red-700"
-            onClick={handleSubmit}
+            //onClick={handleSubmit}
             disabled={isLoading}
           >
             {isLoading ? (
