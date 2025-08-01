@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
-import { CrewBasic, CrewRankItem, getCrewRankList } from "@/src/services/crew/crew.api";
+import { CrewRankItem, getCrewRankList } from "@/src/services/crew/crew.api";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { CountriesItem, getCountriesList } from "@/src/services/location/location.api";
 import { getPortList, IPort } from "@/src/services/port/port.api";
@@ -17,13 +17,6 @@ import { DataTable } from "../ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "../ui/badge";
 import { batchAddCrewToVessel } from "@/src/services/vessel/vesselCrew.api";
-
-// interface PageProps {
-//   crewMember: IOffBoardCrew;
-//   crewMembers: IOffBoardCrew[];
-//   SelectedVesselID: number;
-//   SelectedVesselName: string;
-// }
 
 export interface IVesselItem {
   VesselID: number;
@@ -173,12 +166,10 @@ function SimpleSearchableSelect({
 
 export default function JoinCrewPage() {
   const selectedCrew = useJoinCrewStore((state) => state.selectedCrew);
-  const selectedVesselId = useJoinCrewStore((state) => state.selectedCrew[0].vesselId); // can you match this in the vesselOptions for this to be a default in the select vessel?
+  const selectedVesselId = useJoinCrewStore((state) => state.selectedCrew[0].vesselId) ?? {};
 
-  //const crewMember = selectedCrew[0];
   const updateCrewRank = useJoinCrewStore((state) => state.updateCrewRank);
 
-  const [crew, setCrew] = useState<CrewBasic | null>(null);
   const [vesselList, setVesselList] = useState<IVesselItem[]>([]);
   const [rankList, setRankList] = useState<CrewRankItem[]>([]);
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
@@ -194,14 +185,6 @@ export default function JoinCrewPage() {
   const [vesselOptions, setVesselOptions] = useState<
     { id: number; value: string; label: string }[]
   >([]);
-
-  // useEffect(() => {
-  //   getCrewBasic(crewMember.crewCode).then((response) => {
-  //     if (response.success) {
-  //       setCrew(response.data);
-  //     }
-  //   });
-  // }, [crewMember.crewCode]);
 
   useEffect(() => {
     getVesselList().then((response) => {
@@ -257,12 +240,9 @@ export default function JoinCrewPage() {
 
   const rankOptions = rankList.map(rank => ({
     id: rank.RankID,
-    value: rank.RankName.replace(/\s+/g, ""),
+    value: rank.RankID.toString(),
     label: rank.RankName.trim().replace(/\s+/g, " "),
   }));
-
-  console.log(rankOptions);
-  console.log(selectedCrew);
 
   const countriesWithPorts = [...new Set(allPorts.map(port => port.CountryID))];
 
@@ -279,6 +259,7 @@ export default function JoinCrewPage() {
     value: port.PortID.toString(),
     label: port.PortName,
   }));
+
   const columns: ColumnDef<ISelectedCrew>[] = [
     {
       accessorKey: "crewCode",
@@ -334,37 +315,37 @@ export default function JoinCrewPage() {
     },
     {
       accessorKey: "rank",
-      header: () => <div className="text-justify">Select Rank</div>,
+      header: () => <div className="text-justify">Update Rank</div>,
       cell: ({ row }) => {
-        const crewId = row.original.id;
-        const selectedRank = row.original.rank;
-        const cleanedRank = selectedRank?.replace(/\s+/g, "");
+        const crewCode = row.original.crewCode;
+        const selectedCrew = useJoinCrewStore((state) => state.selectedCrew);
+        const updateCrewRank = useJoinCrewStore((state) => state.updateCrewRank);
 
-        console.log("Crew ID:", crewId);
-        console.log("Original selected rank:", selectedRank);
-        console.log("Cleaned rank:", cleanedRank);
+        const crew = selectedCrew.find((c) => c.crewCode === crewCode);
+        const selectedRankId = crew?.rankId?.toString() ?? "";
 
-        const handleRankChange = (newRank: string) => {
-          console.log(`Crew ID ${crewId} selected new rank: ${newRank}`);
-          updateCrewRank(crewId, newRank); // updates the global store
+        const handleRankChange = (newRankId: string) => {
+          console.log(`Crew ${crewCode} selected new rank: ${newRankId}`);
+          updateCrewRank(crewCode, newRankId);
         };
 
         return (
-          <div className="text-justify w-48 relative overflow-visible ">
+          <div className="text-justify w-48 relative overflow-visible">
             <SimpleSearchableSelect
               options={rankOptions}
               placeholder="Select rank"
-              value={cleanedRank}
+              value={selectedRankId}
               onChange={handleRankChange}
             />
           </div>
         );
       },
-    }
+    },
   ];
   
   const handleSubmit = (crewMembers: ISelectedCrew[]) => {
     setSubmitted(true);
+
     if (!selectedVessel || !signOnDate) {
       toast({
         title: "Error",
@@ -374,45 +355,45 @@ export default function JoinCrewPage() {
       return;
     }
 
-    // Check for missing ranks
-    const hasMissingRanks = crewMembers.some(
-      (member) => !rankList.find(rank => rank.RankName.replace(/\s+/g, "") === member.rank)
-    );
-
-    if (hasMissingRanks) {
-      toast({
-        title: "Missing Rank",
-        description: "Please ensure each crew member has a valid rank selected.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
+
+    console.log("== JOIN CREW SUBMISSION START ==");
+    console.log("Selected Vessel:", selectedVessel);
+    console.log("Selected Port:", selectedPort);
+    console.log("Sign-On Date:", signOnDate);
+    console.log("Raw Crew Members:", crewMembers);
 
     const payload = crewMembers.map((crew) => {
       const matchingRank = rankList.find(
-        (rank) => rank.RankName.replace(/\s+/g, "") === crew.rank
+        (rank) =>
+          rank.RankName.replace(/\s+/g, "").toLowerCase() ===
+          (crew.rank || "").toLowerCase()
       );
 
-      return {
+      const crewPayload = {
         crewId: crew.id,
         rankId: matchingRank?.RankID ?? 0,
       };
+
+      console.log(`Mapped Crew:`, crew);
+      console.log(` -> Mapped Payload:`, crewPayload);
+
+      return crewPayload;
     });
 
     const vesselId = Number(selectedVessel);
     const portId = selectedPort ? Number(selectedPort) : undefined;
     const date = new Date(signOnDate);
 
-    console.log("Batch joining crew to vessel...");
-    console.log("Payload:", payload);
-    console.log("Vessel ID:", vesselId);
-    console.log("Port ID:", portId);
-    console.log("Sign-On Date:", date);
+    console.log("Final Payload:", payload);
+    console.log("Vessel ID (number):", vesselId, typeof vesselId);
+    console.log("Port ID (number or undefined):", portId, typeof portId);
+    console.log("Parsed Sign-On Date:", date, typeof date);
 
     batchAddCrewToVessel(vesselId, portId, date, payload)
       .then((response) => {
+        console.log("API Response:", response);
+
         if (response.success) {
           toast({
             title: "Success",
@@ -429,6 +410,9 @@ export default function JoinCrewPage() {
         }
       })
       .catch((err: AxiosError<{ message?: string }>) => {
+        console.error("API Error:", err);
+        console.error("Error Response:", err.response);
+
         toast({
           title: "Error",
           description: err.response?.data?.message || "Unexpected error occurred.",
@@ -437,6 +421,7 @@ export default function JoinCrewPage() {
       })
       .finally(() => {
         setIsLoading(false);
+        console.log("== JOIN CREW SUBMISSION END ==");
       });
   };
 

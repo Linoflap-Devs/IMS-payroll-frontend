@@ -38,9 +38,11 @@ interface ISelectedCrew {
   crewCode: string;
   currentVessel?: string;
   vesselId?: number;
+  rankId: number;
 }
 
 export interface IOffBoardCrew {
+  CrewID: any;
   CrewCode: string;
   LastName: string;
   FirstName: string;
@@ -89,21 +91,33 @@ export default function CrewMovementList() {
     fetchVesselCrew();
   }, [vesselId, onSuccess]);
 
-  console.log('vessel data', vesselData);
-
   useEffect(() => {
     setIsLoadingJoin(true);
+
     getCrewList()
       .then((response) => {
         if (response.success) {
-          const offBoardCrews = response.data.filter(
-            (crew) => crew.CrewStatusID === 2
-          );
+          const offBoardCrews: IOffBoardCrew[] = response.data
+            .filter((crew) => crew.CrewStatusID === 2)
+            .map((crew) => ({
+              CrewID: crew.CrewID,
+              CrewCode: crew.CrewCode,
+              LastName: crew.LastName,
+              FirstName: crew.FirstName,
+              MiddleName: crew.MiddleName,
+              RankID: crew.RankID,
+              Rank: crew.Rank,
+              CrewStatusID: crew.CrewStatusID,
+              AccountValidation: crew.AccountValidation ?? null,
+              IsActive: crew.IsActive,
+            }));
+
           setAllCrews(offBoardCrews);
           setDisplayedCrews(offBoardCrews.slice(0, 50));
         } else {
           console.error("Failed to fetch crew list:", response.message);
         }
+
         setIsLoadingJoin(false);
       })
       .catch((error) => {
@@ -139,6 +153,7 @@ export default function CrewMovementList() {
           }${crew.LastName}`,
         status: crew.Status === 1 ? "On board" : "Inactive",
         rank: crew.Rank,
+        rankId: crew.RankID,
         crewCode: crew.CrewCode,
         country: crew.Country,
       })) || [],
@@ -147,12 +162,11 @@ export default function CrewMovementList() {
 
   const selectedRows = crewData.filter((row) => selectedRowIds[row.crewCode]);
 
-  const filteredCrewData = useMemo(() => {
+  const filteredCrewData = useMemo(() => {``
     return crewData.filter((crew) => {
       const matchesSearch = searchTerm
         ? `${crew.name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       
         crew.rank.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
 
@@ -199,6 +213,21 @@ export default function CrewMovementList() {
       ),
       enableSorting: false,
       enableHiding: false,
+    },
+    {
+      accessorKey: "CrewID",
+      header: ({ column }) => (
+        <div
+          className="flex items-center justify-center cursor-pointer text-left space-x-2"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <p>Crew Code</p>
+
+          <ArrowDownUp size={15} />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-left">{row.getValue("CrewCode")}</div>
+      ),
     },
     {
       accessorKey: "CrewCode",
@@ -274,7 +303,6 @@ export default function CrewMovementList() {
     },
   ];
 
-  console.log('CREW DATA RESPONSE: ', crewData);
   const columRepatriate: ColumnDef<(typeof crewData)[number]>[] = [
     {
       id: "select",
@@ -388,7 +416,7 @@ export default function CrewMovementList() {
     //console.log(enrichedSelectedRows); // now working
     setRepatriateDialogOpen(true);
   };
-
+  
   const handleJoin = () => {
     if (!selectedCrews || selectedCrews.length === 0) {
       console.warn("No crews selected.");
@@ -398,14 +426,14 @@ export default function CrewMovementList() {
     const selectedVesselId = vesselId;
 
     const mappedSelectedCrew: ISelectedCrew[] = selectedCrews.map((crew, idx) => ({
-      id: idx + 1,
+      id: crew.CrewID,
       name: `${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + " " : ""}${crew.LastName}`,
       status: "Off board",
       rank: crew.Rank,
+      rankId: crew.RankID,
       crewCode: crew.CrewCode,
       vesselId: selectedVesselId ? Number(selectedVesselId) : undefined,
       selectedVesselName: selectedVesselName,
-      //selectedVesselId: selectedVesselId,
     }));
 
     useJoinCrewStore.getState().setSelectedCrew(mappedSelectedCrew); 
@@ -663,48 +691,8 @@ export default function CrewMovementList() {
           country?: string;
           vesselId: number;
         }[]}
-      //selectedCrews={selectedCrew.length > 0 ? selectedCrew : []} 
-      // crewMember={{
-      //   id: 0,
-      //   name: "",
-      //   status: "",
-      //   rank: "",
-      //   crewCode: "",
-      //   currentVessel: undefined,
-      //   country: undefined,
-      //   vesselId: 0
-      // }}
-      // crewMember={
-      //   selectedCrew
-      //     ? {
-      //       ...selectedCrew,
-      //       currentVessel: vesselName || "",
-      //       vesselId: vesselId ? Number(vesselId) : 0,
-      //     }
-      //     : {
-      //       id: 0,
-      //       name: "",
-      //       status: "",
-      //       rank: "",
-      //       crewCode: "",
-      //       currentVessel: "",
-      //       vesselId: 0,
-      //     }
-      // }
       />
 
-      {/* {selectedOffBoardCrew && (
-        <JoinCrewDialog
-          open={joinCrewDialogOpen}
-          setOnSuccess={setOnSuccess}
-          onOpenChange={setJoinCrewDialogOpen}
-          crewMember={selectedOffBoardCrew}
-          crewMembers={selectedOffBoardCrew}
-          SelectedVesselID={Number(vesselId) || 0}
-          SelectedVesselName={vesselName ?? ""}
-        //crewMember={undefined}        
-        />
-      )} */}
     </div>
   );
 }

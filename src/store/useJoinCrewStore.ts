@@ -6,9 +6,9 @@ export interface ISelectedCrew {
   name: string;
   status: string;
   rank: string;
+  rankId: number;
   crewCode: string;
   vesselId?: number;
-  selectedVesselId?: string;
   selectedVesselName?: string;
   ProfileImage?: any;
 }
@@ -18,7 +18,7 @@ interface JoinCrewStore {
   selectedVesselName: string;
   setSelectedCrew: (crew: ISelectedCrew[]) => void;
   clearSelectedCrew: () => void;
-  updateCrewRank: (id: number, newRank: string) => void;
+  updateCrewRank: (crewCode: string, newRank: string) => void;
 }
 
 export const useJoinCrewStore = create<JoinCrewStore>((set) => ({
@@ -26,10 +26,12 @@ export const useJoinCrewStore = create<JoinCrewStore>((set) => ({
   selectedVesselName: "",
   setSelectedCrew: (crew) => set({ selectedCrew: crew }),
   clearSelectedCrew: () => set({ selectedCrew: [] }),
-  updateCrewRank: (id, newRank) =>
+  updateCrewRank: (crewCode: string, newRankId: string) =>
     set((state) => ({
       selectedCrew: state.selectedCrew.map((crew) =>
-        crew.id === id ? { ...crew, rank: newRank } : crew
+        crew.crewCode === crewCode
+          ? { ...crew, rankId: Number(newRankId) }
+          : crew
       ),
     })),
 }));

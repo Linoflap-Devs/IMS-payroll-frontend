@@ -187,8 +187,8 @@ export function RepatriateCrewDialog({
   crewMembers,
 }: RepatriateCrewDialogProps) {
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
-  const [allPorts, setAllPorts] = useState<IPort[]>([]); // Store all ports
-  const [filteredPorts, setFilteredPorts] = useState<IPort[]>([]); // Store filtered ports
+  const [allPorts, setAllPorts] = useState<IPort[]>([]);
+  const [filteredPorts, setFilteredPorts] = useState<IPort[]>([]);
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedPort, setSelectedPort] = useState("");
   const [signOffDate, setSignOffDate] = useState("");
@@ -289,8 +289,6 @@ export function RepatriateCrewDialog({
     },
   ];
 
-  //console.log('CREW MEMBERS: ', crewMembers);
-
   const handleSubmit = async () => {
     setSubmitted(true);
 
@@ -322,12 +320,6 @@ export function RepatriateCrewDialog({
     }
 
     const vesselId = crewMembers[0].vesselId;
-
-    console.log("Starting batch repatriation with:");
-    console.log("Vessel ID:", vesselId);
-    console.log("Selected Port ID:", selectedPort);
-    console.log("Sign-Off Date:", signOffDate);
-    console.log("Crew Members:", crewMembers);
 
     setIsLoading(true);
 
