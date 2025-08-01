@@ -458,6 +458,12 @@ export default function CrewMovementList() {
                 <div className="px-4 pt-1">
                   <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
                     <TabsTrigger
+                      value="promote-crew"
+                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                    >
+                      Promote Crew
+                    </TabsTrigger>                    
+                    <TabsTrigger
                       value="join-crew"
                       className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
                     >

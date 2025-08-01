@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
-import { CrewBasic, CrewRankItem, getCrewBasic, getCrewRankList } from "@/src/services/crew/crew.api";
+import { CrewBasic, CrewRankItem, getCrewRankList } from "@/src/services/crew/crew.api";
 import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { CountriesItem, getCountriesList } from "@/src/services/location/location.api";
 import { getPortList, IPort } from "@/src/services/port/port.api";
@@ -11,9 +11,12 @@ import { cn } from "@/lib/utils";
 import { addCrewToVessel } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "@/components/ui/use-toast";
 import { AxiosError } from "axios";
-import { Check, ChevronDown, Loader2, Info, Users } from "lucide-react";
+import { Check, ChevronDown, Loader2, Info, Users, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ISelectedCrew, useJoinCrewStore } from "@/src/store/useJoinCrewStore";
+import { DataTable } from "../ui/data-table";
+import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "../ui/badge";
 
 // interface PageProps {
 //   crewMember: IOffBoardCrew;
@@ -53,6 +56,10 @@ function SimpleSearchableSelect({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedOption = options.find((option) => option.value === value);
+  const customStyles = {
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+    menu: (base: any) => ({ ...base, zIndex: 9999 }),
+  };
 
   useEffect(() => {
     const filtered = options.filter((option) =>
@@ -118,7 +125,7 @@ function SimpleSearchableSelect({
       </Button>
 
       {open && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-md">
+        <div className="absolute z-[9999] top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-md">
           <div className="p-2">
             <Input
               ref={inputRef}
@@ -167,7 +174,8 @@ function SimpleSearchableSelect({
 export default function JoinCrewPage() {
   //const { crewMember, crewMembers, SelectedVesselID } = props;
   const selectedCrew = useJoinCrewStore((state) => state.selectedCrew);
-  const crewMember = selectedCrew[0];
+  //const crewMember = selectedCrew[0];
+  const updateCrewRank = useJoinCrewStore((state) => state.updateCrewRank);
 
   const [crew, setCrew] = useState<CrewBasic | null>(null);
   const [vesselList, setVesselList] = useState<IVesselItem[]>([]);
@@ -176,7 +184,6 @@ export default function JoinCrewPage() {
   const [allPorts, setAllPorts] = useState<IPort[]>([]);
   const [filteredPorts, setFilteredPorts] = useState<IPort[]>([]);
   const [selectedVessel, setSelectedVessel] = useState("");
-  const [selectedRank, setSelectedRank] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedPort, setSelectedPort] = useState("");
   const [signOnDate, setSignOnDate] = useState(() => new Date().toISOString().split("T")[0]);
@@ -184,13 +191,13 @@ export default function JoinCrewPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    getCrewBasic(crewMember.crewCode).then((response) => {
-      if (response.success) {
-        setCrew(response.data);
-      }
-    });
-  }, [crewMember.crewCode]);
+  // useEffect(() => {
+  //   getCrewBasic(crewMember.crewCode).then((response) => {
+  //     if (response.success) {
+  //       setCrew(response.data);
+  //     }
+  //   });
+  // }, [crewMember.crewCode]);
 
   useEffect(() => {
     getVesselList().then((response) => {
@@ -239,9 +246,12 @@ export default function JoinCrewPage() {
 
   const rankOptions = rankList.map(rank => ({
     id: rank.RankID,
-    value: rank.RankID.toString(),
-    label: rank.RankName,
+    value: rank.RankName.replace(/\s+/g, ""), // cleaned value
+    label: rank.RankName.trim().replace(/\s+/g, " "),
   }));
+
+  console.log(rankOptions);
+  console.log(selectedCrew);
 
   const countriesWithPorts = [...new Set(allPorts.map(port => port.CountryID))];
 
@@ -258,8 +268,91 @@ export default function JoinCrewPage() {
     value: port.PortID.toString(),
     label: port.PortName,
   }));
+  const columns: ColumnDef<ISelectedCrew>[] = [
+    {
+      accessorKey: "crewCode",
+      header: () => <div className="text-justify">Crew Code</div>,
+      cell: ({ row }) => (
+        <div className="text-justify">{row.getValue("crewCode")}</div>
+      ),
+    },
+    {
+      accessorKey: "name",
+      header: () => <div className="text-justify">Crew Name</div>,
+      cell: ({ row }) => {
+        const name = row.getValue("name") as string;
+        const profileImage = row.original.ProfileImage as string | undefined;
 
-  const handleSubmit = (crewMember: ISelectedCrew) => {
+        return (
+          <div className="flex items-center space-x-3 text-justify">
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt={name}
+                className="w-8 h-8 rounded-full object-cover border border-gray-300"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm font-medium">
+                <span>{name?.charAt(0).toUpperCase()}</span>
+              </div>
+            )}
+            <span>{name}</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: () => <div className="text-left">Status</div>,
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+
+        const badgeClass = {
+          "On board": "bg-green-100 text-green-800 hover:bg-green-100/80",
+          "Off board": "bg-red-100 text-red-800 hover:bg-red-100/80",
+        }[status] || "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
+
+        return (
+          <div className="flex text-left">
+            <Badge variant="secondary" className={badgeClass}>
+              {status}
+            </Badge>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "rank",
+      header: () => <div className="text-justify">Select Rank</div>,
+      cell: ({ row }) => {
+        const crewId = row.original.id;
+        const selectedRank = row.original.rank;
+        const cleanedRank = selectedRank?.replace(/\s+/g, "");
+
+        console.log("Crew ID:", crewId);
+        console.log("Original selected rank:", selectedRank);
+        console.log("Cleaned rank:", cleanedRank);
+
+        const handleRankChange = (newRank: string) => {
+          console.log(`Crew ID ${crewId} selected new rank: ${newRank}`);
+          updateCrewRank(crewId, newRank); // updates the global store
+        };
+
+        return (
+          <div className="text-justify w-48 relative overflow-visible ">
+            <SimpleSearchableSelect
+              options={rankOptions}
+              placeholder="Select rank"
+              value={cleanedRank}
+              onChange={handleRankChange}
+            />
+          </div>
+        );
+      },
+    }
+  ];
+  
+  const handleSubmit = (crewMember: ISelectedCrew[]) => {
     setSubmitted(true);
     if (!selectedVessel || !signOnDate) {
       toast({
@@ -271,6 +364,7 @@ export default function JoinCrewPage() {
     }
 
     setIsLoading(true);
+    
     const joinCrewData = {
       crewCode: crewMember.crewCode,
       vesselId: Number(selectedVessel),
@@ -315,113 +409,111 @@ export default function JoinCrewPage() {
   };
 
   return (
-    <div className="h-full w-full p-6 pt-5 bg-[#F6F8FC]">
-      <h1 className="text-3xl font-semibold my-4">Join Crew</h1>
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 space-y-8 overflow-y-auto scrollbar-hide">
-          <div className="flex-1 space-y-4">
-            <div>
-              <label className="text-sm font-medium">Vessel</label>
-              <SimpleSearchableSelect
-                options={vesselOptions}
-                placeholder="Select vessel"
-                value={selectedVessel}
-                onChange={setSelectedVessel}
-                disabled={!!selectedVessel}
-              />
-            </div>
+    <div className="h-full w-full p-4 pt-2">
+      <style jsx global>{`
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
 
-            <div>
-              <label className="text-sm font-medium">Rank</label>
-              <SimpleSearchableSelect
-                options={rankOptions}
-                placeholder="Select rank"
-                value={selectedRank}
-                onChange={setSelectedRank}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Country</label>
-              <SimpleSearchableSelect
-                options={countryOptions}
-                placeholder="Select country"
-                value={selectedCountry}
-                onChange={setSelectedCountry}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Port</label>
-              <SimpleSearchableSelect
-                options={portOptions}
-                placeholder="Select port"
-                value={selectedPort}
-                onChange={setSelectedPort}
-                disabled={!selectedCountry}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Sign on date</label>
-              <Input
-                type="date"
-                value={signOnDate}
-                onChange={(e) => setSignOnDate(e.target.value)}
-              />
-            </div>
-
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+          -ms-overflow-style: none; /* IE and Edge */
+          scrollbar-width: none; /* Firefox */
+        }
+      `}</style>
+      <div className="h-full overflow-y-auto scrollbar-hide">
+        <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-semibold mb-0">Join Crews</h1>
           </div>
 
-          <div>
-            <h2 className="text-base font-semibold text-gray-700 mb-4">
-              Selected Crews to Join
-            </h2>
-            <div className="space-y-4">
-              {selectedCrew.map((crewMember, index) => (
-                <div
-                  key={crewMember.id}
-                  className="flex items-center gap-4 bg-white rounded-xl shadow-sm px-6 py-5"
-                >
-                  <div className="flex-shrink-0">
-                    <span className="bg-[#2f5293] inline-flex items-center justify-center rounded-full h-14 w-14">
-                      <Users className="text-white" />
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-base">
-                      {crewMember.name}
-                    </div>
-                    <div className="text-sm text-gray-400 mt-1">
-                      {crewMember.status}
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-400 whitespace-nowrap">
-                    {crewMember.crewCode}
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 mb-8">
+            {/* Left half (form) */}
+            <div className="pr-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-sm font-medium">Vessel</label>
+                  <SimpleSearchableSelect
+                    options={vesselOptions}
+                    placeholder="Select vessel"
+                    value={selectedVessel}
+                    onChange={setSelectedVessel}
+                  //disabled={!!selectedVessel}
+                  />
                 </div>
-              ))}
+
+                <div>
+                  <label className="text-sm font-medium">Country</label>
+                  <SimpleSearchableSelect
+                    options={countryOptions}
+                    placeholder="Select country"
+                    value={selectedCountry}
+                    onChange={setSelectedCountry}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Port</label>
+                  <SimpleSearchableSelect
+                    options={portOptions}
+                    placeholder="Select port"
+                    value={selectedPort}
+                    onChange={setSelectedPort}
+                    disabled={!selectedCountry}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Sign on date</label>
+                  <Input
+                    type="date"
+                    value={signOnDate}
+                    onChange={(e) => setSignOnDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Right half (button, aligned bottom right of its column) */}
+            <div className="flex items-end justify-end">
+              <Button
+                className="bg-[#2F3593] hover:bg-[#252a72] w-full"
+                onClick={() => handleSubmit(selectedCrew)}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2" />
+                    Joining...
+                  </>
+                ) : (
+                  <>
+                    <Plus />
+                    Join Crews
+                  </>
+                )}
+              </Button>
             </div>
           </div>
 
-          <div className="pb-4 text-left">
-            <Button
-              className="w-1/2 text-right bg-[#2F3593] hover:bg-[#252a72]"
-              onClick={() => handleSubmit(crewMember)} // or pass index if needed
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin mr-2" />
-                  Joining...
-                </>
-              ) : (
-                "Join Crew"
-              )}
-            </Button>
+          <div className="text-center">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-32">
+                Loading...
+              </div>
+            ) : (
+              <DataTable
+                columns={columns}
+                data={selectedCrew}
+                pageSize={8}
+              //pagination={false} 
+              />
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
+
