@@ -258,7 +258,7 @@ function generateCrewPayrollPage(
         ["Guar. OT", formatWithCurrency(crewData.payrollDetails.guaranteedOT, "USD")],
         ["Dollar Gross", formatWithCurrency(crewData.payrollDetails.dollarGross, "USD")],
         ["Peso Gross", formatWithCurrency(crewData.payrollDetails.pesoGross, "PHP")],
-        ["Total Deduction", formatWithCurrency(crewData.payrollDetails.totalDeduction, "PHP")]
+        ["Total Deductions", formatWithCurrency(crewData.payrollDetails.totalDeduction, "PHP")]
     ];
 
     payrollItems.forEach((item, index) => {
