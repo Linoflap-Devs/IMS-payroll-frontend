@@ -361,8 +361,8 @@ export function RepatriateCrewDialog({
           </DialogTitle>
         </DialogHeader>
         
-        <div className="flex p-8 py-4 gap-6">
-          <div className="flex-[1] space-y-6 mb-10">
+        <div className="p-8 py-4 gap-6">
+          <div className="flex-[1] space-y-4 mb-8">
             <div className="space-y-2">
               <label className="text-sm font-medium">Country</label>
               <SimpleSearchableSelect
@@ -418,7 +418,7 @@ export function RepatriateCrewDialog({
           </div>
 
           <div className="flex-[2.4] space-y-3">
-            <div className="rounded-md border max-h-[440px] overflow-y-auto">
+            <div className="rounded-md border max-h-[300px] overflow-y-auto">
               {loading ? (
                 <div className="flex justify-center items-center h-32">Loading...</div>
               ) : (

@@ -19,15 +19,21 @@ interface JoinCrewStore {
   clearSelectedCrew: () => void;
 }
 
-export const useJoinCrewStore = create<JoinCrewStore>()(
-  persist(
-    (set) => ({
-      selectedCrew: [],
-      setSelectedCrew: (crew) => set({ selectedCrew: crew }),
-      clearSelectedCrew: () => set({ selectedCrew: [] }),
-    }),
-    {
-      name: "join-crew-storage", // key in localStorage
-    }
-  )
-);
+export const useJoinCrewStore = create<JoinCrewStore>((set) => ({
+  selectedCrew: [],
+  setSelectedCrew: (crew) => set({ selectedCrew: crew }),
+  clearSelectedCrew: () => set({ selectedCrew: [] }),
+}));
+
+// export const useJoinCrewStore = create<JoinCrewStore>()(
+//   persist(
+//     (set) => ({
+//       selectedCrew: [],
+//       setSelectedCrew: (crew) => set({ selectedCrew: crew }),
+//       clearSelectedCrew: () => set({ selectedCrew: [] }),
+//     }),
+//     {
+//       name: "join-crew-storage", // key in localStorage
+//     }
+//   )
+// );
