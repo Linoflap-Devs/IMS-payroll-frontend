@@ -61,8 +61,6 @@ export default function CrewMovementList() {
   const [activeTab, setActiveTab] = useState("join-crew");
   const [vesselData, setVesselData] = useState<VesselCrewResponse | null>(null);
   const [onSuccess, setOnSuccess] = useState(false);
-  const [selectedOffBoardCrew, setSelectedOffBoardCrew] = useState<IOffBoardCrew[] | null>([]);
-  const [joinCrewDialogOpen, setJoinCrewDialogOpen] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew[]>([]);
   const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
@@ -90,6 +88,8 @@ export default function CrewMovementList() {
 
     fetchVesselCrew();
   }, [vesselId, onSuccess]);
+
+  console.log('vessel data', vesselData);
 
   useEffect(() => {
     setIsLoadingJoin(true);
@@ -134,7 +134,7 @@ export default function CrewMovementList() {
   const crewData = useMemo(
     () =>
       vesselData?.data.Crew.map((crew, index) => ({
-        id: index + 1,
+        id: crew.CrewID,
         name: `${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + " " : ""
           }${crew.LastName}`,
         status: crew.Status === 1 ? "On board" : "Inactive",
@@ -152,6 +152,7 @@ export default function CrewMovementList() {
       const matchesSearch = searchTerm
         ? `${crew.name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       
         crew.rank.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
 
@@ -273,6 +274,7 @@ export default function CrewMovementList() {
     },
   ];
 
+  console.log('CREW DATA RESPONSE: ', crewData);
   const columRepatriate: ColumnDef<(typeof crewData)[number]>[] = [
     {
       id: "select",
@@ -392,6 +394,8 @@ export default function CrewMovementList() {
       console.warn("No crews selected.");
       return;
     }
+    const selectedVesselName = vesselName;
+    const selectedVesselId = vesselId;
 
     const mappedSelectedCrew: ISelectedCrew[] = selectedCrews.map((crew, idx) => ({
       id: idx + 1,
@@ -399,7 +403,9 @@ export default function CrewMovementList() {
       status: "Off board",
       rank: crew.Rank,
       crewCode: crew.CrewCode,
-      vesselId: 0,
+      vesselId: selectedVesselId ? Number(selectedVesselId) : undefined,
+      selectedVesselName: selectedVesselName,
+      //selectedVesselId: selectedVesselId,
     }));
 
     useJoinCrewStore.getState().setSelectedCrew(mappedSelectedCrew); 
@@ -657,7 +663,6 @@ export default function CrewMovementList() {
           country?: string;
           vesselId: number;
         }[]}
-        crewMember={[]}  // temporarily   
       //selectedCrews={selectedCrew.length > 0 ? selectedCrew : []} 
       // crewMember={{
       //   id: 0,

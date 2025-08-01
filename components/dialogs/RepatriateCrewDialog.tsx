@@ -16,7 +16,7 @@ import {
   getCountriesList,
 } from "@/src/services/location/location.api";
 import { cn } from "@/lib/utils";
-import { repatriateCrew } from "@/src/services/vessel/vesselCrew.api";
+import { batchRepatriateCrew } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "../ui/use-toast";
 import { DataTable } from "../ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -34,16 +34,16 @@ interface RepatriateCrewDialogProps {
     country?: string;
     vesselId: number;
   }[];
-  crewMember: {
-    id: number;
-    name: string;
-    status: string;
-    rank: string;
-    crewCode: string;
-    currentVessel?: string;
-    country?: string;
-    vesselId: number;
-  }[];
+  // crewMember: {
+  //   id: number;
+  //   name: string;
+  //   status: string;
+  //   rank: string;
+  //   crewCode: string;
+  //   currentVessel?: string;
+  //   country?: string;
+  //   vesselId: number;
+  // }[];
   setOnSuccess: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -183,10 +183,9 @@ export function RepatriateCrewDialog({
   open,
   onOpenChange,
   setOnSuccess,
-  crewMember,
+  //crewMember,
   crewMembers,
 }: RepatriateCrewDialogProps) {
-  //const [crew, setCrew] = useState<CrewBasic | null>(null); // displaying crew details
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
   const [allPorts, setAllPorts] = useState<IPort[]>([]); // Store all ports
   const [filteredPorts, setFilteredPorts] = useState<IPort[]>([]); // Store filtered ports
@@ -292,65 +291,113 @@ export function RepatriateCrewDialog({
 
   //console.log('CREW MEMBERS: ', crewMembers);
 
-  // const handleSubmit = () => {
-  //   setSubmitted(true);
+  const handleSubmit = async () => {
+    setSubmitted(true);
 
-  //   if (!selectedPort || !signOffDate) {
-  //     toast({
-  //       title: "Error",
-  //       description:
-  //         "Please fill in all required fields. (Port, Sign off date)",
-  //       variant: "destructive",
-  //     });
-  //     return;
-  //   }
+    if (!selectedPort || !signOffDate) {
+      console.warn("Validation failed:", {
+        selectedPort,
+        signOffDate,
+      });
 
-  //   setIsLoading(true);
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields. (Port, Sign off date)",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  //   const repatriateData = {
-  //     crewId: crewMember.id,
-  //     crewCode: crewMember.crewCode,
-  //     countryId: Number(selectedCountry),
-  //     portId: Number(selectedPort),
-  //     signOffDate: signOffDate,
-  //   };
+    // Check if all crew members belong to the same vessel
+    const uniqueVesselIds = new Set(crewMembers.map((c) => c.vesselId));
+    if (uniqueVesselIds.size > 1) {
+      console.warn("Crew members have mixed vessel IDs:", [...uniqueVesselIds]);
 
-  //   repatriateCrew(
-  //     repatriateData.crewCode,
-  //     crewMember.vesselId,
-  //     Number(selectedPort),
-  //     new Date(signOffDate)
-  //   )
-  //     .then((response) => {
-  //       if (response.success) {
-  //         toast({
-  //           title: "Crew Repatriated",
-  //           description: `Crew ${crewMember.name} has been successfully repatriated.`,
-  //           variant: "success",
-  //         });
-  //         onOpenChange(false);
-  //         setSubmitted(false);
-  //       } else {
-  //         toast({
-  //           title: "Failed to Repatriate Crew",
-  //           description: response.message,
-  //           variant: "destructive",
-  //         });
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error repatriating crew:", error);
-  //       toast({
-  //         title: "Error Repatriating Crew",
-  //         description: "An error occurred while repatriating the crew.",
-  //         variant: "destructive",
-  //       });
-  //     })
-  //     .finally(() => {
-  //       setIsLoading(false);
-  //       setOnSuccess(true);
-  //     });
-  // };
+      toast({
+        title: "Vessel Mismatch",
+        description: "All selected crew members must belong to the same vessel.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const vesselId = crewMembers[0].vesselId;
+
+    console.log("Starting batch repatriation with:");
+    console.log("Vessel ID:", vesselId);
+    console.log("Selected Port ID:", selectedPort);
+    console.log("Sign-Off Date:", signOffDate);
+    console.log("Crew Members:", crewMembers);
+
+    setIsLoading(true);
+
+    try {
+      const promises = crewMembers.map((crew) => {
+        console.log("Sending repatriation request for:", {
+          crewId: crew.id,
+          name: crew.name,
+        });
+
+        return batchRepatriateCrew(
+          vesselId,
+          Number(selectedPort),
+          new Date(signOffDate),
+          crew.id
+        );
+      });
+
+      const results = await Promise.allSettled(promises);
+
+      console.log("Batch repatriation results:", results);
+
+      // Log individual results
+      results.forEach((result, idx) => {
+        const crew = crewMembers[idx];
+        if (result.status === "fulfilled") {
+          console.log(
+            `Success - Crew ${crew.name} (ID: ${crew.id})`,
+            result.value
+          );
+        } else {
+          console.error(
+            `Failed - Crew ${crew.name} (ID: ${crew.id})`,
+            result.reason
+          );
+        }
+      });
+
+      const successCount = results.filter(
+        (result) => result.status === "fulfilled" && result.value.success
+      ).length;
+
+      const failCount = results.length - successCount;
+
+      toast({
+        title: "Repatriation Completed",
+        description: `${successCount} succeeded, ${failCount} failed.`,
+        variant: successCount > 0 ? "success" : "destructive",
+      });
+
+      if (successCount > 0) {
+        console.log("Some repatriation requests were successful. Closing dialog.");
+        setOnSuccess(true);
+        onOpenChange(false);
+      } else {
+        console.warn("All repatriation requests failed.");
+      }
+    } catch (error) {
+      console.error("Unexpected error during batch repatriation:", error);
+      toast({
+        title: "Error",
+        description: "Unexpected error during repatriation.",
+        variant: "destructive",
+      });
+    } finally {
+      console.log("Repatriation process finished.");
+      setIsLoading(false);
+      setSubmitted(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -443,7 +490,7 @@ export function RepatriateCrewDialog({
           </Button>
           <Button
             className="flex-1 bg-red-600 hover:bg-red-700"
-            //onClick={handleSubmit}
+            onClick={handleSubmit}
             disabled={isLoading}
           >
             {isLoading ? (

@@ -2,19 +2,20 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface ISelectedCrew {
-  RankID?: any;
-  ProfileImage?: any;
   id: number;
   name: string;
   status: string;
   rank: string;
   crewCode: string;
-  currentVessel?: string;
   vesselId?: number;
+  selectedVesselId?: string;
+  selectedVesselName?: string;
+  ProfileImage?: any;
 }
 
 interface JoinCrewStore {
   selectedCrew: ISelectedCrew[];
+  selectedVesselName: string;
   setSelectedCrew: (crew: ISelectedCrew[]) => void;
   clearSelectedCrew: () => void;
   updateCrewRank: (id: number, newRank: string) => void;
@@ -22,6 +23,7 @@ interface JoinCrewStore {
 
 export const useJoinCrewStore = create<JoinCrewStore>((set) => ({
   selectedCrew: [],
+  selectedVesselName: "",
   setSelectedCrew: (crew) => set({ selectedCrew: crew }),
   clearSelectedCrew: () => set({ selectedCrew: [] }),
   updateCrewRank: (id, newRank) =>

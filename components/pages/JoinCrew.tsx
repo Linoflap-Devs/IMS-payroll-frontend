@@ -8,15 +8,15 @@ import { getVesselList } from "@/src/services/vessel/vessel.api";
 import { CountriesItem, getCountriesList } from "@/src/services/location/location.api";
 import { getPortList, IPort } from "@/src/services/port/port.api";
 import { cn } from "@/lib/utils";
-import { addCrewToVessel } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "@/components/ui/use-toast";
 import { AxiosError } from "axios";
-import { Check, ChevronDown, Loader2, Info, Users, Plus } from "lucide-react";
+import { Check, ChevronDown, Loader2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ISelectedCrew, useJoinCrewStore } from "@/src/store/useJoinCrewStore";
 import { DataTable } from "../ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "../ui/badge";
+import { batchAddCrewToVessel } from "@/src/services/vessel/vesselCrew.api";
 
 // interface PageProps {
 //   crewMember: IOffBoardCrew;
@@ -172,8 +172,9 @@ function SimpleSearchableSelect({
 }
 
 export default function JoinCrewPage() {
-  //const { crewMember, crewMembers, SelectedVesselID } = props;
   const selectedCrew = useJoinCrewStore((state) => state.selectedCrew);
+  const selectedVesselId = useJoinCrewStore((state) => state.selectedCrew[0].vesselId); // can you match this in the vesselOptions for this to be a default in the select vessel?
+
   //const crewMember = selectedCrew[0];
   const updateCrewRank = useJoinCrewStore((state) => state.updateCrewRank);
 
@@ -190,6 +191,9 @@ export default function JoinCrewPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const [vesselOptions, setVesselOptions] = useState<
+    { id: number; value: string; label: string }[]
+  >([]);
 
   // useEffect(() => {
   //   getCrewBasic(crewMember.crewCode).then((response) => {
@@ -204,8 +208,21 @@ export default function JoinCrewPage() {
       if (response.success) {
         const vesselList = response.data;
         setVesselList(vesselList);
-        const matched = vesselList.find((v: any) => v.VesselID === selectedVessel);
-        if (matched) setSelectedVessel(matched.VesselID.toString());
+
+        const options = response.data.map((v: any) => ({
+          id: v.VesselID,
+          value: v.VesselID.toString(),
+          label: v.VesselName,
+        }));
+        setVesselOptions(options);
+
+        // Set default selected vessel from store
+        if (selectedVesselId) {
+          const matchedOption = options.find((opt) => opt.value === selectedVesselId.toString());
+          if (matchedOption) {
+            setSelectedVessel(matchedOption.value); // string
+          }
+        }
       }
     });
     getCrewRankList().then((response) => {
@@ -238,15 +255,9 @@ export default function JoinCrewPage() {
     }
   }, [selectedCountry, allPorts, selectedPort]);
 
-  const vesselOptions = vesselList.map((v: any) => ({
-    id: v.VesselID,
-    value: v.VesselID.toString(),
-    label: v.VesselName,
-  }));
-
   const rankOptions = rankList.map(rank => ({
     id: rank.RankID,
-    value: rank.RankName.replace(/\s+/g, ""), // cleaned value
+    value: rank.RankName.replace(/\s+/g, ""),
     label: rank.RankName.trim().replace(/\s+/g, " "),
   }));
 
@@ -352,7 +363,7 @@ export default function JoinCrewPage() {
     }
   ];
   
-  const handleSubmit = (crewMember: ISelectedCrew[]) => {
+  const handleSubmit = (crewMembers: ISelectedCrew[]) => {
     setSubmitted(true);
     if (!selectedVessel || !signOnDate) {
       toast({
@@ -363,28 +374,49 @@ export default function JoinCrewPage() {
       return;
     }
 
-    setIsLoading(true);
-    
-    const joinCrewData = {
-      crewCode: crewMember.crewCode,
-      vesselId: Number(selectedVessel),
-      portId: Number(selectedPort) || undefined,
-      dateOnBoard: signOnDate,
-      rankId: crewMember.RankID,
-    };
+    // Check for missing ranks
+    const hasMissingRanks = crewMembers.some(
+      (member) => !rankList.find(rank => rank.RankName.replace(/\s+/g, "") === member.rank)
+    );
 
-    addCrewToVessel(
-      joinCrewData.crewCode,
-      joinCrewData.vesselId,
-      joinCrewData.portId,
-      joinCrewData.rankId,
-      new Date(joinCrewData.dateOnBoard)
-    )
+    if (hasMissingRanks) {
+      toast({
+        title: "Missing Rank",
+        description: "Please ensure each crew member has a valid rank selected.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    const payload = crewMembers.map((crew) => {
+      const matchingRank = rankList.find(
+        (rank) => rank.RankName.replace(/\s+/g, "") === crew.rank
+      );
+
+      return {
+        crewId: crew.id,
+        rankId: matchingRank?.RankID ?? 0,
+      };
+    });
+
+    const vesselId = Number(selectedVessel);
+    const portId = selectedPort ? Number(selectedPort) : undefined;
+    const date = new Date(signOnDate);
+
+    console.log("Batch joining crew to vessel...");
+    console.log("Payload:", payload);
+    console.log("Vessel ID:", vesselId);
+    console.log("Port ID:", portId);
+    console.log("Sign-On Date:", date);
+
+    batchAddCrewToVessel(vesselId, portId, date, payload)
       .then((response) => {
         if (response.success) {
           toast({
             title: "Success",
-            description: "Crew successfully joined to vessel.",
+            description: "All crew successfully joined to vessel.",
             variant: "success",
           });
           router.back();
@@ -425,7 +457,7 @@ export default function JoinCrewPage() {
       <div className="h-full overflow-y-auto scrollbar-hide">
         <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-semibold mb-0">Join Crews</h1>
+            <h1 className="text-3xl font-semibold mb-0">Joining Crews...</h1>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 mb-8">
@@ -475,7 +507,6 @@ export default function JoinCrewPage() {
               </div>
             </div>
 
-            {/* Right half (button, aligned bottom right of its column) */}
             <div className="flex items-end justify-end">
               <Button
                 className="bg-[#2F3593] hover:bg-[#252a72] w-full"
@@ -506,7 +537,7 @@ export default function JoinCrewPage() {
               <DataTable
                 columns={columns}
                 data={selectedCrew}
-                pageSize={8}
+                pageSize={7}
               //pagination={false} 
               />
             )}
