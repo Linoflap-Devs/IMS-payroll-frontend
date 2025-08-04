@@ -166,7 +166,9 @@ function SimpleSearchableSelect({
 
 export default function JoinCrewPage() {
   const selectedCrew = useJoinCrewStore((state) => state.selectedCrew);
-  const selectedVesselId = useJoinCrewStore((state) => state.selectedCrew[0].vesselId) ?? {};
+  const selectedVesselId = useJoinCrewStore((state) =>
+    state.selectedCrew.length > 0 ? state.selectedCrew[0].vesselId : null
+  );
   const [vesselList, setVesselList] = useState<IVesselItem[]>([]);
   const [rankList, setRankList] = useState<CrewRankItem[]>([]);
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
@@ -401,6 +403,24 @@ export default function JoinCrewPage() {
         //console.log("== JOIN CREW SUBMISSION END ==");
       });
   };
+
+  useEffect(() => {
+    if (selectedVesselId === null) {
+      toast({
+        title: "Action Required in joining a crew",
+        description: "Join a crew first.",
+        variant: "destructive",
+      });
+
+      // Wait a moment before redirecting (so user sees the toast)
+      setTimeout(() => {
+        router.push("/home/crew-movement");
+        // href={`/home/crew-movement/crew-list?id=${vessel.vesselId}&vesselName=${vessel.vesselName}`}>
+      }, 1500);
+    } else {
+      setIsLoading(false); // only stop loading if vessel is valid
+    }
+  }, [selectedVesselId, router]);
 
   return (
     <div className="h-full w-full p-4 pt-2">
