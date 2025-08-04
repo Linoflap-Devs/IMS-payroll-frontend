@@ -37,7 +37,6 @@ interface Vessel {
 export default function CrewMovement() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
-  const [loading, setLoading] = useState(false);
   const [loadingVessels, setLoadingVessels] = useState(false);
   const [vesselData, setVesselData] = useState<Vessel[]>([]);
   const [vesselTypeFilter, setVesselTypeFilter] = useState("all");
@@ -197,9 +196,9 @@ export default function CrewMovement() {
             </div>
           </div>
           <div className="text-center">
-            {loading ? (
+            {loadingVessels ? (
               <div className="flex justify-center items-center h-32">
-                Loading...
+                Loading vessel data...
               </div>
             ) : (
               <DataTable columns={columns} data={filteredVessel} pageSize={10} />
