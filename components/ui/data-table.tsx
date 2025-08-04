@@ -82,7 +82,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="bg-[#F9F9F9]">
-      <div className="overflow-x-auto scrollbar-hide bg-[#F9F9F9]">
+      <div className="scrollbar-hide bg-[#F9F9F9]">
         <Table>
           {!hideHeader && (
             <TableHeader>

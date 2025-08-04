@@ -4,6 +4,7 @@ import { getHomeRoutes } from "./homeRoutes";
 
 export const getHomeBreadcrumb = (pathname: string, userType: number) => {
   const routes = getHomeRoutes(pathname, userType);
+  const cleanPath = pathname?.split("?")[0] ?? "";
 
   const match = (base: string, baseLabel: string, currentLabel?: string) => (
     <div className="flex items-center">
@@ -28,7 +29,8 @@ export const getHomeBreadcrumb = (pathname: string, userType: number) => {
   if (pathname.startsWith("/home/profile")) { return match("/home/profile", "Profile", "User Profile");}
   if (pathname.startsWith("/home/crew-payroll/history")) return match("/home/crew-payroll",  "Crew Payroll", "Crew Payroll History");
   if (pathname.startsWith("/home/crew-movement/join-crew")) return match("/home/crew-movement",  "Crew Movement", "Join Crews");
-
+  if (cleanPath.startsWith("/home/crew-movement/crew-list"))return match("/home/crew-movement", "Crew Movement", "Crew List");
+  
   // fallback: check against route config
   const route = routes.find(r => r.href === pathname);
   if (route) return route.label;

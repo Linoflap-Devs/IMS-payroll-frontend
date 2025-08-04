@@ -206,6 +206,7 @@ export default function CrewMovementList() {
       id: "select",
       header: ({ table }) => (
         <Checkbox
+          className="border-gray-500 text-gray-900 dark:border-gray-400 dark:text-white"
           checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
@@ -213,6 +214,7 @@ export default function CrewMovementList() {
       ),
       cell: ({ row }) => (
         <Checkbox
+          className="border-gray-400 text-gray-700 dark:border-gray-400 dark:text-white"
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
@@ -220,21 +222,6 @@ export default function CrewMovementList() {
       ),
       enableSorting: false,
       enableHiding: false,
-    },
-    {
-      accessorKey: "CrewID",
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center cursor-pointer text-left space-x-2"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-          <p>Crew Code</p>
-
-          <ArrowDownUp size={15} />
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="text-left">{row.getValue("CrewCode")}</div>
-      ),
     },
     {
       accessorKey: "CrewCode",
@@ -315,6 +302,7 @@ export default function CrewMovementList() {
       id: "select",
       header: ({ table }) => (
         <Checkbox
+          className="border-gray-400 text-gray-700 dark:border-gray-400 dark:text-white"
           checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
@@ -322,6 +310,7 @@ export default function CrewMovementList() {
       ),
       cell: ({ row }) => (
         <Checkbox
+          className="border-gray-400 text-gray-700 dark:border-gray-400 dark:text-white"
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
@@ -702,7 +691,7 @@ export default function CrewMovementList() {
                       <DataTable
                         columns={columnJoin}
                         data={filteredJoinCrewData}
-                        pageSize={10}
+                        pageSize={7}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                       />
@@ -782,7 +771,7 @@ export default function CrewMovementList() {
                       <DataTable
                         columns={columRepatriate}
                         data={filteredCrewData}
-                        pageSize={10}
+                        pageSize={7}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                       />
@@ -840,7 +829,7 @@ export default function CrewMovementList() {
                       <DataTable
                         columns={columnPromote}
                         data={filteredCrewData}
-                        pageSize={10}
+                        pageSize={7}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={(selection) => {
                           if (activeTab === "promote-crew") {
