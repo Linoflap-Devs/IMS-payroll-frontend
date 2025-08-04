@@ -691,7 +691,7 @@ export default function CrewMovementList() {
                       <DataTable
                         columns={columnJoin}
                         data={filteredJoinCrewData}
-                        pageSize={10}
+                        pageSize={7}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                       />
@@ -771,7 +771,7 @@ export default function CrewMovementList() {
                       <DataTable
                         columns={columRepatriate}
                         data={filteredCrewData}
-                        pageSize={10}
+                        pageSize={7}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                       />
@@ -829,7 +829,7 @@ export default function CrewMovementList() {
                       <DataTable
                         columns={columnPromote}
                         data={filteredCrewData}
-                        pageSize={10}
+                        pageSize={7}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={(selection) => {
                           if (activeTab === "promote-crew") {

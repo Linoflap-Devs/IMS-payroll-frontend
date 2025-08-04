@@ -8,8 +8,8 @@ import Image from "next/image";
 import { Loader } from "lucide-react";
 
 export default function Home() {
-  const router = useRouter();
-  const { user, loading, initialized } = useAuth();
+  //const router = useRouter();
+  //const { user, loading, initialized } = useAuth();
 
   // useEffect(() => {
   //   if (initialized && user) {
@@ -17,14 +17,14 @@ export default function Home() {
   //   }
   // }, [initialized, user]);
 
-  if (!initialized || loading || user) {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen gap-2 text-gray-700">
-        <Loader className="animate-spin w-6 h-6" />
-        <span>Loading...</span>
-      </div>
-    );
-  }
+  // if (!initialized || loading || user) {
+  //   return (
+  //     <div className="flex flex-col justify-center items-center h-screen gap-2 text-gray-700">
+  //       <Loader className="animate-spin w-6 h-6" />
+  //       <span>Loading...</span>
+  //     </div>
+  //   );
+  // }
 
   return (
     <main className="flex h-screen relative">
