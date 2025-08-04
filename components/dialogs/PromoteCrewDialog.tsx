@@ -20,7 +20,6 @@ import { useEffect, useState, useRef } from "react";
 import { Card } from "../ui/card";
 import { Input } from "../ui/input";
 import { RiShieldStarLine } from "react-icons/ri";
-import { IVesselItem } from "./JoinCrewDialog";
 import {
   CrewBasic,
   CrewRankItem,
@@ -33,6 +32,7 @@ import { promoteCrew } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "../ui/use-toast";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
+import { IVesselItem } from "../pages/JoinCrew";
 
 interface PromoteCrewDialogProps {
   open: boolean;

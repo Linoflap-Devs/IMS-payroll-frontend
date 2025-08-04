@@ -1,6 +1,7 @@
 import axiosInstance from "../../lib/axios";
 
 export interface CrewItem {
+  CrewID?: number;
   CrewCode: string;
   LastName: string;
   FirstName: string;

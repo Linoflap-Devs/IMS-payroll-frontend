@@ -137,7 +137,7 @@ export default function AllotteeForm({
     (data: IAddAllottee) => {
 
       if (!crewId) {
-        console.log("No crewId found. Submission aborted.");
+        //console.log("No crewId found. Submission aborted.");
         return;
       }
 
@@ -172,7 +172,7 @@ export default function AllotteeForm({
         })
         .catch((error) => {
           const err = error as Error;
-          console.log("Error adding allottee:", err.message);
+          //console.log("Error adding allottee:", err.message);
           toast({
             title: "Error",
             description: "Failed to add allottee.",

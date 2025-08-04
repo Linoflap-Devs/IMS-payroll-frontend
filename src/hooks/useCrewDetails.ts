@@ -195,7 +195,7 @@ export function useCrewDetails(crewId: string | null) {
         variant: "destructive",
       });
     } finally {
-      console.log("Cleaning up... set loading to false.");
+      //console.log("Cleaning up... set loading to false.");
       setIsEditLoading(false);
     }
   };

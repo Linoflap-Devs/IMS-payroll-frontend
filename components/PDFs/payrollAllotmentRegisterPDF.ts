@@ -123,7 +123,7 @@ export function generateAllotmentPayrollRegister(
         const margins = { left: 10, right: 10, top: 10, bottom: 20 }; // Reduced bottom margin
 
         const mainTableWidth = pageWidth - margins.left - margins.right;
-        console.log(mainTableWidth)
+        //console.log(mainTableWidth)
 
         // Define table column widths for the main data table
         const colWidths = [

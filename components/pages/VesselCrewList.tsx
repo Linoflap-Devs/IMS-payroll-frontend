@@ -9,16 +9,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  // DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
-  Plus,
   MoreHorizontal,
   Filter,
   Ship,
-  // Trash,
   ChevronLeft,
   Check,
   ArrowDownUp,
@@ -27,13 +24,8 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "../ui/card";
-import { TbShipOff } from "react-icons/tb";
 import { MdOutlineBadge } from "react-icons/md";
 import { PromoteCrewDialog } from "../dialogs/PromoteCrewDialog";
-import { RepatriateCrewDialog } from "../dialogs/RepatriateCrewDialog";
-import { IOffBoardCrew, SearchCrewDialog } from "../dialogs/SearchCrewDialog";
-import { JoinCrewDialog } from "../dialogs/JoinCrewDialog";
-// import Swal from "sweetalert2";
 import {
   getVesselCrew,
   type VesselCrewResponse,
@@ -47,8 +39,6 @@ interface ISelectedCrew {
   crewCode: string;
   currentVessel?: string;
   vesselId?: number;
-  // signOnDate?: string;
-  // currentVessel?: string;
 }
 
 export default function VesselCrewList() {
@@ -59,12 +49,7 @@ export default function VesselCrewList() {
   const [loading, setLoading] = useState(true);
   const [vesselData, setVesselData] = useState<VesselCrewResponse | null>(null);
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
-  const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
-  const [searchCrewDialogOpen, setSearchCrewDialogOpen] = useState(false);
-  const [joinCrewDialogOpen, setJoinCrewDialogOpen] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew>();
-  const [selectedOffBoardCrew, setSelectedOffBoardCrew] =
-    useState<IOffBoardCrew | null>(null);
   const [onSuccess, setOnSuccess] = useState(false);
   const [selectedRank, setSelectedRank] = useState<string | null>(null);
 
@@ -208,7 +193,6 @@ export default function VesselCrewList() {
       header: "Action",
       cell: ({ row }) => {
         const crew = row.original;
-
         return (
           <div className="text-center">
             <DropdownMenu>
@@ -219,14 +203,6 @@ export default function VesselCrewList() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedCrew(crew);
-                    setRepatriateDialogOpen(true);
-                  }}>
-                  <TbShipOff />
-                  Repatriate
-                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedCrew(crew);
@@ -364,13 +340,6 @@ export default function VesselCrewList() {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button
-              className="gap-2 h-11 px-5"
-              onClick={() => setSearchCrewDialogOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-              Join Crew
-            </Button>
           </div>
         </div>
 
@@ -406,49 +375,6 @@ export default function VesselCrewList() {
               }
         }
       />
-
-      <RepatriateCrewDialog
-        open={repatriateDialogOpen}
-        onOpenChange={setRepatriateDialogOpen}
-        setOnSuccess={setOnSuccess}
-        crewMember={
-          selectedCrew
-            ? {
-                ...selectedCrew,
-                currentVessel: vesselName || "",
-                vesselId: vesselId ? Number(vesselId) : 0,
-              }
-            : {
-                id: 0,
-                name: "",
-                status: "",
-                rank: "",
-                crewCode: "",
-                currentVessel: "",
-                vesselId: 0,
-              }
-        }
-      />
-
-      <SearchCrewDialog
-        open={searchCrewDialogOpen}
-        onOpenChange={setSearchCrewDialogOpen}
-        onCrewSelect={(crew) => {
-          setSelectedOffBoardCrew(crew);
-          setJoinCrewDialogOpen(true);
-        }}
-      />
-
-      {selectedOffBoardCrew && (
-        <JoinCrewDialog
-          open={joinCrewDialogOpen}
-          setOnSuccess={setOnSuccess}
-          onOpenChange={setJoinCrewDialogOpen}
-          crewMember={selectedOffBoardCrew}
-          SelectedVesselID={Number(vesselId) || 0}
-          SelectedVesselName={vesselName ?? ""}
-        />
-      )}
     </div>
   );
 }
