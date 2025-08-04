@@ -26,36 +26,35 @@ export const addCrewToVessel = async (crewCode: string, vesselId: number, portId
     return response.data
 }
 
-interface CrewSignOnPayload {
+export type CrewMemberItem = {
   crewId: number;
   rankId: number;
-}
+};
+
+export type CrewSignOnPayload = {
+  crew: CrewMemberItem[];
+  vesselId: number;
+  portId?: number;
+  signOnDate: string;
+};
 
 export const batchAddCrewToVessel = async (
-  vesselId: number,
-  portId: number | undefined,
-  signOnDate: Date,
-  crew: CrewSignOnPayload[]
+  payload: CrewSignOnPayload
 ): Promise<VesselCrewResponse> => {
-  const payload = {
-    portId,
-    signOnDate,
-    crew,
-  };
-
-  console.log("Sending batch sign-on request to /vessels/:id/sign-on");
-  console.log("Vessel ID:", vesselId);
-  console.log("Port ID:", portId);
-  console.log("Sign-On Date:", signOnDate);
-  console.log("Crew:", crew);
+  //console.log("Sending batch sign-on request to /vessels/:id/sign-on");
+  //console.log("Payload:", payload);
 
   try {
     const response = await axiosInstance.post<VesselCrewResponse>(
-      `/vessels/${vesselId}/sign-on`,
-      payload
+      `/vessels/${payload.vesselId}/sign-on`,
+      {
+        portId: payload.portId,
+        signOnDate: payload.signOnDate,
+        crew: payload.crew,
+      }
     );
 
-    console.log("Server response:", response.data);
+    //console.log("Server response:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("Error during batch crew sign-on:", error?.response || error);

@@ -2,6 +2,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface ISelectedCrew {
+  //CrewID: any;
+  portId?: undefined;
+  signOnDate?: any;
   id: number;
   name: string;
   status: string;
