@@ -20,19 +20,8 @@ export interface CrewResponse {
 }
 
 export const getCrewList = async (): Promise<CrewResponse> => {
-  console.log("[getCrewList] Fetching crew list...");
-
-  try {
-    const response = await axiosInstance.get<CrewResponse>("/crew");
-
-    console.log("[getCrewList] Response received:", response);
-    console.log("[getCrewList] Crew data:", response.data);
-
-    return response.data;
-  } catch (error) {
-    console.error("[getCrewList] Error fetching crew list:", error);
-    throw error; // Re-throw to allow calling function to handle it
-  }
+  const response = await axiosInstance.get<CrewResponse>("/crew");
+  return response.data;
 };
 
 export interface CrewDetails {

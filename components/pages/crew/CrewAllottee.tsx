@@ -530,7 +530,7 @@ export function CrewAllottee({
   useEffect(() => {
     if (triggerSave) {
       setAllotteeLoading(true);
-      console.log(editingAllottee);
+      //console.log(editingAllottee);
       if (!editingAllottee || !crewId) {
         setAllotteeLoading(false);
         return;

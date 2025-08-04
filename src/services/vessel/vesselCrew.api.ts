@@ -76,12 +76,6 @@ export const batchRepatriateCrew = async (
   signOffDate: Date,
   crewId: number
 ): Promise<VesselCrewResponse> => {
-  console.log('Preparing to send sign-off request with the following data:');
-  console.log('Vessel ID:', vesselId);
-  console.log('Port ID:', portId);
-  console.log('Sign-Off Date:', signOffDate);
-  console.log('Crew ID:', crewId);
-
   try {
     const response = await axiosInstance.post<VesselCrewResponse>(
       `/vessels/${vesselId}/sign-off`,
@@ -92,7 +86,6 @@ export const batchRepatriateCrew = async (
       }
     );
 
-    console.log('Sign-off request successful. Response data:', response.data);
     return response.data;
   } catch (error: any) {
     console.error('Error during crew sign-off:', error?.response || error);

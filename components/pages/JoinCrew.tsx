@@ -183,7 +183,7 @@ export default function JoinCrewPage() {
   const [vesselOptions, setVesselOptions] = useState<
     { id: number; value: string; label: string }[]
   >([]);
-    console.log("Raw Crew Members:", selectedCrew);
+    //console.log("Raw Crew Members:", selectedCrew);
 
   useEffect(() => {
     getVesselList().then((response) => {
@@ -398,7 +398,7 @@ export default function JoinCrewPage() {
       })
       .finally(() => {
         setIsLoading(false);
-        console.log("== JOIN CREW SUBMISSION END ==");
+        //console.log("== JOIN CREW SUBMISSION END ==");
       });
   };
 
