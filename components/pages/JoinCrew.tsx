@@ -411,7 +411,7 @@ export default function JoinCrewPage() {
         description: "Join a crew first.",
         variant: "destructive",
       });
-
+      
       // Wait a moment before redirecting (so user sees the toast)
       setTimeout(() => {
         router.push("/home/crew-movement");
