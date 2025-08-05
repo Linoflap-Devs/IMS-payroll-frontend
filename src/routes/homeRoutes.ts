@@ -43,6 +43,13 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       allowedUserTypes: [3],
     },
     {
+      label: "Crew Records",
+      icon: Users,
+      href: "/home/crew-govt-records",
+      active: pathname.startsWith("/home/crew-govt-records"),
+      allowedUserTypes: [5],
+    },
+    {
       label: "Deduction",
       icon: TbCurrencyDollarOff,
       href: "/home/deduction",
