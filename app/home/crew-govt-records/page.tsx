@@ -1,10 +1,10 @@
 import AccessGuard from "@/components/pages/AccessGuard";
-import CrewGovtReports from "@/components/pages/CrewGovtReports";
+import CrewGovtRecords from "@/components/pages/CrewGovtRecords";
 
 export default function Page() {
   return (
     <AccessGuard allowedTypes={[5]}>
-      <CrewGovtReports />
+      <CrewGovtRecords />
     </AccessGuard>
   );
 }

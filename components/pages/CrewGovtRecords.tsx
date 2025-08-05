@@ -30,8 +30,9 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { CrewItem } from "../../src/services/crew/crew.api";
+import { EditCrewGovtRecordsDialog } from "../dialogs/EditCrewGovtRecordsDialog";
 
-export default function CrewGovtReports() {
+export default function CrewGovtRecords() {
   const [searchTerm, setSearchTerm] = useState("");
   const [rankFilter, setRankFilter] = useState("all");
   const { crews, isLoading, error } = useCrewStore();
@@ -46,7 +47,7 @@ export default function CrewGovtReports() {
     TaxIDNumber: true,
     action: true,
   });
-  const [selecteCrewData , setSelectedCrewData] = useState<CrewItem | null>(null);
+  const [selecteCrewData, setSelectedCrewData] = useState<CrewItem | null>(null);
   const [editselectedCrewDialogOpen, setEditselectedCrewDialogOpen] = useState(false);
 
   const fetchCrews = useCrewStore((state) => state.fetchCrews);
@@ -75,170 +76,215 @@ export default function CrewGovtReports() {
     new Map(crews.map((crew) => [crew.RankID, crew.Rank])).entries()
   ).map(([id, name]) => ({ id, name }));
 
-const Crewcolumns: ColumnDef<CrewItem>[] = [
-  {
-    id: "CrewCode",
-    accessorKey: "CrewCode",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Crew Code
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+  const Crewcolumns: ColumnDef<CrewItem>[] = [
+    {
+      id: "CrewCode",
+      accessorKey: "CrewCode",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Crew Code
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium text-xs sm:text-sm text-center">
+          {(row.getValue("CrewCode") as string).trim()}
+        </div>
+      ),
     },
-    cell: ({ row }) => (
-      <div className="font-medium text-xs sm:text-sm text-center">
-        {(row.getValue("CrewCode") as string).trim()}
-      </div>
-    ),
-  },
-  {
-    id: "FirstName",
-    accessorKey: "FirstName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Crew Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+    {
+      id: "FirstName",
+      accessorKey: "FirstName",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Crew Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const firstName = row.original.FirstName || "";
+        const middleName = row.original.MiddleName || "";
+        const lastName = row.original.LastName || "";
+        const middleInitial = middleName ? ` ${middleName.charAt(0)}.` : "";
+        return (
+          <div className="text-xs sm:text-sm text-center">
+            {`${firstName}${middleInitial} ${lastName}`.trim()}
+          </div>
+        );
+      },
     },
-    cell: ({ row }) => {
-      const firstName = row.original.FirstName || "";
-      const middleName = row.original.MiddleName || "";
-      const lastName = row.original.LastName || "";
-      const middleInitial = middleName ? ` ${middleName.charAt(0)}.` : "";
-      return (
+    {
+      id: "RankID",
+      accessorKey: "RankID",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Rank
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
         <div className="text-xs sm:text-sm text-center">
-          {`${firstName}${middleInitial} ${lastName}`.trim()}
+          {row.original.Rank || row.getValue("RankID")}
         </div>
-      );
+      ),
     },
-  },
-  {
-    id: "RankID",
-    accessorKey: "RankID",
-    header: ({ column }) => {
-      return (
+    {
+      id: "SSSNumber",
+      accessorKey: "SSSNumber",
+      header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Rank
+          SSS
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      );
+      ),
+      cell: ({ row }) => {
+        const value = row.getValue("SSSNumber");
+        return (
+          <div className="font-medium text-xs sm:text-sm text-center">
+            {typeof value === "string" ? value.trim() : "N/A"}
+          </div>
+        );
+      },
     },
-    cell: ({ row }) => (
-      <div className="text-xs sm:text-sm text-center">
-        {row.original.Rank || row.getValue("RankID")}
-      </div>
-    ),
-  },
-  {
-    id: "SSSNumber",
-    accessorKey: "SSSNumber",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        SSS
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => {
-      const value = row.getValue("SSSNumber");
-      return (
-        <div className="font-medium text-xs sm:text-sm text-center">
-          {typeof value === "string" ? value.trim() : "N/A"}
+    {
+      id: "PhilHealthNumber",
+      accessorKey: "PhilHealthNumber",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          PhilHealth
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const value = row.getValue("PhilHealthNumber");
+        return (
+          <div className="font-medium text-xs sm:text-sm text-center">
+            {typeof value === "string" ? value.trim() : "N/A"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "TaxIDNumber",
+      accessorKey: "TaxIDNumber",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tax
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const value = row.getValue("TaxIDNumber");
+        return (
+          <div className="font-medium text-xs sm:text-sm text-center">
+            {typeof value === "string" ? value.trim() : "N/A"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "HDMFNumber",
+      accessorKey: "HDMFNumber",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          HDMF Number
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const value = row.getValue("HDMFNumber");
+        return (
+          <div className="font-medium text-xs sm:text-sm text-center">
+            {typeof value === "string" ? value.trim() : "N/A"}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+              <DropdownMenuItem
+                className="text-xs sm:text-sm"
+                onClick={() => {
+                  setSelectedCrewData(row.original);
+                  setEditselectedCrewDialogOpen(true);
+                }}>
+                <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                Edit Records
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      );
-    },
-  },
-  {
-    id: "PhilHealthNumber",
-    accessorKey: "PhilHealthNumber",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        PhilHealth
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => {
-      const value = row.getValue("PhilHealthNumber");
-      return (
-        <div className="font-medium text-xs sm:text-sm text-center">
-          {typeof value === "string" ? value.trim() : "N/A"}
-        </div>
-      );
-    },
-  },
-  {
-    id: "TaxIDNumber",
-    accessorKey: "TaxIDNumber",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Tax
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => {
-      const value = row.getValue("TaxIDNumber");
-      return (
-        <div className="font-medium text-xs sm:text-sm text-center">
-          {typeof value === "string" ? value.trim() : "N/A"}
-        </div>
-      );
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => (
-      <div className="text-center">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-            <DropdownMenuItem
-              className="text-xs sm:text-sm"
-              onClick={() => {
-                setSelectedCrewData(row.original);
-                setEditselectedCrewDialogOpen(true);
-              }}>
-              <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              Edit Records
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    )
-  }
-];
+      )
+    }
+  ];
+
+  //console.log(crews);
   const toggleColumnVisibility = (columnId: string) =>
     setColumnVisibility((prev) => ({ ...prev, [columnId]: !prev[columnId] }));
 
   const visibleColumns = Crewcolumns.filter(
     (col) => col.id && columnVisibility[col.id] !== false
   );
+
+  const handleCrewDataUpdated = (updatedData: {
+    sssNumber?: string;
+    taxIdNumber?: string;
+    philhealthNumber?: string;
+    hdmfNumber?: string;
+  }) => {
+    setSelectedCrewData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        SSSNumber: updatedData.sssNumber ?? prev.SSSNumber,
+        TaxIDNumber: updatedData.taxIdNumber ?? prev.TaxIDNumber,
+        PhilHealthNumber: updatedData.philhealthNumber ?? prev.PhilHealthNumber,
+        HDMFNumber: updatedData.hdmfNumber ?? prev.HDMFNumber,
+      };
+    });
+
+    // Refresh the entire crew list from the server
+    fetchCrews();
+  };
+
 
   if (error) {
     return <div className="text-center text-red-500">Error: {error}</div>;
@@ -314,6 +360,8 @@ const Crewcolumns: ColumnDef<CrewItem>[] = [
                       dName = "PhilHealth Number";
                     else if (col.id === "TaxIDNumber")
                       dName = "TaxID Number";
+                    else if (col.id === "HDMFNumber")
+                      dName = "HDMF Number";
                     else if (col.id === "action") dName = "Action";
                     return (
                       <DropdownMenuItem
@@ -349,15 +397,15 @@ const Crewcolumns: ColumnDef<CrewItem>[] = [
         </div>
       </div>
 
-        {/* {selectedSSSData && editselectedSSSDialogOpen && (
-          <EditSSSRateDialog
-            open={editselectedSSSDialogOpen}
-            onOpenChange={setEditselectedSSSDialogOpen}
-            SSSvesselTypeData={selectedSSSData}
-            onSuccess={handleSSSDeductionUpdated}
-          />
-        )} */}
-
+      {selecteCrewData && editselectedCrewDialogOpen && (
+        <EditCrewGovtRecordsDialog
+          open={editselectedCrewDialogOpen}
+          onOpenChange={setEditselectedCrewDialogOpen}
+          crewGovtTypeData={selecteCrewData}
+          onSuccess={handleCrewDataUpdated}
+          setSelectedCrewData={setSelectedCrewData}
+        />
+      )}
     </div>
   );
 }
