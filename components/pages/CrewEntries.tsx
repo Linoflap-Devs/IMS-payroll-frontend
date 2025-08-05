@@ -53,7 +53,6 @@ export default function Deduction() {
     setRankFilter("all");
     setVesselFilter("all");
   };
-  console.debug(crewDeductionData);
 
   // Load crew deduction data
   useEffect(() => {

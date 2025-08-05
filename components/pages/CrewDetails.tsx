@@ -77,7 +77,7 @@ export default function CrewDetails() {
   const handleTriggerAdd = () => {
     setTriggerAdd((prev) => !prev);
   };
-  
+
   const {
     crew,
     editedCrew,
@@ -1394,14 +1394,14 @@ export default function CrewDetails() {
                         </h3>
                         <div
                           className={`text-sm px-5 mb-4 py-1 ${crewValidationDetails?.IsVerified === 1
-                              ? "bg-green-100 text-green-800 border-green-600"
-                              : "bg-yellow-100 text-yellow-800 border-yellow-600"
+                            ? "bg-green-100 text-green-800 border-green-600"
+                            : "bg-yellow-100 text-yellow-800 border-yellow-600"
                             } rounded-full border  flex items-center gap-1 flex-shrink-0`}
                         >
                           <p
                             className={`${crewValidationDetails?.IsVerified === 1
-                                ? "text-green-800"
-                                : "text-yellow-800"
+                              ? "text-green-800"
+                              : "text-yellow-800"
                               }`}
                           >
                             {crewValidationDetails?.IsVerified === 1
@@ -1421,8 +1421,8 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             className={`${crewValidationDetails?.RegisterDate
-                                ? ""
-                                : "text-gray-400"
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             value={
                               formatDate(
@@ -1439,8 +1439,8 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             className={`${crewValidationDetails?.VerificationDate
-                                ? ""
-                                : "text-gray-400"
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             value={
                               formatDate(
@@ -1456,8 +1456,8 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${crewValidationDetails?.LastName
-                                ? ""
-                                : "text-gray-400"
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             value={
                               crewValidationDetails?.LastName ||
@@ -1472,8 +1472,8 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${crewValidationDetails?.FirstName
-                                ? ""
-                                : "text-gray-400"
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             value={
                               crewValidationDetails?.FirstName ||
@@ -1488,8 +1488,8 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${crewValidationDetails?.MiddleName
-                                ? ""
-                                : "text-gray-400"
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             value={
                               crewValidationDetails?.MiddleName ||
@@ -1504,8 +1504,8 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${crewValidationDetails?.ContactNumber
-                                ? ""
-                                : "text-gray-400"
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             value={
                               crewValidationDetails?.ContactNumber ||
@@ -1535,8 +1535,8 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${crewValidationDetails?.Province
-                                ? ""
-                                : "text-gray-400"
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             placeholder="Enter province"
                             value={
@@ -1563,8 +1563,8 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${crewValidationDetails?.Documents?.[0]?.IDType
-                                ? ""
-                                : "text-gray-400"
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             value={
                               crewValidationDetails?.Documents?.[0]?.IDType ||
@@ -1579,8 +1579,8 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             className={`${crewValidationDetails?.Documents?.[0]?.IDNumber
-                                ? ""
-                                : "text-gray-400"
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             value={
                               crewValidationDetails?.Documents?.[0]?.IDNumber ||
@@ -1597,8 +1597,8 @@ export default function CrewDetails() {
                           <Input
                             type="text"
                             className={`${crewValidationDetails?.Documents?.[0]?.IDIssueDate
-                                ? ""
-                                : "text-gray-400"
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             value={
                               crewValidationDetails?.Documents?.[0]?.IDIssueDate
@@ -1618,9 +1618,9 @@ export default function CrewDetails() {
                             type="text"
                             placeholder="Expiration Date"
                             className={`${crewValidationDetails?.Documents?.[0]
-                                ?.IDExpiryDate
-                                ? ""
-                                : "text-gray-400"
+                              ?.IDExpiryDate
+                              ? ""
+                              : "text-gray-400"
                               }`}
                             value={
                               crewValidationDetails?.Documents?.[0]
@@ -1858,8 +1858,8 @@ export default function CrewDetails() {
                                           <button
                                             key={index}
                                             className={`h-2 w-2 rounded-full ${currentSelfieIndex === index
-                                                ? "bg-blue-500"
-                                                : "bg-gray-300"
+                                              ? "bg-blue-500"
+                                              : "bg-gray-300"
                                               }`}
                                             onClick={(e) => {
                                               e.stopPropagation();
