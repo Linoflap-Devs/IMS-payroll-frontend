@@ -36,7 +36,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";
 import { CrewItem, deleteCrew } from "../../src/services/crew/crew.api";
 
-// Function to convert status or account validation value to a badge style
 const getStatusBgColor = (status: string) => {
   switch (status.toLowerCase().trim()) {
     case "on board":
@@ -126,7 +125,6 @@ const columns: ColumnDef<CrewItem>[] = [
     accessorKey: "CrewStatusID",
     header: "Status",
     cell: ({ row }) => {
-      // Here, convert the CrewStatusID or map to a proper status label if needed.
       const status =
         row.getValue("CrewStatusID") === 1 ? "On Board" : "Off board";
       return (
@@ -341,7 +339,6 @@ export default function CrewList() {
     return <div className="text-center text-red-500">Error: {error}</div>;
   }
 
-  //console.log('CREWS: ', crews);
   return (
     <div className="h-full w-full p-4 pt-2">
       <style jsx global>{`

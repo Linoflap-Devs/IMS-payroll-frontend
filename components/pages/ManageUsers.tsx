@@ -65,10 +65,10 @@ export default function ManageUsers() {
       prev.map((item) =>
         item.UserID === updatedUser.UserID
           ? {
-              ...item,
-              ...updatedUser,
-              Name: `${updatedUser.FirstName} ${updatedUser.LastName}`,
-            }
+            ...item,
+            ...updatedUser,
+            Name: `${updatedUser.FirstName} ${updatedUser.LastName}`,
+          }
           : item
       )
     );
@@ -187,7 +187,7 @@ export default function ManageUsers() {
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit User
                 </DropdownMenuItem>
-                
+
                 {!isVerified && (
                   <DropdownMenuItem
                     className="text-xs sm:text-sm"
@@ -218,6 +218,13 @@ export default function ManageUsers() {
     },
   ];
 
+  const clearFilters = () => {
+    setSearchTerm("");
+    setUserTypeFilter("all");
+    setroleFilter("all");
+    setstatusFilter("all");
+  };
+
   const handleUserDelete = async (userId: number) => {
     const user = userData.find((u) => u.UserID === userId);
     const userName = user ? user.Name : "this user";
@@ -233,12 +240,22 @@ export default function ManageUsers() {
       reverseButtons: true,
     });
 
-    if (!result.isConfirmed) return;
+    if (!result.isConfirmed) {
+      // User clicked "Cancel"
+      Swal.fire({
+        title: "Cancelled",
+        text: "Process cancelled.",
+        icon: "info",
+      });
+      return;
+    }
 
     try {
       const response = await deleteUser(userId);
+
       if (response.success) {
         setUserData((prev) => prev.filter((user) => user.UserID !== userId));
+
         toast({
           title: "Deleted",
           description: `${userName} has been deleted successfully.`,
@@ -246,11 +263,8 @@ export default function ManageUsers() {
           duration: 3000,
         });
       } else {
-        Swal.fire(
-          "Error",
-          response.message || "Failed to delete user.",
-          "error"
-        );
+        // Deletion failed from API/backend
+        Swal.fire("Error", `Failed to delete ${userName}.`, "error");
       }
     } catch (error) {
       Swal.fire("Error", "An error occurred while deleting the user.", "error");
@@ -273,7 +287,15 @@ export default function ManageUsers() {
       reverseButtons: true,
     });
 
-    if (!result.isConfirmed) return;
+    if (!result.isConfirmed) {
+      // User clicked "Cancel"
+      Swal.fire({
+        title: "Cancelled",
+        text: "Process cancelled.",
+        icon: "info",
+      });
+      return;
+    }
 
     try {
       const response = await resetPassword(userId);
@@ -415,6 +437,15 @@ export default function ManageUsers() {
                         ))}
                     </SelectContent>
                   </Select>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+                    <Button
+                      variant="outline"
+                      onClick={clearFilters}
+                      className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                   <Button

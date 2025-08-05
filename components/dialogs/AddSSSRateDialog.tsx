@@ -235,7 +235,7 @@ export function AddSSSRateDialog({
       <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
-            Add Contribution Rate
+            Add SSS Contribution Rate
           </DialogTitle>
           {/* <DialogDescription className="text-center text-sm text-gray-600">
             Add a new remittance entry for the selected allottee
