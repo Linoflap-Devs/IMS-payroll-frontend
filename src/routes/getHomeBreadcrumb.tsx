@@ -27,11 +27,15 @@ export const getHomeBreadcrumb = (pathname: string, userType: number) => {
   if (pathname.startsWith("/home/allotment/payslip")) return match("/home/allotment", "Allotment Payroll", "Allotment Payslip");
   if (pathname.startsWith("/home/remittance/details")) return match("/home/remittance", "Remittance", "Crew Remittance Details");
   if (pathname.startsWith("/home/profile")) { return match("/home/dashboard", "Home", "Profile");}
+  //if (pathname.startsWith("/home/deduction/government-deductions")) { return match("/home/dashboard", "Home", "Government Deduction");}
+  //if (pathname.startsWith("/home/deduction/reports")) { return match("/home/dashboard", "Home", "Government Reports");}
+  if (pathname.startsWith("/home/deduction/reports/philhealth-contribution")) {return match("/home/deduction/reports", "Reports", "Philhealth Contributions");}
+  if (pathname.startsWith("/home/deduction/reports/sss-contribution")) {return match("/home/deduction/reports", "Reports", "SSS Contributions");}
+  if (pathname.startsWith("/home/deduction/reports/hdmf-contribution")) {return match("/home/deduction/reports", "Reports", "HDMF Contributions");}
   if (pathname.startsWith("/home/crew-payroll/history")) return match("/home/crew-payroll",  "Crew Payroll", "Crew Payroll History");
   if (pathname.startsWith("/home/crew-movement/join-crew")) return match("/home/crew-movement",  "Crew Movement", "Join Crews");
   if (cleanPath.startsWith("/home/crew-movement/crew-list"))return match("/home/crew-movement", "Crew Movement", "Crew List");
   
-
   // fallback: check against route config
   const route = routes.find(r => r.href === pathname);
   if (route) return route.label;
