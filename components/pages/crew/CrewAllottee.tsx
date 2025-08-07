@@ -600,7 +600,7 @@ export function CrewAllottee({
             variant: "success",
           });
           
-          // show when allotment type is 2 and less than 100.
+          // show when allotment type is 2 and less than 100
           if (editingAllottee.allotmentType === 2) {
             toast({
               title: "Update Required.",

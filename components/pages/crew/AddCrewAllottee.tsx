@@ -293,7 +293,7 @@ export default function AllotteeForm({
                           }
                         >
                           <SelectTrigger className="w-full h-11 border-none focus:ring-0">
-                            <SelectValue placeholder="Loading Types..." />
+                            <SelectValue placeholder="Select...." />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="1">Amount</SelectItem>
