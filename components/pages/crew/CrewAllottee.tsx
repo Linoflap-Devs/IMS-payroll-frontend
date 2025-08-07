@@ -28,6 +28,7 @@ import {
 } from "@/src/services/crew/crewAllottee.api";
 import { toast } from "@/components/ui/use-toast";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
+import React from "react";
 
 // Empty UI model for initialization
 const emptyAllottee: AllotteeUiModel = {
@@ -577,6 +578,8 @@ export function CrewAllottee({
     setIsEditingAllottee,
   ]);
 
+  //console.log('EDITING ALLOTTEE RESPONSE: ', editingAllottee);
+
   // for delete allottee
   useEffect(() => {
     if (triggerDelete) {
@@ -596,6 +599,18 @@ export function CrewAllottee({
             description: `Allottee ${editingAllottee?.name} has been removed.`,
             variant: "success",
           });
+          
+          // show when allotment type is 2 and less than 100.
+          if (editingAllottee.allotmentType === 2) {
+            toast({
+              title: "Update Required.",
+              description:
+                "The total allotment percentage is now less than 100%. Please update the remaining allottees.",
+              variant: "warning",
+            });
+          }
+
+          // Can still fetch if needed for internal state updates
           fetchCrewAllottees(crewId.toString());
         })
         .catch((error) => {
@@ -634,6 +649,18 @@ export function CrewAllottee({
 
     validateAllotteeForm();
   }, [displayAllottee, setIsAllotteeValid]);
+
+  const commonAllotmentType = React.useMemo(() => {
+    if (!allottees || allottees.length === 0) return null;
+
+    const hasPercentage = allottees.some((a) => a.allotmentType === 2);
+    const hasAmount = allottees.some((a) => a.allotmentType === 1);
+
+    if (hasPercentage && !hasAmount) return 2;
+    if (hasAmount && !hasPercentage) return 1;
+
+    return null; // mixed or undefined
+  }, [allottees]);
 
   return (
     <div className="space-y-6">
@@ -681,16 +708,21 @@ export function CrewAllottee({
               <div className="flex h-11 w-full">
                 <div className="flex items-center px-4 bg-gray-50 border-r">
                   <span className="text-gray-700 font-medium whitespace-nowrap">
-                    Select Allotment Type
+                      Allotment Type
                   </span>
                 </div>
                 <div className="flex-1 w-full flex items-center">
-                  <Select
-                    value={displayAllottee?.allotmentType.toString() || "1"}
-                    onValueChange={(value) =>
-                      handleInputChange("allotmentType", parseInt(value))
-                    }
-                  >
+                    <Select
+                      value={
+                        commonAllotmentType !== null
+                          ? commonAllotmentType.toString()
+                          : displayAllottee?.allotmentType?.toString() || "1"
+                      }
+                      disabled={commonAllotmentType !== null}
+                      onValueChange={(value) =>
+                        handleInputChange("allotmentType", parseInt(value))
+                      }
+                    >
                     <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                       <SelectValue placeholder="Amount" />
                     </SelectTrigger>
