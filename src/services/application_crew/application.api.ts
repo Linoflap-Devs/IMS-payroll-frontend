@@ -19,6 +19,8 @@ interface RequestData {
     BankBranch: string;
     AccountNumber: string;
     Allotment: number;
+    Payslip: number;
+    AllotmentType: number;
 }
 
 interface Application {
