@@ -102,15 +102,15 @@ export default function SSSContribution() {
         <div className="text-right">{formatNumber(row.getValue("Salary"))}</div>
       ),
     },
-    {
-      accessorKey: "Allotment",
-      header: "Allotment",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("Allotment"))}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "Allotment",
+    //   header: "Allotment",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatNumber(row.getValue("Allotment"))}
+    //     </div>
+    //   ),
+    // },
     {
       accessorKey: "Gross",
       header: "Gross",

@@ -104,15 +104,15 @@ export default function HMDFContribution() {
         <div className="text-right">{formatNumber(row.getValue("Salary"))}</div>
       ),
     },
-    {
-      accessorKey: "Allotment",
-      header: "Allotment",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("Allotment"))}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "Allotment",
+    //   header: "Allotment",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatNumber(row.getValue("Allotment"))}
+    //     </div>
+    //   ),
+    // },
     {
       accessorKey: "Gross",
       header: "Gross",
