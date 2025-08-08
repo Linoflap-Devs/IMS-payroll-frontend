@@ -21,6 +21,7 @@ import {
 } from "@/src/services/deduction/governmentReports.api";
 import { format } from "date-fns";
 import generateHDMFRegister from "../PDFs/deductionsHDMFRegister";
+import { formatCurrency } from "@/lib/utils";
 
 export default function HMDFContribution() {
   const searchParams = useSearchParams();
@@ -101,7 +102,7 @@ export default function HMDFContribution() {
       accessorKey: "Salary",
       header: "Salary",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Salary"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("Salary"), true)}</div>
       ),
     },
     // {
@@ -117,21 +118,21 @@ export default function HMDFContribution() {
       accessorKey: "Gross",
       header: "Gross",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Gross"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("Gross"), true)}</div>
       ),
     },
     {
       accessorKey: "EE",
       header: "EE",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("EE"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("EE"), true)}</div>
       ),
     },
     {
       accessorKey: "ER",
       header: "ER",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("ER"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("ER"), true)}</div>
       ),
     },
   ];
