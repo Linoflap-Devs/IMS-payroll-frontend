@@ -168,7 +168,7 @@ const columns: ColumnDef<PaymentReferenceItem>[] = [
 
 export default function PaymentReference() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [rankFilter, setRankFilter] = useState("all");
+  const [deductionTypeFilter, setdeductionTypeFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
   const [paymentData, setPaymentData] = useState<PaymentReferenceItem[]>([]);
 
@@ -191,21 +191,24 @@ useEffect(() => {
     });
 }, []);
 
-const filteredDataPayment = useMemo(() => {
-  return paymentData.filter((item) => {
+  const filteredDataPayment = useMemo(() => {
     const term = searchTerm.toLowerCase();
 
-    return (
-      item.PaymentReferenceNumber?.toString().includes(term) ||
-      item.DeductionType?.toLowerCase().includes(term) ||
-      item.Amount?.toString().toLowerCase().includes(term) ||
-      item.PayMonth?.toString().includes(term) ||
-      item.PayYear?.toString().includes(term)
-    );
-  });
-}, [paymentData, searchTerm]);
+    return paymentData.filter((item) => {
+      const matchesSearch =
+        item.PaymentReferenceNumber?.toString().includes(term) ||
+        item.DeductionType?.toLowerCase().includes(term) ||
+        item.Amount?.toString().toLowerCase().includes(term) ||
+        item.PayMonth?.toString().includes(term) ||
+        item.PayYear?.toString().includes(term)
+    
+        const matchesRole = deductionTypeFilter === "all" || item.DeductionType === deductionTypeFilter;
 
-const uniqueDedudctionType = useMemo(() => {
+      return matchesSearch && matchesRole;
+    });
+  }, [paymentData, searchTerm, deductionTypeFilter]);
+
+   const uniqueDedudctionType = useMemo(() => {
      const rolesSet = new Set(paymentData.map((type) => type.DeductionType));
      return Array.from(rolesSet);
    }, [paymentData]);
@@ -239,7 +242,7 @@ const uniqueDedudctionType = useMemo(() => {
               />
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-              <Select value={rankFilter} onValueChange={setRankFilter}>
+              <Select value={deductionTypeFilter} onValueChange={setdeductionTypeFilter}>
                 <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                   <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
                   <SelectValue placeholder="Filter by rank" />
@@ -266,7 +269,7 @@ const uniqueDedudctionType = useMemo(() => {
           </div>
           {isLoading ? (
             <div className="flex justify-center items-center h-40">
-              <p className="text-muted-foreground">Loading crew data...</p>
+              <p className="text-muted-foreground">Loading payment reference data...</p>
             </div>
           ) : (
             <div className="bg-white rounded-md border pb-3">
@@ -276,8 +279,6 @@ const uniqueDedudctionType = useMemo(() => {
         </div>
       </div>
 
-
-      
     </div>
   );
 }
