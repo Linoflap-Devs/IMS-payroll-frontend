@@ -122,11 +122,16 @@ export default function Allotment() {
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [payrollData, setPayrollData] = useState<Payroll[]>([]);
   const [forexRate, setForexRate] = useState<number>(0);
+
+  const searchParams = useSearchParams();
+  const month = searchParams.get("month");
+  const year = searchParams.get("year");
+
   const [monthFilter, setMonthFilter] = useState(
-    (new Date().getMonth() + 1).toString()
+    month || (new Date().getMonth() + 1).toString()
   );
   const [yearFilter, setYearFilter] = useState(
-    new Date().getFullYear().toString()
+   year || new Date().getFullYear().toString()
   );
 
   //loading states
@@ -137,7 +142,6 @@ export default function Allotment() {
 
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [showPostDialog, setShowPostDialog] = useState(false);
   const [selectedVessel, setSelectedVessel] = useState<Payroll | null>(null);
 
@@ -173,8 +177,7 @@ export default function Allotment() {
   // const [allotmentPayslipData, setAllotmentPayslipData] =
   //   useState<PayslipData>();
 
-  const month = searchParams.get("month");
-  const year = searchParams.get("year");
+  
   const vesselId = searchParams.get("vesselId");
 
   useEffect(() => { }, [vesselId, month, year]);
