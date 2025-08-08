@@ -80,14 +80,22 @@ export default function GovernmentReports() {
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [payrollData, setPayrollData] = useState<Payroll[]>([]);
   const [forexRate, setForexRate] = useState<number>(0);
-  const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString());
-  const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
   const [printLoading, setPrintLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
 
+  const searchParams = useSearchParams();
+  const month = searchParams.get("month");
+  const year = searchParams.get("year");
+
+  const [monthFilter, setMonthFilter] = useState(
+    month || (new Date().getMonth() + 1).toString()
+  );
+  const [yearFilter, setYearFilter] = useState(
+   year || new Date().getFullYear().toString()
+  );
+
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const formatNumber = (value: number) => value?.toFixed(2);
 
@@ -114,9 +122,6 @@ export default function GovernmentReports() {
   const [allotmentRegisterData, setAllotmentRegisterData] = useState<
     AllotmentRegisterData[]
   >([]);
-
-  const month = searchParams.get("month");
-  const year = searchParams.get("year");
   const vesselId = searchParams.get("vesselId");
 
   // Fetch data when filters change

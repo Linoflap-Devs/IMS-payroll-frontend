@@ -21,7 +21,7 @@ import {
 } from "@/src/services/deduction/governmentReports.api";
 import generatePHRegister from "../PDFs/deductionsPHRegister";
 import { format } from "date-fns";
-import { formatCurrency } from "@/lib/utils";
+import { capitalizeFirstLetter, formatCurrency, getMonthName } from "@/lib/utils";
 
 export default function PhilhealthContribution() {
   const searchParams = useSearchParams();
@@ -35,6 +35,12 @@ export default function PhilhealthContribution() {
   >([]);
   const [PHDeductionResponse, setPHDeductionResponse] = useState<DeductionResponse<PhilhealthDeductionCrew>>({} as DeductionResponse<PhilhealthDeductionCrew>);
   const [isLoading, setIsLoading] = useState(true);
+
+  const yearParam = Number(searchParams.get("year")) || new Date().getFullYear();
+  const monthParam =
+    Number(searchParams.get("month")) || new Date().getMonth() + 1;
+
+  const monthName = getMonthName(monthParam);
 
   useEffect(() => {
     const fetchPhilhealthDeductionData = async () => {
@@ -223,12 +229,12 @@ export default function PhilhealthContribution() {
       `}</style>
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <Link href="/home/deduction/reports">
+          <Link href={ monthName && yearParam ? `/home/deduction/reports?month=${monthParam}&year=${yearParam}` : "/home/deduction/reports"}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-semibold mb-0">Philhealth Contribution</h1>
+          <h1 className="text-3xl font-semibold mb-0">{ monthName && yearParam ? `Philhealth Contribution- ${capitalizeFirstLetter(monthName)} ${yearParam}` : "Philhealth Contribution"}</h1>
         </div>
       </div>
 
