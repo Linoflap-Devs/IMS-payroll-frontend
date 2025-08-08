@@ -50,15 +50,15 @@ export function AllotteeDistributionDialog({
         </div>
       ),
     },
-    {
-      accessorKey: "Currency",
-      header: "Currency",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.getValue<number>("Currency") === 1 ? "USD" : "PHP"}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "Currency",
+    //   header: "Currency",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {row.getValue<number>("Currency") === 1 ? "USD" : "PHP"}
+    //     </div>
+    //   ),
+    // },
   ];
 
   return (
