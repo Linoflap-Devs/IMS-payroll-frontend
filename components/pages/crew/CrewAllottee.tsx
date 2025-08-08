@@ -78,7 +78,7 @@ export function CrewAllottee({
   triggerSave,
   setAllotteeLoading,
   setTriggerSave,
-  setIsEditingAllottee = () => {},
+  setIsEditingAllottee = () => { },
   setTriggerDelete,
   triggerDelete,
   setIsDeletingAllottee,
@@ -185,7 +185,7 @@ export function CrewAllottee({
       branchId: a.BankBranchID?.toString() || "",
       accountNumber: a.AccountNumber,
       allotment: a.Allotment,
-      
+
       priority: a.priority ? 1 : 0,
       receivePayslip: a.receivePayslip ? 1 : 0,
       active: a.active ? 1 : 0,
@@ -586,35 +586,48 @@ export function CrewAllottee({
       setIsDeletingAllottee(true);
 
       if (!editingAllottee?.id || !crewId) {
-        console.warn("Missing editingAllottee.id or crewId");
+        console.warn("Missing editingAllottee.id or crewId", {
+          editingAllotteeId: editingAllottee?.id,
+          crewId,
+        });
         setIsDeletingAllottee(false);
         setTriggerDelete(false);
         return;
       }
 
       deleteCrewAllottee(crewId.toString(), editingAllottee.id.toString())
-        .then(() => {
+        .then((res) => {
+          const percentage = res?.data?.Percentage;
+
           toast({
             title: "Allottee deleted successfully",
             description: `Allottee ${editingAllottee?.name} has been removed.`,
             variant: "success",
           });
-          
-          // show when allotment type is 2 and less than 100
-          if (editingAllottee.allotmentType === 2) {
+
+          // Show updated percentage
+          if (percentage !== undefined) {
+            toast({
+              title: "Updated Allotment Percentage",
+              description: `Remaining percentage: ${percentage}%`,
+              variant: "default",
+            });
+          }
+
+          // Warning if allotment type is 2 and less than 100
+          if (editingAllottee.allotmentType === 2 && percentage < 100) {
             toast({
               title: "Update Required.",
               description:
-                "The total allotment percentage is now less than 100%. Please update the remaining allottees.",
+                `The total allotment percentage is now ${percentage}%, which is below the required 100%. Please update the remaining allottees.`,
               variant: "warning",
             });
           }
 
-          // Can still fetch if needed for internal state updates
           fetchCrewAllottees(crewId.toString());
         })
         .catch((error) => {
-          console.error("Error deleting allottee:", error);
+          console.error("[deleteCrewAllottee] Error deleting allottee:", error);
           toast({
             title: "Error deleting allottee",
             description: "There was an error deleting the allottee.",
@@ -701,6 +714,9 @@ export function CrewAllottee({
                     </div>
                   </div>
                 </div>
+
+
+
               </div>
             </>
           ) : (
@@ -708,21 +724,21 @@ export function CrewAllottee({
               <div className="flex h-11 w-full">
                 <div className="flex items-center px-4 bg-gray-50 border-r">
                   <span className="text-gray-700 font-medium whitespace-nowrap">
-                      Allotment Type
+                    Allotment Type
                   </span>
                 </div>
                 <div className="flex-1 w-full flex items-center">
-                    <Select
-                      value={
-                        commonAllotmentType !== null
-                          ? commonAllotmentType.toString()
-                          : displayAllottee?.allotmentType?.toString() || "1"
-                      }
-                      disabled={commonAllotmentType !== null}
-                      onValueChange={(value) =>
-                        handleInputChange("allotmentType", parseInt(value))
-                      }
-                    >
+                  <Select
+                    value={
+                      commonAllotmentType !== null
+                        ? commonAllotmentType.toString()
+                        : displayAllottee?.allotmentType?.toString() || "1"
+                    }
+                    disabled={commonAllotmentType !== null}
+                    onValueChange={(value) =>
+                      handleInputChange("allotmentType", parseInt(value))
+                    }
+                  >
                     <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                       <SelectValue placeholder="Amount" />
                     </SelectTrigger>
@@ -733,6 +749,8 @@ export function CrewAllottee({
                   </Select>
                 </div>
               </div>
+
+
             </div>
           )}
 
@@ -807,11 +825,10 @@ export function CrewAllottee({
                   <Input
                     value={displayAllottee.name}
                     readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${
-                      !isEditingAllottee && !isAdding
+                    className={`w-full h-10 ${!isEditingAllottee && !isAdding
                         ? "bg-gray-50"
                         : "bg-white"
-                    }`}
+                      }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
                       handleInputChange("name", e.target.value)
@@ -859,11 +876,10 @@ export function CrewAllottee({
                   <Input
                     value={displayAllottee.contactNumber}
                     readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${
-                      !isEditingAllottee && !isAdding
+                    className={`w-full h-10 ${!isEditingAllottee && !isAdding
                         ? "bg-gray-50"
                         : "bg-white"
-                    }`}
+                      }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
                       handleInputChange("contactNumber", e.target.value)
@@ -877,11 +893,10 @@ export function CrewAllottee({
                   <Input
                     value={displayAllottee.address}
                     readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${
-                      !isEditingAllottee && !isAdding
+                    className={`w-full h-10 ${!isEditingAllottee && !isAdding
                         ? "bg-gray-50"
                         : "bg-white"
-                    }`}
+                      }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
                       handleInputChange("address", e.target.value)
@@ -1085,11 +1100,10 @@ export function CrewAllottee({
                     <Input
                       value={displayAllottee.accountNumber}
                       readOnly={!isEditingAllottee && !isAdding}
-                      className={`w-full h-10 ${
-                        !isEditingAllottee && !isAdding
+                      className={`w-full h-10 ${!isEditingAllottee && !isAdding
                           ? "bg-gray-50"
                           : "bg-white"
-                      }`}
+                        }`}
                       onChange={(e) =>
                         (isEditingAllottee || isAdding) &&
                         handleInputChange("accountNumber", e.target.value)
@@ -1100,20 +1114,19 @@ export function CrewAllottee({
                     <label className="text-sm text-gray-500 mb-1 block">
                       {displayAllottee.allotmentType === 1
                         ? "Allotment Amount in" +
-                          (displayAllottee.receivePayslip === 1
-                            ? " (Dollar)"
-                            : " (Peso)")
+                        (displayAllottee.receivePayslip === 1
+                          ? " (Dollar)"
+                          : " (Peso)")
                         : "Allotment Percentage"}
                     </label>
                     <Input
                       type="number"
                       value={displayAllottee.allotment.toString()}
                       readOnly={!isEditingAllottee && !isAdding}
-                      className={`w-full h-10 ${
-                        !isEditingAllottee && !isAdding
+                      className={`w-full h-10 ${!isEditingAllottee && !isAdding
                           ? "bg-gray-50"
                           : "bg-white"
-                      }`}
+                        }`}
                       onChange={(e) =>
                         (isEditingAllottee || isAdding) &&
                         handleInputChange(

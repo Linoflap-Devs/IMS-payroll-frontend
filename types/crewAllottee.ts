@@ -15,6 +15,7 @@ export interface AllotteeApiModel {
   active: number;
   allotteeDetailID?: string;
   receivePayslip?: number;
+  Percentage?: number;
 }
 
 export interface AllotteeUiModel {
@@ -42,6 +43,7 @@ export interface AllotteeUiModel {
   allotteeDetailID: string;
 
   receivePayslip?: number;
+  Percentage?: number;
 }
 
 export interface IAddAllottee {
@@ -62,8 +64,14 @@ export interface IAddAllottee {
   receivePayslip: number;
 }
 
+export interface CrewAllotteeData {
+  Percentage: number;
+  allottees: AllotteeApiModel[];
+}
+
 export interface CrewAllotteeResponse {
   success: boolean;
   message: string;
-  data: AllotteeApiModel[];
+  data: CrewAllotteeData;
 }
+
