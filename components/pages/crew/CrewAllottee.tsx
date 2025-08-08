@@ -741,15 +741,18 @@ export function CrewAllottee({
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
-                  Total Allotment: {" "}
-                  <span
-                    className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
+                {allottees.some(a => a.allotmentType === 2) && (
+                  <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
+                    Total Allotment:{" "}
+                    <span
+                      className={`ml-1 font-semibold ${
+                        totalAllotment > 100 ? "text-red-600" : "text-green-600"
                       }`}
-                  >
-                    {totalAllotment}%
-                  </span>
-                </div>
+                    >
+                      {totalAllotment}%
+                    </span>
+                  </div>
+                )}
               </div>
             </>
             ) : (
@@ -784,6 +787,7 @@ export function CrewAllottee({
                     </div>
                   </div>
                 </div>
+              
                 <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
                   Total Allotment: {" "}
                   <span

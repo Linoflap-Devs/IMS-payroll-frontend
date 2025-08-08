@@ -348,16 +348,17 @@ export default function AllotteeForm({
               )}
             </div>
 
-            {/* Total Allotment */}
-            <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700 h-11">
-              Total Allotment:
-              <span
-                className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
-                  }`}
-              >
-                {totalAllotment}%
-              </span>
-            </div>
+            {allottees.some(a => a.AllotmentType === 2) && (
+              <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700 h-11">
+                Total Allotment:
+                <span
+                  className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
+                    }`}
+                >
+                  {totalAllotment}%
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
