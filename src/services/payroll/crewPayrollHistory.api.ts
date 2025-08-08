@@ -15,7 +15,7 @@ export interface CrewPayrollHistoryItem {
     fixedOT: string;
     guaranteedOT: string;
     dollarGross: string;
-    pesoGross: string; // typo fixed: from `pesoGrocess`
+    pesoGross: string;
     totalDeduction: number;
     netWage: string;
   };

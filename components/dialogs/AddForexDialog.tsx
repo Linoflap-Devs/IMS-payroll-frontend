@@ -214,7 +214,8 @@ export function AddForexDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="h-60">
-                      {months.map((month, index) => (
+                      {months
+                      .map((month, index) => (
                         <SelectItem key={index} value={(index + 1).toString()}>
                           {month}
                         </SelectItem>
