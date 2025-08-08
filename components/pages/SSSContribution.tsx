@@ -21,6 +21,7 @@ import {
 } from "@/src/services/deduction/governmentReports.api";
 import generateSSSRegister from "../PDFs/deductionsSSSRegister";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 export default function SSSContribution() {
   const searchParams = useSearchParams();
@@ -99,7 +100,7 @@ export default function SSSContribution() {
       accessorKey: "Salary",
       header: "Salary",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Salary"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("Salary"))}</div>
       ),
     },
     // {
@@ -115,60 +116,60 @@ export default function SSSContribution() {
       accessorKey: "Gross",
       header: "Gross",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Gross"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("Gross"), true)}</div>
       ),
     },
-    {
-      accessorKey: "RegularSS",
-      header: "Regular SS",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("RegularSS"))}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "MutualFund",
-      header: "Mutual Fund",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("MutualFund"))}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "RegularSS",
+    //   header: "Regular SS",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatCurrency(row.getValue("RegularSS"), true)}
+    //     </div>
+    //   ),
+    // },
+    // {
+    //   accessorKey: "MutualFund",
+    //   header: "Mutual Fund",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatCurrency(row.getValue("MutualFund"), true)}
+    //     </div>
+    //   ),
+    // },
     {
       accessorKey: "EESS",
       header: "EE SS",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("EESS"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("EESS"), true)}</div>
       ),
     },
     {
       accessorKey: "ERSS",
       header: "ER SS",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("ERSS"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("ERSS"), true)}</div>
       ),
     },
     {
       accessorKey: "EEMF",
       header: "EE MF",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("EEMF"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("EEMF"), true)}</div>
       ),
     },
     {
       accessorKey: "ERMF",
       header: "ER MF",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("ERMF"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("ERMF"), true)}</div>
       ),
     },
     {
       accessorKey: "EC",
       header: "EC",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("EC"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("EC"), true)}</div>
       ),
     },
   ];

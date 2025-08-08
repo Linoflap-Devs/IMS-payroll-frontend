@@ -17,7 +17,8 @@ export function truncateText(text: string, maxLength: number) {
   return text.substring(0, maxLength) + '...';
 }
 
-export function formatCurrency(amount: number | string, peso: boolean = false): string {
+export function formatCurrency(amount: number | string | null | undefined, peso: boolean = false): string {
+    if (amount === null || amount === undefined) return '0.00'
     if (typeof(amount) == 'string') return amount
     if(!peso){
       return new Intl.NumberFormat('en-US', {
