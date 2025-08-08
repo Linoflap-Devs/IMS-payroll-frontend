@@ -741,45 +741,60 @@ export function CrewAllottee({
                     </div>
                   </div>
                 </div>
-
-
-
-              </div>
-            </>
-          ) : (
-            <div className="relative rounded-lg border shadow-sm overflow-hidden w-1/2">
-              <div className="flex h-11 w-full">
-                <div className="flex items-center px-4 bg-gray-50 border-r">
-                  <span className="text-gray-700 font-medium whitespace-nowrap">
-                    Allotment Type
+                <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
+                  Total Allotment: {" "}
+                  <span
+                    className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
+                      }`}
+                  >
+                    {totalAllotment}%
                   </span>
                 </div>
-                <div className="flex-1 w-full flex items-center">
-                  <Select
-                    value={
-                      commonAllotmentType !== null
-                        ? commonAllotmentType.toString()
-                        : displayAllottee?.allotmentType?.toString() || "1"
-                    }
-                    disabled={commonAllotmentType !== null}
-                    onValueChange={(value) =>
-                      handleInputChange("allotmentType", parseInt(value))
-                    }
+              </div>
+            </>
+            ) : (
+              <div className="flex gap-4 w-3/4">
+                <div className="relative rounded-lg border shadow-sm overflow-hidden w-1/2">
+                  <div className="flex h-11 w-full">
+                    <div className="flex items-center px-4 bg-gray-50 border-r">
+                      <span className="text-gray-700 font-medium whitespace-nowrap">
+                        Allotment Type
+                      </span>
+                    </div>
+                    <div className="flex-1 w-full flex items-center">
+                      <Select
+                        value={
+                          commonAllotmentType !== null
+                            ? commonAllotmentType.toString()
+                            : displayAllottee?.allotmentType?.toString() || "1"
+                        }
+                        disabled={commonAllotmentType !== null}
+                        onValueChange={(value) =>
+                          handleInputChange("allotmentType", parseInt(value))
+                        }
+                      >
+                        <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                          <SelectValue placeholder="Amount" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Amount</SelectItem>
+                          <SelectItem value="2">Percentage</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
+                  Total Allotment: {" "}
+                  <span
+                    className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
+                      }`}
                   >
-                    <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                      <SelectValue placeholder="Amount" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Amount</SelectItem>
-                      <SelectItem value="2">Percentage</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    {totalAllotment}%
+                  </span>
                 </div>
               </div>
-
-
-            </div>
-          )}
+            )}
 
           {/* Details display */}
           {displayAllottee ? (
@@ -853,8 +868,8 @@ export function CrewAllottee({
                     value={displayAllottee.name}
                     readOnly={!isEditingAllottee && !isAdding}
                     className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
+                      ? "bg-gray-50"
+                      : "bg-white"
                       }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
@@ -904,8 +919,8 @@ export function CrewAllottee({
                     value={displayAllottee.contactNumber}
                     readOnly={!isEditingAllottee && !isAdding}
                     className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
+                      ? "bg-gray-50"
+                      : "bg-white"
                       }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
@@ -921,8 +936,8 @@ export function CrewAllottee({
                     value={displayAllottee.address}
                     readOnly={!isEditingAllottee && !isAdding}
                     className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
+                      ? "bg-gray-50"
+                      : "bg-white"
                       }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
@@ -1128,8 +1143,8 @@ export function CrewAllottee({
                       value={displayAllottee.accountNumber}
                       readOnly={!isEditingAllottee && !isAdding}
                       className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                          ? "bg-gray-50"
-                          : "bg-white"
+                        ? "bg-gray-50"
+                        : "bg-white"
                         }`}
                       onChange={(e) =>
                         (isEditingAllottee || isAdding) &&
@@ -1151,8 +1166,8 @@ export function CrewAllottee({
                       value={displayAllottee.allotment.toString()}
                       readOnly={!isEditingAllottee && !isAdding}
                       className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                          ? "bg-gray-50"
-                          : "bg-white"
+                        ? "bg-gray-50"
+                        : "bg-white"
                         }`}
                       onChange={(e) =>
                         (isEditingAllottee || isAdding) &&

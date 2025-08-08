@@ -276,82 +276,90 @@ export default function AllotteeForm({
       <form onSubmit={handleSubmit(onSubmit)} className="mt-2">
         {/* Allotment Type Selection */}
         <div
-          className={`relative rounded-lg shadow-sm overflow-hidden w-1/2 ${errors.allotmentType
+          className={`relative overflow-hidden w-1/2 ${errors.allotmentType
             ? "border-red-500 ring-1 ring-red-500/50"
-            : "border"
+            : ""
             }`}
         >
-          <div className="flex h-11 w-full">
-            <div className="flex items-center px-4 bg-gray-50 border-r">
-              <span className="text-gray-700 font-medium whitespace-nowrap">
-                {![1, 2].includes(allotmentType) && "Allotment Type" || "Select Allotment Type"}
-              </span>
+          <div className="flex gap-4 w-full">
+            {/* Allotment Type */}
+            <div className="relative rounded-lg border shadow-sm overflow-hidden flex-1">
+              <div className="flex h-11 w-full">
+                <div className="flex items-center px-4 bg-gray-50 border-r">
+                  <span className="text-gray-700 font-medium whitespace-nowrap">
+                    Allotment Type
+                  </span>
+                </div>
+                <div className="flex-1 flex items-center">
+                  <FormField
+                    control={control}
+                    name="allotmentType"
+                    render={({ field }) => {
+                      const isDisabled = commonAllotmentType !== null;
+                      const forcedValue =
+                        commonAllotmentType === 1 || commonAllotmentType === 2
+                          ? commonAllotmentType.toString()
+                          : undefined;
+
+                      const selectedValue =
+                        forcedValue ??
+                        (field.value !== undefined && field.value !== null
+                          ? String(field.value)
+                          : "");
+
+                      // Sync RHF with forced value
+                      useEffect(() => {
+                        if (forcedValue && field.value !== parseInt(forcedValue)) {
+                          field.onChange(parseInt(forcedValue));
+                        }
+                      }, [forcedValue, field]);
+
+                      return (
+                        <FormItem className="w-full">
+                          <FormControl>
+                            <Select
+                              disabled={isDisabled || isLoadingAllottees}
+                              value={selectedValue}
+                              onValueChange={(value) => {
+                                const parsed = value ? parseInt(value) : undefined;
+                                field.onChange(parsed);
+                              }}
+                            >
+                              <SelectTrigger className="w-full h-11 border-none focus:ring-0">
+                                <SelectValue placeholder="Select..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1">Amount</SelectItem>
+                                <SelectItem value="2">Percentage</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                </div>
+              </div>
+              {errors.allotmentType && (
+                <p className="text-red-500 text-xs flex items-center gap-1 mt-1.5 ml-2">
+                  <Info className="w-4 h-4" />
+                  {errors.allotmentType.message}
+                </p>
+              )}
             </div>
-            <div className="flex-1 w-full flex items-center">
-              <FormField
-                control={control}
-                name="allotmentType"
-                render={({ field }) => {
-                  const isDisabled = commonAllotmentType !== null;
-                  const forcedValue =
-                    commonAllotmentType === 1 || commonAllotmentType === 2
-                      ? commonAllotmentType.toString()
-                      : undefined;
 
-                  const selectedValue =
-                    forcedValue ??
-                    (field.value !== undefined && field.value !== null
-                      ? String(field.value)
-                      : "");
-
-                  // Sync RHF state with forced value
-                  useEffect(() => {
-                    if (forcedValue && field.value !== parseInt(forcedValue)) {
-                      field.onChange(parseInt(forcedValue));
-                    }
-                  }, [forcedValue, field]);
-
-                  console.group("AllotmentType Debug");
-                  console.log("commonAllotmentType (prop):", commonAllotmentType);
-                  console.log("isDisabled:", isDisabled);
-                  console.log("forcedValue:", forcedValue);
-                  console.log("field.value (raw from RHF):", field.value);
-                  console.log("selectedValue (passed to Select):", selectedValue);
-                  console.groupEnd();
-
-                  return (
-                    <FormItem className="w-full">
-                      <FormControl>
-                        <Select
-                          disabled={isDisabled || isLoadingAllottees}
-                          value={selectedValue}
-                          onValueChange={(value) => {
-                            const parsed = value ? parseInt(value) : undefined;
-                            field.onChange(parsed);
-                          }}
-                        >
-                          <SelectTrigger className="w-full h-11 border-none focus:ring-0">
-                            <SelectValue placeholder="Select...." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">Amount</SelectItem>
-                            <SelectItem value="2">Percentage</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                    </FormItem>
-                  );
-                }}
-              />
+            {/* Total Allotment */}
+            <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700 h-11">
+              Total Allotment:
+              <span
+                className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
+                  }`}
+              >
+                {totalAllotment}%
+              </span>
             </div>
           </div>
         </div>
-        {errors.allotmentType && (
-          <p className="text-red-500 text-xs flex items-center gap-1 mt-1.5 ml-2">
-            <Info className="w-4 h-4" />
-            {errors.allotmentType.message}
-          </p>
-        )}
 
         {/* Allottee Details */}
         <div className="p-4 mt-2 space-y-6">
