@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/form";
 import { addCrewAllotteeSchema } from "@/lib/zod-validations";
 import { addCrewAllottee } from "@/src/services/crew/crewAllottee.api";
-import { AllotteeUiModel, IAddAllottee } from "@/types/crewAllottee";
+import { IAddAllottee } from "@/types/crewAllottee";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/components/ui/use-toast";
 import { Info } from "lucide-react";
@@ -98,6 +98,11 @@ export default function AllotteeForm({
     }
   }, [crewId, fetchCrewAllottees]);
 
+  const totalAllotment = allottees?.reduce(
+    (sum, allottee) => sum + Number(allottee.Allotment || 0),
+    0
+  );
+
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
 
   const {
@@ -145,65 +150,84 @@ export default function AllotteeForm({
     return citiesInProvince.slice(0, 100);
   }, [cities, province]);
 
+  // add function
   const onSubmit = useCallback(
     (data: IAddAllottee) => {
 
       if (!crewId) {
-        console.log("No crewId found. Submission aborted.");
+        console.warn("[onSubmit] No crewId found. Submission aborted.");
         return;
       }
 
       setIsAddingAllottee(true);
 
-      // Prepare payload: convert isActive to active
       const payload = {
         ...data,
         IsActive: data.active,
       };
 
-      //delete payload.isActive; // optional: remove isActive if not needed by API
-
       addCrewAllottee(crewId, payload)
         .then((response) => {
+          if (!response.success) {
+            let errorMessage = response.message || "Failed to add allottee.";
 
-          if (response.success) {
-            toast({
-              title: "Success",
-              description: "Allottee added successfully.",
-              variant: "success",
-            });
-            setIsAddingAllottee(false);
-            form.reset(defaultValues);
-          } else {
+            if (
+              errorMessage
+                .toLowerCase()
+                .includes("allotment percentage would exceed 100 percent")
+            ) {
+              errorMessage =
+                "The total allotment percentage cannot exceed 100%. Please adjust the values.";
+            }
+
             toast({
               title: "Error",
-              description: response.message || "Failed to add allottee.",
+              description: errorMessage,
               variant: "destructive",
             });
+
+            // Don't reset or close modal if error
+            return;
           }
-        })
-        .catch((error) => {
-          const err = error as Error;
-          console.log("Error adding allottee:", err.message);
+
           toast({
-            title: "Error",
-            description: "Failed to add allottee.",
-            variant: "destructive",
+            title: "Success",
+            description: "Allottee added successfully.",
+            variant: "success",
           });
-        })
-        .finally(() => {
+
+          // Reset only on success
+          form.reset(defaultValues);
           setTriggerAdd(false);
           setIsAddLoading(false);
+          setIsAddingAllottee(false);
+        })
+        .catch((error) => {
+          console.error("[onSubmit] Error adding allottee:", error);
+
+          let errorMessage = "An unexpected error occurred.";
+
+          if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+
+            if (
+              errorMessage.includes(
+                "Allotment percentage would exceed 100 percent"
+              )
+            ) {
+              errorMessage =
+                `The total allotment percentage is currently ${totalAllotment}%, which exceeds the 100% limit. Please adjust the values.`
+            }
+          }
+
+          toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
         });
     },
-    [
-      crewId,
-      form,
-      defaultValues,
-      setIsAddingAllottee,
-      setTriggerAdd,
-      setIsAddLoading,
-    ]
+    [crewId, form, defaultValues, setIsAddingAllottee, setTriggerAdd, setIsAddLoading]
   );
 
   useEffect(() => {
@@ -253,8 +277,8 @@ export default function AllotteeForm({
         {/* Allotment Type Selection */}
         <div
           className={`relative rounded-lg shadow-sm overflow-hidden w-1/2 ${errors.allotmentType
-              ? "border-red-500 ring-1 ring-red-500/50"
-              : "border"
+            ? "border-red-500 ring-1 ring-red-500/50"
+            : "border"
             }`}
         >
           <div className="flex h-11 w-full">
@@ -263,7 +287,7 @@ export default function AllotteeForm({
                 {![1, 2].includes(allotmentType) && "Allotment Type" || "Select Allotment Type"}
               </span>
             </div>
-              <div className="flex-1 w-full flex items-center">
+            <div className="flex-1 w-full flex items-center">
               <FormField
                 control={control}
                 name="allotmentType"
@@ -274,13 +298,26 @@ export default function AllotteeForm({
                       ? commonAllotmentType.toString()
                       : undefined;
 
-                  const selectedValue = forcedValue ?? (field.value ? String(field.value) : "");
+                  const selectedValue =
+                    forcedValue ??
+                    (field.value !== undefined && field.value !== null
+                      ? String(field.value)
+                      : "");
 
-                  // Debug logs
-                  //console.log("field.value:", field.value);
-                  //console.log("commonAllotmentType:", commonAllotmentType);
-                  //console.log("forcedValue:", forcedValue);
-                  //console.log("selectedValue (for Select):", selectedValue);
+                  // Sync RHF state with forced value
+                  useEffect(() => {
+                    if (forcedValue && field.value !== parseInt(forcedValue)) {
+                      field.onChange(parseInt(forcedValue));
+                    }
+                  }, [forcedValue, field]);
+
+                  console.group("AllotmentType Debug");
+                  console.log("commonAllotmentType (prop):", commonAllotmentType);
+                  console.log("isDisabled:", isDisabled);
+                  console.log("forcedValue:", forcedValue);
+                  console.log("field.value (raw from RHF):", field.value);
+                  console.log("selectedValue (passed to Select):", selectedValue);
+                  console.groupEnd();
 
                   return (
                     <FormItem className="w-full">
@@ -288,9 +325,10 @@ export default function AllotteeForm({
                         <Select
                           disabled={isDisabled || isLoadingAllottees}
                           value={selectedValue}
-                          onValueChange={(value) =>
-                            field.onChange(value === "" ? 0 : parseInt(value))
-                          }
+                          onValueChange={(value) => {
+                            const parsed = value ? parseInt(value) : undefined;
+                            field.onChange(parsed);
+                          }}
                         >
                           <SelectTrigger className="w-full h-11 border-none focus:ring-0">
                             <SelectValue placeholder="Select...." />
@@ -305,8 +343,7 @@ export default function AllotteeForm({
                   );
                 }}
               />
-
-              </div>
+            </div>
           </div>
         </div>
         {errors.allotmentType && (
@@ -431,8 +468,8 @@ export default function AllotteeForm({
                         <SelectTrigger
                           id="relationship"
                           className={`w-full !h-10 ${fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
                             }`}
                         >
                           <SelectValue placeholder="Select a relationship" />
@@ -516,8 +553,8 @@ export default function AllotteeForm({
                       >
                         <SelectTrigger
                           className={`w-full !h-10 ${fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
                             }`}
                         >
                           <SelectValue placeholder="Select a province" />
@@ -565,8 +602,8 @@ export default function AllotteeForm({
                       >
                         <SelectTrigger
                           className={`w-full !h-10 ${fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
                             }`}
                         >
                           <SelectValue placeholder="Select a city" />
@@ -627,8 +664,8 @@ export default function AllotteeForm({
                         <SelectTrigger
                           id="bank"
                           className={`w-full !h-10 ${fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
                             }`}
                         >
                           <SelectValue placeholder="Select a bank" />
@@ -674,8 +711,8 @@ export default function AllotteeForm({
                         <SelectTrigger
                           id="branch"
                           className={`w-full !h-10 ${fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
                             }`}
                         >
                           <SelectValue placeholder="Select a branch" />
