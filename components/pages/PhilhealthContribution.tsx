@@ -108,13 +108,13 @@ export default function PhilhealthContribution() {
         <div className="text-left">{row.getValue("PHNumber")}</div>
       ),
     },
-    {
-      accessorKey: "Salary",
-      header: () => <div className="text-left">Salary</div>,
-      cell: ({ row }) => (
-        <div className="text-right">{formatCurrency(row.getValue("Salary"), true)}</div>
-      ),
-    },
+    // {
+    //   accessorKey: "Salary",
+    //   header: () => <div className="text-left">Salary</div>,
+    //   cell: ({ row }) => (
+    //     <div className="text-right">{formatCurrency(row.getValue("Salary"), true)}</div>
+    //   ),
+    // },
     // {
     //   accessorKey: "Allotment",
     //   header: "Allotment",
