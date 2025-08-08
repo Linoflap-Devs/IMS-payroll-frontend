@@ -338,14 +338,11 @@ export function CrewAllottee({
       !editingAllottee.branchId
     ) {
 
-      // Set the selected bank ID in the store
       setSelectedBankId(Number(editingAllottee.bankId));
 
-      // Wait a bit for branches to load and then find the matching branch
       setTimeout(() => {
         const branches = getBranchesForSelectedBank();
 
-        // If we have a branch name but no ID, find it
         if (editingAllottee.bankBranch && branches.length > 0) {
           const matchingBranch = branches.find(
             (b) => b.BankBranchName === editingAllottee.bankBranch
@@ -353,17 +350,15 @@ export function CrewAllottee({
 
           if (matchingBranch) {
 
-            // Update the allottee with the branch ID
             setEditingAllottee({
               ...editingAllottee,
               branchId: matchingBranch.BankBranchID.toString(),
             });
 
-            // Also update the branch in the store
             setSelectedBranchId(matchingBranch.BankBranchID);
           }
         }
-      }, 100); // Small delay to ensure branches are loaded
+      }, 100);
     }
   }, [
     isEditingAllottee,
@@ -745,9 +740,8 @@ export function CrewAllottee({
                   <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
                     Total Allotment:{" "}
                     <span
-                      className={`ml-1 font-semibold ${
-                        totalAllotment > 100 ? "text-red-600" : "text-green-600"
-                      }`}
+                      className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
+                        }`}
                     >
                       {totalAllotment}%
                     </span>
@@ -755,41 +749,42 @@ export function CrewAllottee({
                 )}
               </div>
             </>
-            ) : (
-              <div className="flex gap-4 w-3/4">
-                <div className="relative rounded-lg border shadow-sm overflow-hidden w-1/2">
-                  <div className="flex h-11 w-full">
-                    <div className="flex items-center px-4 bg-gray-50 border-r">
-                      <span className="text-gray-700 font-medium whitespace-nowrap">
-                        Allotment Type
-                      </span>
-                    </div>
-                    <div className="flex-1 w-full flex items-center">
-                      <Select
-                        value={
-                          commonAllotmentType !== null
-                            ? commonAllotmentType.toString()
-                            : displayAllottee?.allotmentType?.toString() || "1"
-                        }
-                        disabled={commonAllotmentType !== null}
-                        onValueChange={(value) =>
-                          handleInputChange("allotmentType", parseInt(value))
-                        }
-                      >
-                        <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                          <SelectValue placeholder="Amount" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">Amount</SelectItem>
-                          <SelectItem value="2">Percentage</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+          ) : (
+            <div className="flex gap-4 w-3/4">
+              <div className="relative rounded-lg border shadow-sm overflow-hidden w-1/2">
+                <div className="flex h-11 w-full">
+                  <div className="flex items-center px-4 bg-gray-50 border-r">
+                    <span className="text-gray-700 font-medium whitespace-nowrap">
+                      Allotment Type
+                    </span>
+                  </div>
+                  <div className="flex-1 w-full flex items-center">
+                    <Select
+                      value={
+                        commonAllotmentType !== null
+                          ? commonAllotmentType.toString()
+                          : displayAllottee?.allotmentType?.toString() || "1"
+                      }
+                      disabled={commonAllotmentType !== null}
+                      onValueChange={(value) =>
+                        handleInputChange("allotmentType", parseInt(value))
+                      }
+                    >
+                      <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                        <SelectValue placeholder="Amount" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Amount</SelectItem>
+                        <SelectItem value="2">Percentage</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              
+              </div>
+
+              {allottees.some(a => a.allotmentType === 2) && (
                 <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
-                  Total Allotment: {" "}
+                  Total Allotment:{" "}
                   <span
                     className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
                       }`}
@@ -797,8 +792,9 @@ export function CrewAllottee({
                     {totalAllotment}%
                   </span>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
           {/* Details display */}
           {displayAllottee ? (
