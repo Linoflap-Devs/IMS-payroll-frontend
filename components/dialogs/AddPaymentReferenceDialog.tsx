@@ -99,56 +99,56 @@ export function AddPaymentReference({
     if (!open) reset();
   }, [open, reset]);
 
-const onSubmit = async (data: PaymentFormValues) => {
-  try {
-    const payload: AddPaymentReferencePayload = {
-      payMonth: Number(data.payMonth),
-      payYear: Number(data.payYear),
-      deductionType: data.deductionType,
-      amount: parseFloat(data.amount),
-      referenceNumber: data.referenceNumber,
-    };
+  const onSubmit = async (data: PaymentFormValues) => {
+    try {
+      const payload: AddPaymentReferencePayload = {
+        payMonth: Number(data.payMonth),
+        payYear: Number(data.payYear),
+        deductionType: data.deductionType,
+        amount: parseFloat(data.amount),
+        referenceNumber: data.referenceNumber,
+      };
 
-    const response = await addPaymentReference(payload);
+      const response = await addPaymentReference(payload);
 
-    if (response?.success) {
-      console.log("Payment reference created successfully:", response.data);
+      if (response?.success) {
+        //console.log("Payment reference created successfully:", response.data);
 
-      const createdItem = Array.isArray(response.data)
-        ? response.data[0]
-        : response.data;
-      onSuccess(createdItem);
+        const createdItem = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data;
+        onSuccess(createdItem);
 
-      toast({
-        title: "Payment Reference Added",
-        description: "The payment reference has been successfully added.",
-        variant: "success",
-      });
+        toast({
+          title: "Payment Reference Added",
+          description: "The payment reference has been successfully added.",
+          variant: "success",
+        });
 
-      onOpenChange(false);
-      reset();
-    } else {
-      toast({
-        title: "Error",
-        description: response?.message || "Failed to add payment reference",
-        variant: "destructive",
-      });
-    }
-  } catch (err: any) {
-    console.error("Unexpected error:", err);
+        onOpenChange(false);
+        reset();
+      } else {
+        toast({
+          title: "Error",
+          description: response?.message || "Failed to add payment reference",
+          variant: "destructive",
+        });
+      }
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
 
-    const errorMessage =
+      const errorMessage =
         err?.response?.data?.message ||
         err?.message ||
         "An unexpected error occurred.";
 
-    toast({
+      toast({
         title: "Error",
         description: errorMessage,
         variant: "destructive",
-    });
+      });
     }
-};
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -168,10 +168,7 @@ const onSubmit = async (data: PaymentFormValues) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm text-gray-600">Month</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
                         <SelectValue placeholder="Select month" />
@@ -200,10 +197,7 @@ const onSubmit = async (data: PaymentFormValues) => {
                     Year
                   </FormLabel>
                   <FormControl>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger
                         className={cn(
                           "w-full rounded-md h-10",
@@ -238,10 +232,7 @@ const onSubmit = async (data: PaymentFormValues) => {
                     Deduction Type
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter deduction type"
-                      {...field}
-                    />
+                    <Input placeholder="Enter deduction type" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -254,7 +245,9 @@ const onSubmit = async (data: PaymentFormValues) => {
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm text-gray-600">Amount</FormLabel>
+                  <FormLabel className="text-sm text-gray-600">
+                    Amount
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -278,10 +271,7 @@ const onSubmit = async (data: PaymentFormValues) => {
                     Reference Number
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter reference number"
-                      {...field}
-                    />
+                    <Input placeholder="Enter reference number" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
