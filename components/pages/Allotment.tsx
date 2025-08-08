@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   CircleAlert,
+  Info,
   Loader,
   Loader2,
   MoreHorizontal,
@@ -58,6 +59,7 @@ import { generateDeductionAllotmentV2PDF } from "../PDFs/payrollDeductionRegiste
 import { generateAllotmentExcel } from "../Excels/allotmentAllotmentRegister";
 import { generateDeductionAllotmentExcel } from "../Excels/payrollDeductionRegister";
 import { generatePayrollExcel } from "../Excels/payrollStatementExcel";
+import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
 type Payroll = {
   vesselId: number;
@@ -144,6 +146,7 @@ export default function Allotment() {
   const router = useRouter();
   const [showPostDialog, setShowPostDialog] = useState(false);
   const [selectedVessel, setSelectedVessel] = useState<Payroll | null>(null);
+  const currentMonth = new Date().getMonth() + 1;
 
   const formatNumber = (value: number) => value?.toFixed(2);
 
@@ -663,22 +666,51 @@ export default function Allotment() {
               {/* Process Payroll Button */}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button
-                    className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-10 px-6 text-sm"
-                    disabled={payrollLoading || isDataLoading}
-                  >
-                    {payrollLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <MdOutlineFileUpload className="w-4 h-4" />
-                        Post Process Payrolls
-                      </>
-                    )}
-                  </Button>
+                    {
+                      (forexRate > 0 && Number(monthFilter) == currentMonth) ? (
+                          <Button
+                            className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-10 px-6 text-sm"
+                            disabled={payrollLoading || isDataLoading}
+                          >
+                            {payrollLoading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <MdOutlineFileUpload className="w-4 h-4" />
+                                Post Process Payrolls
+                              </>
+                            )}
+                          </Button>
+                      ) : (
+                          <Tooltip>
+                              <TooltipTrigger asChild>
+                                  <span className="w-full">
+                                      <Button
+                                        className="w-full bg-blue-200 hover:bg-blue-300 text-blue-900 h-10 px-6 text-sm cursor-not-allowed opacity-70"
+                                        onClick={(e) => e.preventDefault()} // prevent click actions
+                                      >
+                                          <MdOutlineFileUpload className="w-4 h-4" />
+                                          Post Processed Payrolls
+                                      </Button>
+                                  </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="flex flex-row align-center items-center gap-2 bg-white text-black text-sm rounded-md p-3 shadow-md leading-snug">
+                                  <Info className="w-4 h-4" />
+                                  <p>
+                                      {
+                                        forexRate === 0 ?
+                                          "Set the forex rate for this month to enable posting payrolls." :
+                                          Number(monthFilter) !== currentMonth && "Past months cannot be posted."
+                                      }
+
+                                  </p>
+                              </TooltipContent>
+                          </Tooltip>
+                      )
+                    }
                 </AlertDialogTrigger>
                 <AlertDialogContent className="bg-white p-10">
                   <AlertDialogHeader className="flex items-center">
