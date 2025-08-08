@@ -17,13 +17,25 @@ export function truncateText(text: string, maxLength: number) {
   return text.substring(0, maxLength) + '...';
 }
 
-export function formatCurrency(amount: number | string): string {
+export function formatCurrency(amount: number | string, peso: boolean = false): string {
     if (typeof(amount) == 'string') return amount
-    return new Intl.NumberFormat('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(amount);
+    if(!peso){
+      return new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+      }).format(amount);
+    }
+    else {
+      const formattedAmount = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+      }).format(amount)
+
+      return `₱${formattedAmount}`
+    }
 }
+
+
 
 export function getMonthName(monthNum: number): string {
     const months = [
