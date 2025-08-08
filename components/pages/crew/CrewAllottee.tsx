@@ -135,6 +135,11 @@ export function CrewAllottee({
   const uniqueBanks = getUniqueBanks();
   const branchesForSelectedBank = getBranchesForSelectedBank();
 
+  const totalAllotment = allottees?.reduce(
+    (sum, allottee) => sum + Number(allottee.allotment || 0),
+    0
+  );
+
   const handleBankChange = (value: string) => {
     if (!editingAllottee) return;
 
@@ -479,7 +484,6 @@ export function CrewAllottee({
 
   useEffect(() => {
     if (triggerSave) {
-
       setAllotteeLoading(true);
 
       if (!editingAllottee || !crewId) {
@@ -501,9 +505,30 @@ export function CrewAllottee({
           })
           .catch((error) => {
             console.error("Error saving allottee:", error);
+
+            let errorMessage = "There was an error saving the allottee.";
+
+            // Extract message from API if available
+            if (error.response?.data?.message) {
+              errorMessage = error.response.data.message;
+            }
+
+            // If error is about exceeding 100%, calculate total allotment
+            if (
+              errorMessage
+                .toLowerCase()
+                .includes("allotment percentage would exceed 100 percent")
+            ) {
+              const totalAllotment = allottees.reduce(
+                (sum, a) => sum + (a.allotment || 0),
+                0
+              );
+              errorMessage = `The total allotment percentage is currently ${totalAllotment}%, which cannot exceed 100%. Please adjust the values.`;
+            }
+
             toast({
               title: "Error saving allottee",
-              description: "There was an error saving the allottee.",
+              description: errorMessage,
               variant: "destructive",
             });
           })
@@ -526,12 +551,14 @@ export function CrewAllottee({
     setTriggerSave,
     fetchCrewAllottees,
     setIsEditingAllottee,
+    allottees,
   ]);
 
   useEffect(() => {
     if (triggerSave) {
       setAllotteeLoading(true);
       //console.log(editingAllottee);
+
       if (!editingAllottee || !crewId) {
         setAllotteeLoading(false);
         return;

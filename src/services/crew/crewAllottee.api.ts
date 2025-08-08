@@ -22,23 +22,13 @@ export const addCrewAllottee = async (
   crewCode: string,
   allottee: IAddAllottee
 ): Promise<CrewAllotteeResponse> => {
-  console.log("[addCrewAllottee] Starting request...");
-  console.log("[addCrewAllottee] Crew Code:", crewCode);
-  console.log("[addCrewAllottee] Allottee Payload:", allottee);
-
   try {
     const response = await axiosInstance.post<CrewAllotteeResponse>(
       `crew/${crewCode}/allottee`,
       allottee
     );
-
-    console.log("[addCrewAllottee] HTTP Status:", response.status);
-    console.log("[addCrewAllottee] Full Response:", response);
-    console.log("[addCrewAllottee] Response Data:", response.data);
-
     return response.data;
   } catch (error) {
-    console.error("[addCrewAllottee] Error occurred:", error);
     throw error;
   }
 };
