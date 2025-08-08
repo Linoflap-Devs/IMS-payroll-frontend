@@ -22,6 +22,7 @@ import { toast } from "@/components/ui/use-toast";
 import { generatePayrollExcel } from "@/components/Excels/payrollStatementExcel";
 import { generatePayrollPDFSingle } from "@/components/PDFs/payrollStatementPDFSingle";
 import PDFPreview from "@/components/dialogs/PDFPreviewModal";
+import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
 
 export default function VesselPayslip() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,6 +36,9 @@ export default function VesselPayslip() {
   const [previewData, setPreviewData] = useState<Blob | null>();
 
   const [fileName, setFileName] = useState("");
+  const vesselId = searchParams.get("vesselId");
+  const month = searchParams.get("month");
+  const year = searchParams.get("year");
 
   useEffect(() => {
     const fetchPayslipData = async () => {
@@ -107,6 +111,8 @@ export default function VesselPayslip() {
       )
     }
   ];
+
+  const monthName = getMonthName(Number(month))
 
   const filteredCrew = payslipCrewData.filter(
     (crew) =>
@@ -259,12 +265,12 @@ export default function VesselPayslip() {
       )}
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <Link href="/home/allotment">
+          <Link href={monthName && year ? `/home/allotment?month=${month}&year=${year}` : "/home/allotment"}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-semibold mb-0">Allotment Payslip</h1>
+          <h1 className="text-3xl font-semibold mb-0">{ monthName && year ? `Allotment Payslip - ${capitalizeFirstLetter(monthName)} ${year}` : "Allotment Payslip"}</h1>
         </div>
       </div>
 
