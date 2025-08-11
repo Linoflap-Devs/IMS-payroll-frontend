@@ -49,13 +49,10 @@ export default function CrewGovtRecords() {
   const [editselectedCrewDialogOpen, setEditselectedCrewDialogOpen] = useState(false);
 
   const fetchCrews = useCrewStore((state) => state.fetchCrews);
-  console.log('', crews);
 
   useEffect(() => {
     fetchCrews();
   }, [fetchCrews]);
-
-  //console.log('CREW: ', crews);
 
   const filteredCrew = crews.filter((crew) => {
     const matchesSearch =
@@ -274,10 +271,10 @@ export default function CrewGovtRecords() {
 
       return {
         ...prev,
-        ...(updatedData.sssNumber !== undefined && { SSSNumber: updatedData.sssNumber }),
-        ...(updatedData.taxIdNumber !== undefined && { TaxIDNumber: updatedData.taxIdNumber }),
-        ...(updatedData.philhealthNumber !== undefined && { PhilHealthNumber: updatedData.philhealthNumber }),
-        ...(updatedData.hdmfNumber !== undefined && { HDMFNumber: updatedData.hdmfNumber }),
+        ...(updatedData.sssNumber !== undefined ? { SSSNumber: updatedData.sssNumber } : {}),
+        ...(updatedData.taxIdNumber !== undefined ? { TaxIDNumber: updatedData.taxIdNumber } : {}),
+        ...(updatedData.philhealthNumber !== undefined ? { PhilHealthNumber: updatedData.philhealthNumber } : {}),
+        ...(updatedData.hdmfNumber !== undefined ? { HDMFNumber: updatedData.hdmfNumber } : {}),
       };
     });
 

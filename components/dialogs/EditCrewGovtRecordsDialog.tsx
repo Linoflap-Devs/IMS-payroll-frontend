@@ -113,29 +113,57 @@ export function EditCrewGovtRecordsDialog({
   };
 
   const onSubmit = async (values: CrewGovtFormData) => {
-    console.log("Form submitted with values:", values);
     setIsSubmitting(true);
 
     try {
-      // Step 1: Build initial payload with null for empty strings
-      const rawPayload = {
-        sssNumber: values.sssNumber?.trim() === "" ? null : values.sssNumber,
-        tinNumber: values.taxIdNumber?.trim() === "" ? null : values.taxIdNumber,
-        philhealthNumber:
-          values.philhealthNumber?.trim() === "" ? null : values.philhealthNumber,
-        hdmfNumber: values.hdmfNumber?.trim() === "" ? null : values.hdmfNumber,
+
+      const buildPayloadField = (
+        formValue?: string,
+        originalValue?: string | null
+      ) => {
+        // normalize empty strings (trim)
+        const normalizedFormValue = formValue?.trim() ?? "";
+
+        // Original value normalized for comparison (null => empty string)
+        const normalizedOriginalValue = originalValue ?? "";
+
+        // If unchanged, exclude from payload (return undefined)
+        if (normalizedFormValue === normalizedOriginalValue) {
+          return undefined;
+        }
+
+        // Else include formValue (even if blank)
+        return normalizedFormValue;
       };
 
-      // Step 2: Remove null values for API
-      const payload = Object.fromEntries(
-        Object.entries(rawPayload).filter(([_, value]) => value !== null)
-      );
+      const payload: Record<string, string> = {};
+
+      const sssNumber = buildPayloadField(values.sssNumber, crewGovtTypeData.SSSNumber);
+      if (sssNumber !== undefined) payload.sssNumber = sssNumber;
+
+      const tinNumber = buildPayloadField(values.taxIdNumber, crewGovtTypeData.TaxIDNumber);
+      if (tinNumber !== undefined) payload.tinNumber = tinNumber;
+
+      const philhealthNumber = buildPayloadField(values.philhealthNumber, crewGovtTypeData.PhilHealthNumber);
+      if (philhealthNumber !== undefined) payload.philhealthNumber = philhealthNumber;
+
+      const hdmfNumber = buildPayloadField(values.hdmfNumber, crewGovtTypeData.HDMFNumber);
+      if (hdmfNumber !== undefined) payload.hdmfNumber = hdmfNumber;
 
       console.log("Payload to send to API:", payload);
 
-      // Step 3: Call API
+      // Call API only if payload is not empty
+      if (Object.keys(payload).length === 0) {
+        toast({
+          title: "No changes detected",
+          description: "No updates to send.",
+          variant: "default",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       const response = await updateCrew(crewGovtTypeData.CrewCode, payload);
-      console.log("API Response:", response);
 
       if (response.success) {
         toast({
@@ -144,26 +172,13 @@ export function EditCrewGovtRecordsDialog({
           variant: "success",
         });
 
-        // Step 4: Build updatedData for onSuccess
-        const updatedData = Object.fromEntries(
-          Object.entries({
-            sssNumber: payload.sssNumber,
-            philhealthNumber: payload.philhealthNumber,
-            hdmfNumber: payload.hdmfNumber,
-            taxIdNumber: payload.tinNumber,
-          }).filter(([_, value]) => value !== undefined)
-        );
-
-        console.log("Data passed to onSuccess:", updatedData);
-        onSuccess?.(updatedData);
+        onSuccess?.(payload);
       } else {
         console.warn("API returned failure response:", response);
       }
 
-      console.log("Closing modal...");
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Error updating deduction:", error);
       toast({
         title: "Error",
         description:
@@ -171,7 +186,6 @@ export function EditCrewGovtRecordsDialog({
         variant: "destructive",
       });
     } finally {
-      console.log("Finished submit process.");
       setIsSubmitting(false);
     }
   };
