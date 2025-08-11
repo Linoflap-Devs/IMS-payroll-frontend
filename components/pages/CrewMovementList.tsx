@@ -135,7 +135,7 @@ export default function CrewMovementList() {
   //console.log('DISPLAYED CREWS: ', allCrews);
 
   //const selectedCrews = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]).map((id) => displayedCrews[parseInt(id, 10)]);
-  const selectedCrews = displayedCrews.filter((crew) => selectedRowIds[crew.CrewCode]);
+  const selectedCrews = allCrews.filter((crew) => selectedRowIds[crew.CrewCode]);
 
   useEffect(() => {
     if (debouncedSearch) {
@@ -168,6 +168,7 @@ export default function CrewMovementList() {
   );
 
   const selectedRows = crewData.filter((row) => selectedRowIds[row.crewCode]);
+  const allCrewCodes = useMemo(() => allCrews.map(c => c.CrewCode), [allCrews]);
 
   const filteredCrewData = useMemo(() => {
     return crewData.filter((crew) => {
@@ -185,7 +186,7 @@ export default function CrewMovementList() {
   }, [crewData, searchTerm, rankFilter]);
 
   const filteredJoinCrewData = useMemo(() => {
-    return allCrews.filter((crew) => {
+    return displayedCrews.filter((crew) => {
       const fullName = `${crew.LastName ?? ''}, ${crew.FirstName ?? ''}`.toLowerCase();
       const searchLower = searchTerm.toLowerCase();
 
@@ -201,18 +202,25 @@ export default function CrewMovementList() {
 
       return matchesSearch && matchesRank;
     });
-  }, [allCrews, searchTerm, rankFilter]);
+  }, [displayedCrews, searchTerm, rankFilter]);
+
+  const totalSelectedCount = Object.values(selectedRowIds).filter(Boolean).length;
+  //console.log('TOTAL SELECT COUNT: ', totalSelectedCount);
 
   const columnJoin: ColumnDef<IOffBoardCrew>[] = [
     {
       id: "select",
       header: ({ table }) => {
-        const visibleCrewCodes = table.getFilteredRowModel().rows.map(row => row.original.CrewCode);
+        // Get crew codes of rows visible on the current page
+        const visibleCrewCodes = table.getRowModel().rows.map(row => row.original.CrewCode);
+
+        // Check if all visible rows are selected globally
         const allSelected = visibleCrewCodes.length > 0 && visibleCrewCodes.every(code => selectedRowIds[code]);
         const someSelected = visibleCrewCodes.some(code => selectedRowIds[code]);
 
         return (
           <Checkbox
+            className="border-gray-500 text-gray-900 dark:border-gray-400 dark:text-white"
             checked={allSelected ? true : someSelected ? "indeterminate" : false}
             onCheckedChange={(checked) => {
               setSelectedRowIds((prev) => {
@@ -223,6 +231,7 @@ export default function CrewMovementList() {
                 return updated;
               });
             }}
+            aria-label="Select all visible crews"
           />
         );
       },
@@ -231,6 +240,7 @@ export default function CrewMovementList() {
         const isSelected = !!selectedRowIds[crewCode];
         return (
           <Checkbox
+            className="border-gray-400 text-gray-700 dark:border-gray-400 dark:text-white"
             checked={isSelected}
             onCheckedChange={(checked) => {
               setSelectedRowIds((prev) => ({
@@ -238,6 +248,7 @@ export default function CrewMovementList() {
                 [crewCode]: !!checked,
               }));
             }}
+            aria-label={`Select crew ${crewCode}`}
           />
         );
       },
@@ -320,12 +331,16 @@ export default function CrewMovementList() {
     {
       id: "select",
       header: ({ table }) => {
-        const visibleCrewCodes = table.getFilteredRowModel().rows.map(row => row.original.crewCode);
+        // Get crew codes of rows visible on the current page
+        const visibleCrewCodes = table.getRowModel().rows.map(row => row.original.crewCode);
+
+        // Check if all visible rows are selected globally
         const allSelected = visibleCrewCodes.length > 0 && visibleCrewCodes.every(code => selectedRowIds[code]);
         const someSelected = visibleCrewCodes.some(code => selectedRowIds[code]);
 
         return (
           <Checkbox
+            className="border-gray-500 text-gray-900 dark:border-gray-400 dark:text-white"
             checked={allSelected ? true : someSelected ? "indeterminate" : false}
             onCheckedChange={(checked) => {
               setSelectedRowIds((prev) => {
@@ -336,6 +351,7 @@ export default function CrewMovementList() {
                 return updated;
               });
             }}
+            aria-label="Select all visible crews"
           />
         );
       },
@@ -344,6 +360,7 @@ export default function CrewMovementList() {
         const isSelected = !!selectedRowIds[crewCode];
         return (
           <Checkbox
+            className="border-gray-400 text-gray-700 dark:border-gray-400 dark:text-white"
             checked={isSelected}
             onCheckedChange={(checked) => {
               setSelectedRowIds((prev) => ({
@@ -351,6 +368,7 @@ export default function CrewMovementList() {
                 [crewCode]: !!checked,
               }));
             }}
+            aria-label={`Select crew ${crewCode}`}
           />
         );
       },
@@ -731,6 +749,7 @@ export default function CrewMovementList() {
                         //pagination={false}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
+                        selectedRowIds={selectedRowIds}
                       />
                     )}
                   </div>
@@ -808,10 +827,11 @@ export default function CrewMovementList() {
                       <DataTable
                         columns={columRepatriate}
                         data={filteredCrewData}
-                        //pageSize={7}
-                        pagination={false}
+                        pageSize={7}
+                        //pagination={false}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
+                        selectedRowIds={selectedRowIds}
                       />
                     </div>
                   )}

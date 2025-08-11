@@ -32,6 +32,7 @@ interface DataTableProps<TData, TValue> {
   hideHeader?: boolean;
   rowSelection?: Record<string, boolean>;
   onRowSelectionChange?: (selection: Record<string, boolean>) => void;
+  selectedRowIds?: Record<string, boolean>;  // new prop
 }
 
 export function DataTable<TData, TValue>({
@@ -41,6 +42,7 @@ export function DataTable<TData, TValue>({
   pageSize = 10,
   hideHeader = false,
   onRowSelectionChange,
+  selectedRowIds = {},
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -72,7 +74,7 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
     },
-    getRowId: (row: any) => row.crewCode, 
+    getRowId: (row: any) => row.crewCode,
     initialState: {
       pagination: {
         pageSize,
@@ -96,9 +98,9 @@ export function DataTable<TData, TValue>({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                       </TableHead>
                     );
                   })}
@@ -112,15 +114,16 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="h-12 sm:h-14 hover:bg-muted/20">
+                  className={`h-12 sm:h-14 hover:bg-muted/20 ${
+                    selectedRowIds[row.original.CrewCode ?? row.original.crewCode] ? "bg-blue-100" : ""
+                  }`}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="py-2 sm:py-3 text-center">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      className="py-2 sm:py-3 text-center"
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
