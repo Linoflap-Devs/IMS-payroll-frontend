@@ -70,7 +70,7 @@ export default function CrewMovementList() {
   const [onSuccess, setOnSuccess] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew[]>([]);
   const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
- // const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
+  // const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
   const [isLoadingRepatriate, setIsLoadingRepatriate] = useState(false);
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [displayedCrews, setDisplayedCrews] = useState<IOffBoardCrew[]>([]);
@@ -79,7 +79,6 @@ export default function CrewMovementList() {
   const [rankFilter, setRankFilter] = useState("all");
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
-  const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
     const fetchVesselCrew = async () => {
@@ -133,6 +132,8 @@ export default function CrewMovementList() {
       });
   }, []);
 
+  //console.log('DISPLAYED CREWS: ', allCrews);
+
   //const selectedCrews = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]).map((id) => displayedCrews[parseInt(id, 10)]);
   const selectedCrews = displayedCrews.filter((crew) => selectedRowIds[crew.CrewCode]);
 
@@ -169,28 +170,29 @@ export default function CrewMovementList() {
   const selectedRows = crewData.filter((row) => selectedRowIds[row.crewCode]);
 
   const filteredCrewData = useMemo(() => {
-    ``
     return crewData.filter((crew) => {
+      //console.log("Filtering:", crew.name, searchTerm);
+
       const matchesSearch = searchTerm
         ? `${crew.name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
         crew.rank.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
 
-      const matchesRank = rankFilter && rankFilter !== "all"
-        ? crew.rank.toLowerCase() === rankFilter.toLowerCase()
-        : true;
-
-      return matchesSearch && matchesRank;
+      // ...
+      return matchesSearch;
     });
   }, [crewData, searchTerm, rankFilter]);
 
   const filteredJoinCrewData = useMemo(() => {
-    return displayedCrews.filter((crew) => {
+    return allCrews.filter((crew) => {
+      const fullName = `${crew.LastName ?? ''}, ${crew.FirstName ?? ''}`.toLowerCase();
+      const searchLower = searchTerm.toLowerCase();
+
       const matchesSearch = searchTerm
-        ? `${crew.FirstName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        crew.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        crew.Rank.toLowerCase().includes(searchTerm.toLowerCase())
+        ? fullName.includes(searchLower) ||
+        crew.CrewCode.toLowerCase().includes(searchLower) ||
+        crew.Rank.toLowerCase().includes(searchLower)
         : true;
 
       const matchesRank = rankFilter && rankFilter !== "all"
@@ -199,18 +201,8 @@ export default function CrewMovementList() {
 
       return matchesSearch && matchesRank;
     });
-  }, [displayedCrews, searchTerm, rankFilter]);
+  }, [allCrews, searchTerm, rankFilter]);
 
-  useEffect(() => {
-    const filteredCrewCodes = new Set(filteredJoinCrewData.map(c => c.CrewCode));
-    setSelectedRowIds(prev => {
-      const updated = Object.fromEntries(
-        Object.entries(prev).filter(([key]) => filteredCrewCodes.has(key))
-      );
-      return updated;
-    });
-  }, [filteredJoinCrewData]);
-  
   const columnJoin: ColumnDef<IOffBoardCrew>[] = [
     {
       id: "select",
@@ -736,6 +728,7 @@ export default function CrewMovementList() {
                         columns={columnJoin}
                         data={filteredJoinCrewData}
                         pageSize={7}
+                        //pagination={false}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                       />
@@ -815,7 +808,8 @@ export default function CrewMovementList() {
                       <DataTable
                         columns={columRepatriate}
                         data={filteredCrewData}
-                        pageSize={7}
+                        //pageSize={7}
+                        pagination={false}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                       />
