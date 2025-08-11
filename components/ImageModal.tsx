@@ -21,7 +21,7 @@ export function ImageModal({
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
       <button
         onClick={closeModal}
-        className="absolute top-5 left-5 text-white rounded-full w-10 h-10 flex items-center justify-center"
+        className="absolute top-5 right-5 text-white rounded-full w-10 h-10 flex items-center justify-center"
       >
         <X className="w-6 h-6" />
       </button>

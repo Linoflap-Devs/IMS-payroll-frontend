@@ -21,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-
 import { Card } from "../ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Swal from "sweetalert2";
@@ -51,6 +50,8 @@ interface AllotteeRequestData {
   BankBranch: string;
   AccountNumber: string;
   Allotment: number;
+  Payslip: number;
+  AllotmentType: number;
 }
 
 interface HDMFUpgradeRequestData {
@@ -74,6 +75,8 @@ interface Application {
   ApplicationType: string;
   ApplicationOperation: string;
   RequestData: AllotteeRequestData | HDMFUpgradeRequestData;
+  //Payslip: boolean;
+  //AllotmentType: boolean;
 }
 
 export default function CrewApplication() {
@@ -93,7 +96,7 @@ export default function CrewApplication() {
 
   const fetchApplications = async () => {
     try {
-      setLoading(true);
+      setLoading(true); ``
       const response = await getApplications();
       setApplications(response.data);
     } catch (error) {

@@ -4,6 +4,7 @@ import React, {
   SetStateAction,
   useMemo,
   useCallback,
+  useState,
 } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -34,12 +35,13 @@ import { IAddAllottee } from "@/types/crewAllottee";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/components/ui/use-toast";
 import { Info } from "lucide-react";
+import { useCrewStore } from "@/src/store/useCrewStore";
 
 interface IAddCrewAllotteeProps {
   triggerAdd: boolean;
   setIsAddingAllottee: Dispatch<SetStateAction<boolean>>;
   setTriggerAdd: Dispatch<SetStateAction<boolean>>;
-  //   isAddLoading: boolean;
+  // isAddLoading: boolean;
   setIsAddLoading: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -86,15 +88,30 @@ export default function AllotteeForm({
   const province = watch("province");
   const bank = watch("bank");
   const allotmentType = watch("allotmentType");
-  //   const receivePayslip = watch("receivePayslip");
+  //const receivePayslip = watch("receivePayslip");
+
+  const { fetchCrewAllottees, allottees, isLoadingAllottees } = useCrewStore();
+
+  useEffect(() => {
+    if (crewId) {
+      fetchCrewAllottees(crewId);
+    }
+  }, [crewId, fetchCrewAllottees]);
+
+  const totalAllotment = allottees?.reduce(
+    (sum, allottee) => sum + Number(allottee.Allotment || 0),
+    0
+  );
 
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
+
   const {
     fetchBanks,
     setSelectedBankId,
     getUniqueBanks,
     getBranchesForSelectedBank,
   } = useBankStore();
+
   const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
 
   useEffect(() => {
@@ -133,65 +150,84 @@ export default function AllotteeForm({
     return citiesInProvince.slice(0, 100);
   }, [cities, province]);
 
+  // add function
   const onSubmit = useCallback(
     (data: IAddAllottee) => {
 
       if (!crewId) {
-        //console.log("No crewId found. Submission aborted.");
+        console.warn("[onSubmit] No crewId found. Submission aborted.");
         return;
       }
 
       setIsAddingAllottee(true);
 
-      // Prepare payload: convert isActive to active
       const payload = {
         ...data,
         IsActive: data.active,
       };
 
-      //delete payload.isActive; // optional: remove isActive if not needed by API
-
       addCrewAllottee(crewId, payload)
         .then((response) => {
+          if (!response.success) {
+            let errorMessage = response.message || "Failed to add allottee.";
 
-          if (response.success) {
-            toast({
-              title: "Success",
-              description: "Allottee added successfully.",
-              variant: "success",
-            });
-            setIsAddingAllottee(false);
-            form.reset(defaultValues);
-          } else {
+            if (
+              errorMessage
+                .toLowerCase()
+                .includes("allotment percentage would exceed 100 percent")
+            ) {
+              errorMessage =
+                "The total allotment percentage cannot exceed 100%. Please adjust the values.";
+            }
+
             toast({
               title: "Error",
-              description: response.message || "Failed to add allottee.",
+              description: errorMessage,
               variant: "destructive",
             });
+
+            // Don't reset or close modal if error
+            return;
           }
-        })
-        .catch((error) => {
-          const err = error as Error;
-          //console.log("Error adding allottee:", err.message);
+
           toast({
-            title: "Error",
-            description: "Failed to add allottee.",
-            variant: "destructive",
+            title: "Success",
+            description: "Allottee added successfully.",
+            variant: "success",
           });
-        })
-        .finally(() => {
+
+          // Reset only on success
+          form.reset(defaultValues);
           setTriggerAdd(false);
           setIsAddLoading(false);
+          setIsAddingAllottee(false);
+        })
+        .catch((error) => {
+          console.error("[onSubmit] Error adding allottee:", error);
+
+          let errorMessage = "An unexpected error occurred.";
+
+          if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+
+            if (
+              errorMessage.includes(
+                "Allotment percentage would exceed 100 percent"
+              )
+            ) {
+              errorMessage =
+                `The total allotment percentage is currently ${totalAllotment}%, which exceeds the 100% limit. Please adjust the values.`
+            }
+          }
+
+          toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
         });
     },
-    [
-      crewId,
-      form,
-      defaultValues,
-      setIsAddingAllottee,
-      setTriggerAdd,
-      setIsAddLoading,
-    ]
+    [crewId, form, defaultValues, setIsAddingAllottee, setTriggerAdd, setIsAddLoading]
   );
 
   useEffect(() => {
@@ -223,63 +259,111 @@ export default function AllotteeForm({
     handleSubmit,
   ]);
 
+  const commonAllotmentType = React.useMemo(() => {
+    if (!allottees || allottees.length === 0) return null;
+
+    const hasPercentage = allottees.some((a) => a.AllotmentType === 2);
+    const hasAmount = allottees.some((a) => a.AllotmentType === 1);
+
+    if (hasPercentage && !hasAmount) return 2;
+    if (hasAmount && !hasPercentage) return 1;
+
+    return null; // mixed or undefined
+  }, [allottees]);
+
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit(onSubmit)} className="mt-2">
         {/* Allotment Type Selection */}
         <div
-          className={`relative rounded-lg shadow-sm overflow-hidden w-1/2 ${
-            errors.allotmentType
-              ? "border-red-500 ring-1 ring-red-500/50"
-              : "border"
-          }`}
+          className={`relative overflow-hidden w-1/2 ${errors.allotmentType
+            ? "border-red-500 ring-1 ring-red-500/50"
+            : ""
+            }`}
         >
-          <div className="flex h-11 w-full">
-            <div className="flex items-center px-4 bg-gray-50 border-r">
-              <span className="text-gray-700 font-medium whitespace-nowrap">
-                Select Allotment Type
-              </span>
-            </div>
-            <div className="flex-1 w-full flex items-center">
-              <FormField
-                control={control}
-                name="allotmentType"
-                render={({ field, fieldState }) => (
-                  <FormItem className="w-full">
-                    <FormControl>
-                      <Select
-                        value={field.value === 0 ? "" : field.value.toString()}
-                        onValueChange={(value) =>
-                          field.onChange(
-                            value === "" || value === " " ? 0 : parseInt(value)
-                          )
+          <div className="flex gap-4 w-full">
+            {/* Allotment Type */}
+            <div className="relative rounded-lg border shadow-sm overflow-hidden flex-1">
+              <div className="flex h-11 w-full">
+                <div className="flex items-center px-4 bg-gray-50 border-r">
+                  <span className="text-gray-700 font-medium whitespace-nowrap">
+                    Allotment Type
+                  </span>
+                </div>
+                <div className="flex-1 flex items-center">
+                  <FormField
+                    control={control}
+                    name="allotmentType"
+                    render={({ field }) => {
+                      const isDisabled = commonAllotmentType !== null;
+                      const forcedValue =
+                        commonAllotmentType === 1 || commonAllotmentType === 2
+                          ? commonAllotmentType.toString()
+                          : undefined;
+
+                      const selectedValue =
+                        forcedValue ??
+                        (field.value !== undefined && field.value !== null
+                          ? String(field.value)
+                          : "");
+
+                      // Sync RHF with forced value
+                      useEffect(() => {
+                        if (forcedValue && field.value !== parseInt(forcedValue)) {
+                          field.onChange(parseInt(forcedValue));
                         }
-                      >
-                        <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                          <SelectValue placeholder="Amount" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">Amount</SelectItem>
-                          <SelectItem value="2">Percentage</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                      }, [forcedValue, field]);
+
+                      return (
+                        <FormItem className="w-full">
+                          <FormControl>
+                            <Select
+                              disabled={isDisabled || isLoadingAllottees}
+                              value={selectedValue}
+                              onValueChange={(value) => {
+                                const parsed = value ? parseInt(value) : undefined;
+                                field.onChange(parsed);
+                              }}
+                            >
+                              <SelectTrigger className="w-full h-11 border-none focus:ring-0">
+                                <SelectValue placeholder="Select..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1">Amount</SelectItem>
+                                <SelectItem value="2">Percentage</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                </div>
+              </div>
+              {errors.allotmentType && (
+                <p className="text-red-500 text-xs flex items-center gap-1 mt-1.5 ml-2">
+                  <Info className="w-4 h-4" />
+                  {errors.allotmentType.message}
+                </p>
+              )}
             </div>
+
+            {allottees.some(a => a.AllotmentType === 2) && (
+              <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700 h-11">
+                Total Allotment:
+                <span
+                  className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
+                    }`}
+                >
+                  {totalAllotment}%
+                </span>
+              </div>
+            )}
           </div>
         </div>
-        {errors.allotmentType && (
-          <p className="text-red-500 text-xs flex items-center gap-1 mt-1.5 ml-2">
-            <Info className="w-4 h-4" />
-            {errors.allotmentType.message}
-          </p>
-        )}
 
         {/* Allottee Details */}
         <div className="p-4 mt-2 space-y-6">
-          {/* Personal Info */}
           <div>
             <div className="flex items-center justify-between mb-4 w-full">
               <h3 className="text-lg font-semibold mb-3 text-primary">
@@ -392,11 +476,10 @@ export default function AllotteeForm({
                       >
                         <SelectTrigger
                           id="relationship"
-                          className={`w-full !h-10 ${
-                            fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
-                          }`}
+                          className={`w-full !h-10 ${fieldState.error
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
+                            }`}
                         >
                           <SelectValue placeholder="Select a relationship" />
                         </SelectTrigger>
@@ -478,11 +561,10 @@ export default function AllotteeForm({
                         }}
                       >
                         <SelectTrigger
-                          className={`w-full !h-10 ${
-                            fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
-                          }`}
+                          className={`w-full !h-10 ${fieldState.error
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
+                            }`}
                         >
                           <SelectValue placeholder="Select a province" />
                         </SelectTrigger>
@@ -528,11 +610,10 @@ export default function AllotteeForm({
                         disabled={!province}
                       >
                         <SelectTrigger
-                          className={`w-full !h-10 ${
-                            fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
-                          }`}
+                          className={`w-full !h-10 ${fieldState.error
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
+                            }`}
                         >
                           <SelectValue placeholder="Select a city" />
                         </SelectTrigger>
@@ -591,11 +672,10 @@ export default function AllotteeForm({
                       >
                         <SelectTrigger
                           id="bank"
-                          className={`w-full !h-10 ${
-                            fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
-                          }`}
+                          className={`w-full !h-10 ${fieldState.error
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
+                            }`}
                         >
                           <SelectValue placeholder="Select a bank" />
                         </SelectTrigger>
@@ -639,11 +719,10 @@ export default function AllotteeForm({
                       >
                         <SelectTrigger
                           id="branch"
-                          className={`w-full !h-10 ${
-                            fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
-                          }`}
+                          className={`w-full !h-10 ${fieldState.error
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
+                            }`}
                         >
                           <SelectValue placeholder="Select a branch" />
                         </SelectTrigger>

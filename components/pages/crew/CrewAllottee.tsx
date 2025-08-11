@@ -28,6 +28,7 @@ import {
 } from "@/src/services/crew/crewAllottee.api";
 import { toast } from "@/components/ui/use-toast";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
+import React from "react";
 
 // Empty UI model for initialization
 const emptyAllottee: AllotteeUiModel = {
@@ -77,7 +78,7 @@ export function CrewAllottee({
   triggerSave,
   setAllotteeLoading,
   setTriggerSave,
-  setIsEditingAllottee = () => {},
+  setIsEditingAllottee = () => { },
   setTriggerDelete,
   triggerDelete,
   setIsDeletingAllottee,
@@ -134,6 +135,11 @@ export function CrewAllottee({
   const uniqueBanks = getUniqueBanks();
   const branchesForSelectedBank = getBranchesForSelectedBank();
 
+  const totalAllotment = allottees?.reduce(
+    (sum, allottee) => sum + Number(allottee.allotment || 0),
+    0
+  );
+
   const handleBankChange = (value: string) => {
     if (!editingAllottee) return;
 
@@ -184,7 +190,7 @@ export function CrewAllottee({
       branchId: a.BankBranchID?.toString() || "",
       accountNumber: a.AccountNumber,
       allotment: a.Allotment,
-      
+
       priority: a.priority ? 1 : 0,
       receivePayslip: a.receivePayslip ? 1 : 0,
       active: a.active ? 1 : 0,
@@ -332,14 +338,11 @@ export function CrewAllottee({
       !editingAllottee.branchId
     ) {
 
-      // Set the selected bank ID in the store
       setSelectedBankId(Number(editingAllottee.bankId));
 
-      // Wait a bit for branches to load and then find the matching branch
       setTimeout(() => {
         const branches = getBranchesForSelectedBank();
 
-        // If we have a branch name but no ID, find it
         if (editingAllottee.bankBranch && branches.length > 0) {
           const matchingBranch = branches.find(
             (b) => b.BankBranchName === editingAllottee.bankBranch
@@ -347,17 +350,15 @@ export function CrewAllottee({
 
           if (matchingBranch) {
 
-            // Update the allottee with the branch ID
             setEditingAllottee({
               ...editingAllottee,
               branchId: matchingBranch.BankBranchID.toString(),
             });
 
-            // Also update the branch in the store
             setSelectedBranchId(matchingBranch.BankBranchID);
           }
         }
-      }, 100); // Small delay to ensure branches are loaded
+      }, 100);
     }
   }, [
     isEditingAllottee,
@@ -478,7 +479,6 @@ export function CrewAllottee({
 
   useEffect(() => {
     if (triggerSave) {
-
       setAllotteeLoading(true);
 
       if (!editingAllottee || !crewId) {
@@ -500,9 +500,30 @@ export function CrewAllottee({
           })
           .catch((error) => {
             console.error("Error saving allottee:", error);
+
+            let errorMessage = "There was an error saving the allottee.";
+
+            // Extract message from API if available
+            if (error.response?.data?.message) {
+              errorMessage = error.response.data.message;
+            }
+
+            // If error is about exceeding 100%, calculate total allotment
+            if (
+              errorMessage
+                .toLowerCase()
+                .includes("allotment percentage would exceed 100 percent")
+            ) {
+              const totalAllotment = allottees.reduce(
+                (sum, a) => sum + (a.allotment || 0),
+                0
+              );
+              errorMessage = `The total allotment percentage is currently ${totalAllotment}%, which cannot exceed 100%. Please adjust the values.`;
+            }
+
             toast({
               title: "Error saving allottee",
-              description: "There was an error saving the allottee.",
+              description: errorMessage,
               variant: "destructive",
             });
           })
@@ -525,12 +546,14 @@ export function CrewAllottee({
     setTriggerSave,
     fetchCrewAllottees,
     setIsEditingAllottee,
+    allottees,
   ]);
 
   useEffect(() => {
     if (triggerSave) {
       setAllotteeLoading(true);
       //console.log(editingAllottee);
+
       if (!editingAllottee || !crewId) {
         setAllotteeLoading(false);
         return;
@@ -577,29 +600,56 @@ export function CrewAllottee({
     setIsEditingAllottee,
   ]);
 
+  //console.log('EDITING ALLOTTEE RESPONSE: ', editingAllottee);
+
   // for delete allottee
   useEffect(() => {
     if (triggerDelete) {
       setIsDeletingAllottee(true);
 
       if (!editingAllottee?.id || !crewId) {
-        console.warn("Missing editingAllottee.id or crewId");
+        console.warn("Missing editingAllottee.id or crewId", {
+          editingAllotteeId: editingAllottee?.id,
+          crewId,
+        });
         setIsDeletingAllottee(false);
         setTriggerDelete(false);
         return;
       }
 
       deleteCrewAllottee(crewId.toString(), editingAllottee.id.toString())
-        .then(() => {
+        .then((res) => {
+          const percentage = res?.data?.Percentage;
+
           toast({
             title: "Allottee deleted successfully",
             description: `Allottee ${editingAllottee?.name} has been removed.`,
             variant: "success",
           });
+
+          // Show updated percentage
+          if (percentage !== undefined) {
+            toast({
+              title: "Updated Allotment Percentage",
+              description: `Remaining percentage: ${percentage}%`,
+              variant: "default",
+            });
+          }
+
+          // Warning if allotment type is 2 and less than 100
+          if (editingAllottee.allotmentType === 2 && percentage < 100) {
+            toast({
+              title: "Update Required.",
+              description:
+                `The total allotment percentage is now ${percentage}%, which is below the required 100%. Please update the remaining allottees.`,
+              variant: "warning",
+            });
+          }
+
           fetchCrewAllottees(crewId.toString());
         })
         .catch((error) => {
-          console.error("Error deleting allottee:", error);
+          console.error("[deleteCrewAllottee] Error deleting allottee:", error);
           toast({
             title: "Error deleting allottee",
             description: "There was an error deleting the allottee.",
@@ -634,6 +684,18 @@ export function CrewAllottee({
 
     validateAllotteeForm();
   }, [displayAllottee, setIsAllotteeValid]);
+
+  const commonAllotmentType = React.useMemo(() => {
+    if (!allottees || allottees.length === 0) return null;
+
+    const hasPercentage = allottees.some((a) => a.allotmentType === 2);
+    const hasAmount = allottees.some((a) => a.allotmentType === 1);
+
+    if (hasPercentage && !hasAmount) return 2;
+    if (hasAmount && !hasPercentage) return 1;
+
+    return null; // mixed or undefined
+  }, [allottees]);
 
   return (
     <div className="space-y-6">
@@ -674,33 +736,63 @@ export function CrewAllottee({
                     </div>
                   </div>
                 </div>
+                {allottees.some(a => a.allotmentType === 2) && (
+                  <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
+                    Total Allotment:{" "}
+                    <span
+                      className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
+                        }`}
+                    >
+                      {totalAllotment}%
+                    </span>
+                  </div>
+                )}
               </div>
             </>
           ) : (
-            <div className="relative rounded-lg border shadow-sm overflow-hidden w-1/2">
-              <div className="flex h-11 w-full">
-                <div className="flex items-center px-4 bg-gray-50 border-r">
-                  <span className="text-gray-700 font-medium whitespace-nowrap">
-                    Select Allotment Type
-                  </span>
-                </div>
-                <div className="flex-1 w-full flex items-center">
-                  <Select
-                    value={displayAllottee?.allotmentType.toString() || "1"}
-                    onValueChange={(value) =>
-                      handleInputChange("allotmentType", parseInt(value))
-                    }
-                  >
-                    <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                      <SelectValue placeholder="Amount" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Amount</SelectItem>
-                      <SelectItem value="2">Percentage</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <div className="flex gap-4 w-3/4">
+              <div className="relative rounded-lg border shadow-sm overflow-hidden w-1/2">
+                <div className="flex h-11 w-full">
+                  <div className="flex items-center px-4 bg-gray-50 border-r">
+                    <span className="text-gray-700 font-medium whitespace-nowrap">
+                      Allotment Type
+                    </span>
+                  </div>
+                  <div className="flex-1 w-full flex items-center">
+                    <Select
+                      value={
+                        commonAllotmentType !== null
+                          ? commonAllotmentType.toString()
+                          : displayAllottee?.allotmentType?.toString() || "1"
+                      }
+                      disabled={commonAllotmentType !== null}
+                      onValueChange={(value) =>
+                        handleInputChange("allotmentType", parseInt(value))
+                      }
+                    >
+                      <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                        <SelectValue placeholder="Amount" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Amount</SelectItem>
+                        <SelectItem value="2">Percentage</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
+
+              {allottees.some(a => a.allotmentType === 2) && (
+                <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
+                  Total Allotment:{" "}
+                  <span
+                    className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
+                      }`}
+                  >
+                    {totalAllotment}%
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -775,11 +867,10 @@ export function CrewAllottee({
                   <Input
                     value={displayAllottee.name}
                     readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${
-                      !isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
-                    }`}
+                    className={`w-full h-10 ${!isEditingAllottee && !isAdding
+                      ? "bg-gray-50"
+                      : "bg-white"
+                      }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
                       handleInputChange("name", e.target.value)
@@ -827,11 +918,10 @@ export function CrewAllottee({
                   <Input
                     value={displayAllottee.contactNumber}
                     readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${
-                      !isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
-                    }`}
+                    className={`w-full h-10 ${!isEditingAllottee && !isAdding
+                      ? "bg-gray-50"
+                      : "bg-white"
+                      }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
                       handleInputChange("contactNumber", e.target.value)
@@ -845,11 +935,10 @@ export function CrewAllottee({
                   <Input
                     value={displayAllottee.address}
                     readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${
-                      !isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
-                    }`}
+                    className={`w-full h-10 ${!isEditingAllottee && !isAdding
+                      ? "bg-gray-50"
+                      : "bg-white"
+                      }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
                       handleInputChange("address", e.target.value)
@@ -1053,11 +1142,10 @@ export function CrewAllottee({
                     <Input
                       value={displayAllottee.accountNumber}
                       readOnly={!isEditingAllottee && !isAdding}
-                      className={`w-full h-10 ${
-                        !isEditingAllottee && !isAdding
-                          ? "bg-gray-50"
-                          : "bg-white"
-                      }`}
+                      className={`w-full h-10 ${!isEditingAllottee && !isAdding
+                        ? "bg-gray-50"
+                        : "bg-white"
+                        }`}
                       onChange={(e) =>
                         (isEditingAllottee || isAdding) &&
                         handleInputChange("accountNumber", e.target.value)
@@ -1068,20 +1156,19 @@ export function CrewAllottee({
                     <label className="text-sm text-gray-500 mb-1 block">
                       {displayAllottee.allotmentType === 1
                         ? "Allotment Amount in" +
-                          (displayAllottee.receivePayslip === 1
-                            ? " (Dollar)"
-                            : " (Peso)")
+                        (displayAllottee.receivePayslip === 1
+                          ? " (Dollar)"
+                          : " (Peso)")
                         : "Allotment Percentage"}
                     </label>
                     <Input
                       type="number"
                       value={displayAllottee.allotment.toString()}
                       readOnly={!isEditingAllottee && !isAdding}
-                      className={`w-full h-10 ${
-                        !isEditingAllottee && !isAdding
-                          ? "bg-gray-50"
-                          : "bg-white"
-                      }`}
+                      className={`w-full h-10 ${!isEditingAllottee && !isAdding
+                        ? "bg-gray-50"
+                        : "bg-white"
+                        }`}
                       onChange={(e) =>
                         (isEditingAllottee || isAdding) &&
                         handleInputChange(

@@ -195,6 +195,7 @@ export const useCrewStore = create<CrewStore>((set) => ({
       });
     }
   },
+  
   fetchCrewValidationDetails: async (crewCode: string) => {
     set({ isLoadingValidationDetails: true });
     try {

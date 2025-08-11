@@ -31,6 +31,8 @@ interface DeleteAllotteeReqDialogProps {
     BankBranch: string;
     AccountNumber: string;
     Allotment: number;
+    Payslip: number;
+    AllotmentType: number;
   };
   onSuccess?: () => void;
 }
@@ -56,9 +58,8 @@ export function DeleteAllotteeReqDialog({
       if (response.success) {
         toast({
           title: "Success",
-          description: `Delete request ${
-            status === 2 ? "approved" : "declined"
-          } successfully`,
+          description: `Delete request ${status === 2 ? "approved" : "declined"
+            } successfully`,
           variant: "default",
         });
         if (onSuccess) {
@@ -121,7 +122,7 @@ export function DeleteAllotteeReqDialog({
                 </label>
                 <Input
                   id="relation"
-                  value={requestData.Relation}
+                  value={requestData.Relation || "N/A"}
                   className="w-full bg-gray-50"
                   disabled
                 />
@@ -135,7 +136,7 @@ export function DeleteAllotteeReqDialog({
                 </label>
                 <Input
                   id="contactNumber"
-                  value={requestData.ContactNumber}
+                  value={requestData.ContactNumber || "N/A"}
                   className="w-full bg-gray-50"
                   disabled
                 />
@@ -149,7 +150,7 @@ export function DeleteAllotteeReqDialog({
                 </label>
                 <Input
                   id="address"
-                  value={requestData.Address}
+                  value={requestData.Address || "N/A"}
                   className="w-full bg-gray-50"
                   disabled
                 />
@@ -163,7 +164,7 @@ export function DeleteAllotteeReqDialog({
                 </label>
                 <Input
                   id="city"
-                  value={requestData.City}
+                  value={requestData.City || "N/A"}
                   className="w-full bg-gray-50"
                   disabled
                 />
@@ -177,7 +178,7 @@ export function DeleteAllotteeReqDialog({
                 </label>
                 <Input
                   id="province"
-                  value={requestData.Province}
+                  value={requestData.Province || "N/A"}
                   className="w-full bg-gray-50"
                   disabled
                 />
@@ -191,7 +192,7 @@ export function DeleteAllotteeReqDialog({
                 </label>
                 <Input
                   id="bank"
-                  value={requestData.Bank}
+                  value={requestData.Bank || "N/A"}
                   className="w-full bg-gray-50"
                   disabled
                 />
@@ -205,7 +206,7 @@ export function DeleteAllotteeReqDialog({
                 </label>
                 <Input
                   id="bankBranch"
-                  value={requestData.BankBranch}
+                  value={requestData.BankBranch || "N/A"}
                   className="w-full bg-gray-50"
                   disabled
                 />
@@ -219,7 +220,7 @@ export function DeleteAllotteeReqDialog({
                 </label>
                 <Input
                   id="accountNumber"
-                  value={requestData.AccountNumber}
+                  value={requestData.AccountNumber || "N/A"}
                   className="w-full bg-gray-50"
                   disabled
                 />
@@ -233,13 +234,54 @@ export function DeleteAllotteeReqDialog({
                 </label>
                 <Input
                   id="allotment"
-                  value={`${requestData.Allotment}%`}
+                  value={`${requestData.Allotment}%` || "N/A"}
                   className="w-full bg-gray-50"
                   disabled
                 />
               </div>
-            </div>
 
+              <div className="space-y-2">
+                <label
+                  htmlFor="allotmenttype"
+                  className="block text-sm font-medium text-gray-500"
+                >
+                  Allotment Type
+                </label>
+                <Input
+                  id="allotmenttype"
+                  value={
+                    requestData.AllotmentType === 1
+                      ? "Fixed Amount"
+                      : requestData.AllotmentType === 0
+                        ? "Percentage"
+                        : "N/A"
+                  }
+                  className="w-full bg-white text-black"
+                  disabled
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="payslip"
+                  className="block text-sm font-medium text-gray-500"
+                >
+                  Currency
+                </label>
+                <Input
+                  id="payslip"
+                  value={
+                    requestData.Payslip === 1
+                      ? "Dollar"
+                      : requestData.Payslip === 0
+                        ? "Peso"
+                        : "N/A"
+                  }
+                  className="w-full bg-white text-black"
+                  disabled
+                />
+              </div>
+            </div>
             <div className="flex gap-4 pt-6">
               <Button
                 type="button"
