@@ -35,7 +35,6 @@ import { AddPaymentReference } from "../dialogs/AddPaymentReferenceDialog";
 
 export default function PaymentReference() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [deductionTypeFilter, setdeductionTypeFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
   const [paymentData, setPaymentData] = useState<PaymentReferenceItem[]>([]);
   const [isAddPayment, setAddPayment] = useState(false);
@@ -43,6 +42,24 @@ export default function PaymentReference() {
     useState<PaymentReferenceItem | null>(null);
   const [editselectedPaymentDialogOpen, setEditselectedPaymentDialogOpen] =
     useState(false);
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [yearFilter, setYearFilter] = useState("all");
+  const [deductionTypeFilter, setDeductionTypeFilter] = useState("all");
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
 
   useEffect(() => {
     setIsLoading(true);
@@ -67,7 +84,7 @@ export default function PaymentReference() {
     const term = searchTerm.toLowerCase();
 
     return paymentData.filter((item) => {
-      if (!item) return false; // Skip undefined entries
+      if (!item) return false;
 
       const matchesSearch =
         item.PaymentReferenceNumber?.toString().includes(term) ||
@@ -76,13 +93,26 @@ export default function PaymentReference() {
         item.PayMonth?.toString().includes(term) ||
         item.PayYear?.toString().includes(term);
 
-      const matchesRole =
-        deductionTypeFilter === "all" ||
-        item.DeductionType === deductionTypeFilter;
+      const matchesDeduction =
+        deductionTypeFilter === "all" || item.DeductionType === deductionTypeFilter;
 
-      return matchesSearch && matchesRole;
+      const matchesMonth =
+        monthFilter === "all" || Number(item.PayMonth) === Number(monthFilter);
+
+      const matchesYear =
+        yearFilter === "all" || Number(item.PayYear) === Number(yearFilter);
+
+      return matchesSearch && matchesDeduction && matchesMonth && matchesYear;
     });
-  }, [paymentData, searchTerm, deductionTypeFilter]);
+  }, [paymentData, searchTerm, deductionTypeFilter, monthFilter, yearFilter]);
+
+  const uniqueMonths = useMemo(() => {
+    return [...new Set(paymentData.map((item) => item.PayMonth))].filter(Boolean);
+  }, [paymentData]);
+
+  const uniqueYears = useMemo(() => {
+    return [...new Set(paymentData.map((item) => item.PayYear))].filter(Boolean);
+  }, [paymentData]);
 
   const uniqueDeductionType = useMemo(() => {
     return [
@@ -93,6 +123,13 @@ export default function PaymentReference() {
       ),
     ];
   }, [paymentData]);
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setDeductionTypeFilter("all");
+    setMonthFilter("all");
+    setYearFilter("all");
+  };
 
   const columns: ColumnDef<PaymentReferenceItem>[] = [
     {
@@ -123,11 +160,16 @@ export default function PaymentReference() {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="font-medium text-xs sm:text-sm text-center">
-          {(row.getValue("PayMonth") ?? "").toString().trim()}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const monthNum = Number(row.getValue("PayMonth")); // convert to number
+        const monthName =
+          monthNum >= 1 && monthNum <= 12 ? months[monthNum - 1] : ""; // map to month
+        return (
+          <div className="font-medium text-xs sm:text-sm text-center">
+            {monthName}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "PayYear",
@@ -266,15 +308,45 @@ export default function PaymentReference() {
               />
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-              <Select
-                value={deductionTypeFilter}
-                onValueChange={setdeductionTypeFilter}
-              >
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by rank" />
+              {/* Month Filter */}
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="h-9 sm:h-10 min-w-[160px]">
+                  <Filter className="h-4 w-4" />
+                  <SelectValue placeholder="Filter by month" />
                 </SelectTrigger>
-                <SelectContent className="max-h-80">
+                <SelectContent>
+                  <SelectItem value="all">All Months</SelectItem>
+                  {uniqueMonths.map((month) => (
+                    <SelectItem key={month} value={String(month)}>
+                      {months[Number(month) - 1]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Year Filter */}
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger className="h-9 sm:h-10 min-w-[160px]">
+                  <Filter className="h-4 w-4" />
+                  <SelectValue placeholder="Filter by year" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Years</SelectItem>
+                  {uniqueYears.map((year) => (
+                    <SelectItem key={year} value={String(year)}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Deduction Type Filter */}
+              <Select value={deductionTypeFilter} onValueChange={setDeductionTypeFilter}>
+                <SelectTrigger className="h-9 sm:h-10 min-w-[160px]">
+                  <Filter className="h-4 w-4" />
+                  <SelectValue placeholder="Filter by deduction" />
+                </SelectTrigger>
+                <SelectContent>
                   <SelectItem value="all">All Deduction Types</SelectItem>
                   {uniqueDeductionType.map((deduction) => (
                     <SelectItem key={deduction} value={deduction}>
@@ -283,6 +355,18 @@ export default function PaymentReference() {
                   ))}
                 </SelectContent>
               </Select>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+                  <Button
+                    variant="outline"
+                    onClick={clearFilters}
+                    className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+
+
+
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                 <Button
                   className="bg-[#21299D] hover:bg-indigo-700 px-6"
