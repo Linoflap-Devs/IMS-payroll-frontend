@@ -29,37 +29,37 @@ const clean = (val: string | undefined) => val?.replace(/[^0-9]/g, "") || "";
 
 // Schema with sanitization
 const crewGovtSchema = z.object({
-  sssNumber: z
-    .string()
-    .transform(clean)
-    .refine((val) => val === "" || val.length === 10, {
-      message: "Must be 10 digits",
-    })
-    .optional(),
-
-  taxIdNumber: z
-    .string()
-    .transform(clean)
-    .refine((val) => val === "" || (val.length >= 9 && val.length <= 12), {
-      message: "Must be 9 to 12 digits",
-    })
-    .optional(),
-
-  philhealthNumber: z
-    .string()
-    .transform(clean)
-    .refine((val) => val === "" || val.length === 12, {
-      message: "Must be 12 digits",
-    })
-    .optional(),
-
-  hdmfNumber: z
-    .string()
-    .transform(clean)
-    .refine((val) => val === "" || val.length === 12, {
-      message: "Must be 12 digits",
-    })
-    .optional(),
+  sssNumber: z.preprocess(
+    (val) => {
+      const cleaned = clean(String(val ?? ""));
+      return cleaned === "" ? undefined : cleaned;
+    },
+    z.string().length(10, { message: "Must be 10 digits" }).optional()
+  ),
+  taxIdNumber: z.preprocess(
+    (val) => {
+      const cleaned = clean(String(val ?? ""));
+      return cleaned === "" ? undefined : cleaned;
+    },
+    z.string()
+      .min(9, { message: "Must be 9 to 12 digits" })
+      .max(12, { message: "Must be 9 to 12 digits" })
+      .optional()
+  ),
+  philhealthNumber: z.preprocess(
+    (val) => {
+      const cleaned = clean(String(val ?? ""));
+      return cleaned === "" ? undefined : cleaned;
+    },
+    z.string().length(12, { message: "Must be 12 digits" }).optional()
+  ),
+  hdmfNumber: z.preprocess(
+    (val) => {
+      const cleaned = clean(String(val ?? ""));
+      return cleaned === "" ? undefined : cleaned;
+    },
+    z.string().length(12, { message: "Must be 12 digits" }).optional()
+  ),
 });
 
 type CrewGovtFormData = z.infer<typeof crewGovtSchema>;
@@ -74,18 +74,10 @@ interface EditCrewGovtRecordsProps {
 
 //  Maps backend data to form format
 const mapCrewDataToForm = (data: CrewItem): CrewGovtFormData => ({
-  sssNumber: data.SSSNumber ?? "",
-  taxIdNumber: data.TaxIDNumber ?? "",
-  philhealthNumber: data.PhilHealthNumber ?? "",
-  hdmfNumber: data.HDMFNumber ?? "",
-});
-
-//  Maps form data to backend format
-const mapFormToApiData = (formData: CrewGovtFormData): UpdateCrewDataForm => ({
-  sssNumber: formData.sssNumber?.replace(/[-–—]/g, ""),
-  tinNumber: formData.taxIdNumber?.replace(/[-–—]/g, ""),
-  philhealthNumber: formData.philhealthNumber?.replace(/-/g, ""),
-  hdmfNumber: formData.hdmfNumber?.replace(/-/g, ""),
+  sssNumber: data.SSSNumber || undefined,
+  taxIdNumber: data.TaxIDNumber || undefined,
+  philhealthNumber: data.PhilHealthNumber || undefined,
+  hdmfNumber: data.HDMFNumber || undefined,
 });
 
 export function EditCrewGovtRecordsDialog({
@@ -120,69 +112,70 @@ export function EditCrewGovtRecordsDialog({
     onOpenChange(open);
   };
 
-const onSubmit = async (values: CrewGovtFormData) => {
-  //console.log("Submitted Form Values (raw):", values);
+  const onSubmit = async (values: CrewGovtFormData) => {
+    console.log("Form submitted with values:", values);
+    setIsSubmitting(true);
 
-  if (!crewGovtTypeData.CrewCode) {
-    console.error("Missing CrewCode");
-    toast({
-      title: "Error",
-      description: "Missing crew code.",
-      variant: "destructive",
-    });
-    return;
-  }
+    try {
+      // Step 1: Build initial payload with null for empty strings
+      const rawPayload = {
+        sssNumber: values.sssNumber?.trim() === "" ? null : values.sssNumber,
+        tinNumber: values.taxIdNumber?.trim() === "" ? null : values.taxIdNumber,
+        philhealthNumber:
+          values.philhealthNumber?.trim() === "" ? null : values.philhealthNumber,
+        hdmfNumber: values.hdmfNumber?.trim() === "" ? null : values.hdmfNumber,
+      };
 
-  setIsSubmitting(true);
-  //console.log("Submitting...");
+      // Step 2: Remove null values for API
+      const payload = Object.fromEntries(
+        Object.entries(rawPayload).filter(([_, value]) => value !== null)
+      );
 
-  try {
-    // Remove keys with empty, null, or undefined values
-    const filteredPayload = Object.fromEntries(
-      Object.entries(values).filter(([_, v]) => v?.toString().trim() !== "")
-    );
+      console.log("Payload to send to API:", payload);
 
-    //console.log("Mapped API Payload:", filteredPayload);
+      // Step 3: Call API
+      const response = await updateCrew(crewGovtTypeData.CrewCode, payload);
+      console.log("API Response:", response);
 
-    const response = await updateCrew(crewGovtTypeData.CrewCode, filteredPayload);
-    //console.log("API Response:", response);
-
-    if (response.success) {
-      toast({
-        title: "Crew Government Details Updated",
-        description: "The government details were successfully updated.",
-        variant: "success",
-      });
-
-        setSelectedCrewData?.((prev) => {
-        if (!prev) return prev;
-        return {
-            ...prev,
-            ...(filteredPayload.sssNumber !== undefined && { SSSNumber: filteredPayload.sssNumber }),
-            ...(filteredPayload.tinNumber !== undefined && { TaxIDNumber: filteredPayload.tinNumber }),
-            ...(filteredPayload.philhealthNumber !== undefined && { PhilHealthNumber: filteredPayload.philhealthNumber }),
-            ...(filteredPayload.hdmfNumber !== undefined && { HDMFNumber: filteredPayload.hdmfNumber }),
-        };
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Deduction description updated successfully.",
+          variant: "success",
         });
 
-      onSuccess?.(filteredPayload);
-      onOpenChange(false);
-    } else {
-      throw new Error("Failed to update crew government records.");
-    }
-  } catch (err: any) {
-    console.error("Submission Error:", err);
-    toast({
-      title: "Update Failed",
-      description: err.message || "An unexpected error occurred.",
-      variant: "destructive",
-    });
-  } finally {
-    setIsSubmitting(false);
-    //console.log("Submission complete.");
-  }
-};
+        // Step 4: Build updatedData for onSuccess
+        const updatedData = Object.fromEntries(
+          Object.entries({
+            sssNumber: payload.sssNumber,
+            philhealthNumber: payload.philhealthNumber,
+            hdmfNumber: payload.hdmfNumber,
+            taxIdNumber: payload.tinNumber,
+          }).filter(([_, value]) => value !== undefined)
+        );
 
+        console.log("Data passed to onSuccess:", updatedData);
+        onSuccess?.(updatedData);
+      } else {
+        console.warn("API returned failure response:", response);
+      }
+
+      console.log("Closing modal...");
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Error updating deduction:", error);
+      toast({
+        title: "Error",
+        description:
+          error.message || "An error occurred while updating the deduction.",
+        variant: "destructive",
+      });
+    } finally {
+      console.log("Finished submit process.");
+      setIsSubmitting(false);
+    }
+  };
+  
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">

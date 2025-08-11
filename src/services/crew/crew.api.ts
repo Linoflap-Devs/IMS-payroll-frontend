@@ -1,10 +1,10 @@
 import axiosInstance from "../../lib/axios";
 
 export interface CrewItem {
-  HDMFNumber: string;
-  PhilHealthNumber: string;
-  TaxIDNumber: string;
-  SSSNumber: string;
+  HDMFNumber: string | null;
+  PhilHealthNumber: string | null;
+  TaxIDNumber: string | null;
+  SSSNumber: string | null;
   CrewID?: number;
   CrewCode: string;
   LastName: string;
@@ -219,10 +219,10 @@ export interface UpdateCrewDataForm {
   dateOfBirth?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
   city?: string; // Backend's Zod schema: z.string().min(2).max(50)
   province?: string; // Backend's Zod schema: z.string().min(2).max(50)
-  sssNumber?: string;
-  tinNumber?: string;
-  philhealthNumber?: string;
-  hdmfNumber?: string;
+  sssNumber?: string | null;
+  tinNumber?: string | null;
+  philhealthNumber?: string | null;
+  hdmfNumber?: string | null;
   passportNumber?: string;
   passportIssueDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
   passportExpiryDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
