@@ -94,7 +94,7 @@ export function DataTable<TData, TValue>({
                     return (
                       <TableHead
                         key={header.id}
-                        className="font-semibold text-xs sm:text-sm py-3 sm:py-4 text-center whitespace-nowrap">
+                        className="font-semibold text-xs px-8 sm:text-sm py-3 sm:py-4 text-center whitespace-nowrap">
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -124,6 +124,11 @@ export function DataTable<TData, TValue>({
                       className="py-2 sm:py-3 text-center"
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      className="px-8 py-2 sm:py-3 text-center">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>

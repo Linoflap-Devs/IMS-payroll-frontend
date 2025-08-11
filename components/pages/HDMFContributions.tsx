@@ -21,6 +21,7 @@ import {
 } from "@/src/services/deduction/governmentReports.api";
 import { format } from "date-fns";
 import generateHDMFRegister from "../PDFs/deductionsHDMFRegister";
+import { capitalizeFirstLetter, formatCurrency, getMonthName } from "@/lib/utils";
 
 export default function HMDFContribution() {
   const searchParams = useSearchParams();
@@ -34,6 +35,13 @@ export default function HMDFContribution() {
   >([]);
   const [HDMFDeductionResponse, setHDMFDeductionResponse] = useState<DeductionResponse<HDMFDeductionCrew>>({} as DeductionResponse<HDMFDeductionCrew>);
   const [isLoading, setIsLoading] = useState(true);
+
+  const yearParam = Number(searchParams.get("year")) || new Date().getFullYear();
+  const monthParam =
+    Number(searchParams.get("month")) || new Date().getMonth() + 1;
+  
+  const monthName = getMonthName(monthParam);
+
 
   useEffect(() => {
     const fetchPhilhealthDeductionData = async () => {
@@ -101,37 +109,37 @@ export default function HMDFContribution() {
       accessorKey: "Salary",
       header: "Salary",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Salary"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("Salary"), true)}</div>
       ),
     },
-    {
-      accessorKey: "Allotment",
-      header: "Allotment",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("Allotment"))}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "Allotment",
+    //   header: "Allotment",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatNumber(row.getValue("Allotment"))}
+    //     </div>
+    //   ),
+    // },
     {
       accessorKey: "Gross",
       header: "Gross",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Gross"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("Gross"), true)}</div>
       ),
     },
     {
       accessorKey: "EE",
       header: "EE",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("EE"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("EE"), true)}</div>
       ),
     },
     {
       accessorKey: "ER",
       header: "ER",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("ER"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("ER"), true)}</div>
       ),
     },
   ];
@@ -200,12 +208,12 @@ export default function HMDFContribution() {
       `}</style>
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <Link href="/home/deduction/reports">
+          <Link href={ monthName && yearParam ? `/home/deduction/reports?month=${monthParam}&year=${yearParam}` : "/home/deduction/reports"}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-semibold mb-0">HDMF Contribution</h1>
+          <h1 className="text-3xl font-semibold mb-0">{ monthName && yearParam ? `HDMF Contribution- ${capitalizeFirstLetter(monthName)} ${yearParam}` : "HDMF Contribution"}</h1>
         </div>
       </div>
 

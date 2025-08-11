@@ -28,6 +28,7 @@ import { useDebounce } from "@/lib/useDebounce";
 import { generateAllotmentPDF } from "@/components/PDFs/payrollAllotmentRegisterPDF";
 import { PiUserListFill } from "react-icons/pi";
 import { generateAllotmentExcel } from "@/components/Excels/allotmentAllotmentRegister";
+import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
 
 export default function AllotmentRegisterComponent() {
   const searchParams = useSearchParams();
@@ -86,6 +87,8 @@ export default function AllotmentRegisterComponent() {
     const numValue = typeof value === "string" ? parseFloat(value) : value;
     return isNaN(numValue) ? "0.00" : numValue?.toFixed(2);
   };
+
+  const monthName = getMonthName(Number(month))
 
   const columns: ColumnDef<AllotmentRegisterCrew>[] = [
     {
@@ -287,12 +290,12 @@ export default function AllotmentRegisterComponent() {
       `}</style>
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <Link href="/home/allotment">
+          <Link href={monthName && year ? `/home/allotment?month=${month}&year=${year}` : "/home/allotment"}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-semibold mb-0">Allotment Register</h1>
+          <h1 className="text-3xl font-semibold mb-0">{ monthName && year ? `Allotment Register - ${capitalizeFirstLetter(monthName)} ${year}` : "Allotment Register"}</h1>
         </div>
       </div>
 

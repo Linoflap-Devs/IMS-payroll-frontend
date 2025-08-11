@@ -28,6 +28,7 @@ import { useDebounce } from "@/lib/useDebounce";
 import { generateDeductionAllotmentV2PDF } from "@/components/PDFs/payrollDeductionRegisterV2PDF";
 import { generateDeductionAllotmentExcel } from "@/components/Excels/payrollDeductionRegister";
 import { PiReceiptFill } from "react-icons/pi";
+import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
 
 export default function DeductionRegisterComponent() {
   const searchParams = useSearchParams();
@@ -172,6 +173,8 @@ export default function DeductionRegisterComponent() {
     )
   )
 
+  const monthName = getMonthName(Number(month))
+
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">
       <style jsx global>{`
@@ -202,12 +205,12 @@ export default function DeductionRegisterComponent() {
       `}</style>
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <Link href="/home/allotment">
+          <Link href={monthName && year ? `/home/allotment?month=${month}&year=${year}` : "/home/allotment"}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-semibold mb-0">Deduction Register</h1>
+          <h1 className="text-3xl font-semibold mb-0">{ monthName && year ? `Deduction Register - ${capitalizeFirstLetter(monthName)} ${year}` : "Deduction Register"}</h1>
         </div>
       </div>
 

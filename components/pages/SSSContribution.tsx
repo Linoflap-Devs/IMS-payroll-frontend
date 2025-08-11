@@ -21,6 +21,7 @@ import {
 } from "@/src/services/deduction/governmentReports.api";
 import generateSSSRegister from "../PDFs/deductionsSSSRegister";
 import { format } from "date-fns";
+import { capitalizeFirstLetter, formatCurrency, getMonthName } from "@/lib/utils";
 
 export default function SSSContribution() {
   const searchParams = useSearchParams();
@@ -33,6 +34,12 @@ export default function SSSContribution() {
     []
   );
   const [isLoading, setIsLoading] = useState(true);
+  
+  const yearParam = Number(searchParams.get("year")) || new Date().getFullYear();
+  const monthParam =
+    Number(searchParams.get("month")) || new Date().getMonth() + 1;
+  
+  const monthName = getMonthName(monthParam);
 
   useEffect(() => {
     const fetchSSSDeductionData = async () => {
@@ -99,76 +106,76 @@ export default function SSSContribution() {
       accessorKey: "Salary",
       header: "Salary",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Salary"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("Salary"))}</div>
       ),
     },
-    {
-      accessorKey: "Allotment",
-      header: "Allotment",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("Allotment"))}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "Allotment",
+    //   header: "Allotment",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatNumber(row.getValue("Allotment"))}
+    //     </div>
+    //   ),
+    // },
     {
       accessorKey: "Gross",
       header: "Gross",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Gross"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("Gross"), true)}</div>
       ),
     },
-    {
-      accessorKey: "RegularSS",
-      header: "Regular SS",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("RegularSS"))}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "MutualFund",
-      header: "Mutual Fund",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("MutualFund"))}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "RegularSS",
+    //   header: "Regular SS",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatCurrency(row.getValue("RegularSS"), true)}
+    //     </div>
+    //   ),
+    // },
+    // {
+    //   accessorKey: "MutualFund",
+    //   header: "Mutual Fund",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatCurrency(row.getValue("MutualFund"), true)}
+    //     </div>
+    //   ),
+    // },
     {
       accessorKey: "EESS",
       header: "EE SS",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("EESS"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("EESS"), true)}</div>
       ),
     },
     {
       accessorKey: "ERSS",
       header: "ER SS",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("ERSS"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("ERSS"), true)}</div>
       ),
     },
     {
       accessorKey: "EEMF",
       header: "EE MF",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("EEMF"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("EEMF"), true)}</div>
       ),
     },
     {
       accessorKey: "ERMF",
       header: "ER MF",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("ERMF"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("ERMF"), true)}</div>
       ),
     },
     {
       accessorKey: "EC",
       header: "EC",
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("EC"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("EC"), true)}</div>
       ),
     },
   ];
@@ -238,12 +245,12 @@ export default function SSSContribution() {
       `}</style>
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <Link href="/home/deduction/reports">
+          <Link href={monthName && yearParam ? `/home/deduction/reports?month=${monthParam}&year=${yearParam}` : "/home/deduction/reports"}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-semibold mb-0">SSS Contribution</h1>
+          <h1 className="text-3xl font-semibold mb-0">{ monthName && yearParam ? `SSS Contribution- ${capitalizeFirstLetter(monthName)} ${yearParam}` : "SSS Contribution"}</h1>
         </div>
       </div>
 

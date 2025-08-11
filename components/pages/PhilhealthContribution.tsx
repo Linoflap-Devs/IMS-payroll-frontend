@@ -21,6 +21,7 @@ import {
 } from "@/src/services/deduction/governmentReports.api";
 import generatePHRegister from "../PDFs/deductionsPHRegister";
 import { format } from "date-fns";
+import { capitalizeFirstLetter, formatCurrency, getMonthName } from "@/lib/utils";
 
 export default function PhilhealthContribution() {
   const searchParams = useSearchParams();
@@ -34,6 +35,12 @@ export default function PhilhealthContribution() {
   >([]);
   const [PHDeductionResponse, setPHDeductionResponse] = useState<DeductionResponse<PhilhealthDeductionCrew>>({} as DeductionResponse<PhilhealthDeductionCrew>);
   const [isLoading, setIsLoading] = useState(true);
+
+  const yearParam = Number(searchParams.get("year")) || new Date().getFullYear();
+  const monthParam =
+    Number(searchParams.get("month")) || new Date().getMonth() + 1;
+
+  const monthName = getMonthName(monthParam);
 
   useEffect(() => {
     const fetchPhilhealthDeductionData = async () => {
@@ -79,82 +86,83 @@ export default function PhilhealthContribution() {
   }, [vesselId, searchParams]);
 
   // Format numbers to two decimal places with null checking
-  const formatNumber = (value: number | string | null | undefined) => {
-    const num = typeof value === "string" ? parseFloat(value) : value;
-    return isNaN(num as number) ? "0.00" : Number(num).toFixed(2);
-  };
+
 
   const columns: ColumnDef<PhilhealthDeductionCrew>[] = [
     {
       accessorKey: "CrewName",
-      header: "Crew Name",
+      header: () => <div className="text-left">Crew Name</div>,
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("CrewName")}</div>
+        <div className="font-medium text-left">{row.getValue("CrewName")}</div>
       ),
     },
     {
       accessorKey: "Rank",
-      header: "Rank",
+      header: () => <div className="text-left">Rank</div>,
+      cell: ({ row }) => <div className="text-left">{row.getValue("Rank")}</div>,
     },
     {
       accessorKey: "PHNumber",
-      header: "PhilHealth No.",
-    },
-    {
-      accessorKey: "Salary",
-      header: "Salary",
+      header: () => <div className="text-left">PH Number</div>,
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Salary"))}</div>
+        <div className="text-left">{row.getValue("PHNumber")}</div>
       ),
     },
-    {
-      accessorKey: "Allotment",
-      header: "Allotment",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("Allotment"))}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "Salary",
+    //   header: () => <div className="text-left">Salary</div>,
+    //   cell: ({ row }) => (
+    //     <div className="text-right">{formatCurrency(row.getValue("Salary"), true)}</div>
+    //   ),
+    // },
+    // {
+    //   accessorKey: "Allotment",
+    //   header: "Allotment",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatNumber(row.getValue("Allotment"))}
+    //     </div>
+    //   ),
+    // },
     {
       accessorKey: "Gross",
-      header: "Gross",
+      header: () => <div className="text-left">Gross</div>,
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("Gross"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("Gross"), true)}</div>
       ),
     },
     {
       accessorKey: "EE",
-      header: "EE",
+      header: () => <div className="text-left">EE</div>,
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("EE"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("EE"), true)}</div>
       ),
     },
     {
       accessorKey: "ER",
-      header: "ER",
+      header: () => <div className="text-left">ER</div>,
       cell: ({ row }) => (
-        <div className="text-right">{formatNumber(row.getValue("ER"))}</div>
+        <div className="text-right">{formatCurrency(row.getValue("ER"), true)}</div>
       ),
     },
-    {
-      accessorKey: "EEPremium",
-      header: "EE Premium",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("EEPremium"))}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "EEPremiumRate",
-      header: "EE Premium Rate (%)",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("EEPremiumRate"))}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "EEPremium",
+    //   header: "EE Premium",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatNumber(row.getValue("EEPremium"))}
+    //     </div>
+    //   ),
+    // },
+    // {
+    //   accessorKey: "EEPremiumRate",
+    //   header: "EE Premium Rate (%)",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       {formatNumber(row.getValue("EEPremiumRate"))}
+    //     </div>
+    //   ),
+    // },
   ];
 
   // Filter the crew data based on search term
@@ -221,12 +229,12 @@ export default function PhilhealthContribution() {
       `}</style>
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <Link href="/home/deduction/reports">
+          <Link href={ monthName && yearParam ? `/home/deduction/reports?month=${monthParam}&year=${yearParam}` : "/home/deduction/reports"}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-semibold mb-0">Philhealth Contribution</h1>
+          <h1 className="text-3xl font-semibold mb-0">{ monthName && yearParam ? `Philhealth Contribution- ${capitalizeFirstLetter(monthName)} ${yearParam}` : "Philhealth Contribution"}</h1>
         </div>
       </div>
 
