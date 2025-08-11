@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,6 +31,7 @@ import {
   PaymentReferenceItem,
 } from "@/src/services/payment-reference/payment-reference.api";
 import { AddPaymentReference } from "../dialogs/AddPaymentReferenceDialog";
+import { EditPaymentReference } from "../dialogs/EditPaymentReferenceDialog";
 
 export default function PaymentReference() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -129,6 +129,14 @@ export default function PaymentReference() {
     setDeductionTypeFilter("all");
     setMonthFilter("all");
     setYearFilter("all");
+  };
+
+  const handlePaymentUpdated = (updatedPayment: PaymentReferenceItem) => {
+    setPaymentData((prev) =>
+      prev.map((item) =>
+        item.PaymentReferenceID === updatedPayment.PaymentReferenceID ? updatedPayment : item
+      )
+    );
   };
 
   const columns: ColumnDef<PaymentReferenceItem>[] = [
@@ -400,6 +408,15 @@ export default function PaymentReference() {
           }
         }}
       />
+
+        {selectedPaymentData && editselectedPaymentDialogOpen && (
+          <EditPaymentReference
+            open={editselectedPaymentDialogOpen}
+            onOpenChange={setEditselectedPaymentDialogOpen}
+            paymentReferenceData={selectedPaymentData}
+            onSuccess={handlePaymentUpdated}
+          />
+        )}
     </div>
   );
 }
