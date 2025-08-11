@@ -34,7 +34,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "../ui/dropd
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { MdOutlineBadge } from "react-icons/md";
 import { PromoteCrewDialog } from "../dialogs/PromoteCrewDialog";
-import { toast } from "../ui/use-toast";
 
 interface ISelectedCrew {
   id: number;
@@ -71,7 +70,7 @@ export default function CrewMovementList() {
   const [onSuccess, setOnSuccess] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew[]>([]);
   const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
-  const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
+  // const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
   const [isLoadingRepatriate, setIsLoadingRepatriate] = useState(false);
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [displayedCrews, setDisplayedCrews] = useState<IOffBoardCrew[]>([]);
@@ -79,6 +78,7 @@ export default function CrewMovementList() {
   const [allCrews, setAllCrews] = useState<IOffBoardCrew[]>([]);
   const [rankFilter, setRankFilter] = useState("all");
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
+  const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchVesselCrew = async () => {
@@ -132,9 +132,10 @@ export default function CrewMovementList() {
       });
   }, []);
 
-  const selectedCrews = Object.keys(selectedRowIds)
-    .filter((id) => selectedRowIds[id])
-    .map((id) => displayedCrews[parseInt(id, 10)]);
+  //console.log('DISPLAYED CREWS: ', allCrews);
+
+  //const selectedCrews = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]).map((id) => displayedCrews[parseInt(id, 10)]);
+  const selectedCrews = displayedCrews.filter((crew) => selectedRowIds[crew.CrewCode]);
 
   useEffect(() => {
     if (debouncedSearch) {
@@ -169,28 +170,29 @@ export default function CrewMovementList() {
   const selectedRows = crewData.filter((row) => selectedRowIds[row.crewCode]);
 
   const filteredCrewData = useMemo(() => {
-    ``
     return crewData.filter((crew) => {
+      //console.log("Filtering:", crew.name, searchTerm);
+
       const matchesSearch = searchTerm
         ? `${crew.name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
         crew.rank.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
 
-      const matchesRank = rankFilter && rankFilter !== "all"
-        ? crew.rank.toLowerCase() === rankFilter.toLowerCase()
-        : true;
-
-      return matchesSearch && matchesRank;
+      // ...
+      return matchesSearch;
     });
   }, [crewData, searchTerm, rankFilter]);
 
   const filteredJoinCrewData = useMemo(() => {
-    return displayedCrews.filter((crew) => {
+    return allCrews.filter((crew) => {
+      const fullName = `${crew.LastName ?? ''}, ${crew.FirstName ?? ''}`.toLowerCase();
+      const searchLower = searchTerm.toLowerCase();
+
       const matchesSearch = searchTerm
-        ? `${crew.FirstName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        crew.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        crew.Rank.toLowerCase().includes(searchTerm.toLowerCase())
+        ? fullName.includes(searchLower) ||
+        crew.CrewCode.toLowerCase().includes(searchLower) ||
+        crew.Rank.toLowerCase().includes(searchLower)
         : true;
 
       const matchesRank = rankFilter && rankFilter !== "all"
@@ -199,29 +201,46 @@ export default function CrewMovementList() {
 
       return matchesSearch && matchesRank;
     });
-  }, [displayedCrews, searchTerm, rankFilter]);
+  }, [allCrews, searchTerm, rankFilter]);
 
   const columnJoin: ColumnDef<IOffBoardCrew>[] = [
     {
       id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          className="border-gray-500 text-gray-900 dark:border-gray-400 dark:text-white"
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          className="border-gray-400 text-gray-700 dark:border-gray-400 dark:text-white"
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
+      header: ({ table }) => {
+        const visibleCrewCodes = table.getFilteredRowModel().rows.map(row => row.original.CrewCode);
+        const allSelected = visibleCrewCodes.length > 0 && visibleCrewCodes.every(code => selectedRowIds[code]);
+        const someSelected = visibleCrewCodes.some(code => selectedRowIds[code]);
+
+        return (
+          <Checkbox
+            checked={allSelected ? true : someSelected ? "indeterminate" : false}
+            onCheckedChange={(checked) => {
+              setSelectedRowIds((prev) => {
+                const updated = { ...prev };
+                visibleCrewCodes.forEach(code => {
+                  updated[code] = !!checked;
+                });
+                return updated;
+              });
+            }}
+          />
+        );
+      },
+      cell: ({ row }) => {
+        const crewCode = row.original.CrewCode;
+        const isSelected = !!selectedRowIds[crewCode];
+        return (
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => {
+              setSelectedRowIds((prev) => ({
+                ...prev,
+                [crewCode]: !!checked,
+              }));
+            }}
+          />
+        );
+      },
     },
     {
       accessorKey: "CrewCode",
@@ -300,24 +319,41 @@ export default function CrewMovementList() {
   const columRepatriate: ColumnDef<(typeof crewData)[number]>[] = [
     {
       id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          className="border-gray-400 text-gray-700 dark:border-gray-400 dark:text-white"
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          className="border-gray-400 text-gray-700 dark:border-gray-400 dark:text-white"
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
+      header: ({ table }) => {
+        const visibleCrewCodes = table.getFilteredRowModel().rows.map(row => row.original.crewCode);
+        const allSelected = visibleCrewCodes.length > 0 && visibleCrewCodes.every(code => selectedRowIds[code]);
+        const someSelected = visibleCrewCodes.some(code => selectedRowIds[code]);
+
+        return (
+          <Checkbox
+            checked={allSelected ? true : someSelected ? "indeterminate" : false}
+            onCheckedChange={(checked) => {
+              setSelectedRowIds((prev) => {
+                const updated = { ...prev };
+                visibleCrewCodes.forEach(code => {
+                  updated[code] = !!checked;
+                });
+                return updated;
+              });
+            }}
+          />
+        );
+      },
+      cell: ({ row }) => {
+        const crewCode = row.original.crewCode;
+        const isSelected = !!selectedRowIds[crewCode];
+        return (
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => {
+              setSelectedRowIds((prev) => ({
+                ...prev,
+                [crewCode]: !!checked,
+              }));
+            }}
+          />
+        );
+      },
     },
     {
       accessorKey: "crewCode",
@@ -692,6 +728,7 @@ export default function CrewMovementList() {
                         columns={columnJoin}
                         data={filteredJoinCrewData}
                         pageSize={7}
+                        //pagination={false}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                       />
@@ -771,7 +808,8 @@ export default function CrewMovementList() {
                       <DataTable
                         columns={columRepatriate}
                         data={filteredCrewData}
-                        pageSize={7}
+                        //pageSize={7}
+                        pagination={false}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                       />

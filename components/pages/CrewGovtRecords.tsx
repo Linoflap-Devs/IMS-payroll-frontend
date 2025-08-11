@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useCrewStore } from "@/src/store/useCrewStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
-  Plus,
   Filter,
   ArrowUpDown,
   ChevronDown,
@@ -55,8 +53,6 @@ export default function CrewGovtRecords() {
   useEffect(() => {
     fetchCrews();
   }, [fetchCrews]);
-
-  //console.log('CREW: ', crews);
 
   const filteredCrew = crews.filter((crew) => {
     const matchesSearch =
@@ -272,19 +268,18 @@ export default function CrewGovtRecords() {
   }) => {
     setSelectedCrewData((prev) => {
       if (!prev) return prev;
+
       return {
         ...prev,
-        SSSNumber: updatedData.sssNumber ?? prev.SSSNumber,
-        TaxIDNumber: updatedData.taxIdNumber ?? prev.TaxIDNumber,
-        PhilHealthNumber: updatedData.philhealthNumber ?? prev.PhilHealthNumber,
-        HDMFNumber: updatedData.hdmfNumber ?? prev.HDMFNumber,
+        ...(updatedData.sssNumber !== undefined ? { SSSNumber: updatedData.sssNumber } : {}),
+        ...(updatedData.taxIdNumber !== undefined ? { TaxIDNumber: updatedData.taxIdNumber } : {}),
+        ...(updatedData.philhealthNumber !== undefined ? { PhilHealthNumber: updatedData.philhealthNumber } : {}),
+        ...(updatedData.hdmfNumber !== undefined ? { HDMFNumber: updatedData.hdmfNumber } : {}),
       };
     });
 
-    // Refresh the entire crew list from the server
     fetchCrews();
   };
-
 
   if (error) {
     return <div className="text-center text-red-500">Error: {error}</div>;
