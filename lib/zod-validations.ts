@@ -31,10 +31,10 @@ export const addCrewAllotteeSchema = z.object({
     allotmentType: z.preprocess(
         (val) => val === "" || val === undefined ? undefined : Number(val),
         z
-        .number({
-            required_error: "Please select an allotment type.",
-            invalid_type_error: "Allotment type must be a number.",
-        })
+            .number({
+                required_error: "Please select an allotment type.",
+                invalid_type_error: "Allotment type must be a number.",
+            })
         // .min(1, { message: "Select either 'Amount' or 'Percentage'." })
         // .max(2, { message: "Invalid allotment type selected." })
     ),
@@ -60,4 +60,28 @@ export const addVesselSchema = z.object({
     vesselName: z.string().min(1, "Please enter vessel name."),
     vesselType: z.string().min(1, "Please select vessel type."),
     principalName: z.string().min(1, "Please select principal name"),
+});
+
+export const editAllotteeSchema = z.object({
+    name: z.string().min(1, "Name is required."),
+    contactNumber: z
+        .string()
+        .min(1, "Contact number is required.")
+        .regex(/^\d{9,}$/, "Contact number must contain at least 9 digits"),
+        // .refine((val) => /^[0-9]+$/.test(val), {
+        //     message: "Contact number must be digits only",
+        // }),
+    address: z.string().min(1, "Address is required."),
+    relationshipId: z.string().min(1, "Relationship is required."),
+    bankId: z.string().min(1, "Bank is required."),
+    branchId: z.string().min(1, "Bank branch is required."),
+    province: z.string().min(1, "Province is required."),
+    accountNumber: z
+        .string()
+        .min(1, "Account number is required."),
+        // .refine((val) => /^[0-9]+$/.test(val), {
+        //     message: "Account number must be digits only",
+        // }),
+    allotment: z.number().min(1, "Allotment amount is required."),
+    receivePayslip: z.number().min(1, "Payslip preference is required."),
 });

@@ -29,6 +29,8 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 import React from "react";
+import { editAllotteeSchema } from "@/lib/zod-validations";
+import { z } from "zod";
 
 // Empty UI model for initialization
 const emptyAllottee: AllotteeUiModel = {
@@ -87,14 +89,13 @@ export function CrewAllottee({
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<AllotteeUiModel[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<string>("0");
-  const [currentAllottee, setCurrentAllottee] =
-    useState<AllotteeUiModel | null>(null);
-  const [editingAllottee, setEditingAllottee] =
-    useState<AllotteeUiModel | null>(null);
+  const [currentAllottee, setCurrentAllottee] = useState<AllotteeUiModel | null>(null);
+  const [editingAllottee, setEditingAllottee] = useState<AllotteeUiModel | null>(null);
   const [searchCity, setSearchCity] = useState("");
   const [searchProvince, setSearchProvince] = useState("");
   const [previousAllotteeId, setPreviousAllotteeId] = useState<string>("");
   const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
+  const [allotteeErrors, setAllotteeErrors] = useState<Record<string, string>>({});
 
   const {
     allottees: storeAllottees,
@@ -412,6 +413,24 @@ export function CrewAllottee({
       ...editingAllottee,
       [field]: value,
     });
+
+    // Only validate if this field exists in the Zod schema
+    if (field in editAllotteeSchema.shape) {
+      const schemaKey = field as keyof typeof editAllotteeSchema.shape;
+      const fieldSchema = editAllotteeSchema.shape[schemaKey];
+      const result = fieldSchema.safeParse(value);
+
+      setAllotteeErrors((prev) => {
+        const { [field]: removed, ...rest } = prev;
+        if (!result.success) {
+          return {
+            ...rest,
+            [field]: result.error.errors[0].message,
+          };
+        }
+        return rest;
+      });
+    }
   };
 
   const handleCityChange = (cityId: string) => {
@@ -477,98 +496,113 @@ export function CrewAllottee({
     };
   };
 
+  // useEffect(() => {
+  //   if (!triggerSave) return;
+
+  //   if (!editingAllottee || !crewId) {
+  //     setAllotteeLoading(false);
+  //     setTriggerSave(false);
+  //     return;
+  //   }
+
+  //   // --- Validation step ---
+  //   const errors = validateAllottee(editingAllottee);
+  //   setAllotteeErrors(errors); // store them for rendering
+
+  //   if (Object.keys(errors).length > 0) {
+  //     toast({
+  //       title: "Validation Error",
+  //       description: Object.values(errors).join(", "),
+  //       variant: "destructive",
+  //     });
+  //     setAllotteeLoading(false);
+  //     setTriggerSave(false);
+  //     return;
+  //   }
+  //   // ------------------------
+
+  //   setAllotteeLoading(true);
+
+  //   const apiModel = convertToApiModel(editingAllottee);
+  //   updateCrewAllottee(crewId.toString(), apiModel)
+  //     .then(() => {
+  //       toast({
+  //         title: "Allottee saved successfully",
+  //         description: `Allottee ${editingAllottee?.name} has been updated.`,
+  //         variant: "success",
+  //       });
+  //       fetchCrewAllottees(crewId.toString());
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error saving allottee:", error);
+  //       toast({
+  //         title: "Error saving allottee",
+  //         description: "There was an error saving the allottee.",
+  //         variant: "destructive",
+  //       });
+  //     })
+  //     .finally(() => {
+  //       setAllotteeLoading(false);
+  //       setTriggerSave(false);
+  //       setIsEditingAllottee(false);
+  //     });
+  // }, [
+  //   triggerSave,
+  //   crewId,
+  //   editingAllottee,
+  //   setAllotteeLoading,
+  //   setTriggerSave,
+  //   fetchCrewAllottees,
+  //   setIsEditingAllottee,
+  // ]);
+
   useEffect(() => {
     if (triggerSave) {
-      setAllotteeLoading(true);
 
       if (!editingAllottee || !crewId) {
-        setAllotteeLoading(false);
-        return;
-      }
-
-      try {
-        const apiModel = convertToApiModel(editingAllottee!);
-        updateCrewAllottee(crewId.toString(), apiModel)
-          .then((response) => {
-            toast({
-              title: "Allottee saved successfully",
-              description: `Allottee ${editingAllottee?.name} has been updated.`,
-              variant: "success",
-            });
-            setTriggerSave(false);
-            fetchCrewAllottees(crewId.toString());
-          })
-          .catch((error) => {
-            console.error("Error saving allottee:", error);
-
-            let errorMessage = "There was an error saving the allottee.";
-
-            // Extract message from API if available
-            if (error.response?.data?.message) {
-              errorMessage = error.response.data.message;
-            }
-
-            // If error is about exceeding 100%, calculate total allotment
-            if (
-              errorMessage
-                .toLowerCase()
-                .includes("allotment percentage would exceed 100 percent")
-            ) {
-              const totalAllotment = allottees.reduce(
-                (sum, a) => sum + (a.allotment || 0),
-                0
-              );
-              errorMessage = `The total allotment percentage is currently ${totalAllotment}%, which cannot exceed 100%. Please adjust the values.`;
-            }
-
-            toast({
-              title: "Error saving allottee",
-              description: errorMessage,
-              variant: "destructive",
-            });
-          })
-          .finally(() => {
-            setAllotteeLoading(false);
-            setTriggerSave(false);
-            setIsEditingAllottee(false);
-          });
-      } catch (error) {
-        console.error("Unexpected error saving allottee:", error);
+        console.warn("Missing editingAllottee or crewId", {
+          editingAllottee,
+          crewId,
+        });
         setAllotteeLoading(false);
         setTriggerSave(false);
-      }
-    }
-  }, [
-    triggerSave,
-    crewId,
-    editingAllottee,
-    setAllotteeLoading,
-    setTriggerSave,
-    fetchCrewAllottees,
-    setIsEditingAllottee,
-    allottees,
-  ]);
-
-  useEffect(() => {
-    if (triggerSave) {
-      setAllotteeLoading(true);
-      //console.log(editingAllottee);
-
-      if (!editingAllottee || !crewId) {
-        setAllotteeLoading(false);
         return;
       }
 
+      // --- Validation step ---
+      const validation = editAllotteeSchema.safeParse(editingAllottee);
+      if (!validation.success) {
+        //console.error("Validation failed:", validation.error.flatten());
+        // const errorMessages = Object.values(
+        //   validation.error.flatten().fieldErrors
+        // )
+        //   .flat()
+        //   .filter(Boolean);
+
+        toast({
+          title: "Validation Error",
+          description: "Check for Validtion errors.",
+          variant: "destructive",
+        });
+
+        setAllotteeLoading(false);
+        setTriggerSave(false);
+        return;
+      }
+
+      // ------------------------
+      setAllotteeLoading(true);
+
       try {
-        const apiModel = convertToApiModel(editingAllottee!);
+        const apiModel = convertToApiModel(editingAllottee);
+
         updateCrewAllottee(crewId.toString(), apiModel)
-          .then((response) => {
+          .then(() => {
             toast({
               title: "Allottee saved successfully",
-              description: `Allottee ${editingAllottee?.name} has been updated.`,
+              description: `Allottee ${editingAllottee.name} has been updated.`,
               variant: "success",
             });
-            setTriggerSave(false);
             fetchCrewAllottees(crewId.toString());
           })
           .catch((error) => {
@@ -585,7 +619,7 @@ export function CrewAllottee({
             setIsEditingAllottee(false);
           });
       } catch (error) {
-        console.error("Error saving allottee:", error);
+        console.error("Unexpected error in save process:", error);
         setAllotteeLoading(false);
         setTriggerSave(false);
       }
@@ -675,7 +709,7 @@ export function CrewAllottee({
       ? editingAllottee
       : currentAllottee;
 
-  // validating the name form
+  // validating the name form for disable only!
   useEffect(() => {
     const validateAllotteeForm = () => {
       const isValid = Boolean(displayAllottee?.name?.trim());
@@ -876,6 +910,11 @@ export function CrewAllottee({
                       handleInputChange("name", e.target.value)
                     }
                   />
+                  {isEditingAllottee && allotteeErrors.name && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {allotteeErrors.name}
+                    </p>
+                  )}
                 </div>
 
                 {/* Relationship field - use Select in edit mode */}
@@ -888,7 +927,15 @@ export function CrewAllottee({
                       value={displayAllottee.relationshipId}
                       onValueChange={handleRelationshipChange}
                     >
-                      <SelectTrigger id="relationship" className="w-full !h-10">
+                      <SelectTrigger
+                        id="relationship"
+                        className={`w-full h-10 ${!isEditingAllottee && !isAdding
+                          ? "bg-gray-50"
+                          : allotteeErrors.relationshipId
+                            ? "border-red-500 focus:!ring-red-500/50"
+                            : "bg-white"
+                          }`}
+                      >
                         <SelectValue placeholder="Select a relationship" />
                       </SelectTrigger>
                       <SelectContent className="h-70">
@@ -906,11 +953,16 @@ export function CrewAllottee({
                     <Input
                       value={displayAllottee.relationship}
                       readOnly
-                      className="w-full h-10 bg-gray-50"
+                      className={`w-full h-10 bg-gray-50 ${allotteeErrors.relationshipId ? "!border-red-500" : ""
+                        }`}
                     />
                   )}
+                  {isEditingAllottee && allotteeErrors.relationshipId && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {!allotteeErrors.relationshipId}
+                    </p>
+                  )}
                 </div>
-
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
                     Contact Number
@@ -920,13 +972,20 @@ export function CrewAllottee({
                     readOnly={!isEditingAllottee && !isAdding}
                     className={`w-full h-10 ${!isEditingAllottee && !isAdding
                       ? "bg-gray-50"
-                      : "bg-white"
+                      : allotteeErrors.contactNumber
+                        ? "border-red-500 focus:!ring-red-500/50"
+                        : "bg-white"
                       }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
                       handleInputChange("contactNumber", e.target.value)
                     }
                   />
+                  {isEditingAllottee && allotteeErrors.contactNumber && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {allotteeErrors.contactNumber}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
@@ -937,15 +996,21 @@ export function CrewAllottee({
                     readOnly={!isEditingAllottee && !isAdding}
                     className={`w-full h-10 ${!isEditingAllottee && !isAdding
                       ? "bg-gray-50"
-                      : "bg-white"
+                      : allotteeErrors.address
+                        ? "border-red-500 focus:!ring-red-500/50 bg-white"
+                        : "bg-white"
                       }`}
                     onChange={(e) =>
                       (isEditingAllottee || isAdding) &&
                       handleInputChange("address", e.target.value)
                     }
                   />
+                  {isEditingAllottee && allotteeErrors.address && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {allotteeErrors.address}
+                    </p>
+                  )}
                 </div>
-
                 {/* City Field */}
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
@@ -958,7 +1023,14 @@ export function CrewAllottee({
                         onValueChange={handleCityChange}
                         disabled={!displayAllottee.provinceId}
                       >
-                        <SelectTrigger className="w-full !h-10">
+                        <SelectTrigger
+                          className={`w-full !h-10 ${allotteeErrors.city
+                            ? "bg-gray-50"
+                            : allotteeErrors.city
+                              ? "border-red-500 focus:!ring-red-500/50 bg-white"
+                              : "bg-white"
+                            }`}
+                        >
                           <SelectValue placeholder="Select a city" />
                         </SelectTrigger>
                         <SelectContent className="max-h-80">
@@ -998,8 +1070,12 @@ export function CrewAllottee({
                       className="w-full h-10 bg-gray-50"
                     />
                   )}
+                  {isEditingAllottee && allotteeErrors.city && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {allotteeErrors.city}
+                    </p>
+                  )}
                 </div>
-
                 {/* Province Field */}
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
@@ -1011,7 +1087,14 @@ export function CrewAllottee({
                         value={displayAllottee.provinceId}
                         onValueChange={handleProvinceChange}
                       >
-                        <SelectTrigger className="w-full !h-10">
+                        <SelectTrigger
+                          className={`w-full !h-10 ${allotteeErrors.city
+                            ? "bg-gray-50"
+                            : allotteeErrors.province
+                              ? "border-red-500 focus:!ring-red-500/50 bg-white"
+                              : "bg-white"
+                            }`}
+                        >
                           <SelectValue placeholder="Select a province" />
                         </SelectTrigger>
                         <SelectContent className="max-h-80">
@@ -1051,6 +1134,11 @@ export function CrewAllottee({
                       className="w-full h-10 bg-gray-50"
                     />
                   )}
+                  {isEditingAllottee && allotteeErrors.province && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {allotteeErrors.province}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1070,7 +1158,11 @@ export function CrewAllottee({
                         value={displayAllottee.bankId}
                         onValueChange={handleBankChange}
                       >
-                        <SelectTrigger id="bank" className="w-full !h-10">
+                        <SelectTrigger
+                          id="bank"
+                          className={`w-full !h-10 ${allotteeErrors.bankId ? "border-red-500 focus:ring-red-500/50" : ""
+                            }`}
+                        >
                           <SelectValue placeholder="Select a bank" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1088,8 +1180,14 @@ export function CrewAllottee({
                       <Input
                         value={displayAllottee.bankName}
                         readOnly
-                        className="w-full h-10 bg-gray-50"
+                        className={`w-full h-10 bg-gray-50 ${allotteeErrors.bankId ? "border-red-500" : ""
+                          }`}
                       />
+                    )}
+                    {isEditingAllottee && allotteeErrors.bankId && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {allotteeErrors.bankId}
+                      </p>
                     )}
                   </div>
 
@@ -1104,7 +1202,11 @@ export function CrewAllottee({
                         onValueChange={handleBranchChange}
                         disabled={!displayAllottee.bankId}
                       >
-                        <SelectTrigger id="branch" className="w-full !h-10">
+                        <SelectTrigger
+                          id="branch"
+                          className={`w-full !h-10 ${allotteeErrors.branchId ? "border-red-500 focus:ring-red-500/50" : ""
+                            }`}
+                        >
                           <SelectValue placeholder="Select a branch" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1130,11 +1232,18 @@ export function CrewAllottee({
                       <Input
                         value={displayAllottee.bankBranch}
                         readOnly
-                        className="w-full h-10 bg-gray-50"
+                        className={`w-full h-10 bg-gray-50 ${allotteeErrors.branchId ? "border-red-500" : ""
+                          }`}
                       />
+                    )}
+                    {isEditingAllottee && allotteeErrors.branchId && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {allotteeErrors.branchId}
+                      </p>
                     )}
                   </div>
 
+                  {/* Account Number */}
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
                       Account Number
@@ -1142,33 +1251,36 @@ export function CrewAllottee({
                     <Input
                       value={displayAllottee.accountNumber}
                       readOnly={!isEditingAllottee && !isAdding}
-                      className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
-                        }`}
+                      className={`w-full h-10 
+                        ${isEditingAllottee && allotteeErrors.accountNumber ? "border-red-500 focus:ring-red-500/50" : ""} 
+                        ${!isEditingAllottee && !isAdding ? "bg-gray-50" : "bg-white"}`}
                       onChange={(e) =>
                         (isEditingAllottee || isAdding) &&
                         handleInputChange("accountNumber", e.target.value)
                       }
                     />
+                    {isEditingAllottee && allotteeErrors.accountNumber && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {allotteeErrors.accountNumber}
+                      </p>
+                    )}
                   </div>
+
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
                       {displayAllottee.allotmentType === 1
                         ? "Allotment Amount in" +
-                        (displayAllottee.receivePayslip === 1
-                          ? " (Dollar)"
-                          : " (Peso)")
+                        (displayAllottee.receivePayslip === 1 ? " (Dollar)" : " (Peso)")
                         : "Allotment Percentage"}
                     </label>
                     <Input
                       type="number"
                       value={displayAllottee.allotment.toString()}
                       readOnly={!isEditingAllottee && !isAdding}
-                      className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                        ? "bg-gray-50"
-                        : "bg-white"
-                        }`}
+                      className={`w-full h-10 ${allotteeErrors.allotment || allotteeErrors.receivePayslip
+                        ? "border-red-500 focus:ring-red-500/50"
+                        : ""
+                        } ${!isEditingAllottee && !isAdding ? "bg-gray-50" : "bg-white"}`}
                       onChange={(e) =>
                         (isEditingAllottee || isAdding) &&
                         handleInputChange(
@@ -1177,6 +1289,16 @@ export function CrewAllottee({
                         )
                       }
                     />
+                    {isEditingAllottee && allotteeErrors.allotment && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {allotteeErrors.allotment}
+                      </p>
+                    )}
+                    {isEditingAllottee && allotteeErrors.receivePayslip && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {allotteeErrors.receivePayslip}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

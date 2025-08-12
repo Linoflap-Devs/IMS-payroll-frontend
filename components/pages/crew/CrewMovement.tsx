@@ -84,6 +84,7 @@ export function CrewMovement() {
     fetchCrewMovements,
     resetMovements,
   } = useCrewStore();
+  //console.log(movements);
 
   const clearFilters = () => {
     setSelectedVessel("all");

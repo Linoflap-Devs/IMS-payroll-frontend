@@ -287,6 +287,10 @@ export default function CrewDetails() {
     saveChanges();
   };
 
+  const handleSaveAllottee = () => {
+    setTriggerSave(true);
+  };
+
   // Filter cities based on selected province
   const filteredCities = useMemo(() => {
     if (!editedCrew?.province) return [];
@@ -474,6 +478,7 @@ export default function CrewDetails() {
           handleTriggerDecline={handleTriggerDecline}
           isDeclining={isDeclining}
           isRegistered={crewValidationDetails?.RegisterDate || null}
+          handleSaveAllottee={handleSaveAllottee}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -1341,7 +1346,7 @@ export default function CrewDetails() {
                       </div>
                     </div>
                   </div>
-                </TabsContent>
+                </TabsContent>  
 
                 <TabsContent
                   value="movement"
