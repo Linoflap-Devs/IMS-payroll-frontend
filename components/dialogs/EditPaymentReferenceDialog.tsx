@@ -26,7 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Pen } from "lucide-react";
+import { Pen, Save } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "../ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -313,7 +313,7 @@ export function EditPaymentReference({
                   "Updating..."
                 ) : (
                   <>
-                    <Pen className="w-4 h-4 mr-2" />
+                    <Save className="w-4 h-4 mr-2" />
                     Save Changes
                   </>
                 )}

@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { updateCrew, CrewItem, UpdateCrewDataForm } from "@/src/services/crew/crew.api";
-import { Pencil } from "lucide-react";
+import { Pencil, Save } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -252,7 +252,7 @@ export function EditCrewGovtRecordsDialog({
                   "Updating..."
                 ) : (
                   <>
-                    <Pencil className="w-4 h-4 mr-2" />
+                    <Save className="w-4 h-4 mr-2" />
                     Save Changes
                   </>
                 )}
