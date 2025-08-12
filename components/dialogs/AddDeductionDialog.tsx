@@ -35,8 +35,11 @@ import { Loader2, Plus } from "lucide-react";
 import { addCrewDeductionEntry } from "@/src/services/deduction/crewDeduction.api";
 import { useSearchParams } from "next/navigation";
 import { toast } from "../ui/use-toast";
+import { cn } from "@/lib/utils";
 
 const deductionFormSchema = z.object({
+  month: z.string().min(1, "Month is required"),
+  year: z.string().min(1, "Year is required"),
   deductionId: z.string().min(1, "Deduction type is required"),
   amount: z
     .number({ invalid_type_error: "Amount is required" })
@@ -66,6 +69,26 @@ export function AddDeductionDialog({
     DeductionDescriptionItem[]
   >([]);
 
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const years = Array.from(
+    { length: 8 },
+    (_, i) => new Date().getFullYear() - i
+  );
+
   const params = useSearchParams();
   const crewCode = params.get("crewCode");
 
@@ -82,6 +105,8 @@ export function AddDeductionDialog({
   const form = useForm<DeductionFormValues>({
     resolver: zodResolver(deductionFormSchema),
     defaultValues: {
+      month: "",
+      year: "",
       deductionId: "",
       amount: undefined,
       remarks: "",
@@ -155,9 +180,71 @@ export function AddDeductionDialog({
         </DialogHeader>
         <Form {...form}>
           <form
-            className="mt-6 space-y-6"
+            className="mt-3 space-y-6"
             onSubmit={handleSubmit(onSubmit)}
             autoComplete="off">
+
+            {/* Month */}
+            <FormField
+              control={form.control}
+              name="month"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-600">Month</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
+                        <SelectValue placeholder="Select month" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="h-60">
+                      {months.map((month, index) => (
+                        <SelectItem key={index} value={(index + 1).toString()}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Year */}
+            <FormField
+              control={form.control}
+              name="year"
+              render={({ field, fieldState }) => (
+                <FormItem className="w-full gap-1">
+                  <FormLabel className="text-sm text-gray-600 font-medium">
+                    Year
+                  </FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger
+                        className={cn(
+                          "w-full rounded-md h-10",
+                          fieldState.invalid
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-[#E0E0E0]"
+                        )}
+                      >
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent className="w-full">
+                        {years.map((year) => (
+                          <SelectItem key={year} value={String(year)}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="deductionId"
