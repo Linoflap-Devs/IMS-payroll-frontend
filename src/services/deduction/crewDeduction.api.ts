@@ -29,6 +29,7 @@ export interface DeductionEntries {
   Amount: number;
   Remarks: string;
   Status: number;
+  DeductionDate?: Date;
 }
 
 export interface DeductionEntriesResponse {
@@ -66,6 +67,7 @@ export interface UpdateDeductionEntryPayload {
   deductionAmount?: number;
   deductionRemarks?: string;
   status?: number;
+  deductionDate: Date;
 }
 
 export const updateCrewDeductionEntry = async (crewCode: string, deductionId: number, payload: UpdateDeductionEntryPayload): Promise<AddDeductionResponse> => {

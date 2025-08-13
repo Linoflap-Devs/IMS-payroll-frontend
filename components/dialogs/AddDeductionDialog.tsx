@@ -2,7 +2,6 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,7 +25,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import {
   DeductionDescriptionItem,
   getDeductionDescriptionList,
@@ -35,16 +33,14 @@ import { Loader2, Plus } from "lucide-react";
 import { addCrewDeductionEntry } from "@/src/services/deduction/crewDeduction.api";
 import { useSearchParams } from "next/navigation";
 import { toast } from "../ui/use-toast";
-import { cn } from "@/lib/utils";
 
 const deductionFormSchema = z.object({
-  month: z.string().min(1, "Month is required"),
-  year: z.string().min(1, "Year is required"),
   deductionId: z.string().min(1, "Deduction type is required"),
   amount: z
     .number({ invalid_type_error: "Amount is required" })
     .min(1, "Amount must be greater than 0"),
   remarks: z.string().min(1, "Remarks are required"),
+  deductionDate: z.string().min(1, "Deduction date is required"),
   status: z
     .enum(["0", "1", "2", "3", "5"], {
       errorMap: () => ({ message: "Status is required" }),
@@ -69,26 +65,6 @@ export function AddDeductionDialog({
     DeductionDescriptionItem[]
   >([]);
 
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
-  const years = Array.from(
-    { length: 8 },
-    (_, i) => new Date().getFullYear() - i
-  );
-
   const params = useSearchParams();
   const crewCode = params.get("crewCode");
 
@@ -105,11 +81,10 @@ export function AddDeductionDialog({
   const form = useForm<DeductionFormValues>({
     resolver: zodResolver(deductionFormSchema),
     defaultValues: {
-      month: "",
-      year: "",
       deductionId: "",
       amount: undefined,
       remarks: "",
+      deductionDate: "",
       status: undefined,
     },
   });
@@ -138,10 +113,12 @@ export function AddDeductionDialog({
       deductionAmount: data.amount,
       deductionRemarks: data.remarks || "",
       deductionStatus: 0,
+      deductionDate: data.deductionDate,
     };
 
     try {
       const response = await addCrewDeductionEntry(crewCode, payload);
+
       if (response.success) {
         toast({
           title: "Deduction added successfully",
@@ -170,6 +147,7 @@ export function AddDeductionDialog({
     }
   };
 
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC]">
@@ -184,67 +162,24 @@ export function AddDeductionDialog({
             onSubmit={handleSubmit(onSubmit)}
             autoComplete="off">
 
-            {/* Month */}
-            {/* <FormField
+            <FormField
               control={form.control}
-              name="month"
+              name="deductionDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm text-gray-600">Month</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
-                        <SelectValue placeholder="Select month" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="h-60">
-                      {months.map((month, index) => (
-                        <SelectItem key={index} value={(index + 1).toString()}>
-                          {month}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Year */}
-            {/* <FormField
-              control={form.control}
-              name="year"
-              render={({ field, fieldState }) => (
-                <FormItem className="w-full gap-1">
-                  <FormLabel className="text-sm text-gray-600 font-medium">
-                    Year
-                  </FormLabel>
+                  <FormLabel className="text-sm text-gray-600">Deduction Date</FormLabel>
                   <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger
-                        className={cn(
-                          "w-full rounded-md h-10",
-                          fieldState.invalid
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-[#E0E0E0]"
-                        )}
-                      >
-                        <SelectValue placeholder="Select year" />
-                      </SelectTrigger>
-                      <SelectContent className="w-full">
-                        {years.map((year) => (
-                          <SelectItem key={year} value={String(year)}>
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      type="date"
+                      className={`border border-[#E0E0E0] rounded-md ${errors.deductionDate ? "border-red-500" : ""}`}
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-            /> 
-             */}
+            />
 
             <FormField
               control={form.control}

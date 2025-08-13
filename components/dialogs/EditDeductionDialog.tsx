@@ -32,6 +32,7 @@ const formSchema = z.object({
     }),
   deductionRemarks: z.string().optional(),
   //status: z.number().min(0, "Status is required"),
+  deductionDate: z.string().min(1, "Deduction date is required."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -69,6 +70,10 @@ export function EditDeductionDialog({
     defaultValues: {
       deductionAmount: deduction.Amount || 0,
       deductionRemarks: deduction.Remarks || "",
+      deductionDate:
+        deduction.DeductionDate instanceof Date
+          ? deduction.DeductionDate.toISOString().split("T")[0]
+          : (deduction.DeductionDate || ""),
       //status: 0,
     },
   });
@@ -77,6 +82,10 @@ export function EditDeductionDialog({
     form.reset({
       deductionAmount: deduction.Amount || 0,
       deductionRemarks: deduction.Remarks || "",
+      deductionDate:
+        deduction.DeductionDate instanceof Date
+          ? deduction.DeductionDate.toISOString().split("T")[0]
+          : (deduction.DeductionDate || ""),
       //status: 0,
     });
   }, [deduction, form]);
@@ -88,8 +97,11 @@ export function EditDeductionDialog({
     try {
       const payload = {
         ...values,
+        deductionAmount: Number(values.deductionAmount), // ensure number
+        deductionDate: new Date(values.deductionDate),   // FIX: use values not FormValues
         status: 0, // force status to 0 (Pending)
       };
+
       console.log("Payload prepared for update (forced status=0):", payload);
 
       const response = await updateCrewDeductionEntry(
@@ -98,7 +110,6 @@ export function EditDeductionDialog({
         payload
       );
 
-      console.log("Response from updateCrewDeductionEntry:", response);
       if (response.success) {
         toast({
           title: "Success",
@@ -114,7 +125,6 @@ export function EditDeductionDialog({
         });
       }
 
-      console.log("Closing dialog after update");
       onOpenChange(false);
     } catch (error) {
       console.error("Error updating deduction (catch block):", error);
@@ -125,7 +135,6 @@ export function EditDeductionDialog({
       });
     } finally {
       setIsSubmitting(false);
-      console.log("Submission finished, isSubmitting set to false");
     }
   };
 
@@ -143,6 +152,13 @@ export function EditDeductionDialog({
             onSubmit={form.handleSubmit(onSubmit)}
             className="mt-6 space-y-6"
           >
+
+
+
+
+
+
+            
             <FormField
               control={form.control}
               name="deductionAmount"
@@ -206,10 +222,10 @@ export function EditDeductionDialog({
 
             <FormField
               control={form.control}
-              name="deductionRemarks"
+              name="deductionDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date Edited</FormLabel>
+                  <FormLabel>Deduction Date</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
