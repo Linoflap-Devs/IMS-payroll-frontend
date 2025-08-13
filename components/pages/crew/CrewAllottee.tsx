@@ -406,33 +406,6 @@ export function CrewAllottee({
     );
   }, [provinces, searchProvince]);
 
-  const handleInputChange = (field: keyof AllotteeUiModel, value: unknown) => {
-    if (!editingAllottee) return;
-
-    setEditingAllottee({
-      ...editingAllottee,
-      [field]: value,
-    });
-
-    // Only validate if this field exists in the Zod schema
-    if (field in editAllotteeSchema.shape) {
-      const schemaKey = field as keyof typeof editAllotteeSchema.shape;
-      const fieldSchema = editAllotteeSchema.shape[schemaKey];
-      const result = fieldSchema.safeParse(value);
-
-      setAllotteeErrors((prev) => {
-        const { [field]: removed, ...rest } = prev;
-        if (!result.success) {
-          return {
-            ...rest,
-            [field]: result.error.errors[0].message,
-          };
-        }
-        return rest;
-      });
-    }
-  };
-
   const handleCityChange = (cityId: string) => {
     if (!editingAllottee) return;
 
@@ -471,9 +444,10 @@ export function CrewAllottee({
     setEditingAllottee({
       ...editingAllottee,
       relationshipId: relationId,
-      relationship: selectedRelation?.RelationName || "",
+      relationship: selectedRelation?.RelationName ?? "",
     });
   };
+
 
   const convertToApiModel = (uiModel: AllotteeUiModel): AllotteeApiModel => {
     return {
@@ -496,69 +470,52 @@ export function CrewAllottee({
     };
   };
 
+  const handleInputChange = (field: keyof AllotteeUiModel, value: unknown) => {
+    if (!editingAllottee) return;
+
+    setEditingAllottee({
+      ...editingAllottee,
+      [field]: value,
+    });
+
+    // Only validate if this field exists in the Zod schema
+    if (field in editAllotteeSchema.shape) {
+      const schemaKey = field as keyof typeof editAllotteeSchema.shape;
+      const fieldSchema = editAllotteeSchema.shape[schemaKey];
+      const result = fieldSchema.safeParse(value);
+
+      setAllotteeErrors((prev) => {
+        const { [field]: removed, ...rest } = prev;
+        if (!result.success) {
+          return {
+            ...rest,
+            [field]: result.error.errors[0].message,
+          };
+        }
+        return rest;
+      });
+    }
+  };
+
+  const validateAllFields = (data: AllotteeUiModel) => {
+    const result = editAllotteeSchema.safeParse(data);
+    if (!result.success) {
+      return result.error.errors.reduce((acc, err) => {
+        acc[err.path[0] as keyof AllotteeUiModel] = err.message;
+        return acc;
+      }, {} as Record<keyof AllotteeUiModel, string>);
+    }
+    return {};
+  };
+
   // useEffect(() => {
-  //   if (!triggerSave) return;
-
-  //   if (!editingAllottee || !crewId) {
-  //     setAllotteeLoading(false);
-  //     setTriggerSave(false);
-  //     return;
+  //   if (editingAllottee) {
+  //     setAllotteeErrors(validateAllFields(editingAllottee));
   //   }
-
-  //   // --- Validation step ---
-  //   const errors = validateAllottee(editingAllottee);
-  //   setAllotteeErrors(errors); // store them for rendering
-
-  //   if (Object.keys(errors).length > 0) {
-  //     toast({
-  //       title: "Validation Error",
-  //       description: Object.values(errors).join(", "),
-  //       variant: "destructive",
-  //     });
-  //     setAllotteeLoading(false);
-  //     setTriggerSave(false);
-  //     return;
-  //   }
-  //   // ------------------------
-
-  //   setAllotteeLoading(true);
-
-  //   const apiModel = convertToApiModel(editingAllottee);
-  //   updateCrewAllottee(crewId.toString(), apiModel)
-  //     .then(() => {
-  //       toast({
-  //         title: "Allottee saved successfully",
-  //         description: `Allottee ${editingAllottee?.name} has been updated.`,
-  //         variant: "success",
-  //       });
-  //       fetchCrewAllottees(crewId.toString());
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error saving allottee:", error);
-  //       toast({
-  //         title: "Error saving allottee",
-  //         description: "There was an error saving the allottee.",
-  //         variant: "destructive",
-  //       });
-  //     })
-  //     .finally(() => {
-  //       setAllotteeLoading(false);
-  //       setTriggerSave(false);
-  //       setIsEditingAllottee(false);
-  //     });
-  // }, [
-  //   triggerSave,
-  //   crewId,
-  //   editingAllottee,
-  //   setAllotteeLoading,
-  //   setTriggerSave,
-  //   fetchCrewAllottees,
-  //   setIsEditingAllottee,
-  // ]);
+  // }, [editingAllottee]);
 
   useEffect(() => {
     if (triggerSave) {
-
       if (!editingAllottee || !crewId) {
         console.warn("Missing editingAllottee or crewId", {
           editingAllottee,
@@ -569,24 +526,18 @@ export function CrewAllottee({
         return;
       }
 
-      // --- Validation step ---
-      const validation = editAllotteeSchema.safeParse(editingAllottee);
-      if (!validation.success) {
-        //console.error("Validation failed:", validation.error.flatten());
-        // const errorMessages = Object.values(
-        //   validation.error.flatten().fieldErrors
-        // )
-        //   .flat()
-        //   .filter(Boolean);
-
+      // --- Validate all fields using your custom function ---
+      const fieldErrors = validateAllFields(editingAllottee);
+      if (Object.keys(fieldErrors).length > 0) {
+        setAllotteeErrors(fieldErrors); // store errors in state
         toast({
           title: "Validation Error",
-          description: "Check for Validtion errors.",
+          description: Object.values(fieldErrors).join(", "),
           variant: "destructive",
         });
-
         setAllotteeLoading(false);
         setTriggerSave(false);
+        setIsEditingAllottee(true);
         return;
       }
 
@@ -604,24 +555,42 @@ export function CrewAllottee({
               variant: "success",
             });
             fetchCrewAllottees(crewId.toString());
+            setIsEditingAllottee(false); // close edit mode only on success
           })
           .catch((error) => {
             console.error("Error saving allottee:", error);
-            toast({
-              title: "Error saving allottee",
-              description: "There was an error saving the allottee.",
-              variant: "destructive",
-            });
+
+            if (
+              error?.response?.status === 500 &&
+              typeof error?.response?.data?.message === "string" &&
+              error.response.data.message.includes(
+                "Allotment percentage would exceed 100 percent"
+              )
+            ) {
+              toast({
+                title: "Validation Error",
+                description: "Allotment percentage would exceed 100 percent.",
+                variant: "destructive",
+              });
+              setIsEditingAllottee(true);
+            } else {
+              toast({
+                title: "Error saving allottee",
+                description: "There was an error saving the allottee.",
+                variant: "destructive",
+              });
+              setIsEditingAllottee(true);
+            }
           })
           .finally(() => {
             setAllotteeLoading(false);
             setTriggerSave(false);
-            setIsEditingAllottee(false);
           });
       } catch (error) {
         console.error("Unexpected error in save process:", error);
         setAllotteeLoading(false);
         setTriggerSave(false);
+        setIsEditingAllottee(true);
       }
     }
   }, [
@@ -924,16 +893,16 @@ export function CrewAllottee({
                   </label>
                   {isEditingAllottee || isAdding ? (
                     <Select
-                      value={displayAllottee.relationshipId}
+                      value={editingAllottee?.relationshipId ?? ""}
                       onValueChange={handleRelationshipChange}
                     >
                       <SelectTrigger
                         id="relationship"
-                        className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                          ? "bg-gray-50"
-                          : allotteeErrors.relationshipId
+                        className={`w-full h-10 ${isEditingAllottee || isAdding
+                          ? allotteeErrors.relationshipId
                             ? "border-red-500 focus:!ring-red-500/50"
                             : "bg-white"
+                          : "bg-gray-50"
                           }`}
                       >
                         <SelectValue placeholder="Select a relationship" />
@@ -953,16 +922,16 @@ export function CrewAllottee({
                     <Input
                       value={displayAllottee.relationship}
                       readOnly
-                      className={`w-full h-10 bg-gray-50 ${allotteeErrors.relationshipId ? "!border-red-500" : ""
-                        }`}
+                      className={`w-full h-10 bg-gray-50`}
                     />
                   )}
                   {isEditingAllottee && allotteeErrors.relationshipId && (
                     <p className="text-red-500 text-sm mt-1">
-                      {!allotteeErrors.relationshipId}
+                      {allotteeErrors.relationshipId}
                     </p>
                   )}
                 </div>
+
                 <div>
                   <label className="text-sm text-gray-500 mb-1 block">
                     Contact Number
