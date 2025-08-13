@@ -324,7 +324,7 @@ export default function Deduction() {
                   <DataTable
                     columns={crewDeductionColumns}
                     data={filteredCrewDeduction}
-                    pageSize={8}
+                    pageSize={10}
                   />
                 )}
               </div>
