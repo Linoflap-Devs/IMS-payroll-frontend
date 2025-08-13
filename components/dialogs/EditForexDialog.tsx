@@ -112,7 +112,7 @@ export function EditForexDialog({
         }
       })
       .catch((err) => {
-        console.log("Error saving forex data:", err);
+        console.error("Error saving forex data:", err);
         toast({
           title: "Error",
           description: "Failed to save forex data.",

@@ -385,7 +385,7 @@ export function RepatriateCrewDialog({
         variant: "destructive",
       });
     } finally {
-      console.log("Repatriation process finished.");
+      //console.log("Repatriation process finished.");
       setIsLoading(false);
       setSubmitted(false);
     }

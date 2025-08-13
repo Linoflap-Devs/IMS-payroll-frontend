@@ -21,15 +21,15 @@ import {
 } from "@/components/ui/form";
 import { toast } from "../ui/use-toast";
 import { DeductionEntries, updateCrewDeductionEntry } from "@/src/services/deduction/crewDeduction.api";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 const formSchema = z.object({
   deductionAmount: z
-    .string()
+    .union([z.string(), z.number()])
     .transform((val) => Number(val))
     .refine((val) => !isNaN(val) && val >= 1, {
-      message: "Amount is required and must be a number >= 1",
+      message: "Number must be greater than 0",
     }),
+
   deductionRemarks: z.string().optional(),
   //status: z.number().min(0, "Status is required"),
   deductionDate: z.string().min(1, "Deduction date is required."),
@@ -53,7 +53,6 @@ export function EditDeductionDialog({
   crewCode,
 }: EditDeductionDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log('DEDUCTION: ', deduction);
 
   // const statusMap = {
   //   0: "Pending",
@@ -64,6 +63,9 @@ export function EditDeductionDialog({
   //   typeof deduction.Status === "string" && deduction.Status in statusMap
   //     ? statusMap[deduction.Status]
   //     : 0;
+
+  const monthYearDate = new Date(`${deduction.Year}-${deduction.Month}-01`);
+ // console.log("Deduction Month-Year:", monthYearDate.toLocaleDateString("en-US", { month: "long", year: "numeric" }));
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -91,18 +93,15 @@ export function EditDeductionDialog({
   }, [deduction, form]);
 
   const onSubmit = async (values: FormValues) => {
-    console.log("onSubmit called with values:", values);
     setIsSubmitting(true);
 
     try {
       const payload = {
         ...values,
-        deductionAmount: Number(values.deductionAmount), // ensure number
-        deductionDate: new Date(values.deductionDate),   // FIX: use values not FormValues
+        deductionAmount: Number(values.deductionAmount),
+        deductionDate: new Date(values.deductionDate),
         status: 0, // force status to 0 (Pending)
       };
-
-      console.log("Payload prepared for update (forced status=0):", payload);
 
       const response = await updateCrewDeductionEntry(
         crewCode,
@@ -152,13 +151,24 @@ export function EditDeductionDialog({
             onSubmit={form.handleSubmit(onSubmit)}
             className="mt-6 space-y-6"
           >
+            <FormField
+              control={form.control}
+              name="deductionDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-600">Deduction Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-
-
-
-
-
-            
             <FormField
               control={form.control}
               name="deductionAmount"
@@ -219,20 +229,6 @@ export function EditDeductionDialog({
                 );
               }}
             /> */}
-
-            <FormField
-              control={form.control}
-              name="deductionDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Deduction Date</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <div className="flex gap-3 pt-4">
               <Button

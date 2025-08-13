@@ -917,7 +917,7 @@ export default function DeductionEntries() {
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
         {/* Header with back button and title */}
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center justify-between mt-3 mb-4">
           <div className="flex items-center gap-2">
             <Link href="/home/deduction">
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -1210,7 +1210,7 @@ export default function DeductionEntries() {
                       <div className="w-full">
                         <div className="flex justify-end w-full mt-2">
                           <Button
-                            className="w-48 bg-primary hover:bg-primary/90"
+                            className="w-48 text-primary border border-gray-300 bg-white hover:bg-gray-50"
                             onClick={() => {
                               setSelectedMonth("all");
                               setSelectedYear("all");

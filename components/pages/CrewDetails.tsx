@@ -113,7 +113,7 @@ export default function CrewDetails() {
         })
         .catch((error) => {
           const err = error as Error;
-          console.log("Error verifying crew member:", err);
+          console.error("Error verifying crew member:", err);
           toast({
             title: "Error",
             description: "Crew did not register.",
@@ -143,7 +143,7 @@ export default function CrewDetails() {
         })
         .catch((error) => {
           const err = error as Error;
-          console.log("Error declining crew member:", err);
+          console.error("Error declining crew member:", err);
           toast({
             title: "Error",
             description: "Crew did not register.",

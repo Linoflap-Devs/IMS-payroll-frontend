@@ -233,10 +233,10 @@ export default function Deduction() {
         <div className="h-full overflow-hidden">
           <div className="p-3 pt-0 sm:p-4 flex flex-col space-y-4 sm:space-y-5 h-full">
             {/* Header */}
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-semibold mb-0">Crew Entries</h1>
+            <div className="flex justify-between items-center mb-2">
+              <h1 className="text-3xl font-semibold mb-3">Crew Entries</h1>
             </div>
-            <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
+            <div className="p-0 flex flex-col space-y-4 sm:space-y-5 min-h-full">
               {/* Search and Filters */}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
                 <div className="relative w-full md:flex-1">
