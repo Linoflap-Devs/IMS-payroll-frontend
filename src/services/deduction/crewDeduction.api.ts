@@ -39,6 +39,8 @@ export interface DeductionEntriesResponse {
 
 export const getDeductionEntries = async (crewCode: string): Promise<DeductionEntriesResponse> => {
   const response = await axiosInstance.get<DeductionEntriesResponse>(`/deductions/${crewCode}/entries`);
+  console.log("getDeductionEntries response:", response);
+  console.log("getDeductionEntries response.data:", response.data);
   return response.data;
 }
 

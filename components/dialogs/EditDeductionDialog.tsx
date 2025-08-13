@@ -20,17 +20,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "../ui/use-toast";
-import { DeductionEntries } from "@/src/services/deduction/crewDeduction.api";
-import { editDeductionDescription } from "@/src/services/deduction/deductionDescription.api";
+import { DeductionEntries, updateCrewDeductionEntry } from "@/src/services/deduction/crewDeduction.api";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
-// Schema for your DeductionEntries fields
 const formSchema = z.object({
-  month: z.string().min(1, "Month is required"),
-  year: z.number().min(1900, "Year is required"),
-  deduction: z.string().min(1, "Deduction name is required"),
-  amount: z.number().min(1, "Amount is required"),
-  remarks: z.string().optional(),
-  status: z.number().min(0, "Status is required"),
+  deductionAmount: z
+    .string()
+    .transform((val) => Number(val))
+    .refine((val) => !isNaN(val) && val >= 1, {
+      message: "Amount is required and must be a number >= 1",
+    }),
+  deductionRemarks: z.string().optional(),
+  //status: z.number().min(0, "Status is required"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -39,6 +40,7 @@ interface EditDeductionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   deduction: DeductionEntries;
+  crewCode: string;
   setOnSuccess: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -47,71 +49,85 @@ export function EditDeductionDialog({
   onOpenChange,
   deduction,
   setOnSuccess,
+  crewCode,
 }: EditDeductionDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  console.log('DEDUCTION: ', deduction);
+
+  // const statusMap = {
+  //   0: "Pending",
+  //   1: "Completed",
+  // };
+
+  // const numericStatus =
+  //   typeof deduction.Status === "string" && deduction.Status in statusMap
+  //     ? statusMap[deduction.Status]
+  //     : 0;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      month: deduction.Month || "",
-      year: deduction.Year || new Date().getFullYear(),
-      deduction: deduction.Deduction || "",
-      amount: deduction.Amount || 0,
-      remarks: deduction.Remarks || "",
-      status: deduction.Status ?? 1,
+      deductionAmount: deduction.Amount || 0,
+      deductionRemarks: deduction.Remarks || "",
+      //status: 0,
     },
   });
 
   useEffect(() => {
     form.reset({
-      month: deduction.Month || "",
-      year: deduction.Year || new Date().getFullYear(),
-      deduction: deduction.Deduction || "",
-      amount: deduction.Amount || 0,
-      remarks: deduction.Remarks || "",
-      status: deduction.Status ?? 1,
+      deductionAmount: deduction.Amount || 0,
+      deductionRemarks: deduction.Remarks || "",
+      //status: 0,
     });
   }, [deduction, form]);
 
-//   const onSubmit = async (values: FormValues) => {
-//     setIsSubmitting(true);
-//     try {
-//       const payload = {
-//         ...values,
-//       };
+  const onSubmit = async (values: FormValues) => {
+    console.log("onSubmit called with values:", values);
+    setIsSubmitting(true);
 
-//       await editDeductionDescription(deduction.DeductionDetailID, payload)
-//         .then((response) => {
-//           if (response.success) {
-//             toast({
-//               title: "Success",
-//               description: "Deduction updated successfully.",
-//               variant: "success",
-//             });
-//             setOnSuccess(true);
-//           } else {
-//             toast({
-//               title: "Error",
-//               description: "Failed to update deduction.",
-//               variant: "destructive",
-//             });
-//           }
-//         })
-//         .catch((error) => {
-//           toast({
-//             title: "Error",
-//             description: error.message || "Error updating deduction.",
-//             variant: "destructive",
-//           });
-//         });
+    try {
+      const payload = {
+        ...values,
+        status: 0, // force status to 0 (Pending)
+      };
+      console.log("Payload prepared for update (forced status=0):", payload);
 
-//       onOpenChange(false);
-//     } catch (error) {
-//       console.error("Error updating deduction:", error);
-//     } finally {
-//       setIsSubmitting(false);
-//     }
-//   };
+      const response = await updateCrewDeductionEntry(
+        crewCode,
+        deduction.DeductionDetailID,
+        payload
+      );
+
+      console.log("Response from updateCrewDeductionEntry:", response);
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Deduction updated successfully.",
+          variant: "success",
+        });
+        setOnSuccess(true);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update deduction.",
+          variant: "destructive",
+        });
+      }
+
+      console.log("Closing dialog after update");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error updating deduction (catch block):", error);
+      toast({
+        title: "Error",
+        description: (error as Error).message || "Error updating deduction.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+      console.log("Submission finished, isSubmitting set to false");
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,54 +140,12 @@ export function EditDeductionDialog({
 
         <Form {...form}>
           <form
-            //onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit(onSubmit)}
             className="mt-6 space-y-6"
           >
             <FormField
               control={form.control}
-              name="month"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Month</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="year"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Year</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="deduction"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Deduction</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="amount"
+              name="deductionAmount"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Amount</FormLabel>
@@ -185,7 +159,7 @@ export function EditDeductionDialog({
 
             <FormField
               control={form.control}
-              name="remarks"
+              name="deductionRemarks"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Remarks</FormLabel>
@@ -197,14 +171,47 @@ export function EditDeductionDialog({
               )}
             />
 
-            <FormField
+            {/* <FormField
               control={form.control}
               name="status"
+              render={({ field }) => {
+                console.log("statusMap entries:", Object.entries(statusMap));
+                console.log("field value:", field.value);
+
+                return (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value.toString()}
+                        onValueChange={(val) => field.onChange(Number(val))}
+                      >
+                        <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent className="h-40">
+                          {Object.entries(statusMap).map(([label, value]) => (
+                            <SelectItem key={value} value={value.toString()}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            /> */}
+
+            <FormField
+              control={form.control}
+              name="deductionRemarks"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel>Date Edited</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

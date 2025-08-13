@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable } from "@/components/ui/data-table";
-import { Filter } from "lucide-react";
+import { CheckCircle, Filter, MinusCircle } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 
@@ -37,7 +37,7 @@ const movementColumns: ColumnDef<Movement>[] = [
     header: "Sign in",
     cell: ({ row }) => {
       const date = row.getValue("SignOnDate") as string;
-      const formatted = date ? format(new Date(date), "MMM dd, yyyy") : "-";
+      const formatted = date ? format(new Date(date), "MMM dd, yyyy") : "----------";
       return (
         <div className="p-2 flex items-center justify-center">
           <span className="px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
@@ -52,7 +52,7 @@ const movementColumns: ColumnDef<Movement>[] = [
     header: "Sign out",
     cell: ({ row }) => {
       const date = row.getValue("SignOffDate") as string;
-      const formatted = date ? format(new Date(date), "MMM dd, yyyy") : "-";
+      const formatted = date ? format(new Date(date), "MMM dd, yyyy") : "----------";
       return (
         <div className="p-2 flex items-center justify-center">
           <span className="px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">
@@ -69,6 +69,28 @@ const movementColumns: ColumnDef<Movement>[] = [
       <div className="p-2">{row.getValue("Rank")}</div>
     ),
   },
+  {
+    accessorKey: "Promotion",
+    header: "Promotion",
+    cell: ({ row }) => {
+      const value = row.getValue("Promotion");
+      return (
+        <div className="p-2 flex items-center justify-center">
+          {value === 1 ? (
+            <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
+              <CheckCircle className="mr-1 w-4 h-4" />
+              Promoted
+            </span>
+          ) : (
+            <span className="inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-600">
+              <MinusCircle className="mr-1 w-4 h-4" />
+              ----------
+            </span>
+          )}
+        </div>
+      );
+    },
+  },
 ];
 
 export function CrewMovement() {
@@ -84,7 +106,7 @@ export function CrewMovement() {
     fetchCrewMovements,
     resetMovements,
   } = useCrewStore();
-  //console.log(movements);
+  console.log(movements);
 
   const clearFilters = () => {
     setSelectedVessel("all");
@@ -173,6 +195,7 @@ export function CrewMovement() {
           <DataTable
             columns={movementColumns}
             data={filteredMovements}
+            pageSize={6}
             pagination={filteredMovements.length > 10}
           />
         ) : (

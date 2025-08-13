@@ -185,7 +185,7 @@ export function AddDeductionDialog({
             autoComplete="off">
 
             {/* Month */}
-            <FormField
+            {/* <FormField
               control={form.control}
               name="month"
               render={({ field }) => (
@@ -211,7 +211,7 @@ export function AddDeductionDialog({
             />
 
             {/* Year */}
-            <FormField
+            {/* <FormField
               control={form.control}
               name="year"
               render={({ field, fieldState }) => (
@@ -243,7 +243,8 @@ export function AddDeductionDialog({
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> 
+             */}
 
             <FormField
               control={form.control}

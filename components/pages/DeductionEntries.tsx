@@ -265,12 +265,9 @@ export default function DeductionEntries() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [deductionEntries, setDeductionEntries] = useState<
-    DeductionEntriesType[]
-  >([]);
+  const [deductionEntries, setDeductionEntries] = useState<DeductionEntriesType[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [onSuccess, setOnSuccess] = useState(false);
-
   const [HDMFUpgradeAmount, setHDMFUpgradeAmount] = useState<number>(0);
   const [isDollar, setIsDollar] = useState<boolean>(false);
   const [HDMFHistoryAmount, setHDMFHistoryAmount] = useState<HDMFHistoryEntry[]>([]);
@@ -278,13 +275,11 @@ export default function DeductionEntries() {
     useState<string>(new Date().getFullYear().toString());
   const [hdmfLoading, setHdmfLoading] = useState(false);
   const [hdmfYears, sethdmfYears] = useState<string[]>([]);
-
   const [onSuccessHDMF, setOnSuccessHDMF] = useState(false);
 
   // PhilHealth states
   const [philhealthData, setPhilhealthData] = useState<philhealthDeductionItem[]>([]);
-  const [selectedPhilhealthYear, setSelectedPhilhealthYear] =
-    useState<string>(new Date().getFullYear().toString());
+  const [selectedPhilhealthYear, setSelectedPhilhealthYear] = useState<string>(new Date().getFullYear().toString());
   const [philhealthYears, setPhilhealthYears] = useState<string[]>([]);
   const [philhealthLoading, setPhilhealthLoading] = useState<boolean>(false);
 
@@ -316,6 +311,8 @@ export default function DeductionEntries() {
     }),
     []
   );
+
+  //console.log('DEDUCTION ENTRIES:   ', deductionEntries);
 
   useEffect(() => {
     if (crewCode) {
@@ -1506,6 +1503,7 @@ export default function DeductionEntries() {
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           deduction={selectedDeduction}
+          crewCode={crewCode ?? ""}
           setOnSuccess={setOnSuccess}
         />
       )}
