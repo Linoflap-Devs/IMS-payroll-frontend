@@ -37,7 +37,7 @@ const emptyAllottee: AllotteeUiModel = {
   id: "",
   name: "",
   relationship: "",
-  relationshipId: "",
+  relationshipId: 0,
   contactNumber: "",
   address: "",
   city: "",
@@ -178,7 +178,7 @@ export function CrewAllottee({
       id: a.AllotteeDetailID,
       name: a.AllotteeName,
       relationship: a.RelationName,
-      relationshipId: a.RelationID?.toString() || "",
+      relationshipId: a.RelationID ?? 0, // use 0 if missing
       contactNumber: a.ContactNumber,
       address: a.Address,
       province: a.ProvinceName,
@@ -278,7 +278,7 @@ export function CrewAllottee({
           (r) => r.RelationName === allottee.relationship
         );
         if (relation) {
-          allottee.relationshipId = relation.RelationID.toString();
+          allottee.relationshipId = Number(relation.RelationID); // convert to number
           needsUpdate = true;
         }
       }
@@ -443,18 +443,20 @@ export function CrewAllottee({
 
     setEditingAllottee({
       ...editingAllottee,
-      relationshipId: relationId,
+      relationshipId: Number(relationId), // convert to number
       relationship: selectedRelation?.RelationName ?? "",
     });
+
+    // Clear the error
+    setAllotteeErrors((prev) => ({ ...prev, relationshipId: "" }));
   };
-
-
+  
   const convertToApiModel = (uiModel: AllotteeUiModel): AllotteeApiModel => {
     return {
       id: uiModel.id,
       name: uiModel.name,
       allotmentType: uiModel.allotmentType,
-      relation: uiModel.relationshipId ? parseInt(uiModel.relationshipId) : 0,
+      relation: uiModel.relationshipId ? Number(uiModel.relationshipId) : 0,
       contactNumber: uiModel.contactNumber,
       address: uiModel.address,
       city: uiModel.cityId ? parseInt(uiModel.cityId) : 0,
@@ -893,7 +895,11 @@ export function CrewAllottee({
                   </label>
                   {isEditingAllottee || isAdding ? (
                     <Select
-                      value={editingAllottee?.relationshipId ?? ""}
+                      value={
+                        editingAllottee?.relationshipId != null
+                          ? String(editingAllottee.relationshipId) // convert number to string
+                          : ""
+                      }
                       onValueChange={handleRelationshipChange}
                     >
                       <SelectTrigger

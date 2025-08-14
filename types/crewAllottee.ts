@@ -23,7 +23,7 @@ export interface AllotteeUiModel {
   id: string;
   name: string;
   relationship: string;
-  relationshipId: string;
+  relationshipId: number;
   contactNumber: string;
   address: string;
   city: string;
