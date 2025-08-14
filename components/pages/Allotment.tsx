@@ -701,9 +701,10 @@ export default function Allotment() {
                                   <Info className="w-4 h-4" />
                                   <p>
                                       {
-                                        forexRate === 0 ?
-                                          "Set the forex rate for this month to enable posting payrolls." :
-                                          Number(monthFilter) !== currentMonth && "Past months cannot be posted."
+                                        (forexRate === 0) &&
+                                          "Set the forex rate for this month to enable posting payrolls." 
+                                          // :
+                                          // Number(monthFilter) !== currentMonth && "Past months cannot be posted."
                                       }
 
                                   </p>
