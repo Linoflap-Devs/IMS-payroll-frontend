@@ -729,7 +729,7 @@ export default function CrewMovementList() {
 
                         <SelectContent className="max-h-60 overflow-y-auto">
                           <SelectItem value="all">All Ranks</SelectItem>
-                          {[...new Set(displayedCrews.map((item) => item.Rank).filter(Boolean))].map(
+                          {[...new Set(allCrews.map((item) => item.Rank).filter(Boolean))].map(
                             (rank) => (
                               <SelectItem key={rank} value={rank}>
                                 {rank}
