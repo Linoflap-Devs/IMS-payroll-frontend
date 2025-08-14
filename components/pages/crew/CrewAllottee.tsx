@@ -1238,37 +1238,34 @@ export function CrewAllottee({
                   <div>
                     <label className="text-sm text-gray-500 mb-1 block">
                       {displayAllottee.allotmentType === 1
-                        ? "Allotment Amount in" +
-                        (displayAllottee.receivePayslip === 1 ? " (Dollar)" : " (Peso)")
+                        ? "Allotment Amount in" + (displayAllottee.receivePayslip === 1 ? " (Dollar)" : " (Peso)")
                         : "Allotment Percentage"}
                     </label>
+
                     <Input
                       type="number"
-                      value={displayAllottee.allotment.toString()}
-                      readOnly={!isEditingAllottee && !isAdding}
+                      value={displayAllottee.allotment != null ? displayAllottee.allotment.toString() : ""}
+                      readOnly={!(isEditingAllottee || isAdding)}
                       className={`w-full h-10 ${allotteeErrors.allotment
-                        ? "border-red-500 focus:ring-red-500/50"
-                        : ""
-                        } ${!isEditingAllottee && !isAdding ? "bg-gray-50" : "bg-white"}`}
-                      onChange={(e) =>
-                        (isEditingAllottee || isAdding) &&
-                        handleInputChange(
-                          "allotment",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
+                          ? "border-red-500 focus:!ring-red-500/50 bg-white"
+                          : !(isEditingAllottee || isAdding)
+                            ? "bg-gray-50"
+                            : "bg-white"
+                        }`}
+                      onChange={(e) => {
+                        if (isEditingAllottee || isAdding) {
+                          handleInputChange("allotment", parseFloat(e.target.value) || 0);
+                        }
+                      }}
                     />
-                    {isEditingAllottee && allotteeErrors.allotment && (
+
+                    {(isEditingAllottee || isAdding) && allotteeErrors.allotment && (
                       <p className="text-red-500 text-sm mt-1">
                         {allotteeErrors.allotment}
                       </p>
                     )}
-                    {/* {isEditingAllottee && allotteeErrors.receivePayslip && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {allotteeErrors.receivePayslip}
-                      </p>
-                    )}  */}
                   </div>
+
                 </div>
               </div>
             </div>
