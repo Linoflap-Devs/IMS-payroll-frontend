@@ -201,18 +201,27 @@ export default function CrewMovementList() {
   }, [crewData, searchTerm, rankFilter]);
 
   const filteredJoinCrewData = useMemo(() => {
+    const searchLower = searchTerm.toLowerCase().trim();
+
     return allCrews.filter((crew) => {
-      const fullName = `${crew.FirstName ?? ''} ${crew.MiddleName ?? ''} ${crew.LastName ?? ''} `.toLowerCase();
-      const searchLower = searchTerm.toLowerCase();
+      const firstName = (crew.FirstName ?? '').trim().toLowerCase();
+      const middleName = (crew.MiddleName ?? '').trim().toLowerCase(); // optional
+      const lastName = (crew.LastName ?? '').trim().toLowerCase();
 
-      const matchesSearch = searchTerm
-        ? fullName.includes(searchLower) ||
-          crew.CrewCode.toLowerCase().includes(searchLower) ||
-          crew.Rank.toLowerCase().includes(searchLower)
-        : true;
+      // Include middleName only if it exists
+      const fullName = [firstName, middleName, lastName]
+        .filter(Boolean) // remove empty strings
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
+      const matchesName = fullName.includes(searchLower);
+      const matchesCodeOrRank = crew.CrewCode?.toLowerCase().includes(searchLower) ||
+                                crew.Rank?.toLowerCase().includes(searchLower);
+
+      const matchesSearch = searchLower ? matchesName || matchesCodeOrRank : true;
       const matchesRank = rankFilter && rankFilter !== "all"
-        ? crew.Rank.toLowerCase() === rankFilter.toLowerCase()
+        ? crew.Rank?.toLowerCase() === rankFilter.toLowerCase()
         : true;
 
       return matchesSearch && matchesRank;
@@ -294,12 +303,13 @@ export default function CrewMovementList() {
           <ArrowDownUp size={15} />
         </div>
       ),
-      accessorFn: (row) => `${row.LastName} ${row.FirstName}`, // for sorting
+      accessorFn: (row) => `${row.LastName} ${row.MiddleName} ${row.FirstName}`, // for sorting
       cell: ({ row }) => {
         const lastName = row.original.LastName;
         const firstName = row.original.FirstName;
+        const middleName = row.original.MiddleName
 
-        return <div className="text-left">{`${firstName} ${lastName}`}</div>;
+        return <div className="text-left">{`${firstName} ${middleName} ${lastName}`}</div>;
       },
     },
     {
@@ -660,12 +670,12 @@ export default function CrewMovementList() {
           </div>
 
           <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
-            <Tabs
-              defaultValue={activeTab}
-              value={activeTab}
-              onValueChange={handleTabChange}
-              className="w-full flex flex-col h-full"
-            >
+            <Tabs value={activeTab} onValueChange={(tabValue) => {
+              setActiveTab(tabValue);
+              // Clear filters when switching tabs
+              setSearchTerm("");
+              setRankFilter("all");
+            }}>
               <div className="border-b">
                 <div className="px-4 pt-1">
                   <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
