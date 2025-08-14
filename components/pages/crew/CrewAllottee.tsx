@@ -1246,7 +1246,7 @@ export function CrewAllottee({
                       type="number"
                       value={displayAllottee.allotment.toString()}
                       readOnly={!isEditingAllottee && !isAdding}
-                      className={`w-full h-10 ${allotteeErrors.allotment || allotteeErrors.receivePayslip
+                      className={`w-full h-10 ${allotteeErrors.allotment
                         ? "border-red-500 focus:ring-red-500/50"
                         : ""
                         } ${!isEditingAllottee && !isAdding ? "bg-gray-50" : "bg-white"}`}
@@ -1263,11 +1263,11 @@ export function CrewAllottee({
                         {allotteeErrors.allotment}
                       </p>
                     )}
-                    {isEditingAllottee && allotteeErrors.receivePayslip && (
+                    {/* {isEditingAllottee && allotteeErrors.receivePayslip && (
                       <p className="text-red-500 text-sm mt-1">
                         {allotteeErrors.receivePayslip}
                       </p>
-                    )}
+                    )}  */}
                   </div>
                 </div>
               </div>

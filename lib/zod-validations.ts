@@ -87,5 +87,5 @@ export const editAllotteeSchema = z.object({
         //     message: "Account number must be digits only",
         // }),
     allotment: z.number().min(1, "Allotment amount is required."),
-    receivePayslip: z.number().min(1, "Payslip preference is required."),
+    //receivePayslip: z.number().min(1, "Payslip preference is required."),
 });
