@@ -96,7 +96,7 @@ export function CrewAllottee({
   const [previousAllotteeId, setPreviousAllotteeId] = useState<string>("");
   const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
   const [allotteeErrors, setAllotteeErrors] = useState<Record<string, string>>({});
-
+  console.log('ALLOTTEES: ', allottees);
   const {
     allottees: storeAllottees,
     isLoadingAllottees,
@@ -465,6 +465,7 @@ export function CrewAllottee({
       branch: uiModel.branchId ? parseInt(uiModel.branchId) : 0,
       accountNumber: uiModel.accountNumber,
       allotment: uiModel.allotment,
+      //priority: uiModel.priority ? 1 : 0,
       priority: uiModel.priority ? 1 : 0,
       receivePayslip: uiModel.receivePayslip ? 1 : 0,
       active: uiModel.active ? 1 : 0,
@@ -516,12 +517,14 @@ export function CrewAllottee({
   //   }
   // }, [editingAllottee]);
 
-  const forceNumberFlags = (allottee: AllotteeUiModel): AllotteeUiModel => ({
-    ...allottee,
-    priority: allottee.priority ? 1 : 0,
-    receivePayslip: allottee.receivePayslip ? 1 : 0,
-    active: allottee.active ? 1 : 0,
-  });
+  // const forceNumberFlags = (allottee: AllotteeUiModel): AllotteeUiModel => ({
+  //   ...allottee,
+  //   priority: allottee.priority ? 1 : 0,
+  //   receivePayslip: allottee.receivePayslip ? 1 : 0,
+  //   active: allottee.active ? 1 : 0,
+  // });
+
+  // console.log('Current editingAllotteesss:', editingAllottee);
 
   useEffect(() => {
     if (triggerSave) {
@@ -622,7 +625,6 @@ export function CrewAllottee({
     fetchCrewAllottees,
     setIsEditingAllottee,
   ]);
-
 
   //console.log('EDITING ALLOTTEE RESPONSE: ', editingAllottee);
 
@@ -860,7 +862,7 @@ export function CrewAllottee({
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
                     <label className="text-sm font-medium text-gray-900">
-                      Priority for Amount Type
+                      Priority Allotment
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">

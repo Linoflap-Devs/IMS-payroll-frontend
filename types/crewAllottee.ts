@@ -37,11 +37,10 @@ export interface AllotteeUiModel {
   accountNumber: string;
   allotment: number;
   active: number;
-  priorityAmount?: boolean;
-  dollarAllotment?: boolean;
+  priorityAmount?: number;
+  dollarAllotment?: number;
   allotmentType: number;
   allotteeDetailID: string;
-
   receivePayslip?: number;
   Percentage?: number;
 }

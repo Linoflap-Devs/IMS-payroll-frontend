@@ -41,6 +41,8 @@ export function generateAllotmentExcel(
     return;
   }
 
+  console.log('IN EXCEL: ', allotmentData);
+
   const wb = XLSX.utils.book_new();
 
   allotmentData.forEach((vessel, vIndex) => {
@@ -93,7 +95,7 @@ export function generateAllotmentExcel(
         crew.Allottee.forEach((allottee, index) => {
           const netAllotment =
             allottee.Currency === 1
-              ? allottee.NetAllotment * (vessel.ExchangeRate || globalExchangeRate)
+              ? allottee.NetAllotment
               : allottee.NetAllotment;
 
           const row = index === 0
