@@ -39,6 +39,16 @@ function formatCurrency(amount: number): string {
   });
 }
 
+function formatNumber(amount: number | string): string {
+  const num = Number(amount);
+  return !isNaN(num)
+    ? num.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    : "";
+}
+
 export function generateDeductionAllotmentExcel(
   vesselData: DeductionRegisterData[],
   month: number,
@@ -51,15 +61,15 @@ export function generateDeductionAllotmentExcel(
   vesselData.forEach((vessel, vesselIndex) => {
     const wsData: (string | number)[][] = [];
 
-    // Header section (Company & Title)
+    // Header
     wsData.push(["IMS PHILIPPINES"]);
     wsData.push(["MARITIME CORP."]);
     wsData.push([`${monthName} ${year}`]);
     wsData.push(["ALLOTMENT DEDUCTION REGISTER"]);
     wsData.push(["VESSEL"]);
-    wsData.push([`${vessel.VesselName} EXCHANGE RATE: USD 1.00 = PHP ${exchangeRate.toFixed(2)}`]);
-    wsData.push([dayjs().format("MM/DD/YY hh:mm A")]);
-    wsData.push([]); // spacer
+    wsData.push([`${vessel.VesselName} EXCHANGE RATE: USD 1.00 = PHP ${formatNumber(exchangeRate)}`]);
+    wsData.push([dayjs().format("MM/DD/YY HH:mm")]);
+    wsData.push([]);
 
     // Table headers
     wsData.push([
@@ -73,35 +83,34 @@ export function generateDeductionAllotmentExcel(
       "PHP EQUIVALENT",
     ]);
 
-    // Content section
+    // Content
     vessel.Crew.forEach((crew) => {
-      const hasDeductions = crew.Deductions && crew.Deductions.length > 0;
+      const hasDeductions = crew.Deductions?.length > 0;
 
       if (hasDeductions) {
         crew.Deductions.forEach((deduction, idx) => {
           const isUSD = deduction.Currency === 1;
-          const amount = deduction.Amount;
+          const amount = Number(deduction.Amount) || 0;
           const forexRate = deduction.ExchangeRate ?? exchangeRate;
           const phpEquivalent = isUSD ? amount * forexRate : amount;
 
           wsData.push([
             idx === 0 ? crew.CrewName : "",
             idx === 0 ? crew.Rank : "",
-            idx === 0 ? formatCurrency(crew.Salary) : "",
-            idx === 0 ? formatCurrency(crew.Gross) : "",
+            idx === 0 ? formatNumber(crew.Salary) : "",
+            idx === 0 ? formatNumber(crew.Gross) : "",
             deduction.Name,
             isUSD ? "USD" : "PHP",
-            formatCurrency(amount),
-            formatCurrency(phpEquivalent),
+            formatNumber(amount),
+            formatNumber(phpEquivalent),
           ]);
         });
       } else {
-        // Still include if no deductions
         wsData.push([
           crew.CrewName,
           crew.Rank,
-          formatCurrency(crew.Salary),
-          formatCurrency(crew.Gross),
+          formatNumber(crew.Salary),
+          formatNumber(crew.Gross),
           "No Deduction",
           "-",
           "-",
@@ -110,23 +119,20 @@ export function generateDeductionAllotmentExcel(
       }
     });
 
-    // Optional: footer
     wsData.push([]);
     wsData.push([`Page ${vesselIndex + 1} out of ${vesselData.length}`]);
 
-    // Generate worksheet
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
     // Auto-width
     const colWidths = wsData[0].map((_, colIndex: number) => {
       const maxLength = wsData.reduce((max, row) => {
-        const val = row[colIndex];
-        return Math.max(max, val ? val.toString().length + 2 : 10);
+        const val = row[colIndex] ? row[colIndex].toString() : "";
+        return Math.max(max, val.length + 2);
       }, 10);
       return { wch: maxLength };
     });
 
-    // Optional manual tweaks
     colWidths[0] = { wch: 30 }; // Crew Name
     colWidths[4] = { wch: 28 }; // Deduction Name
     colWidths[6] = { wch: 15 }; // Amount
@@ -141,10 +147,9 @@ export function generateDeductionAllotmentExcel(
     XLSX.utils.book_append_sheet(workbook, ws, sheetName);
   });
 
-  //const fileName = `deduction_allotment_register_${monthName.toLowerCase()}_${year}.xlsx`;
-
   const fileName = vesselData.length > 1
-              ? `Deduction_ALL_${capitalizeFirstLetter(getMonthName(month))}-${year}.xlsx`
-              : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(getMonthName(month))}-${year}.xlsx`;
+    ? `Deduction_ALL_${capitalizeFirstLetter(monthName)}-${year}.xlsx`
+    : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(monthName)}-${year}.xlsx`;
+
   XLSX.writeFile(workbook, fileName);
 }

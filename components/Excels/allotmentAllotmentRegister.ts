@@ -30,6 +30,27 @@ export interface AllotmentRegisterData {
   Crew: AllotmentRegisterCrew[];
 }
 
+function calculateVesselTotals(vessel: AllotmentRegisterData) {
+  let totalDollarGross = 0;
+  let totalPesoGross = 0;
+  let totalDeduction = 0;
+  let totalNet = 0;
+
+  vessel.Crew.forEach(crew => {
+    totalDollarGross += Number(crew.DollarGross) || 0;
+    totalPesoGross += Number(crew.PesoGross) || 0;
+    totalDeduction += Number(crew.TotalDeduction) || 0;
+    totalNet += Number(crew.Net) || 0;
+  });
+
+  return {
+    //totalDollarGross,
+    totalPesoGross,
+    totalDeduction,
+    totalNet
+  };
+}
+
 export function generateAllotmentExcel(
   allotmentData: AllotmentRegisterData[],
   month: string,
@@ -40,8 +61,6 @@ export function generateAllotmentExcel(
     console.warn("No allotment data available");
     return;
   }
-
-  console.log('IN EXCEL: ', allotmentData);
 
   const wb = XLSX.utils.book_new();
 
@@ -79,40 +98,61 @@ export function generateAllotmentExcel(
     ]);
 
     vessel.Crew.forEach((crew) => {
+      const formatNumber = (value: number | string) => {
+        const num = Number(value);
+        return !isNaN(num)
+          ? num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : "";
+      };
+
       const baseRow = [
         crew.CrewName,
         crew.Rank,
-        crew.BasicWage,
-        crew.FixedOT,
-        crew.GuarOT,
-        crew.DollarGross,
-        crew.PesoGross,
-        crew.TotalDeduction,
-        crew.Net
+        formatNumber(crew.BasicWage),
+        formatNumber(crew.FixedOT),
+        formatNumber(crew.GuarOT),
+        formatNumber(crew.DollarGross),
+        formatNumber(crew.PesoGross),
+        formatNumber(crew.TotalDeduction),
+        formatNumber(crew.Net),
       ];
 
       if (crew.Allottee?.length) {
         crew.Allottee.forEach((allottee, index) => {
-          const netAllotment =
-            allottee.Currency === 1
-              ? allottee.NetAllotment
-              : allottee.NetAllotment;
-
-          const row = index === 0
-            ? [...baseRow, allottee.AllotteeName, allottee.AccountNumber, allottee.Bank, netAllotment.toFixed(2)]
-            : new Array(9).fill("").concat([
+          const row =
+            index === 0
+              ? [
+                ...baseRow,
                 allottee.AllotteeName,
                 allottee.AccountNumber,
                 allottee.Bank,
-                netAllotment.toFixed(2)
+                formatNumber(allottee.NetAllotment),
+              ]
+              : new Array(9).fill("").concat([
+                allottee.AllotteeName,
+                allottee.AccountNumber,
+                allottee.Bank,
+                formatNumber(allottee.NetAllotment),
               ]);
-
           wsData.push(row);
         });
       } else {
         wsData.push([...baseRow, "", "", "", ""]);
       }
     });
+
+    // Add totals row
+    const totals = calculateVesselTotals(vessel);
+    wsData.push([]); // Spacer before totals
+    wsData.push([
+      "TOTALS", "", "", "", "",
+      // Uncomment and format Dollar Gross if you want it later
+      // totals.totalDollarGross.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      totals.totalPesoGross.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      totals.totalDeduction.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      totals.totalNet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      "", "", "", ""
+    ]);
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
@@ -125,21 +165,18 @@ export function generateAllotmentExcel(
       return { wch: maxLength };
     });
 
-    // Optionally tweak specific widths
-    colWidths[1] = { wch: 20 }; // RANK
-    colWidths[2] = { wch: 12 }; // BASIC WAGE
-    colWidths[3] = { wch: 12 }; // FIXED OT
-    
-    colWidths[4] = { wch: 14 }; // GUAR OT
-    colWidths[5] = { wch: 14 }; // DOLLAR GROSS
-    colWidths[6] = { wch: 14 }; // PESO GROSS
-    colWidths[7] = { wch: 14 }; // TOTAL DED.
-    colWidths[8] = { wch: 14 }; // NET
-    
-    colWidths[9] = { wch: 30 }; // ALLOTTEE NAME
-    colWidths[10] = { wch: 25 }; // ACCOUNT NUMBER
-    colWidths[11] = { wch: 22 }; // BANK
-    colWidths[12] = { wch: 20 }; // ALLOTMENT
+    colWidths[1] = { wch: 20 };
+    colWidths[2] = { wch: 12 };
+    colWidths[3] = { wch: 12 };
+    colWidths[4] = { wch: 14 };
+    colWidths[5] = { wch: 14 };
+    colWidths[6] = { wch: 14 };
+    colWidths[7] = { wch: 14 };
+    colWidths[8] = { wch: 14 };
+    colWidths[9] = { wch: 30 };
+    colWidths[10] = { wch: 25 };
+    colWidths[11] = { wch: 22 };
+    colWidths[12] = { wch: 20 };
 
     ws["!cols"] = colWidths;
 
@@ -147,10 +184,8 @@ export function generateAllotmentExcel(
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
   });
 
-  // const fileName = `allotment-register-${month.toLowerCase()}-${year}.xlsx`;
-
   const fileName = allotmentData.length > 1
-              ? `Allotment_ALL_${capitalizeFirstLetter(month)}-${year}.xlsx`
-              : `Allotment_${capitalizeFirstLetter(allotmentData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(month)}-${year}.xlsx`;
+    ? `Allotment_ALL_${capitalizeFirstLetter(month)}-${year}.xlsx`
+    : `Allotment_${capitalizeFirstLetter(allotmentData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(month)}-${year}.xlsx`;
   XLSX.writeFile(wb, fileName);
 }
