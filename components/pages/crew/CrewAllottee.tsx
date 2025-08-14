@@ -450,7 +450,7 @@ export function CrewAllottee({
     // Clear the error
     setAllotteeErrors((prev) => ({ ...prev, relationshipId: "" }));
   };
-  
+
   const convertToApiModel = (uiModel: AllotteeUiModel): AllotteeApiModel => {
     return {
       id: uiModel.id,
@@ -515,7 +515,7 @@ export function CrewAllottee({
   //     setAllotteeErrors(validateAllFields(editingAllottee));
   //   }
   // }, [editingAllottee]);
-  
+
   const forceNumberFlags = (allottee: AllotteeUiModel): AllotteeUiModel => ({
     ...allottee,
     priority: allottee.priority ? 1 : 0,
@@ -1272,10 +1272,10 @@ export function CrewAllottee({
                       value={displayAllottee.allotment != null ? displayAllottee.allotment.toString() : ""}
                       readOnly={!(isEditingAllottee || isAdding)}
                       className={`w-full h-10 ${allotteeErrors.allotment
-                          ? "border-red-500 focus:!ring-red-500/50 bg-white"
-                          : !(isEditingAllottee || isAdding)
-                            ? "bg-gray-50"
-                            : "bg-white"
+                        ? "border-red-500 focus:!ring-red-500/50 bg-white"
+                        : !(isEditingAllottee || isAdding)
+                          ? "bg-gray-50"
+                          : "bg-white"
                         }`}
                       onChange={(e) => {
                         if (isEditingAllottee || isAdding) {

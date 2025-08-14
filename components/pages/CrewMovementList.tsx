@@ -44,6 +44,7 @@ interface ISelectedCrew {
   currentVessel?: string;
   vesselId?: number;
   rankId: number;
+  //signOnDate?: Date;
 }
 
 export interface IOffBoardCrew {
@@ -97,6 +98,7 @@ export default function CrewMovementList() {
 
     fetchVesselCrew();
   }, [vesselId, onSuccess]);
+  //console.log('', vesselData?.data.Crew.SignOnDate ?? "")
 
   //console.log('VESSEL DATA: ', vesselData);
 
@@ -169,6 +171,7 @@ export default function CrewMovementList() {
         name: `${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + " " : ""
           }${crew.LastName}`,
         status: crew.Status === 1 ? "On board" : "Inactive",
+        signOnDate: crew.SignOnDate,
         rank: crew.Rank,
         rankId: crew.RankID,
         crewCode: crew.CrewCode,
@@ -176,8 +179,8 @@ export default function CrewMovementList() {
       })) || [],
     [vesselData]
   );
-  
-  console.log(allCrews);
+
+  //console.log(allCrews);
 
   const selectedRows = crewData.filter((row) => selectedRowIds[row.crewCode]);
   const allCrewCodes = useMemo(() => allCrews.map(c => c.CrewCode), [allCrews]);
@@ -217,7 +220,7 @@ export default function CrewMovementList() {
 
       const matchesName = fullName.includes(searchLower);
       const matchesCodeOrRank = crew.CrewCode?.toLowerCase().includes(searchLower) ||
-                                crew.Rank?.toLowerCase().includes(searchLower);
+        crew.Rank?.toLowerCase().includes(searchLower);
 
       const matchesSearch = searchLower ? matchesName || matchesCodeOrRank : true;
       const matchesRank = rankFilter && rankFilter !== "all"
@@ -445,6 +448,30 @@ export default function CrewMovementList() {
       ),
     },
     {
+      accessorKey: "signOnDate",
+      header: ({ column }) => (
+        <div
+          className="flex items-center justify-center cursor-pointer space-x-2"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          <p>Sign On Date</p>
+          <ArrowDownUp size={15} />
+        </div>
+      ),
+    cell: ({ row }) => {
+      const rawDate = row.getValue("signOnDate") as string | Date | null;
+      const formattedDate = rawDate
+        ? new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+          }).format(new Date(rawDate))
+        : "-";
+
+      return <div className="text-center">{formattedDate}</div>;
+    }
+    },
+    {
       accessorKey: "status",
       header: ({ column }) => (
         <div
@@ -627,7 +654,6 @@ export default function CrewMovementList() {
     useJoinCrewStore.getState().setSelectedCrew(mappedSelectedCrew);
     router.push("/home/crew-movement/join-crew");
   };
-
   return (
     <div className="h-full w-full p-3 pt-3 overflow-hidden">
       <style jsx global>{`
@@ -972,6 +998,7 @@ export default function CrewMovementList() {
           currentVessel?: string;
           country?: string;
           vesselId: number;
+          signOnDate?: Date;
         }[]}
       />
     </div>
