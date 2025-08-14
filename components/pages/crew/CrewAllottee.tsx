@@ -515,9 +515,20 @@ export function CrewAllottee({
   //     setAllotteeErrors(validateAllFields(editingAllottee));
   //   }
   // }, [editingAllottee]);
+  
+  const forceNumberFlags = (allottee: AllotteeUiModel): AllotteeUiModel => ({
+    ...allottee,
+    priority: allottee.priority ? 1 : 0,
+    receivePayslip: allottee.receivePayslip ? 1 : 0,
+    active: allottee.active ? 1 : 0,
+  });
 
   useEffect(() => {
     if (triggerSave) {
+      console.log("Trigger save activated");
+      console.log("Current editingAllottee:", editingAllottee);
+      console.log("Current crewId:", crewId);
+
       if (!editingAllottee || !crewId) {
         console.warn("Missing editingAllottee or crewId", {
           editingAllottee,
@@ -528,10 +539,13 @@ export function CrewAllottee({
         return;
       }
 
-      // --- Validate all fields using your custom function ---
+      // --- Validate all fields ---
       const fieldErrors = validateAllFields(editingAllottee);
+      console.log("Field validation errors:", fieldErrors);
+
       if (Object.keys(fieldErrors).length > 0) {
-        setAllotteeErrors(fieldErrors); // store errors in state
+        console.log("Validation failed. Storing errors in state.");
+        setAllotteeErrors(fieldErrors);
         toast({
           title: "Validation Error",
           description: Object.values(fieldErrors).join(", "),
@@ -543,21 +557,23 @@ export function CrewAllottee({
         return;
       }
 
-      // ------------------------
       setAllotteeLoading(true);
+      console.log("Validation passed. Preparing API model...");
 
       try {
         const apiModel = convertToApiModel(editingAllottee);
+        console.log("API model to be sent:", apiModel);
 
         updateCrewAllottee(crewId.toString(), apiModel)
           .then(() => {
+            console.log(`Allottee ${editingAllottee.name} saved successfully`);
             toast({
               title: "Allottee saved successfully",
               description: `Allottee ${editingAllottee.name} has been updated.`,
               variant: "success",
             });
             fetchCrewAllottees(crewId.toString());
-            setIsEditingAllottee(false); // close edit mode only on success
+            setIsEditingAllottee(false);
           })
           .catch((error) => {
             console.error("Error saving allottee:", error);
@@ -569,6 +585,7 @@ export function CrewAllottee({
                 "Allotment percentage would exceed 100 percent"
               )
             ) {
+              console.warn("Allotment percentage exceeded 100%");
               toast({
                 title: "Validation Error",
                 description: "Allotment percentage would exceed 100 percent.",
@@ -585,6 +602,7 @@ export function CrewAllottee({
             }
           })
           .finally(() => {
+            console.log("Save process finished.");
             setAllotteeLoading(false);
             setTriggerSave(false);
           });
@@ -604,6 +622,7 @@ export function CrewAllottee({
     fetchCrewAllottees,
     setIsEditingAllottee,
   ]);
+
 
   //console.log('EDITING ALLOTTEE RESPONSE: ', editingAllottee);
 

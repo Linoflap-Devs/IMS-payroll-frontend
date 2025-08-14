@@ -197,13 +197,13 @@ export default function CrewMovementList() {
 
   const filteredJoinCrewData = useMemo(() => {
     return allCrews.filter((crew) => {
-      const fullName = `${crew.LastName ?? ''}, ${crew.FirstName ?? ''}`.toLowerCase();
+      const fullName = `${crew.FirstName ?? ''} ${crew.LastName ?? ''}`.toLowerCase();
       const searchLower = searchTerm.toLowerCase();
 
       const matchesSearch = searchTerm
         ? fullName.includes(searchLower) ||
-        crew.CrewCode.toLowerCase().includes(searchLower) ||
-        crew.Rank.toLowerCase().includes(searchLower)
+          crew.CrewCode.toLowerCase().includes(searchLower) ||
+          crew.Rank.toLowerCase().includes(searchLower)
         : true;
 
       const matchesRank = rankFilter && rankFilter !== "all"
@@ -289,12 +289,12 @@ export default function CrewMovementList() {
           <ArrowDownUp size={15} />
         </div>
       ),
-      accessorFn: (row) => `${row.LastName}, ${row.FirstName}`, // for sorting
+      accessorFn: (row) => `${row.LastName} ${row.FirstName}`, // for sorting
       cell: ({ row }) => {
         const lastName = row.original.LastName;
         const firstName = row.original.FirstName;
 
-        return <div className="text-left">{`${lastName}, ${firstName}`}</div>;
+        return <div className="text-left">{`${firstName} ${lastName}`}</div>;
       },
     },
     {
@@ -336,6 +336,8 @@ export default function CrewMovementList() {
       },
     },
   ];
+
+  //console.log(crewData);
 
   const columRepatriate: ColumnDef<(typeof crewData)[number]>[] = [
     {
