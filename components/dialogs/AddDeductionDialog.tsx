@@ -2,7 +2,6 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,7 +25,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import {
   DeductionDescriptionItem,
   getDeductionDescriptionList,
@@ -42,6 +40,7 @@ const deductionFormSchema = z.object({
     .number({ invalid_type_error: "Amount is required" })
     .min(1, "Amount must be greater than 0"),
   remarks: z.string().min(1, "Remarks are required"),
+  deductionDate: z.string().min(1, "Deduction date is required"),
   status: z
     .enum(["0", "1", "2", "3", "5"], {
       errorMap: () => ({ message: "Status is required" }),
@@ -85,6 +84,7 @@ export function AddDeductionDialog({
       deductionId: "",
       amount: undefined,
       remarks: "",
+      deductionDate: "",
       status: undefined,
     },
   });
@@ -113,10 +113,12 @@ export function AddDeductionDialog({
       deductionAmount: data.amount,
       deductionRemarks: data.remarks || "",
       deductionStatus: 0,
+      deductionDate: data.deductionDate,
     };
 
     try {
       const response = await addCrewDeductionEntry(crewCode, payload);
+
       if (response.success) {
         toast({
           title: "Deduction added successfully",
@@ -145,6 +147,7 @@ export function AddDeductionDialog({
     }
   };
 
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC]">
@@ -155,9 +158,29 @@ export function AddDeductionDialog({
         </DialogHeader>
         <Form {...form}>
           <form
-            className="mt-6 space-y-6"
+            className="mt-3 space-y-6"
             onSubmit={handleSubmit(onSubmit)}
             autoComplete="off">
+
+            <FormField
+              control={form.control}
+              name="deductionDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-600">Deduction Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      className={`border border-[#E0E0E0] rounded-md ${errors.deductionDate ? "border-red-500" : ""}`}
+                      {...field}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="deductionId"

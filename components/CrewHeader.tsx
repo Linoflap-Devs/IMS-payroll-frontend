@@ -46,6 +46,7 @@ interface CrewHeaderProps {
   handleTriggerDecline: () => void;
   isDeclining: boolean;
   isRegistered: Date | null;
+  handleSaveAllottee: () => void;
 }
 
 export function CrewHeader({
@@ -70,6 +71,7 @@ export function CrewHeader({
   handleTriggerDecline,
   isDeclining,
   isRegistered,
+  handleSaveAllottee
 }: CrewHeaderProps) {
   const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
   return (
@@ -192,7 +194,7 @@ export function CrewHeader({
                 </Button>
                 <Button
                   className="bg-primary hover:bg-primary/90 w-40"
-                  onClick={handleSave}
+                  onClick={handleSaveAllottee}
                   disabled={allotteeLoading}
                 >
                   {allotteeLoading ? (
