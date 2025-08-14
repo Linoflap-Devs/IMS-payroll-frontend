@@ -176,6 +176,8 @@ export default function CrewMovementList() {
       })) || [],
     [vesselData]
   );
+  
+  console.log(allCrews);
 
   const selectedRows = crewData.filter((row) => selectedRowIds[row.crewCode]);
   const allCrewCodes = useMemo(() => allCrews.map(c => c.CrewCode), [allCrews]);
@@ -190,14 +192,17 @@ export default function CrewMovementList() {
         crew.rank.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
 
-      // ...
-      return matchesSearch;
+      const matchesRank = rankFilter && rankFilter !== "all"
+        ? crew.rank.toLowerCase() === rankFilter.toLowerCase()
+        : true;
+
+      return matchesSearch && matchesRank;
     });
   }, [crewData, searchTerm, rankFilter]);
 
   const filteredJoinCrewData = useMemo(() => {
     return allCrews.filter((crew) => {
-      const fullName = `${crew.FirstName ?? ''} ${crew.LastName ?? ''}`.toLowerCase();
+      const fullName = `${crew.FirstName ?? ''} ${crew.MiddleName ?? ''} ${crew.LastName ?? ''} `.toLowerCase();
       const searchLower = searchTerm.toLowerCase();
 
       const matchesSearch = searchTerm
