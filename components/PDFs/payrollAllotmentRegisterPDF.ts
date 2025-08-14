@@ -92,7 +92,7 @@ export function generateAllotmentPayrollRegister(
         return false;
     }
 
-    console.log('IN PDF: ', vesselData);
+    //console.log('IN PDF: ', vesselData);
     //console.log(netAllotment)
 
     try {
