@@ -113,7 +113,7 @@ export default function CrewDetails() {
         })
         .catch((error) => {
           const err = error as Error;
-          console.log("Error verifying crew member:", err);
+          console.error("Error verifying crew member:", err);
           toast({
             title: "Error",
             description: "Crew did not register.",
@@ -143,7 +143,7 @@ export default function CrewDetails() {
         })
         .catch((error) => {
           const err = error as Error;
-          console.log("Error declining crew member:", err);
+          console.error("Error declining crew member:", err);
           toast({
             title: "Error",
             description: "Crew did not register.",
@@ -285,6 +285,10 @@ export default function CrewDetails() {
 
     setTriggerSave((prev) => !prev);
     saveChanges();
+  };
+
+  const handleSaveAllottee = () => {
+    setTriggerSave(true);
   };
 
   // Filter cities based on selected province
@@ -474,6 +478,7 @@ export default function CrewDetails() {
           handleTriggerDecline={handleTriggerDecline}
           isDeclining={isDeclining}
           isRegistered={crewValidationDetails?.RegisterDate || null}
+          handleSaveAllottee={handleSaveAllottee}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -1341,7 +1346,7 @@ export default function CrewDetails() {
                       </div>
                     </div>
                   </div>
-                </TabsContent>
+                </TabsContent>  
 
                 <TabsContent
                   value="movement"

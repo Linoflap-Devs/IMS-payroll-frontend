@@ -70,7 +70,6 @@ export default function CrewMovementList() {
   const [onSuccess, setOnSuccess] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew[]>([]);
   const [repatriateDialogOpen, setRepatriateDialogOpen] = useState(false);
-  // const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
   const [isLoadingRepatriate, setIsLoadingRepatriate] = useState(false);
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [displayedCrews, setDisplayedCrews] = useState<IOffBoardCrew[]>([]);
@@ -79,6 +78,8 @@ export default function CrewMovementList() {
   const [rankFilter, setRankFilter] = useState("all");
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
+  //const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
+  const [totalCrews, setTotalCrews] = useState<number>(0);
 
   useEffect(() => {
     const fetchVesselCrew = async () => {
@@ -97,12 +98,17 @@ export default function CrewMovementList() {
     fetchVesselCrew();
   }, [vesselId, onSuccess]);
 
+  //console.log('VESSEL DATA: ', vesselData);
+
   useEffect(() => {
     setIsLoadingJoin(true);
 
     getCrewList()
       .then((response) => {
         if (response.success) {
+          // Total count of all crews before filtering
+          const totalCrewCount = response.data.length;
+
           const offBoardCrews: IOffBoardCrew[] = response.data
             .filter((crew) => crew.CrewStatusID === 2)
             .map((crew) => ({
@@ -119,7 +125,10 @@ export default function CrewMovementList() {
             }));
 
           setAllCrews(offBoardCrews);
-          setDisplayedCrews(offBoardCrews.slice(0, 50));
+          setDisplayedCrews(offBoardCrews);
+
+          // Store or log total crew count
+          setTotalCrews(totalCrewCount);
         } else {
           console.error("Failed to fetch crew list:", response.message);
         }
@@ -132,7 +141,8 @@ export default function CrewMovementList() {
       });
   }, []);
 
-  //console.log('DISPLAYED CREWS: ', allCrews);
+  //console.log('ALL CREWS: ', allCrews);
+  //console.log('TOTAL CREWS: ', totalCrews);
 
   //const selectedCrews = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]).map((id) => displayedCrews[parseInt(id, 10)]);
   const selectedCrews = allCrews.filter((crew) => selectedRowIds[crew.CrewCode]);
@@ -186,7 +196,7 @@ export default function CrewMovementList() {
   }, [crewData, searchTerm, rankFilter]);
 
   const filteredJoinCrewData = useMemo(() => {
-    return displayedCrews.filter((crew) => {
+    return allCrews.filter((crew) => {
       const fullName = `${crew.LastName ?? ''}, ${crew.FirstName ?? ''}`.toLowerCase();
       const searchLower = searchTerm.toLowerCase();
 
@@ -202,7 +212,7 @@ export default function CrewMovementList() {
 
       return matchesSearch && matchesRank;
     });
-  }, [displayedCrews, searchTerm, rankFilter]);
+  }, [allCrews, searchTerm, rankFilter]);
 
   const totalSelectedCount = Object.values(selectedRowIds).filter(Boolean).length;
   //console.log('TOTAL SELECT COUNT: ', totalSelectedCount);

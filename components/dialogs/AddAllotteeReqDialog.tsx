@@ -50,7 +50,7 @@ export function AddAllotteeReqDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const handleClose = () => onOpenChange(false);
-  console.log(requestData);
+  //console.log(requestData);
 
   const handleProcess = async (status: number) => {
     setIsSubmitting(true);

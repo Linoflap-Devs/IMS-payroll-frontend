@@ -60,13 +60,13 @@ import {
   getCrewSSS,
   sssDeductionItem,
   HDMFHistoryEntry,
-
 } from "@/src/services/deduction/crewDeduction.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { toast } from "../ui/use-toast";
+import { EditDeductionDialog } from "../dialogs/EditDeductionDialog";
 
 type Props = {
   crewCode: string | null;
@@ -236,178 +236,6 @@ const crewHDMFColumns = ({ } = {}): ColumnDef<HDMFHistoryEntry>[] => [
   }
 ];
 
-const apiDeductionColumns = ({
-  crewCode,
-  setOnSuccess,
-}: Props): ColumnDef<DeductionEntriesType>[] => [
-    {
-      accessorKey: "Date",
-      header: "Date",
-      cell: ({ row }) => {
-        const month = row.original.Month;
-        const year = row.original.Year ?? row.original.Year;
-        return (
-          <div className="text-center">
-            {month && year ? `${month} ${year}` : "N/A"}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "Deduction",
-      header: "Deduction",
-    },
-    {
-      accessorKey: "Amount",
-      header: "Amount",
-      cell: ({ row }) => {
-        return <div className="text-right">{row.original.Amount.toFixed(2)}</div>;
-      },
-    },
-    {
-      accessorKey: "Remarks",
-      header: "Remarks",
-      cell: ({ row }) => {
-        const remarks = row.getValue("Remarks");
-        const text = typeof remarks === "string" ? remarks.trim() : "";
-        return (
-          <div className={text ? "" : "text-gray-500 italic"}>
-            {text || "No remarks."}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "Status",
-      header: "Status",
-      cell: ({ row }) => {
-        const getStatusColor = (statusCode: string) => {
-          switch (statusCode) {
-            case "Completed":
-              return "bg-green-100 text-green-800";
-            case "Pending":
-              return "bg-yellow-100 text-yellow-800";
-            case "Adjusted":
-              return "bg-blue-100 text-blue-800";
-            case "Failed":
-              return "bg-red-100 text-red-800";
-            case "On Hold":
-              return "bg-gray-100 text-gray-800";
-            default:
-              return "bg-gray-100 text-gray-800";
-          }
-        };
-
-        const statusTextMap: Record<string, string> = {
-          Completed: "Posted",
-          Pending: "Not Posted",
-          Adjusted: "Adjusted",
-          Failed: "Failed",
-          "On Hold": "On Hold",
-        };
-
-        const rawStatus = row.original.Status.toString(10);
-        const displayText = statusTextMap[rawStatus] ?? rawStatus;
-
-        return (
-          <div className="flex justify-center">
-            <span
-              className={`px-2 py-1 w-full rounded-full text-xs ${getStatusColor(
-                rawStatus
-              )}`}
-            >
-              {displayText}
-            </span>
-          </div>
-        );
-      },
-    },
-    // {
-    //   id: "actions",
-    //   header: "Actions",
-    //   cell: ({ row }) => {
-    //     const deductionId = row.original.DeductionDetailID;
-
-    //     const statusMap: Record<number, string> = {
-    //       1: "Completed",
-    //       0: "Pending",
-    //       2: "Declined",
-    //       3: "On Hold",
-    //     };
-
-    //     const handleEdit = (status: number) => {
-    //       if (!crewCode) {
-    //         console.error(
-    //           "Crew code is not available for updating deduction entry."
-    //         );
-    //         return;
-    //       }
-
-    //       const payload = {
-    //         status,
-    //       };
-
-    //       updateCrewDeductionEntry(crewCode, deductionId, payload)
-    //         .then((response) => {
-    //           if (response.success) {
-    //             toast({
-    //               title: "Deduction entry updated successfully",
-    //               description: `Status changed to ${statusMap[status]}`,
-    //               variant: "success",
-    //             });
-    //             setOnSuccess(true);
-    //           } else {
-    //             toast({
-    //               title: "Failed to update deduction entry",
-    //               description: response.message || "Unknown error",
-    //               variant: "destructive",
-    //             });
-    //           }
-    //         })
-    //         .catch((error) => {
-    //           console.error("Error updating deduction entry:", error);
-    //           toast({
-    //             title: "Error updating deduction entry",
-    //             description: error.message || "An error occurred",
-    //             variant: "destructive",
-    //           });
-    //         });
-    //     };
-
-    //     return (
-    //       <div className="text-center">
-    //         <DropdownMenu>
-    //           <DropdownMenuTrigger asChild>
-    //             <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-    //               <span className="sr-only">Open menu</span>
-    //               <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-    //             </Button>
-    //           </DropdownMenuTrigger>
-    //           <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-    //             <DropdownMenuItem onClick={() => handleEdit(1)}>
-    //               <CircleCheck strokeWidth={2} />
-    //               Completed
-    //             </DropdownMenuItem>
-    //             <DropdownMenuItem onClick={() => handleEdit(0)}>
-    //               <CircleEllipsis strokeWidth={2} />
-    //               Pending
-    //             </DropdownMenuItem>
-    //             <DropdownMenuItem onClick={() => handleEdit(2)}>
-    //               <CircleX strokeWidth={2} />
-    //               Declined
-    //             </DropdownMenuItem>
-    //             <DropdownMenuItem onClick={() => handleEdit(3)}>
-    //               <CircleDot strokeWidth={2} />
-    //               On Hold
-    //             </DropdownMenuItem>
-    //           </DropdownMenuContent>
-    //         </DropdownMenu>
-    //       </div>
-    //     );
-    //   },
-    // },
-  ];
-
 export default function DeductionEntries() {
   const params = useSearchParams();
   const crewCode = params.get("crewCode");
@@ -437,12 +265,9 @@ export default function DeductionEntries() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [deductionEntries, setDeductionEntries] = useState<
-    DeductionEntriesType[]
-  >([]);
+  const [deductionEntries, setDeductionEntries] = useState<DeductionEntriesType[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [onSuccess, setOnSuccess] = useState(false);
-
   const [HDMFUpgradeAmount, setHDMFUpgradeAmount] = useState<number>(0);
   const [isDollar, setIsDollar] = useState<boolean>(false);
   const [HDMFHistoryAmount, setHDMFHistoryAmount] = useState<HDMFHistoryEntry[]>([]);
@@ -450,13 +275,11 @@ export default function DeductionEntries() {
     useState<string>(new Date().getFullYear().toString());
   const [hdmfLoading, setHdmfLoading] = useState(false);
   const [hdmfYears, sethdmfYears] = useState<string[]>([]);
-
   const [onSuccessHDMF, setOnSuccessHDMF] = useState(false);
 
   // PhilHealth states
   const [philhealthData, setPhilhealthData] = useState<philhealthDeductionItem[]>([]);
-  const [selectedPhilhealthYear, setSelectedPhilhealthYear] =
-    useState<string>(new Date().getFullYear().toString());
+  const [selectedPhilhealthYear, setSelectedPhilhealthYear] = useState<string>(new Date().getFullYear().toString());
   const [philhealthYears, setPhilhealthYears] = useState<string[]>([]);
   const [philhealthLoading, setPhilhealthLoading] = useState<boolean>(false);
 
@@ -466,6 +289,10 @@ export default function DeductionEntries() {
   const [sssYears, setSSSYears] = useState<string[]>([]);
   const [sssLoading, setSSSLoading] = useState<boolean>(false);
   //console.log("deductionEntries", deductionEntries);
+
+  //const [selectedDeduction, setSelectedDeduction] = useState<number | null>(null);
+  const [selectedDeduction, setSelectedDeduction] = useState<DeductionEntriesType | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const monthMap = useMemo<Record<number, string>>(
     () => ({
@@ -484,6 +311,8 @@ export default function DeductionEntries() {
     }),
     []
   );
+
+  //console.log('DEDUCTION ENTRIES:   ', deductionEntries);
 
   useEffect(() => {
     if (crewCode) {
@@ -624,6 +453,200 @@ export default function DeductionEntries() {
     },
     [monthMap, selectedSSSYear]
   );
+
+  const apiDeductionColumns = ({
+    crewCode,
+    setOnSuccess,
+  }: Props): ColumnDef<DeductionEntriesType>[] => [
+      {
+        accessorKey: "Date",
+        header: "Date",
+        cell: ({ row }) => {
+          const month = row.original.Month;
+          const year = row.original.Year ?? row.original.Year;
+          return (
+            <div className="text-center">
+              {month && year ? `${month} ${year}` : "N/A"}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "Deduction",
+        header: "Deduction",
+      },
+      {
+        accessorKey: "Amount",
+        header: "Amount",
+        cell: ({ row }) => {
+          return <div className="text-right">{row.original.Amount.toFixed(2)}</div>;
+        },
+      },
+      {
+        accessorKey: "Remarks",
+        header: "Remarks",
+        cell: ({ row }) => {
+          const remarks = row.getValue("Remarks");
+          const text = typeof remarks === "string" ? remarks.trim() : "";
+          return (
+            <div className={text ? "" : "text-gray-500 italic"}>
+              {text || "No remarks."}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "Status",
+        header: "Status",
+        cell: ({ row }) => {
+          const getStatusColor = (statusCode: string) => {
+            switch (statusCode) {
+              case "Completed":
+                return "bg-green-100 text-green-800";
+              case "Pending":
+                return "bg-yellow-100 text-yellow-800";
+              case "Adjusted":
+                return "bg-blue-100 text-blue-800";
+              case "Failed":
+                return "bg-red-100 text-red-800";
+              case "On Hold":
+                return "bg-gray-100 text-gray-800";
+              default:
+                return "bg-gray-100 text-gray-800";
+            }
+          };
+
+          const statusTextMap: Record<string, string> = {
+            Completed: "Posted",
+            Pending: "Not Posted",
+            Adjusted: "Adjusted",
+            Failed: "Failed",
+            "On Hold": "On Hold",
+          };
+
+          const rawStatus = row.original.Status.toString(10);
+          const displayText = statusTextMap[rawStatus] ?? rawStatus;
+
+          return (
+            <div className="flex justify-center">
+              <span
+                className={`px-2 py-1 w-full rounded-full text-xs ${getStatusColor(
+                  rawStatus
+                )}`}
+              >
+                {displayText}
+              </span>
+            </div>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+          const deductionId = row.original.DeductionDetailID;
+
+          // const statusMap: Record<number, string> = {
+          //   1: "Completed",
+          //   0: "Pending",
+          //   2: "Declined",
+          //   3: "On Hold",
+          // };
+
+          // const handleEdit = (status: number) => {
+          //   if (!crewCode) {
+          //     console.error(
+          //       "Crew code is not available for updating deduction entry."
+          //     );
+          //     return;
+          //   }
+
+          //   const payload = {
+          //     status,
+          //   };
+
+          //   updateCrewDeductionEntry(crewCode, deductionId, payload)
+          //     .then((response) => {
+          //       if (response.success) {
+          //         toast({
+          //           title: "Deduction entry updated successfully",
+          //           description: `Status changed to ${statusMap[status]}`,
+          //           variant: "success",
+          //         });
+          //         setOnSuccess(true);
+          //       } else {
+          //         toast({
+          //           title: "Failed to update deduction entry",
+          //           description: response.message || "Unknown error",
+          //           variant: "destructive",
+          //         });
+          //       }
+          //     })
+          //     .catch((error) => {
+          //       console.error("Error updating deduction entry:", error);
+          //       toast({
+          //         title: "Error updating deduction entry",
+          //         description: error.message || "An error occurred",
+          //         variant: "destructive",
+          //       });
+          //     });
+          // };
+
+          return (
+            <div className="text-center">
+              {/* <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+                  <DropdownMenuItem onClick={() => handleEdit(1)}>
+                    <CircleCheck strokeWidth={2} />
+                    Completed
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleEdit(0)}>
+                    <CircleEllipsis strokeWidth={2} />
+                    Pending
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleEdit(2)}>
+                    <CircleX strokeWidth={2} />
+                    Declined
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleEdit(3)}>
+                    <CircleDot strokeWidth={2} />
+                    On Hold
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu> */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const deduction = deductionEntries.find(d => d.DeductionDetailID === deductionId);
+                      if (deduction) {
+                        setSelectedDeduction(deduction); 
+                        setEditDialogOpen(true);
+                      }
+                    }}
+                  >
+                    <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    Edit Deduction Entry
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        },
+      },
+    ];
 
   useEffect(() => {
     if (!crewCode || !selectedPhilhealthYear) return;
@@ -894,7 +917,7 @@ export default function DeductionEntries() {
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">
         {/* Header with back button and title */}
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center justify-between mt-3 mb-4">
           <div className="flex items-center gap-2">
             <Link href="/home/deduction">
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -1187,7 +1210,7 @@ export default function DeductionEntries() {
                       <div className="w-full">
                         <div className="flex justify-end w-full mt-2">
                           <Button
-                            className="w-48 bg-primary hover:bg-primary/90"
+                            className="w-48 text-primary border border-gray-300 bg-white hover:bg-gray-50"
                             onClick={() => {
                               setSelectedMonth("all");
                               setSelectedYear("all");
@@ -1474,6 +1497,16 @@ export default function DeductionEntries() {
         onOpenChange={setIsAddDeductionOpen}
         setOnSuccess={setOnSuccess}
       />
+
+      {selectedDeduction && (
+        <EditDeductionDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          deduction={selectedDeduction}
+          crewCode={crewCode ?? ""}
+          setOnSuccess={setOnSuccess}
+        />
+      )}
     </div>
   );
 }

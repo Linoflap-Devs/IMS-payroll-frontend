@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Pencil } from "lucide-react";
+import { Eye, EyeOff, Pencil, Save } from "lucide-react";
 import { updatePassword } from "@/src/services/users/users.api";
 import { toast } from "../ui/use-toast";
 import { z } from "zod";
@@ -293,7 +293,7 @@ const passwordSchema = z
 
                           <div className="pt-4 flex flex-col items-end">
                             <Button className="h-9" type="submit">
-                              <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                              <Save className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                               Save Changes
                             </Button>
                           </div>
