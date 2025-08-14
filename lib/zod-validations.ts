@@ -73,10 +73,9 @@ export const editAllotteeSchema = z.object({
         // }),
     address: z.string().min(1, "Address is required."),
   // Make sure relationshipId is always a string (Select will send it as string)
-  relationshipId: z
-    .string()
-    .trim()
-    .min(1, "Relationship is required."),
+    relationshipId: z
+        .number({ invalid_type_error: "Relationship is required." })
+        .min(1, "Relationship is required."),
     bankId: z.string().min(1, "Bank is required."),
     branchId: z.string().min(1, "Bank branch is required."),
     province: z.string().min(1, "Province is required."),

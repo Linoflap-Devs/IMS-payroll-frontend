@@ -176,6 +176,8 @@ export default function CrewMovementList() {
       })) || [],
     [vesselData]
   );
+  
+  console.log(allCrews);
 
   const selectedRows = crewData.filter((row) => selectedRowIds[row.crewCode]);
   const allCrewCodes = useMemo(() => allCrews.map(c => c.CrewCode), [allCrews]);
@@ -190,24 +192,36 @@ export default function CrewMovementList() {
         crew.rank.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
 
-      // ...
-      return matchesSearch;
+      const matchesRank = rankFilter && rankFilter !== "all"
+        ? crew.rank.toLowerCase() === rankFilter.toLowerCase()
+        : true;
+
+      return matchesSearch && matchesRank;
     });
   }, [crewData, searchTerm, rankFilter]);
 
   const filteredJoinCrewData = useMemo(() => {
+    const searchLower = searchTerm.toLowerCase().trim();
+
     return allCrews.filter((crew) => {
-      const fullName = `${crew.LastName ?? ''}, ${crew.FirstName ?? ''}`.toLowerCase();
-      const searchLower = searchTerm.toLowerCase();
+      const firstName = (crew.FirstName ?? '').trim().toLowerCase();
+      const middleName = (crew.MiddleName ?? '').trim().toLowerCase(); // optional
+      const lastName = (crew.LastName ?? '').trim().toLowerCase();
 
-      const matchesSearch = searchTerm
-        ? fullName.includes(searchLower) ||
-        crew.CrewCode.toLowerCase().includes(searchLower) ||
-        crew.Rank.toLowerCase().includes(searchLower)
-        : true;
+      // Include middleName only if it exists
+      const fullName = [firstName, middleName, lastName]
+        .filter(Boolean) // remove empty strings
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
+      const matchesName = fullName.includes(searchLower);
+      const matchesCodeOrRank = crew.CrewCode?.toLowerCase().includes(searchLower) ||
+                                crew.Rank?.toLowerCase().includes(searchLower);
+
+      const matchesSearch = searchLower ? matchesName || matchesCodeOrRank : true;
       const matchesRank = rankFilter && rankFilter !== "all"
-        ? crew.Rank.toLowerCase() === rankFilter.toLowerCase()
+        ? crew.Rank?.toLowerCase() === rankFilter.toLowerCase()
         : true;
 
       return matchesSearch && matchesRank;
@@ -289,12 +303,13 @@ export default function CrewMovementList() {
           <ArrowDownUp size={15} />
         </div>
       ),
-      accessorFn: (row) => `${row.LastName}, ${row.FirstName}`, // for sorting
+      accessorFn: (row) => `${row.LastName} ${row.MiddleName} ${row.FirstName}`, // for sorting
       cell: ({ row }) => {
         const lastName = row.original.LastName;
         const firstName = row.original.FirstName;
+        const middleName = row.original.MiddleName
 
-        return <div className="text-left">{`${lastName}, ${firstName}`}</div>;
+        return <div className="text-left">{`${firstName} ${middleName} ${lastName}`}</div>;
       },
     },
     {
@@ -336,6 +351,8 @@ export default function CrewMovementList() {
       },
     },
   ];
+
+  //console.log(crewData);
 
   const columRepatriate: ColumnDef<(typeof crewData)[number]>[] = [
     {
@@ -653,12 +670,12 @@ export default function CrewMovementList() {
           </div>
 
           <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
-            <Tabs
-              defaultValue={activeTab}
-              value={activeTab}
-              onValueChange={handleTabChange}
-              className="w-full flex flex-col h-full"
-            >
+            <Tabs value={activeTab} onValueChange={(tabValue) => {
+              setActiveTab(tabValue);
+              // Clear filters when switching tabs
+              setSearchTerm("");
+              setRankFilter("all");
+            }}>
               <div className="border-b">
                 <div className="px-4 pt-1">
                   <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
@@ -712,7 +729,7 @@ export default function CrewMovementList() {
 
                         <SelectContent className="max-h-60 overflow-y-auto">
                           <SelectItem value="all">All Ranks</SelectItem>
-                          {[...new Set(displayedCrews.map((item) => item.Rank).filter(Boolean))].map(
+                          {[...new Set(allCrews.map((item) => item.Rank).filter(Boolean))].map(
                             (rank) => (
                               <SelectItem key={rank} value={rank}>
                                 {rank}
