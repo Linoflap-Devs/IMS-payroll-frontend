@@ -164,6 +164,47 @@ export default function Allotment() {
     "November",
     "December",
   ];
+
+const fetchDashboardData = async () => {
+    try {
+      const forexRate = await getForex(monthFilter, yearFilter);
+
+      if (forexRate.length > 0) {
+        const result = forexRate.find(
+          (item) =>
+            item.ExchangeRateMonth === Number(monthFilter) &&
+            item.ExchangeRateYear === Number(yearFilter)
+        );
+        setForexRate(result?.ExchangeRate || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
+  };
+
+const fetchPayrollData = async () => {
+    try {
+      const res = await getPayrollList(
+        Number(monthFilter),
+        Number(yearFilter)
+      );
+      if (res.success) {
+        const mapped: Payroll[] = res.data.map((item) => ({
+          vesselId: item.VesselId,
+          vesselName: item.VesselName,
+          onBoardCrew: item.OnBoardCrew,
+          grossAllotment: item.GrossAllotment,
+          totalDeductions: item.TotalDeduction,
+          netAllotment: item.NetAllotment,
+        }));
+        setPayrollData(mapped);
+      } else {
+        console.error("Failed to fetch payroll list:", res.message);
+      }
+    } catch (err) {
+      console.error("Error fetching payroll list:", err);
+    }
+  };
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 20 }, (_, i) =>
     (currentYear - 15 + i).toString()
@@ -192,48 +233,6 @@ export default function Allotment() {
   // Fetch data when filters change
   useEffect(() => {
     setIsLoading(true);
-
-    const fetchDashboardData = async () => {
-      try {
-        const forexRate = await getForex(monthFilter, yearFilter);
-
-        if (forexRate.length > 0) {
-          const result = forexRate.find(
-            (item) =>
-              item.ExchangeRateMonth === Number(monthFilter) &&
-              item.ExchangeRateYear === Number(yearFilter)
-          );
-          setForexRate(result?.ExchangeRate || 0);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      }
-    };
-
-    const fetchPayrollData = async () => {
-      try {
-        const res = await getPayrollList(
-          Number(monthFilter),
-          Number(yearFilter)
-        );
-        if (res.success) {
-          const mapped: Payroll[] = res.data.map((item) => ({
-            vesselId: item.VesselId,
-            vesselName: item.VesselName,
-            onBoardCrew: item.OnBoardCrew,
-            grossAllotment: item.GrossAllotment,
-            totalDeductions: item.TotalDeduction,
-            netAllotment: item.NetAllotment,
-          }));
-          setPayrollData(mapped);
-        } else {
-          console.error("Failed to fetch payroll list:", res.message);
-        }
-      } catch (err) {
-        console.error("Error fetching payroll list:", err);
-      }
-    };
-
     Promise.all([fetchDashboardData(), fetchPayrollData()]).finally(() => {
       setIsLoading(false);
     });
@@ -271,6 +270,11 @@ export default function Allotment() {
             } ${yearFilter} has been processed successfully.`,
           variant: wasAllAlreadyPosted ? "default" : "success",
         });
+
+        setIsLoading(true);
+        Promise.all([fetchDashboardData(), fetchPayrollData()]).finally(() => {
+          setIsLoading(false);
+        });
       } else {
         toast({
           title: "Payroll Not Processed",
@@ -289,6 +293,7 @@ export default function Allotment() {
       });
     } finally {
       setPayrollLoading(false);
+      
     }
   };
 
