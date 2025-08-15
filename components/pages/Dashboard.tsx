@@ -211,7 +211,7 @@ export default function Dashboard() {
 
   return (
     <div className="h-full w-full p-6 pt-3">
-      <p className="text-4xl font-semibold my-3">Dashboard</p>
+      {/* <p className="text-4xl font-semibold my-3">Dashboard</p> */}
 
       {/* Welcome Card */}
       <Card className="my-3">
@@ -229,7 +229,7 @@ export default function Dashboard() {
               and timely transactions for all crew members.
             </p>
           </div>
-          <div className="relative w-48 h-32">
+          <div className="relative w-48 h-32 mt-8">
             <Image
               src="/ship-image.png"
               alt="Ship"
