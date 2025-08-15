@@ -667,7 +667,7 @@ export default function Allotment() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                     {
-                      (forexRate > 0 && Number(monthFilter) == currentMonth) ? (
+                      (forexRate > 0) ? (
                           <Button
                             className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-10 px-6 text-sm"
                             disabled={payrollLoading || isDataLoading}
