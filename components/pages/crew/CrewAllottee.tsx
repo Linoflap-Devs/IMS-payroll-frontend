@@ -3,10 +3,9 @@
 import {
   useState,
   useEffect,
-  useMemo,
   Dispatch,
   SetStateAction,
-  useRef,
+  useMemo,
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCrewStore } from "@/src/store/useCrewStore";
@@ -17,49 +16,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useLocationStore } from "@/src/store/useLocationStore";
-import { useBankStore } from "@/src/store/useBankStore";
-import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 import { AllotteeUiModel, AllotteeApiModel } from "@/types/crewAllottee";
 import {
   deleteCrewAllottee,
-  updateCrewAllottee,
 } from "@/src/services/crew/crewAllottee.api";
 import { toast } from "@/components/ui/use-toast";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { Check, Info, MoreHorizontal, Pencil, Trash, X } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import Swal from "sweetalert2";
-
-// Empty UI model for initialization
-const emptyAllottee: AllotteeUiModel = {
-  id: "",
-  name: "",
-  relationship: "",
-  relationshipId: 0,
-  contactNumber: "",
-  address: "",
-  city: "",
-  cityId: "",
-  province: "",
-  provinceId: "",
-  bankName: "",
-  bankId: "",
-  bankBranch: "",
-  branchId: "",
-  accountNumber: "",
-  allotment: 0,
-  active: 0,
-  priority: 0,
-  receivePayslip: 0,
-  allotmentType: 1,
-  allotteeDetailID: "",
-};
 
 interface ICrewAllotteeProps {
   onAdd?: () => void;
@@ -92,17 +68,13 @@ export function CrewAllottee({
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<AllotteeUiModel[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState<string>("0");
   const [currentAllottee, setCurrentAllottee] = useState<AllotteeUiModel | null>(null);
   const [editingAllottee, setEditingAllottee] = useState<AllotteeUiModel | null>(null);
-  const [searchCity, setSearchCity] = useState("");
-  const [searchProvince, setSearchProvince] = useState("");
-  const [previousAllotteeId, setPreviousAllotteeId] = useState<string>("");
   const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
-  const [allotteeErrors, setAllotteeErrors] = useState<Record<string, string>>({});
   const [selectedAllotteeData, setSelectedAllotteeData] = useState<AllotteeUiModel | null>(null);
   const [editselectedAllotteeDialogOpen, setEditselectedAllotteeDialogOpen] = useState(false);
   const [deletingAllottee, setDeletingAllottee] = useState(false);
+  const [allotmentType, setAllotmentType] = useState<number | null>(null);
 
   console.log('ALLOTTEES: ', allottees);
 
@@ -114,18 +86,6 @@ export function CrewAllottee({
     resetAllottees,
   } = useCrewStore();
 
-  const {
-    fetchBanks,
-    setSelectedBankId,
-    setSelectedBranchId,
-    getUniqueBanks,
-    getBranchesForSelectedBank,
-  } = useBankStore();
-
-  const { allRelationshipData, fetchRelationships } = useRelationshipStore();
-  const { loading, cities, provinces, fetchCities, fetchProvinces } =
-    useLocationStore();
-
   useEffect(() => {
     if (!crewId) return;
     fetchCrewAllottees(crewId);
@@ -135,22 +95,11 @@ export function CrewAllottee({
   }, [crewId, fetchCrewAllottees, resetAllottees]);
 
   useEffect(() => {
-    fetchRelationships();
-  }, [fetchRelationships]);
-
-  useEffect(() => {
-    fetchBanks();
-  }, [fetchBanks]);
-
-  const uniqueBanks = getUniqueBanks();
-  const branchesForSelectedBank = getBranchesForSelectedBank();
-
-  useEffect(() => {
     const mapped = storeAllottees.map((a) => ({
       id: a.AllotteeDetailID,
       name: a.AllotteeName,
       relationship: a.RelationName,
-      relationshipId: a.RelationID ?? 0, // use 0 if missing
+      relationshipId: a.RelationID ?? 0,
       contactNumber: a.ContactNumber,
       address: a.Address,
       province: a.ProvinceName,
@@ -173,180 +122,181 @@ export function CrewAllottee({
     }));
 
     setAllottees(mapped);
+  }, [storeAllottees]);
 
-    if (previousAllotteeId) {
-      const previousIndex = mapped.findIndex(
-        (a) => a.id === previousAllotteeId
-      );
-      if (previousIndex >= 0) {
-        setSelectedIndex(previousIndex.toString());
-      } else {
-        setSelectedIndex("0");
-      }
-    } else {
-      setSelectedIndex("0");
-    }
-  }, [storeAllottees, previousAllotteeId]);
+  const displayAllottee = isEditingAllottee || isAdding
+    ? editingAllottee
+    : currentAllottee;
 
-  useEffect(() => {
-    if (isAdding) {
-      setCurrentAllottee(emptyAllottee);
-      setEditingAllottee(emptyAllottee);
-    } else if (allottees.length > 0) {
-      const index = parseInt(selectedIndex, 10);
-      setCurrentAllottee({ ...allottees[index] });
+  const columns = useMemo<ColumnDef<(typeof allottees)[number]>[]>(() => {
+    const baseColumns: ColumnDef<(typeof allottees)[number]>[] = [
+      {
+        accessorKey: "name",
+        header: () => <div className="text-justify">Crew Name</div>,
+        cell: ({ row }) => {
+          const name = row.getValue("name") as string;
 
-      if (isEditingAllottee) {
-        setEditingAllottee({ ...allottees[index] });
+          return (
+            <div className="flex items-center space-x-3 text-justify">
+              {isLoadingAllottees ? (
+                <img
+                  alt={name}
+                  className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm font-medium">
+                  <span>{name?.charAt(0).toUpperCase()}</span>
+                </div>
+              )}
+              <span>{name}</span>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "relationship",
+        header: () => <div className="text-justify">Relationship</div>,
+        cell: ({ row }) => (
+          <div className="text-justify">{row.getValue("relationship")}</div>
+        ),
+      },
+      {
+        accessorKey: "bankName",
+        header: () => <div className="text-justify">Bank</div>,
+        cell: ({ row }) => (
+          <div className="text-justify">{row.getValue("bankName")}</div>
+        ),
+      },
+      {
+        accessorKey: "bankBranch",
+        header: () => <div className="text-justify">Bank Branch</div>,
+        cell: ({ row }) => (
+          <div className="text-justify">{row.getValue("bankBranch")}</div>
+        ),
+      },
+    ];
 
-        if (allottees[index].bankId) {
-          setSelectedBankId(Number(allottees[index].bankId));
-        }
-        if (allottees[index].branchId) {
-          setSelectedBranchId(Number(allottees[index].branchId));
-        }
-      }
-    } else {
-      setCurrentAllottee(null);
-      setEditingAllottee(null);
-    }
-  }, [
-    selectedIndex,
-    allottees,
-    isAdding,
-    isEditingAllottee,
-    setSelectedBankId,
-    setSelectedBranchId,
-  ]);
+    // Add conditional columns
+    if (allottees[0]?.allotmentType === 1) {
+      baseColumns.push(
+        {
+          accessorKey: "priority",
+          header: () => <div className="text-justify">Priority</div>,
+          cell: ({ row }) => {
+            const value = row.getValue("priority");
+            const isHighPriority = value === 1;
 
-  useEffect(() => {
-    fetchCities();
-    fetchProvinces();
-  }, [fetchCities, fetchProvinces]);
-
-  const lastProcessedIndexRef = useRef<string | null>(null);
-
-  // table
-  const columns: ColumnDef<(typeof allottees)[number]>[] = [
-    {
-      accessorKey: "allotteeDetailID",
-      header: () => <div className="text-justify">Allotee ID</div>,
-      cell: ({ row }) => (
-        <div className="text-justify">{row.getValue("allotteeDetailID")}</div>
-      ),
-    },
-    {
-      accessorKey: "name",
-      header: () => <div className="text-justify">Crew Name</div>,
-      cell: ({ row }) => {
-        const name = row.getValue("name") as string;
-        //const profileImage = row.original.ProfileImage as string | undefined;
-
-        return (
-          <div className="flex items-center space-x-3 text-justify">
-            {isLoadingAllottees ? (
-              <img
-                //src={profileImage}
-                alt={name}
-                className="w-8 h-8 rounded-full object-cover border border-gray-300"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm font-medium">
-                <span>{name?.charAt(0).toUpperCase()}</span>
+            return (
+              <div className="flex justify-center items-center w-full h-full">
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isHighPriority
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                    }`}
+                >
+                  {isHighPriority ? (
+                    <>
+                      <Check className="w-3 h-3" /> Yes
+                    </>
+                  ) : (
+                    <>
+                      <X className="w-3 h-3" /> No
+                    </>
+                  )}
+                </span>
               </div>
-            )}
-            <span>{name}</span>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "relationship",
-      header: () => <div className="text-justify">Relationship</div>,
-      cell: ({ row }) => (
-        <div className="text-justify">{row.getValue("relationship")}</div>
-      ),
-    },
-    {
-      accessorKey: "bankName",
-      header: () => <div className="text-justify">Bank</div>,
-      cell: ({ row }) => (
-        <div className="text-justify">{row.getValue("bankName")}</div>
-      ),
-    },
-    {
-      accessorKey: "bankBranch",
-      header: () => <div className="text-justify">Bank Branch</div>,
-      cell: ({ row }) => (
-        <div className="text-justify">{row.getValue("bankBranch")}</div>
-      ),
-    },
-    {
-      accessorKey: "status",
-      header: () => <div className="text-left">Status</div>,
-      cell: ({ row }) => {
-        const status = row.getValue("status") as string;
+            );
+          },
+        },
+        {
+          accessorKey: "receivePayslip",
+          header: () => <div className="text-justify">Currency</div>,
+          cell: ({ row }) => {
+            const value = row.getValue("receivePayslip");
+            const isDollar = value === 1;
 
-        const badgeClass = {
-          "On board": "bg-green-100 text-green-800 hover:bg-green-100/80",
-          "Off board": "bg-red-100 text-red-800 hover:bg-red-100/80",
-        }[status] || "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
-
-        return (
-          <div className="flex text-left">
-            <Badge variant="secondary" className={badgeClass}>
-              {status}
-            </Badge>
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-7 sm:h-8 w-7 sm:w-8 p-0"
-              >
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent
-              align="end"
-              className="text-xs sm:text-sm"
-            >
-              <DropdownMenuItem
-                className="text-xs sm:text-sm"
-                onClick={() => {
-                  setSelectedAllotteeData(row.original);
-                  setEditselectedAllotteeDialogOpen(true);
-                }}
-              >
-                <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                Edit Allottee
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive text-xs sm:text-sm"
-                onClick={() => {
-                  console.log("Delete button clicked for allottee:", row.original);
-                  handleDeleteAllottee(row.original);
-                }}                >
-                <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
+            return (
+              <div className="flex justify-center items-center w-full h-full">
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isDollar
+                    ? "bg-blue-200 text-green-700"
+                    : "bg-gray-100 text-gray-700"
+                    }`}
+                >
+                  <Info className="w-3 h-3" />
+                  {isDollar ? "USD" : "PHP"}
+                </span>
+              </div>
+            );
+          },
+        }
+      );
     }
-  ];
+
+    baseColumns.push(
+      {
+        accessorKey: "allotment",
+        header: () => <div className="text-justify">Allotment</div>,
+        cell: ({ row }) => {
+          const allotmentValue = row.getValue<number>("allotment");
+          const allotmentType = row.original.allotmentType;
+
+          return (
+            <div className="text-justify">
+              {allotmentType === 2 ? `${allotmentValue}%` : allotmentValue ?? "-"}
+            </div>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <div className="text-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-7 sm:h-8 w-7 sm:w-8 p-0"
+                >
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                align="end"
+                className="text-xs sm:text-sm"
+              >
+                <DropdownMenuItem
+                  className="text-xs sm:text-sm"
+                  onClick={() => {
+                    setSelectedAllotteeData(row.original);
+                    setEditselectedAllotteeDialogOpen(true);
+                  }}
+                >
+                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Edit Allottee
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive text-xs sm:text-sm"
+                  onClick={() => {
+                    console.log("Delete button clicked for allottee:", row.original);
+                    handleDeleteAllottee(row.original);
+                  }}                >
+                  <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ),
+      }
+    );
+
+    return baseColumns;
+  }, [allottees[0]?.allotmentType, isLoadingAllottees]);
 
   const handleDeleteAllottee = async (allottee: AllotteeUiModel | null) => {
     if (!allottee) return;
@@ -360,8 +310,6 @@ export function CrewAllottee({
       },
       buttonsStyling: false,
     });
-
-    console.log("handleDeleteAllottee triggered for:", allottee);
 
     const result = await swalWithBootstrapButtons.fire({
       title: `Delete Allottee`,
@@ -436,32 +384,30 @@ export function CrewAllottee({
     );
   }
 
-  const displayAllottee =
-    isEditingAllottee || isAdding
-      ? editingAllottee
-      : currentAllottee;
+  const handleInputChange = <K extends keyof AllotteeUiModel>(
+    field: K,
+    value: AllotteeUiModel[K]
+  ) => {
+    if (isEditingAllottee || isAdding) {
+      setEditingAllottee(prev =>
+        prev ? { ...prev, [field]: value } : { [field]: value } as unknown as AllotteeUiModel
+      );
+    } else {
+      setCurrentAllottee(prev =>
+        prev ? { ...prev, [field]: value } : { [field]: value } as unknown as AllotteeUiModel
+      );
+    }
+  };
 
   // validating the name form for disable only!
   useEffect(() => {
     const validateAllotteeForm = () => {
-      const isValid = Boolean(displayAllottee?.name?.trim());
+      const isValid = Boolean(allottees[0]?.name?.trim());
       setIsAllotteeValid(isValid);
     };
 
     validateAllotteeForm();
-  }, [displayAllottee, setIsAllotteeValid]);
-
-  const commonAllotmentType = React.useMemo(() => {
-    if (!allottees || allottees.length === 0) return null;
-
-    const hasPercentage = allottees.some((a) => a.allotmentType === 2);
-    const hasAmount = allottees.some((a) => a.allotmentType === 1);
-
-    if (hasPercentage && !hasAmount) return 2;
-    if (hasAmount && !hasPercentage) return 1;
-
-    return null; // mixed or undefined
-  }, [allottees]);
+  }, [allottees[0], setIsAllotteeValid]);
 
   return (
     <div className="h-full w-full pt-2">
@@ -498,14 +444,14 @@ export function CrewAllottee({
                         <div className="flex-1 w-full flex items-center">
                           <Select
                             value={
-                              commonAllotmentType !== null
-                                ? commonAllotmentType.toString()
-                                : displayAllottee?.allotmentType?.toString() || "1"
+                              (isEditingAllottee || isAdding
+                                ? editingAllottee?.allotmentType
+                                : currentAllottee?.allotmentType
+                              )?.toString() || ""
                             }
-                          //disabled={commonAllotmentType !== null}
-                          // onValueChange={(value) =>
-                          //   handleInputChange("allotmentType", parseInt(value))
-                          // }
+                            onValueChange={(value) =>
+                              handleInputChange("allotmentType", parseInt(value))
+                            }
                           >
                             <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                               <SelectValue placeholder="Amount" />
@@ -520,7 +466,41 @@ export function CrewAllottee({
                     </div>
                   </div>
                 </div>
-                {/* Add Allottee  */}
+
+                {/* <div className="p-3 space-y-6">
+                  <div className="flex items-center justify-end mb-3">
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={!!displayAllottee?.priority}
+                          onChange={(e) =>
+                            handleInputChange("priority", e.target.checked ? 1 : 0)
+                          }
+                          disabled={!isEditingAllottee && !isAdding}
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <label className="text-sm font-medium text-gray-900">
+                          Priority Allotment
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={!!displayAllottee?.receivePayslip}
+                          onChange={(e) =>
+                            handleInputChange("receivePayslip", e.target.checked ? 1 : 0)
+                          }
+                          disabled={!isEditingAllottee && !isAdding}
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <label className="text-sm font-medium text-gray-900">
+                          Dollar Allotment
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div> */}
               </div>
               <div className="text-center">
                 <DataTable
@@ -533,8 +513,6 @@ export function CrewAllottee({
           )}
         </div>
       </div>
-
-      {/* Edit component here */}
 
     </div>
   );

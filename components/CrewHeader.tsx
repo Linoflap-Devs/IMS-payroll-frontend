@@ -130,6 +130,87 @@ export function CrewHeader({
 
         {activeTab === "allottee" && (
           <div className="px-4 pt-0 flex justify-end gap-3">
+            {isEditingAllottee && !isAddingAllottee ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={toggleAllotteeEdit}
+                  className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel Edit
+                </Button>
+                <Button
+                  className="bg-primary hover:bg-primary/90 w-40"
+                  onClick={handleSaveAllottee}
+                  disabled={allotteeLoading}
+                >
+                  {allotteeLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Allottee
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : isAddingAllottee ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={toggleAllotteeAdd}
+                  className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleTriggerAdd}
+                  disabled={isAddLoading}
+                  className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white"
+                >
+                  {isAddLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Allottee
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={toggleAllotteeEdit}
+                  className="bg-[#2BA148] hover:bg-green-700 px-6 w-40"
+                  disabled={!isAllotteeValid}
+                >
+                  <Pencil />
+                  Edit
+                </Button>
+                <Button
+                  className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40"
+                  onClick={toggleAllotteeAdd}
+                >
+                  <Plus />
+                  Add Allottee
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* {activeTab === "allottee" && (
+          <div className="px-4 pt-0 flex justify-end gap-3">
             {isAddingAllottee ? (
               <>
                 <Button
@@ -169,7 +250,7 @@ export function CrewHeader({
               </Button>
             )}
           </div>
-        )}
+        )} */}
 
         {activeTab === "validation" && (
           <div className="px-4 pt-0 flex justify-end gap-3">
