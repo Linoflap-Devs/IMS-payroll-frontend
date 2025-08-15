@@ -1346,7 +1346,7 @@ export default function CrewDetails() {
                       </div>
                     </div>
                   </div>
-                </TabsContent>  
+                </TabsContent>
 
                 <TabsContent
                   value="movement"
@@ -1370,9 +1370,9 @@ export default function CrewDetails() {
                         setAllotteeLoading={setAllotteeLoading}
                         setTriggerSave={setTriggerSave}
                         setIsEditingAllottee={setIsEditingAllottee}
-                        triggerDelete={triggerDelete}
-                        setTriggerDelete={setTriggerDelete}
-                        //setIsDeletingAllottee={setIsDeletingAllottee}
+                      //triggerDelete={triggerDelete}
+                      //setTriggerDelete={setTriggerDelete}
+                      //setIsDeletingAllottee={setIsDeletingAllottee}
                       />
                     </>
                   ) : (

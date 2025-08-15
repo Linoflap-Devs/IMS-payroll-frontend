@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import { useBankStore } from "@/src/store/useBankStore";
 import { useRelationshipStore } from "@/src/store/useRelationshipStore";
@@ -29,10 +28,8 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 import React from "react";
-import { editAllotteeSchema } from "@/lib/zod-validations";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { CircleMinus, Loader2, MoreHorizontal, Pencil, Plus, Trash } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
@@ -76,8 +73,8 @@ interface ICrewAllotteeProps {
   setAllotteeLoading: Dispatch<SetStateAction<boolean>>;
   setTriggerSave: Dispatch<SetStateAction<boolean>>;
   setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>;
-  triggerDelete: boolean;
-  setTriggerDelete: Dispatch<SetStateAction<boolean>>;
+  //triggerDelete: boolean;
+  //setTriggerDelete: Dispatch<SetStateAction<boolean>>;
   //setIsDeletingAllottee: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -88,8 +85,8 @@ export function CrewAllottee({
   setAllotteeLoading,
   setTriggerSave,
   setIsEditingAllottee = () => { },
-  setTriggerDelete,
-  triggerDelete,
+  //setTriggerDelete,
+  //triggerDelete,
   // setIsDeletingAllottee,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
@@ -354,77 +351,82 @@ export function CrewAllottee({
   const handleDeleteAllottee = async (allottee: AllotteeUiModel | null) => {
     if (!allottee) return;
 
-    console.log("deleteAllotteeWithConfirm triggered for:", allottee);
+    const swalWithBootstrapButtons = Swal.mixin({
+      customClass: {
+        confirmButton:
+          "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
+        cancelButton:
+          "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+      },
+      buttonsStyling: false,
+    });
 
-    const result = await Swal.fire({
+    console.log("handleDeleteAllottee triggered for:", allottee);
+
+    const result = await swalWithBootstrapButtons.fire({
       title: `Delete Allottee`,
       text: `Are you sure you want to delete ${allottee.name}?`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, delete it",
       cancelButtonText: "Cancel",
+      reverseButtons: true
     });
 
-    if (!result.isConfirmed) {
-      console.log("User cancelled deletion");
-      return;
-    }
+    if (result.isConfirmed) {
+      setEditingAllottee(allottee);
+      setDeletingAllottee(true);
 
-    console.log("User confirmed deletion");
-    setEditingAllottee(allottee);
-    setDeletingAllottee(true);
-    console.log("Deleting state set to true");
-
-    if (!allottee.id || !crewId) {
-      console.warn("Missing allottee.id or crewId", { allotteeId: allottee.id, crewId });
-      setDeletingAllottee(false);
-      return;
-    }
-
-    try {
-      const res = await deleteCrewAllottee(crewId.toString(), allottee.id.toString());
-      console.log("Delete API response:", res);
-
-      const percentage = res?.data?.Percentage;
-
-      toast({
-        title: "Allottee deleted successfully",
-        description: `Allottee ${allottee.name} has been removed.`,
-        variant: "success",
-      });
-
-      if (percentage !== undefined) {
-        toast({
-          title: "Updated Allotment Percentage",
-          description: `Remaining percentage: ${percentage}%`,
-          variant: "default",
-        });
+      if (!allottee.id || !crewId) {
+        console.warn("Missing allottee.id or crewId", { allotteeId: allottee.id, crewId });
+        setDeletingAllottee(false);
+        return;
       }
 
-      if (allottee.allotmentType === 2 && percentage < 100) {
-        toast({
-          title: "Update Required.",
-          description: `The total allotment percentage is now ${percentage}%, which is below the required 100%. Please update the remaining allottees.`,
-          variant: "warning",
-        });
-      }
+      try {
+        const res = await deleteCrewAllottee(crewId.toString(), allottee.id.toString());
+        const percentage = res?.data?.Percentage;
 
-      console.log("Fetching updated crew allottees...");
-      await fetchCrewAllottees(crewId.toString());
-      console.log("Crew allottees updated");
-    } catch (error) {
-      console.error("[deleteCrewAllottee] Error deleting allottee:", error);
-      toast({
-        title: "Error deleting allottee",
-        description: "There was an error deleting the allottee.",
-        variant: "destructive",
+        toast({
+          title: "Allottee deleted successfully",
+          description: `Allottee ${allottee.name} has been removed.`,
+          variant: "success",
+        });
+
+        if (percentage !== undefined) {
+          toast({
+            title: "Updated Allotment Percentage",
+            description: `Remaining percentage: ${percentage}%`,
+            variant: "default",
+          });
+        }
+
+        if (allottee.allotmentType === 2 && percentage < 100) {
+          toast({
+            title: "Update Required.",
+            description: `The total allotment percentage is now ${percentage}%, which is below the required 100%. Please update the remaining allottees.`,
+            variant: "warning",
+          });
+        }
+
+        await fetchCrewAllottees(crewId.toString());
+      } catch (error) {
+        console.error("[deleteCrewAllottee] Error deleting allottee:", error);
+        toast({
+          title: "Error deleting allottee",
+          description: "There was an error deleting the allottee.",
+          variant: "destructive",
+        });
+      } finally {
+        setDeletingAllottee(false);
+        setIsEditingAllottee(false);
+      }
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      swalWithBootstrapButtons.fire({
+        title: "Cancelled",
+        text: "Process cancelled.",
+        icon: "error",
       });
-    } finally {
-      setDeletingAllottee(false);
-      setIsEditingAllottee(false);
-      console.log("Deleting state set to false and exited editing mode");
     }
   };
 
@@ -435,7 +437,7 @@ export function CrewAllottee({
   }
 
   const displayAllottee =
-    isEditingAllottee || isAdding || triggerDelete
+    isEditingAllottee || isAdding
       ? editingAllottee
       : currentAllottee;
 
