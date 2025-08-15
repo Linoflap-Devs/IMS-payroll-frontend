@@ -31,6 +31,13 @@ import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 import React from "react";
 import { editAllotteeSchema } from "@/lib/zod-validations";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { CircleMinus, Loader2, MoreHorizontal, Pencil, Plus, Trash } from "lucide-react";
+import { DataTable } from "@/components/ui/data-table";
+import { Badge } from "@/components/ui/badge";
+import { ColumnDef } from "@tanstack/react-table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import Swal from "sweetalert2";
 
 // Empty UI model for initialization
 const emptyAllottee: AllotteeUiModel = {
@@ -71,7 +78,7 @@ interface ICrewAllotteeProps {
   setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>;
   triggerDelete: boolean;
   setTriggerDelete: Dispatch<SetStateAction<boolean>>;
-  setIsDeletingAllottee: Dispatch<SetStateAction<boolean>>;
+  //setIsDeletingAllottee: Dispatch<SetStateAction<boolean>>;
 }
 
 export function CrewAllottee({
@@ -83,7 +90,7 @@ export function CrewAllottee({
   setIsEditingAllottee = () => { },
   setTriggerDelete,
   triggerDelete,
-  setIsDeletingAllottee,
+  // setIsDeletingAllottee,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
@@ -96,7 +103,12 @@ export function CrewAllottee({
   const [previousAllotteeId, setPreviousAllotteeId] = useState<string>("");
   const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
   const [allotteeErrors, setAllotteeErrors] = useState<Record<string, string>>({});
+  const [selectedAllotteeData, setSelectedAllotteeData] = useState<AllotteeUiModel | null>(null);
+  const [editselectedAllotteeDialogOpen, setEditselectedAllotteeDialogOpen] = useState(false);
+  const [deletingAllottee, setDeletingAllottee] = useState(false);
+
   console.log('ALLOTTEES: ', allottees);
+
   const {
     allottees: storeAllottees,
     isLoadingAllottees,
@@ -135,43 +147,6 @@ export function CrewAllottee({
 
   const uniqueBanks = getUniqueBanks();
   const branchesForSelectedBank = getBranchesForSelectedBank();
-
-  const totalAllotment = allottees?.reduce(
-    (sum, allottee) => sum + Number(allottee.allotment || 0),
-    0
-  );
-
-  const handleBankChange = (value: string) => {
-    if (!editingAllottee) return;
-
-    const selectedBank = uniqueBanks.find((b) => b.BankID.toString() === value);
-
-    setEditingAllottee({
-      ...editingAllottee,
-      bankId: value,
-      bankName: selectedBank?.BankName || "",
-      branchId: "",
-      bankBranch: "",
-    });
-
-    setSelectedBankId(Number(value));
-  };
-
-  const handleBranchChange = (value: string) => {
-    if (!editingAllottee) return;
-
-    const selectedBranch = branchesForSelectedBank.find(
-      (b) => b.BankBranchID.toString() === value
-    );
-
-    setEditingAllottee({
-      ...editingAllottee,
-      branchId: value,
-      bankBranch: selectedBranch?.BankBranchName || "",
-    });
-
-    setSelectedBranchId(Number(value));
-  };
 
   useEffect(() => {
     const mapped = storeAllottees.map((a) => ({
@@ -217,15 +192,6 @@ export function CrewAllottee({
   }, [storeAllottees, previousAllotteeId]);
 
   useEffect(() => {
-    if (allottees.length > 0 && selectedIndex) {
-      const index = parseInt(selectedIndex, 10);
-      if (index < allottees.length) {
-        setPreviousAllotteeId(allottees[index].id);
-      }
-    }
-  }, [selectedIndex, allottees]);
-
-  useEffect(() => {
     if (isAdding) {
       setCurrentAllottee(emptyAllottee);
       setEditingAllottee(emptyAllottee);
@@ -263,432 +229,204 @@ export function CrewAllottee({
 
   const lastProcessedIndexRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (
-      isEditingAllottee &&
-      allottees.length > 0 &&
-      selectedIndex !== lastProcessedIndexRef.current
-    ) {
-      const index = parseInt(selectedIndex, 10);
-      const allottee = { ...allottees[index] };
-      let needsUpdate = false;
+  // table
+  const columns: ColumnDef<(typeof allottees)[number]>[] = [
+    {
+      accessorKey: "allotteeDetailID",
+      header: () => <div className="text-justify">Allotee ID</div>,
+      cell: ({ row }) => (
+        <div className="text-justify">{row.getValue("allotteeDetailID")}</div>
+      ),
+    },
+    {
+      accessorKey: "name",
+      header: () => <div className="text-justify">Crew Name</div>,
+      cell: ({ row }) => {
+        const name = row.getValue("name") as string;
+        //const profileImage = row.original.ProfileImage as string | undefined;
 
-      if (allottee.relationship && !allottee.relationshipId) {
-        const relation = allRelationshipData.find(
-          (r) => r.RelationName === allottee.relationship
+        return (
+          <div className="flex items-center space-x-3 text-justify">
+            {isLoadingAllottees ? (
+              <img
+                //src={profileImage}
+                alt={name}
+                className="w-8 h-8 rounded-full object-cover border border-gray-300"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm font-medium">
+                <span>{name?.charAt(0).toUpperCase()}</span>
+              </div>
+            )}
+            <span>{name}</span>
+          </div>
         );
-        if (relation) {
-          allottee.relationshipId = Number(relation.RelationID); // convert to number
-          needsUpdate = true;
-        }
-      }
+      },
+    },
+    {
+      accessorKey: "relationship",
+      header: () => <div className="text-justify">Relationship</div>,
+      cell: ({ row }) => (
+        <div className="text-justify">{row.getValue("relationship")}</div>
+      ),
+    },
+    {
+      accessorKey: "bankName",
+      header: () => <div className="text-justify">Bank</div>,
+      cell: ({ row }) => (
+        <div className="text-justify">{row.getValue("bankName")}</div>
+      ),
+    },
+    {
+      accessorKey: "bankBranch",
+      header: () => <div className="text-justify">Bank Branch</div>,
+      cell: ({ row }) => (
+        <div className="text-justify">{row.getValue("bankBranch")}</div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: () => <div className="text-left">Status</div>,
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
 
-      if (allottee.province && !allottee.provinceId) {
-        const province = provinces.find(
-          (p) => p.ProvinceName === allottee.province
+        const badgeClass = {
+          "On board": "bg-green-100 text-green-800 hover:bg-green-100/80",
+          "Off board": "bg-red-100 text-red-800 hover:bg-red-100/80",
+        }[status] || "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
+
+        return (
+          <div className="flex text-left">
+            <Badge variant="secondary" className={badgeClass}>
+              {status}
+            </Badge>
+          </div>
         );
-        if (province) {
-          allottee.provinceId = province.ProvinceID.toString();
-          needsUpdate = true;
-        }
-      }
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-7 sm:h-8 w-7 sm:w-8 p-0"
+              >
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+              </Button>
+            </DropdownMenuTrigger>
 
-      if (allottee.city && !allottee.cityId && allottee.provinceId) {
-        const city = cities.find(
-          (c) =>
-            c.CityName === allottee.city &&
-            c.ProvinceID === parseInt(allottee.provinceId)
-        );
-        if (city) {
-          allottee.cityId = city.CityID.toString();
-          needsUpdate = true;
-        }
-      }
-
-      if (allottee.bankName && !allottee.bankId) {
-        const bank = uniqueBanks.find((b) => b.BankName === allottee.bankName);
-        if (bank) {
-          allottee.bankId = bank.BankID.toString();
-          setSelectedBankId(bank.BankID);
-          needsUpdate = true;
-        }
-      }
-
-      if (needsUpdate) {
-        setEditingAllottee(allottee);
-      }
-
-      lastProcessedIndexRef.current = selectedIndex;
+            <DropdownMenuContent
+              align="end"
+              className="text-xs sm:text-sm"
+            >
+              <DropdownMenuItem
+                className="text-xs sm:text-sm"
+                onClick={() => {
+                  setSelectedAllotteeData(row.original);
+                  setEditselectedAllotteeDialogOpen(true);
+                }}
+              >
+                <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                Edit Allottee
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive text-xs sm:text-sm"
+                onClick={() => {
+                  console.log("Delete button clicked for allottee:", row.original);
+                  handleDeleteAllottee(row.original);
+                }}                >
+                <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
     }
-  }, [
-    isEditingAllottee,
-    allottees,
-    selectedIndex,
-    allRelationshipData,
-    provinces,
-    cities,
-    uniqueBanks,
-    setSelectedBankId,
-  ]);
+  ];
 
-  useEffect(() => {
-    if (
-      isEditingAllottee &&
-      editingAllottee &&
-      editingAllottee.bankId &&
-      !editingAllottee.branchId
-    ) {
+  const handleDeleteAllottee = async (allottee: AllotteeUiModel | null) => {
+    if (!allottee) return;
 
-      setSelectedBankId(Number(editingAllottee.bankId));
+    console.log("deleteAllotteeWithConfirm triggered for:", allottee);
 
-      setTimeout(() => {
-        const branches = getBranchesForSelectedBank();
-
-        if (editingAllottee.bankBranch && branches.length > 0) {
-          const matchingBranch = branches.find(
-            (b) => b.BankBranchName === editingAllottee.bankBranch
-          );
-
-          if (matchingBranch) {
-
-            setEditingAllottee({
-              ...editingAllottee,
-              branchId: matchingBranch.BankBranchID.toString(),
-            });
-
-            setSelectedBranchId(matchingBranch.BankBranchID);
-          }
-        }
-      }, 100);
-    }
-  }, [
-    isEditingAllottee,
-    editingAllottee?.bankId,
-    getBranchesForSelectedBank,
-    setSelectedBankId,
-    setSelectedBranchId,
-    editingAllottee,
-  ]);
-
-  useEffect(() => {
-    if (!isEditingAllottee) {
-      lastProcessedIndexRef.current = null;
-    }
-  }, [isEditingAllottee]);
-
-  const filteredCities = useMemo(() => {
-    if (!editingAllottee || !editingAllottee.provinceId) {
-      return [];
-    }
-
-    const provinceId = parseInt(editingAllottee.provinceId);
-    const citiesInProvince = cities.filter(
-      (city) => city.ProvinceID === provinceId
-    );
-
-    if (!searchCity.trim()) {
-      return citiesInProvince.slice(0, 50);
-    }
-
-    return citiesInProvince
-      .filter((city) =>
-        city.CityName.toLowerCase().includes(searchCity.toLowerCase())
-      )
-      .slice(0, 100);
-  }, [cities, searchCity, editingAllottee]);
-
-  const filteredProvinces = useMemo(() => {
-    if (!searchProvince.trim()) {
-      return provinces;
-    }
-    return provinces.filter((province) =>
-      province.ProvinceName.toLowerCase().includes(searchProvince.toLowerCase())
-    );
-  }, [provinces, searchProvince]);
-
-  const handleCityChange = (cityId: string) => {
-    if (!editingAllottee) return;
-
-    const selectedCity = cities.find((c) => c.CityID.toString() === cityId);
-
-    setEditingAllottee({
-      ...editingAllottee,
-      cityId: cityId,
-      city: selectedCity?.CityName || "",
-    });
-  };
-
-  const handleProvinceChange = (provinceId: string) => {
-    if (!editingAllottee) return;
-
-    const selectedProvince = provinces.find(
-      (p) => p.ProvinceID.toString() === provinceId
-    );
-
-    setEditingAllottee({
-      ...editingAllottee,
-      provinceId: provinceId,
-      province: selectedProvince?.ProvinceName || "",
-      cityId: "",
-      city: "",
-    });
-  };
-
-  const handleRelationshipChange = (relationId: string) => {
-    if (!editingAllottee) return;
-
-    const selectedRelation = allRelationshipData.find(
-      (r) => r.RelationID.toString() === relationId
-    );
-
-    setEditingAllottee({
-      ...editingAllottee,
-      relationshipId: Number(relationId), // convert to number
-      relationship: selectedRelation?.RelationName ?? "",
+    const result = await Swal.fire({
+      title: `Delete Allottee`,
+      text: `Are you sure you want to delete ${allottee.name}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it",
+      cancelButtonText: "Cancel",
     });
 
-    // Clear the error
-    setAllotteeErrors((prev) => ({ ...prev, relationshipId: "" }));
-  };
+    if (!result.isConfirmed) {
+      console.log("User cancelled deletion");
+      return;
+    }
 
-  const convertToApiModel = (uiModel: AllotteeUiModel): AllotteeApiModel => {
-    return {
-      id: uiModel.id,
-      name: uiModel.name,
-      allotmentType: uiModel.allotmentType,
-      relation: uiModel.relationshipId ? Number(uiModel.relationshipId) : 0,
-      contactNumber: uiModel.contactNumber,
-      address: uiModel.address,
-      city: uiModel.cityId ? parseInt(uiModel.cityId) : 0,
-      province: uiModel.provinceId ? parseInt(uiModel.provinceId) : 0,
-      bank: uiModel.bankId ? parseInt(uiModel.bankId) : 0,
-      branch: uiModel.branchId ? parseInt(uiModel.branchId) : 0,
-      accountNumber: uiModel.accountNumber,
-      allotment: uiModel.allotment,
-      //priority: uiModel.priority ? 1 : 0,
-      priority: uiModel.priority ? 1 : 0,
-      receivePayslip: uiModel.receivePayslip ? 1 : 0,
-      active: uiModel.active ? 1 : 0,
-      allotteeDetailID: uiModel.allotteeDetailID,
-    };
-  };
+    console.log("User confirmed deletion");
+    setEditingAllottee(allottee);
+    setDeletingAllottee(true);
+    console.log("Deleting state set to true");
 
-  const handleInputChange = (field: keyof AllotteeUiModel, value: unknown) => {
-    if (!editingAllottee) return;
+    if (!allottee.id || !crewId) {
+      console.warn("Missing allottee.id or crewId", { allotteeId: allottee.id, crewId });
+      setDeletingAllottee(false);
+      return;
+    }
 
-    setEditingAllottee({
-      ...editingAllottee,
-      [field]: value,
-    });
+    try {
+      const res = await deleteCrewAllottee(crewId.toString(), allottee.id.toString());
+      console.log("Delete API response:", res);
 
-    // Only validate if this field exists in the Zod schema
-    if (field in editAllotteeSchema.shape) {
-      const schemaKey = field as keyof typeof editAllotteeSchema.shape;
-      const fieldSchema = editAllotteeSchema.shape[schemaKey];
-      const result = fieldSchema.safeParse(value);
+      const percentage = res?.data?.Percentage;
 
-      setAllotteeErrors((prev) => {
-        const { [field]: removed, ...rest } = prev;
-        if (!result.success) {
-          return {
-            ...rest,
-            [field]: result.error.errors[0].message,
-          };
-        }
-        return rest;
+      toast({
+        title: "Allottee deleted successfully",
+        description: `Allottee ${allottee.name} has been removed.`,
+        variant: "success",
       });
-    }
-  };
 
-  const validateAllFields = (data: AllotteeUiModel) => {
-    const result = editAllotteeSchema.safeParse(data);
-    if (!result.success) {
-      return result.error.errors.reduce((acc, err) => {
-        acc[err.path[0] as keyof AllotteeUiModel] = err.message;
-        return acc;
-      }, {} as Record<keyof AllotteeUiModel, string>);
-    }
-    return {};
-  };
-
-  // useEffect(() => {
-  //   if (editingAllottee) {
-  //     setAllotteeErrors(validateAllFields(editingAllottee));
-  //   }
-  // }, [editingAllottee]);
-
-  // const forceNumberFlags = (allottee: AllotteeUiModel): AllotteeUiModel => ({
-  //   ...allottee,
-  //   priority: allottee.priority ? 1 : 0,
-  //   receivePayslip: allottee.receivePayslip ? 1 : 0,
-  //   active: allottee.active ? 1 : 0,
-  // });
-
-  // console.log('Current editingAllotteesss:', editingAllottee);
-
-  useEffect(() => {
-    if (triggerSave) {
-      console.log("Trigger save activated");
-      console.log("Current editingAllottee:", editingAllottee);
-      console.log("Current crewId:", crewId);
-
-      if (!editingAllottee || !crewId) {
-        console.warn("Missing editingAllottee or crewId", {
-          editingAllottee,
-          crewId,
-        });
-        setAllotteeLoading(false);
-        setTriggerSave(false);
-        return;
-      }
-
-      // --- Validate all fields ---
-      const fieldErrors = validateAllFields(editingAllottee);
-      console.log("Field validation errors:", fieldErrors);
-
-      if (Object.keys(fieldErrors).length > 0) {
-        console.log("Validation failed. Storing errors in state.");
-        setAllotteeErrors(fieldErrors);
+      if (percentage !== undefined) {
         toast({
-          title: "Validation Error",
-          description: Object.values(fieldErrors).join(", "),
-          variant: "destructive",
+          title: "Updated Allotment Percentage",
+          description: `Remaining percentage: ${percentage}%`,
+          variant: "default",
         });
-        setAllotteeLoading(false);
-        setTriggerSave(false);
-        setIsEditingAllottee(true);
-        return;
       }
 
-      setAllotteeLoading(true);
-      console.log("Validation passed. Preparing API model...");
-
-      try {
-        const apiModel = convertToApiModel(editingAllottee);
-        console.log("API model to be sent:", apiModel);
-
-        updateCrewAllottee(crewId.toString(), apiModel)
-          .then(() => {
-            console.log(`Allottee ${editingAllottee.name} saved successfully`);
-            toast({
-              title: "Allottee saved successfully",
-              description: `Allottee ${editingAllottee.name} has been updated.`,
-              variant: "success",
-            });
-            fetchCrewAllottees(crewId.toString());
-            setIsEditingAllottee(false);
-          })
-          .catch((error) => {
-            console.error("Error saving allottee:", error);
-
-            if (
-              error?.response?.status === 500 &&
-              typeof error?.response?.data?.message === "string" &&
-              error.response.data.message.includes(
-                "Allotment percentage would exceed 100 percent"
-              )
-            ) {
-              console.warn("Allotment percentage exceeded 100%");
-              toast({
-                title: "Validation Error",
-                description: "Allotment percentage would exceed 100 percent.",
-                variant: "destructive",
-              });
-              setIsEditingAllottee(true);
-            } else {
-              toast({
-                title: "Error saving allottee",
-                description: "There was an error saving the allottee.",
-                variant: "destructive",
-              });
-              setIsEditingAllottee(true);
-            }
-          })
-          .finally(() => {
-            console.log("Save process finished.");
-            setAllotteeLoading(false);
-            setTriggerSave(false);
-          });
-      } catch (error) {
-        console.error("Unexpected error in save process:", error);
-        setAllotteeLoading(false);
-        setTriggerSave(false);
-        setIsEditingAllottee(true);
+      if (allottee.allotmentType === 2 && percentage < 100) {
+        toast({
+          title: "Update Required.",
+          description: `The total allotment percentage is now ${percentage}%, which is below the required 100%. Please update the remaining allottees.`,
+          variant: "warning",
+        });
       }
+
+      console.log("Fetching updated crew allottees...");
+      await fetchCrewAllottees(crewId.toString());
+      console.log("Crew allottees updated");
+    } catch (error) {
+      console.error("[deleteCrewAllottee] Error deleting allottee:", error);
+      toast({
+        title: "Error deleting allottee",
+        description: "There was an error deleting the allottee.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingAllottee(false);
+      setIsEditingAllottee(false);
+      console.log("Deleting state set to false and exited editing mode");
     }
-  }, [
-    triggerSave,
-    crewId,
-    editingAllottee,
-    setAllotteeLoading,
-    setTriggerSave,
-    fetchCrewAllottees,
-    setIsEditingAllottee,
-  ]);
-
-  //console.log('EDITING ALLOTTEE RESPONSE: ', editingAllottee);
-
-  // for delete allottee
-  useEffect(() => {
-    if (triggerDelete) {
-      setIsDeletingAllottee(true);
-
-      if (!editingAllottee?.id || !crewId) {
-        console.warn("Missing editingAllottee.id or crewId", {
-          editingAllotteeId: editingAllottee?.id,
-          crewId,
-        });
-        setIsDeletingAllottee(false);
-        setTriggerDelete(false);
-        return;
-      }
-
-      deleteCrewAllottee(crewId.toString(), editingAllottee.id.toString())
-        .then((res) => {
-          const percentage = res?.data?.Percentage;
-
-          toast({
-            title: "Allottee deleted successfully",
-            description: `Allottee ${editingAllottee?.name} has been removed.`,
-            variant: "success",
-          });
-
-          // Show updated percentage
-          if (percentage !== undefined) {
-            toast({
-              title: "Updated Allotment Percentage",
-              description: `Remaining percentage: ${percentage}%`,
-              variant: "default",
-            });
-          }
-
-          // Warning if allotment type is 2 and less than 100
-          if (editingAllottee.allotmentType === 2 && percentage < 100) {
-            toast({
-              title: "Update Required.",
-              description:
-                `The total allotment percentage is now ${percentage}%, which is below the required 100%. Please update the remaining allottees.`,
-              variant: "warning",
-            });
-          }
-
-          fetchCrewAllottees(crewId.toString());
-        })
-        .catch((error) => {
-          console.error("[deleteCrewAllottee] Error deleting allottee:", error);
-          toast({
-            title: "Error deleting allottee",
-            description: "There was an error deleting the allottee.",
-            variant: "destructive",
-          });
-        })
-        .finally(() => {
-          setIsDeletingAllottee(false);
-          setTriggerDelete(false);
-          setIsEditingAllottee(false);
-        });
-    }
-  }, [triggerDelete, crewId, editingAllottee]);
+  };
 
   if (allotteesError) {
     return (
@@ -724,585 +462,78 @@ export function CrewAllottee({
   }, [allottees]);
 
   return (
-    <div className="space-y-6">
-      {isLoadingAllottees ? (
-        <div className="text-center pt-6">Loading allottee data...</div>
-      ) : (
-        <>
-          {/* Allottee selection */}
-          {!isEditingAllottee && !isAdding ? (
+    <div className="h-full w-full pt-2">
+      <style jsx global>{`
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+          -ms-overflow-style: none; /* IE and Edge */
+          scrollbar-width: none; /* Firefox */
+        }
+      `}</style>
+      <div className="h-full overflow-y-auto scrollbar-hide">
+        <div className="flex flex-col space-y-4 sm:space-y-5 min-h-full">
+          {isLoadingAllottees ? (
+            <div className="flex justify-center items-center h-32">
+              Loading Allottees...
+            </div>
+          ) : (
             <>
-              <div className="flex gap-4 w-1/2">
-                <div className="flex-1">
-                  <div className="relative rounded-lg border shadow-sm overflow-hidden">
-                    <div className="flex h-11 w-full">
-                      <div className="flex items-center px-4 bg-gray-50 border-r">
-                        <span className="text-gray-700 font-medium whitespace-nowrap">
-                          Select Allottee
-                        </span>
-                      </div>
-                      <div className="flex-1 w-full flex items-center">
-                        <Select
-                          value={selectedIndex}
-                          onValueChange={setSelectedIndex}
-                          disabled={!displayAllottee} // disable when first name is not valid
-                        >
-                          <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                            <SelectValue placeholder="Select Allottee" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {allottees.map((a, idx) => (
-                              <SelectItem key={idx} value={idx.toString()}>
-                                {a.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 mb-6">
+                <div className="pr-8">
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="relative rounded-lg border shadow-sm overflow-hidden">
+                      <div className="flex h-11 w-full">
+                        <div className="flex items-center px-4 bg-gray-50 border-r">
+                          <span className="text-gray-700 font-medium whitespace-nowrap">
+                            Allotment Type
+                          </span>
+                        </div>
+                        <div className="flex-1 w-full flex items-center">
+                          <Select
+                            value={
+                              commonAllotmentType !== null
+                                ? commonAllotmentType.toString()
+                                : displayAllottee?.allotmentType?.toString() || "1"
+                            }
+                          //disabled={commonAllotmentType !== null}
+                          // onValueChange={(value) =>
+                          //   handleInputChange("allotmentType", parseInt(value))
+                          // }
+                          >
+                            <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
+                              <SelectValue placeholder="Amount" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">Amount</SelectItem>
+                              <SelectItem value="2">Percentage</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                {allottees.some(a => a.allotmentType === 2) && (
-                  <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
-                    Total Allotment:{" "}
-                    <span
-                      className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
-                        }`}
-                    >
-                      {totalAllotment}%
-                    </span>
-                  </div>
-                )}
+                {/* Add Allottee  */}
+              </div>
+              <div className="text-center">
+                <DataTable
+                  columns={columns}
+                  data={allottees}
+                  pageSize={7}
+                />
               </div>
             </>
-          ) : (
-            <div className="flex gap-4 w-3/4">
-              <div className="relative rounded-lg border shadow-sm overflow-hidden w-1/2">
-                <div className="flex h-11 w-full">
-                  <div className="flex items-center px-4 bg-gray-50 border-r">
-                    <span className="text-gray-700 font-medium whitespace-nowrap">
-                      Allotment Type
-                    </span>
-                  </div>
-                  <div className="flex-1 w-full flex items-center">
-                    <Select
-                      value={
-                        commonAllotmentType !== null
-                          ? commonAllotmentType.toString()
-                          : displayAllottee?.allotmentType?.toString() || "1"
-                      }
-                      disabled={commonAllotmentType !== null}
-                      onValueChange={(value) =>
-                        handleInputChange("allotmentType", parseInt(value))
-                      }
-                    >
-                      <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                        <SelectValue placeholder="Amount" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Amount</SelectItem>
-                        <SelectItem value="2">Percentage</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              {allottees.some(a => a.allotmentType === 2) && (
-                <div className="flex items-center px-5 py-2 bg-gray-50 border rounded-lg text-sm font-medium text-gray-700">
-                  Total Allotment:{" "}
-                  <span
-                    className={`ml-1 font-semibold ${totalAllotment > 100 ? "text-red-600" : "text-green-600"
-                      }`}
-                  >
-                    {totalAllotment}%
-                  </span>
-                </div>
-              )}
-            </div>
           )}
+        </div>
+      </div>
 
-          {/* Details display */}
-          {displayAllottee ? (
-            <div className="p-4 space-y-6">
-              {/* Personal Info */}
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-primary">
-                  Allottee Personal Information
-                </h3>
+      {/* Edit component here */}
 
-                {/* Checkboxes */}
-                <div className="flex items-center gap-6">
-                  {/* <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={!!displayAllottee.active}
-                      onChange={(e) =>
-                        isEditingAllottee || isAdding
-                          ? handleInputChange("active", e.target.checked)
-                          : null
-                      }
-                      disabled={!isEditingAllottee && !isAdding}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <label className="text-sm font-medium text-gray-900">
-                      Active
-                    </label>
-                  </div> */}
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={!!displayAllottee.priority}
-                      onChange={(e) =>
-                        isEditingAllottee || isAdding
-                          ? handleInputChange("priority", e.target.checked)
-                          : null
-                      }
-                      disabled={!isEditingAllottee && !isAdding}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <label className="text-sm font-medium text-gray-900">
-                      Priority Allotment
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={!!displayAllottee.receivePayslip}
-                      onChange={(e) =>
-                        isEditingAllottee || !isAdding
-                          ? handleInputChange("receivePayslip", e.target.checked)
-                          : null
-                      }
-                      disabled={!isEditingAllottee && !isAdding}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <label className="text-sm font-medium text-gray-900">
-                      Dollar Allotment
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Personal Info Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-sm text-gray-500 mb-1 block">
-                    Name
-                  </label>
-                  <Input
-                    value={displayAllottee.name}
-                    readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                      ? "bg-gray-50"
-                      : "bg-white"
-                      }`}
-                    onChange={(e) =>
-                      (isEditingAllottee || isAdding) &&
-                      handleInputChange("name", e.target.value)
-                    }
-                  />
-                  {isEditingAllottee && allotteeErrors.name && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {allotteeErrors.name}
-                    </p>
-                  )}
-                </div>
-
-                {/* Relationship field - use Select in edit mode */}
-                <div>
-                  <label className="text-sm text-gray-500 mb-1 block">
-                    Relationship
-                  </label>
-                  {isEditingAllottee || isAdding ? (
-                    <Select
-                      value={
-                        editingAllottee?.relationshipId != null
-                          ? String(editingAllottee.relationshipId) // convert number to string
-                          : ""
-                      }
-                      onValueChange={handleRelationshipChange}
-                    >
-                      <SelectTrigger
-                        id="relationship"
-                        className={`w-full h-10 ${isEditingAllottee || isAdding
-                          ? allotteeErrors.relationshipId
-                            ? "border-red-500 focus:!ring-red-500/50"
-                            : "bg-white"
-                          : "bg-gray-50"
-                          }`}
-                      >
-                        <SelectValue placeholder="Select a relationship" />
-                      </SelectTrigger>
-                      <SelectContent className="h-70">
-                        {allRelationshipData.map((relationship) => (
-                          <SelectItem
-                            key={relationship.RelationID}
-                            value={relationship.RelationID.toString()}
-                          >
-                            {relationship.RelationName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input
-                      value={displayAllottee.relationship}
-                      readOnly
-                      className={`w-full h-10 bg-gray-50`}
-                    />
-                  )}
-                  {isEditingAllottee && allotteeErrors.relationshipId && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {allotteeErrors.relationshipId}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-500 mb-1 block">
-                    Contact Number
-                  </label>
-                  <Input
-                    value={displayAllottee.contactNumber}
-                    readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                      ? "bg-gray-50"
-                      : allotteeErrors.contactNumber
-                        ? "border-red-500 focus:!ring-red-500/50"
-                        : "bg-white"
-                      }`}
-                    onChange={(e) =>
-                      (isEditingAllottee || isAdding) &&
-                      handleInputChange("contactNumber", e.target.value)
-                    }
-                  />
-                  {isEditingAllottee && allotteeErrors.contactNumber && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {allotteeErrors.contactNumber}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500 mb-1 block">
-                    Address
-                  </label>
-                  <Input
-                    value={displayAllottee.address}
-                    readOnly={!isEditingAllottee && !isAdding}
-                    className={`w-full h-10 ${!isEditingAllottee && !isAdding
-                      ? "bg-gray-50"
-                      : allotteeErrors.address
-                        ? "border-red-500 focus:!ring-red-500/50 bg-white"
-                        : "bg-white"
-                      }`}
-                    onChange={(e) =>
-                      (isEditingAllottee || isAdding) &&
-                      handleInputChange("address", e.target.value)
-                    }
-                  />
-                  {isEditingAllottee && allotteeErrors.address && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {allotteeErrors.address}
-                    </p>
-                  )}
-                </div>
-                {/* City Field */}
-                <div>
-                  <label className="text-sm text-gray-500 mb-1 block">
-                    City
-                  </label>
-                  {isEditingAllottee || isAdding ? (
-                    <>
-                      <Select
-                        value={displayAllottee.cityId}
-                        onValueChange={handleCityChange}
-                        disabled={!displayAllottee.provinceId}
-                      >
-                        <SelectTrigger
-                          className={`w-full !h-10 ${allotteeErrors.city
-                            ? "bg-gray-50"
-                            : allotteeErrors.city
-                              ? "border-red-500 focus:!ring-red-500/50 bg-white"
-                              : "bg-white"
-                            }`}
-                        >
-                          <SelectValue placeholder="Select a city" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-80">
-                          <div className="px-2 py-2 sticky top-0 bg-white z-10">
-                            <Input
-                              placeholder="Search cities..."
-                              value={searchCity}
-                              onChange={(e) => setSearchCity(e.target.value)}
-                              className="h-8"
-                            />
-                          </div>
-                          {loading ? (
-                            <SelectItem value="loading">Loading...</SelectItem>
-                          ) : filteredCities.length > 0 ? (
-                            filteredCities.map((city) => (
-                              <SelectItem
-                                key={city.CityID}
-                                value={city.CityID.toString()}
-                              >
-                                {city.CityName}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <div className="px-2 py-2 text-sm text-gray-500">
-                              {displayAllottee.provinceId
-                                ? "No cities found"
-                                : "Select a province first"}
-                            </div>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </>
-                  ) : (
-                    <Input
-                      value={displayAllottee.city}
-                      readOnly
-                      className="w-full h-10 bg-gray-50"
-                    />
-                  )}
-                  {isEditingAllottee && allotteeErrors.city && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {allotteeErrors.city}
-                    </p>
-                  )}
-                </div>
-                {/* Province Field */}
-                <div>
-                  <label className="text-sm text-gray-500 mb-1 block">
-                    Province
-                  </label>
-                  {isEditingAllottee || isAdding ? (
-                    <>
-                      <Select
-                        value={displayAllottee.provinceId}
-                        onValueChange={handleProvinceChange}
-                      >
-                        <SelectTrigger
-                          className={`w-full !h-10 ${allotteeErrors.city
-                            ? "bg-gray-50"
-                            : allotteeErrors.province
-                              ? "border-red-500 focus:!ring-red-500/50 bg-white"
-                              : "bg-white"
-                            }`}
-                        >
-                          <SelectValue placeholder="Select a province" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-80">
-                          <div className="px-2 py-2 sticky top-0 bg-white z-10">
-                            <Input
-                              placeholder="Search provinces..."
-                              value={searchProvince}
-                              onChange={(e) =>
-                                setSearchProvince(e.target.value)
-                              }
-                              className="h-8"
-                            />
-                          </div>
-                          {loading ? (
-                            <SelectItem value="loading">Loading...</SelectItem>
-                          ) : filteredProvinces.length > 0 ? (
-                            filteredProvinces.map((province) => (
-                              <SelectItem
-                                key={province.ProvinceID}
-                                value={province.ProvinceID.toString()}
-                              >
-                                {province.ProvinceName}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <div className="px-2 py-2 text-sm text-gray-500">
-                              No provinces found
-                            </div>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </>
-                  ) : (
-                    <Input
-                      value={displayAllottee.province}
-                      readOnly
-                      className="w-full h-10 bg-gray-50"
-                    />
-                  )}
-                  {isEditingAllottee && allotteeErrors.province && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {allotteeErrors.province}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Bank Info */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 text-primary">
-                  Bank Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Bank field */}
-                  <div>
-                    <label className="text-sm text-gray-500 mb-1 block">
-                      Bank
-                    </label>
-                    {isEditingAllottee || isAdding ? (
-                      <Select
-                        value={displayAllottee.bankId}
-                        onValueChange={handleBankChange}
-                      >
-                        <SelectTrigger
-                          id="bank"
-                          className={`w-full !h-10 ${allotteeErrors.bankId ? "border-red-500 focus:ring-red-500/50" : ""
-                            }`}
-                        >
-                          <SelectValue placeholder="Select a bank" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {uniqueBanks.map((bank) => (
-                            <SelectItem
-                              key={bank.BankID}
-                              value={bank.BankID.toString()}
-                            >
-                              {bank.BankName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Input
-                        value={displayAllottee.bankName}
-                        readOnly
-                        className={`w-full h-10 bg-gray-50 ${allotteeErrors.bankId ? "border-red-500" : ""
-                          }`}
-                      />
-                    )}
-                    {isEditingAllottee && allotteeErrors.bankId && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {allotteeErrors.bankId}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Branch field */}
-                  <div>
-                    <label className="text-sm text-gray-500 mb-1 block">
-                      Branch
-                    </label>
-                    {isEditingAllottee || isAdding ? (
-                      <Select
-                        value={displayAllottee.branchId}
-                        onValueChange={handleBranchChange}
-                        disabled={!displayAllottee.bankId}
-                      >
-                        <SelectTrigger
-                          id="branch"
-                          className={`w-full !h-10 ${allotteeErrors.branchId ? "border-red-500 focus:ring-red-500/50" : ""
-                            }`}
-                        >
-                          <SelectValue placeholder="Select a branch" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {branchesForSelectedBank.length > 0 ? (
-                            branchesForSelectedBank.map((branch) => (
-                              <SelectItem
-                                key={branch.BankBranchID}
-                                value={branch.BankBranchID.toString()}
-                              >
-                                {branch.BankBranchName}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="none" disabled>
-                              {displayAllottee.bankId
-                                ? "No branches found for this bank"
-                                : "Select a bank first"}
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Input
-                        value={displayAllottee.bankBranch}
-                        readOnly
-                        className={`w-full h-10 bg-gray-50 ${allotteeErrors.branchId ? "border-red-500" : ""
-                          }`}
-                      />
-                    )}
-                    {isEditingAllottee && allotteeErrors.branchId && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {allotteeErrors.branchId}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Account Number */}
-                  <div>
-                    <label className="text-sm text-gray-500 mb-1 block">
-                      Account Number
-                    </label>
-                    <Input
-                      value={displayAllottee.accountNumber}
-                      readOnly={!isEditingAllottee && !isAdding}
-                      className={`w-full h-10 
-                        ${isEditingAllottee && allotteeErrors.accountNumber ? "border-red-500 focus:ring-red-500/50" : ""} 
-                        ${!isEditingAllottee && !isAdding ? "bg-gray-50" : "bg-white"}`}
-                      onChange={(e) =>
-                        (isEditingAllottee || isAdding) &&
-                        handleInputChange("accountNumber", e.target.value)
-                      }
-                    />
-                    {isEditingAllottee && allotteeErrors.accountNumber && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {allotteeErrors.accountNumber}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="text-sm text-gray-500 mb-1 block">
-                      {displayAllottee.allotmentType === 1
-                        ? "Allotment Amount in" + (displayAllottee.receivePayslip === 1 ? " (Dollar)" : " (Peso)")
-                        : "Allotment Percentage"}
-                    </label>
-
-                    <Input
-                      type="number"
-                      value={displayAllottee.allotment != null ? displayAllottee.allotment.toString() : ""}
-                      readOnly={!(isEditingAllottee || isAdding)}
-                      className={`w-full h-10 ${allotteeErrors.allotment
-                        ? "border-red-500 focus:!ring-red-500/50 bg-white"
-                        : !(isEditingAllottee || isAdding)
-                          ? "bg-gray-50"
-                          : "bg-white"
-                        }`}
-                      onChange={(e) => {
-                        if (isEditingAllottee || isAdding) {
-                          handleInputChange("allotment", parseFloat(e.target.value) || 0);
-                        }
-                      }}
-                    />
-
-                    {(isEditingAllottee || isAdding) && allotteeErrors.allotment && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {allotteeErrors.allotment}
-                      </p>
-                    )}
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 text-center text-gray-500">
-              No allottee records found.
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }

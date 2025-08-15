@@ -1372,7 +1372,7 @@ export default function CrewDetails() {
                         setIsEditingAllottee={setIsEditingAllottee}
                         triggerDelete={triggerDelete}
                         setTriggerDelete={setTriggerDelete}
-                        setIsDeletingAllottee={setIsDeletingAllottee}
+                        //setIsDeletingAllottee={setIsDeletingAllottee}
                       />
                     </>
                   ) : (
