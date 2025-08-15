@@ -92,6 +92,9 @@ export function generateAllotmentPayrollRegister(
         return false;
     }
 
+    //console.log('IN PDF: ', vesselData);
+    //console.log(netAllotment)
+
     try {
         // Create a single PDF document for all vessels
         const doc = new jsPDF({

@@ -209,9 +209,34 @@ export default function Dashboard() {
     );
   };
 
+  // Detect all-zero case once
+  const allZero = React.useMemo(() => {
+    return vesselData.length > 0 && vesselData.every((d) => d.value === 0);
+  }, [vesselData]);
+
+  // Always ensure something is drawable
+  const chartData = React.useMemo(() => {
+    if (!vesselData || vesselData.length === 0) {
+      // No data → grey placeholder slice
+      return [{ name: "No Data", value: 1, fill: "#e5e7eb" }];
+    }
+
+    if (allZero) {
+      // Replace zeros with tiny value so Pie still renders
+      return vesselData.map((d) => ({
+        ...d,
+        value: 0.0001,
+        fill: d.fill ?? "#e5e7eb",
+      }));
+    }
+
+    // Normal case
+    return vesselData;
+  }, [vesselData, allZero]);
+
   return (
     <div className="h-full w-full p-6 pt-3">
-      <p className="text-4xl font-semibold my-3">Dashboard</p>
+      {/* <p className="text-4xl font-semibold my-3">Dashboard</p> */}
 
       {/* Welcome Card */}
       <Card className="my-3">
@@ -229,7 +254,7 @@ export default function Dashboard() {
               and timely transactions for all crew members.
             </p>
           </div>
-          <div className="relative w-48 h-32">
+          <div className="relative w-48 h-32 mt-8">
             <Image
               src="/ship-image.png"
               alt="Ship"
@@ -360,9 +385,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
         <Card>
           <CardHeader className="pb-1 p-3">
-            <CardTitle className="text-lg">
-              Total Vessel Net Allottment
-            </CardTitle>
+            <CardTitle className="text-lg">Total Vessel Net Allottment</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="h-[300px] w-full">
@@ -373,13 +396,14 @@ export default function Dashboard() {
                     content={<ChartTooltipContent hideLabel />}
                   />
                   <Pie
-                    data={vesselData}
+                    data={chartData}
                     dataKey="value"
                     nameKey="name"
                     innerRadius={100}
                     outerRadius={140}
-                    strokeWidth={4}>
-                    {vesselData.map((entry, index) => (
+                    strokeWidth={4}
+                  >
+                    {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                     <Label
@@ -390,12 +414,16 @@ export default function Dashboard() {
                               x={viewBox.cx}
                               y={viewBox.cy}
                               textAnchor="middle"
-                              dominantBaseline="middle">
+                              dominantBaseline="middle"
+                            >
                               <tspan
                                 x={viewBox.cx}
                                 y={viewBox.cy}
-                                className="fill-foreground text-2xl font-bold">
-                                {totalVesselAllotment.toLocaleString()}
+                                className="fill-foreground text-2xl font-bold"
+                              >
+                                {allZero
+                                  ? "0"
+                                  : totalVesselAllotment?.toLocaleString() ?? "—"}
                               </tspan>
                             </text>
                           );

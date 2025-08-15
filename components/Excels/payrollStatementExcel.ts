@@ -93,7 +93,9 @@ export function generatePayrollExcel(
               d.name,
               d.currency,
               formatCurrency(d.amount),
-              d.forex ? `PHP ${formatCurrency(d.forex)}` : `PHP ${exchangeRate}`,
+              d.forex
+                ? `PHP ${formatCurrency(d.forex)}`
+                : `PHP ${formatCurrency(exchangeRate)}`,
               formatCurrency(d.dollar),
             ]);
           });
@@ -110,7 +112,9 @@ export function generatePayrollExcel(
 
         if (crew.allotteeDistribution?.length) {
           crew.allotteeDistribution.forEach((a) => {
-            const pesoAmount = a.currency === 1 ? a.amount * exchangeRate : a.amount;
+            const pesoAmount = a.currency === 1
+              ? a.amount * exchangeRate
+              : a.amount;
             wsData.push([a.name, `₱ ${formatCurrency(pesoAmount)}`]);
           });
         } else {

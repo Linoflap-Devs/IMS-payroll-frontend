@@ -93,7 +93,7 @@ export function Sidebar({
           )}
         </div>
 
-        <div className="flex-1 overflow-auto py-6 bg-[#F9F9F9] rounded-lg shadow-sm">
+        <div className="flex-1 overflow-auto py-6 bg-[#F9F9F9] rounded-lg shadow-sm scrollbar-hide">
           <nav className={cn("grid gap-2", isCollapsed ? "px-2" : "px-4")}>
             {routes.map((route) => (
               <div key={route.href}>

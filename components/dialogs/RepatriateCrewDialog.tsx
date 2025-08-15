@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Check, ChevronDown, Loader2, Info } from "lucide-react";
+import { Check, ChevronDown, Loader2, Info, CheckCircle, AlertCircle, XCircle, CalendarX } from "lucide-react";
 import { useEffect, useState, useRef, Dispatch, SetStateAction } from "react";
 import { Input } from "../ui/input";
 import { getPortList, IPort } from "@/src/services/port/port.api";
@@ -20,6 +20,7 @@ import { batchRepatriateCrew } from "@/src/services/vessel/vesselCrew.api";
 import { toast } from "../ui/use-toast";
 import { DataTable } from "../ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "../ui/badge";
 
 interface RepatriateCrewDialogProps {
   open: boolean;
@@ -33,6 +34,7 @@ interface RepatriateCrewDialogProps {
     currentVessel?: string;
     country?: string;
     vesselId: number;
+    signOnDate?: Date;
   }[];
   // crewMember: {
   //   id: number;
@@ -195,6 +197,7 @@ export function RepatriateCrewDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  //console.log('Crew members in the dialog: ', crewMembers);
 
   useEffect(() => {
     if (open) {
@@ -287,7 +290,92 @@ export function RepatriateCrewDialog({
         <div className="text-xs sm:text-sm text-center">{row.getValue("rank")}</div>
       ),
     },
+    {
+      accessorKey: "signOnDate",
+      header: "Sign On Date",
+      cell: ({ row }) => {
+        const rawDate = row.getValue("signOnDate") as string | Date | null;
+        const formattedDate = rawDate
+          ? new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+          }).format(new Date(rawDate))
+          : "-";
+
+        return <div className="text-center">{formattedDate}</div>;
+      },
+    },
+    {
+      id: "verification",
+      header: "Date Verification",
+      cell: ({ row }) => {
+        const crewSignOnDate = row.original.signOnDate
+          ? new Date(row.original.signOnDate)
+          : null;
+
+        const cellWrapper = "flex justify-center items-center";
+        const badgeBase = "flex items-center gap-1";
+
+        if (!signOffDate) {
+          return (
+            <div className={cellWrapper}>
+              <Badge variant="outline" className={`${badgeBase} text-yellow-700 border-yellow-500 bg-yellow-50`}>
+                <AlertCircle className="w-4 h-4" />
+                Select a Sign Off Date
+              </Badge>
+            </div>
+          );
+        }
+
+        if (crewSignOnDate && !isNaN(crewSignOnDate.getTime())) {
+          const selectedSignOff = new Date(signOffDate);
+          if (selectedSignOff > crewSignOnDate) {
+            return (
+              <div className={cellWrapper}>
+                <Badge variant="outline" className={`${badgeBase} text-green-700 border-green-500 bg-green-50`}>
+                  <CheckCircle className="w-4 h-4" />
+                  Valid
+                </Badge>
+              </div>
+            );
+          } else {
+            return (
+              <div className={cellWrapper}>
+                <Badge variant="outline" className={`${badgeBase} text-red-700 border-red-500 bg-red-50`}>
+                  <XCircle className="w-4 h-4" />
+                  Invalid
+                </Badge>
+              </div>
+            );
+          }
+        }
+
+        return (
+          <div className={cellWrapper}>
+            <Badge variant="outline" className={`${badgeBase} text-gray-600 border-gray-400 bg-gray-50`}>
+              <CalendarX className="w-4 h-4" />
+              No Sign On Date
+            </Badge>
+          </div>
+        );
+      },
+    }
   ];
+
+  // const earliestSignOnDate = crewMembers
+  //   .map(c => (c.signOnDate ? new Date(c.signOnDate) : null))
+  //   .filter((date): date is Date => date !== null && !isNaN(date.getTime()))
+  //   .sort((a, b) => a.getTime() - b.getTime())[0] || null;
+
+  // const hasInvalidDate = crewMembers.some((crew) => {
+  //   const crewSignOnDate = crew.signOnDate ? new Date(crew.signOnDate) : null;
+
+  //   if (!signOffDate) return true; // no sign-off date = invalid
+  //   if (!crewSignOnDate || isNaN(crewSignOnDate.getTime())) return true; // no valid sign-on date = invalid
+
+  //   return new Date(signOffDate) <= crewSignOnDate; // invalid if sign-off is before/equal to sign-on
+  // });
 
   const handleSubmit = async () => {
     setSubmitted(true);
@@ -399,7 +487,6 @@ export function RepatriateCrewDialog({
             Repatriate Crews
           </DialogTitle>
         </DialogHeader>
-        
         <div className="p-8 py-4 gap-6">
           <div className="flex-[1] space-y-4 mb-8">
             <div className="space-y-2">
@@ -442,8 +529,8 @@ export function RepatriateCrewDialog({
               <label className="text-sm font-medium">Sign off date</label>
               <Input
                 type="date"
-                className={`w-full ${submitted && !signOffDate ? "border-red-500" : ""
-                  }`}
+                //min={earliestSignOnDate ? earliestSignOnDate.toISOString().split("T")[0] : undefined}
+                className={`w-full ${submitted && !signOffDate ? "border-red-500" : ""}`}
                 value={signOffDate}
                 onChange={(e) => setSignOffDate(e.target.value)}
               />

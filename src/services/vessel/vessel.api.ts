@@ -92,6 +92,7 @@ export interface CrewMember {
   Rank: string;
   Status: number;
   Country: string;
+  SignOnDate?: Date;
 }
 
 export interface VesselCrewResponse {
