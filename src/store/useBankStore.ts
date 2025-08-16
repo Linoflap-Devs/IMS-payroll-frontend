@@ -12,8 +12,9 @@ interface BankState {
     setSelectedBankId: (bankId: number | null) => void;
     setSelectedBranchId: (branchId: number | null) => void;
 
-    getUniqueBanks: () => { BankID: number; BankName: string }[];
-    getBranchesForSelectedBank: () => { BankBranchID: number; BankBranchName: string }[];
+    getUniqueBanks: () => { BankID: number; BankName: string; }[];
+    getBranchesByBankId: (bankId: number) => { BankID: number; BankBranchID: number; BankBranchName: string }[];
+    getBranchesForSelectedBank: () => { BankID: number; BankBranchID: number; BankBranchName: string }[];
 }
 
 export const useBankStore = create<BankState>((set, get) => ({
@@ -41,21 +42,23 @@ export const useBankStore = create<BankState>((set, get) => ({
     setSelectedBankId: (bankId) => {
         set({
             selectedBankId: bankId,
-            selectedBranchId: null
+            selectedBranchId: null // Reset branch when bank changes
         });
     },
 
     setSelectedBranchId: (branchId) => set({ selectedBranchId: branchId }),
 
+    // Fixed: Get unique banks (removed BranchID/BranchName from bank objects)
     getUniqueBanks: () => {
         const { allBankData } = get();
-        const bankMap = new Map();
+        const bankMap = new Map<number, { BankID: number; BankName: string; }>();
 
         allBankData.forEach(item => {
-            if (!bankMap.has(item.BankID)) {
-                bankMap.set(item.BankID, {
-                    BankID: item.BankID,
-                    BankName: item.BankName
+            const bankId = Number(item.BankID);
+            if (!bankMap.has(bankId)) {
+                bankMap.set(bankId, {
+                    BankID: bankId,
+                    BankName: item.BankName,
                 });
             }
         });
@@ -63,25 +66,37 @@ export const useBankStore = create<BankState>((set, get) => ({
         return Array.from(bankMap.values());
     },
 
-    getBranchesForSelectedBank: () => {
-        const { allBankData, selectedBankId } = get();
-        if (!selectedBankId) return [];
+    // Fixed: Get branches for a specific bank ID
+    getBranchesByBankId: (bankId: number) => {
+        const { allBankData } = get();
+        if (!bankId) return [];
 
-        // Important fix: Convert both to the same type for comparison
-        const branchMap = new Map();
+        const branchMap = new Map<number, {
+            BankID: number;
+            BankBranchID: number;
+            BankBranchName: string;
+        }>();
 
         allBankData
-            .filter(item => String(item.BankID) === String(selectedBankId))
-            .forEach(item => {
-                if (!branchMap.has(item.BankBranchID)) {
-                    branchMap.set(item.BankBranchID, {
-                        BankBranchID: item.BankBranchID,
-                        BankBranchName: item.BankBranchName
+            .filter((item) => Number(item.BankID) === Number(bankId))
+            .forEach((item) => {
+                const branchId = Number(item.BankBranchID);
+                if (!branchMap.has(branchId)) {
+                    branchMap.set(branchId, {
+                        BankID: Number(item.BankID),
+                        BankBranchID: branchId,
+                        BankBranchName: item.BankBranchName,
                     });
                 }
             });
 
-        const result = Array.from(branchMap.values());
-        return result;
-    }
+        return Array.from(branchMap.values());
+    },
+
+    // Fixed: Get branches for the currently selected bank
+    getBranchesForSelectedBank: () => {
+        const { selectedBankId, getBranchesByBankId } = get();
+        if (!selectedBankId) return [];
+        return getBranchesByBankId(selectedBankId);
+    },
 }));

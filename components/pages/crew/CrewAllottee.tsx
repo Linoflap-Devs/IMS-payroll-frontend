@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  Dispatch,
-  SetStateAction,
-  useMemo,
-} from "react";
+import { useState, useEffect, Dispatch, SetStateAction, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCrewStore } from "@/src/store/useCrewStore";
 import {
@@ -17,25 +11,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AllotteeUiModel, AllotteeApiModel } from "@/types/crewAllottee";
-import {
-  deleteCrewAllottee,
-} from "@/src/services/crew/crewAllottee.api";
+import { deleteCrewAllottee } from "@/src/services/crew/crewAllottee.api";
 import { toast } from "@/components/ui/use-toast";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Info, MoreHorizontal, Pencil, Trash, X } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
-import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Swal from "sweetalert2";
+import { useEditAllotteeStore } from "@/src/store/useEditAllotteeStore";
+import { EditAllotteeDialog } from "./EditCrewAllotteeDialog";
 
 interface ICrewAllotteeProps {
   onAdd?: () => void;
@@ -61,22 +54,27 @@ export function CrewAllottee({
   setAllotteeLoading,
   setTriggerSave,
   setIsEditingAllottee = () => { },
-  //setTriggerDelete,
+}: //setTriggerDelete,
   //triggerDelete,
   // setIsDeletingAllottee,
-}: ICrewAllotteeProps) {
+  ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<AllotteeUiModel[]>([]);
-  const [currentAllottee, setCurrentAllottee] = useState<AllotteeUiModel | null>(null);
-  const [editingAllottee, setEditingAllottee] = useState<AllotteeUiModel | null>(null);
+  const [currentAllottee, setCurrentAllottee] =
+    useState<AllotteeUiModel | null>(null);
+  const [editingAllottee, setEditingAllottee] =
+    useState<AllotteeUiModel | null>(null);
   const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
-  const [selectedAllotteeData, setSelectedAllotteeData] = useState<AllotteeUiModel | null>(null);
-  const [editselectedAllotteeDialogOpen, setEditselectedAllotteeDialogOpen] = useState(false);
+  const [selectedAllotteeData, setSelectedAllotteeData] =
+    useState<AllotteeUiModel | null>(null);
+  const [editselectedAllotteeDialogOpen, setEditselectedAllotteeDialogOpen] =
+    useState(false);
   const [deletingAllottee, setDeletingAllottee] = useState(false);
   const [allotmentType, setAllotmentType] = useState<number | null>(null);
-
-  console.log('ALLOTTEES: ', allottees);
+  const drafts = useEditAllotteeStore((state) => state.drafts);
+  
+  console.log("Current drafts in store:", drafts);
 
   const {
     allottees: storeAllottees,
@@ -123,10 +121,6 @@ export function CrewAllottee({
 
     setAllottees(mapped);
   }, [storeAllottees]);
-
-  const displayAllottee = isEditingAllottee || isAdding
-    ? editingAllottee
-    : currentAllottee;
 
   const columns = useMemo<ColumnDef<(typeof allottees)[number]>[]>(() => {
     const baseColumns: ColumnDef<(typeof allottees)[number]>[] = [
@@ -190,8 +184,8 @@ export function CrewAllottee({
               <div className="flex justify-center items-center w-full h-full">
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isHighPriority
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
                     }`}
                 >
                   {isHighPriority ? (
@@ -219,8 +213,8 @@ export function CrewAllottee({
               <div className="flex justify-center items-center w-full h-full">
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isDollar
-                    ? "bg-blue-200 text-green-700"
-                    : "bg-gray-100 text-gray-700"
+                      ? "bg-blue-200 text-green-700"
+                      : "bg-gray-100 text-gray-700"
                     }`}
                 >
                   <Info className="w-3 h-3" />
@@ -243,7 +237,9 @@ export function CrewAllottee({
 
           return (
             <div className="text-justify">
-              {allotmentType === 2 ? `${allotmentValue}%` : allotmentValue ?? "-"}
+              {allotmentType === 2
+                ? `${allotmentValue}%`
+                : allotmentValue ?? "-"}
             </div>
           );
         },
@@ -255,19 +251,12 @@ export function CrewAllottee({
           <div className="text-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="h-7 sm:h-8 w-7 sm:w-8 p-0"
-                >
+                <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
                   <span className="sr-only">Open menu</span>
                   <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 </Button>
               </DropdownMenuTrigger>
-
-              <DropdownMenuContent
-                align="end"
-                className="text-xs sm:text-sm"
-              >
+              <DropdownMenuContent align="end" className="text-xs sm:text-sm">
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
                   onClick={() => {
@@ -280,11 +269,15 @@ export function CrewAllottee({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-destructive text-xs sm:text-sm"
+                  className="text-xs sm:text-sm"
                   onClick={() => {
-                    console.log("Delete button clicked for allottee:", row.original);
+                    console.log(
+                      "Delete button clicked for allottee:",
+                      row.original
+                    );
                     handleDeleteAllottee(row.original);
-                  }}                >
+                  }}
+                >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Delete
                 </DropdownMenuItem>
@@ -318,7 +311,7 @@ export function CrewAllottee({
       showCancelButton: true,
       confirmButtonText: "Yes, delete it",
       cancelButtonText: "Cancel",
-      reverseButtons: true
+      reverseButtons: true,
     });
 
     if (result.isConfirmed) {
@@ -326,13 +319,19 @@ export function CrewAllottee({
       setDeletingAllottee(true);
 
       if (!allottee.id || !crewId) {
-        console.warn("Missing allottee.id or crewId", { allotteeId: allottee.id, crewId });
+        console.warn("Missing allottee.id or crewId", {
+          allotteeId: allottee.id,
+          crewId,
+        });
         setDeletingAllottee(false);
         return;
       }
 
       try {
-        const res = await deleteCrewAllottee(crewId.toString(), allottee.id.toString());
+        const res = await deleteCrewAllottee(
+          crewId.toString(),
+          allottee.id.toString()
+        );
         const percentage = res?.data?.Percentage;
 
         toast({
@@ -384,21 +383,6 @@ export function CrewAllottee({
     );
   }
 
-  const handleInputChange = <K extends keyof AllotteeUiModel>(
-    field: K,
-    value: AllotteeUiModel[K]
-  ) => {
-    if (isEditingAllottee || isAdding) {
-      setEditingAllottee(prev =>
-        prev ? { ...prev, [field]: value } : { [field]: value } as unknown as AllotteeUiModel
-      );
-    } else {
-      setCurrentAllottee(prev =>
-        prev ? { ...prev, [field]: value } : { [field]: value } as unknown as AllotteeUiModel
-      );
-    }
-  };
-
   // validating the name form for disable only!
   useEffect(() => {
     const validateAllotteeForm = () => {
@@ -408,6 +392,24 @@ export function CrewAllottee({
 
     validateAllotteeForm();
   }, [allottees[0], setIsAllotteeValid]);
+
+  //console.log('EDITING ALLOTTEE: ', currentAllottee);
+
+  useEffect(() => {
+    if (editselectedAllotteeDialogOpen) {
+      document.body.style.overflow = "hidden"; // prevent scrolling
+      document.body.style.pointerEvents = "none"; // optional if needed
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.pointerEvents = "";
+    }
+
+    // Clean up when component unmounts
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.pointerEvents = "";
+    };
+  }, [editselectedAllotteeDialogOpen]);
 
   return (
     <div className="h-full w-full pt-2">
@@ -423,7 +425,7 @@ export function CrewAllottee({
           scrollbar-width: none; /* Firefox */
         }
       `}</style>
-      <div className="h-full overflow-y-auto scrollbar-hide">
+      <div className="h-full overflow-y-auto">
         <div className="flex flex-col space-y-4 sm:space-y-5 min-h-full">
           {isLoadingAllottees ? (
             <div className="flex justify-center items-center h-32">
@@ -445,13 +447,35 @@ export function CrewAllottee({
                           <Select
                             value={
                               (isEditingAllottee || isAdding
-                                ? editingAllottee?.allotmentType
-                                : currentAllottee?.allotmentType
+                                ? allottees[0]?.allotmentType
+                                : allottees[0]?.allotmentType
                               )?.toString() || ""
                             }
-                            onValueChange={(value) =>
-                              handleInputChange("allotmentType", parseInt(value))
-                            }
+                            onValueChange={(value) => {
+                              if (isEditingAllottee || isAdding) {
+                                setAllottees((prev) =>
+                                  prev.map((allottee, index) =>
+                                    index === 0
+                                      ? {
+                                        ...allottee,
+                                        allotmentType: parseInt(value),
+                                      }
+                                      : allottee
+                                  )
+                                );
+                              } else {
+                                setAllottees((prev) =>
+                                  prev.map((allottee, index) =>
+                                    index === 0
+                                      ? {
+                                        ...allottee,
+                                        allotmentType: parseInt(value),
+                                      }
+                                      : allottee
+                                  )
+                                );
+                              }
+                            }}
                           >
                             <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                               <SelectValue placeholder="Amount" />
@@ -503,17 +527,21 @@ export function CrewAllottee({
                 </div> */}
               </div>
               <div className="text-center">
-                <DataTable
-                  columns={columns}
-                  data={allottees}
-                  pageSize={7}
-                />
+                <DataTable columns={columns} data={allottees} pageSize={7} />
               </div>
             </>
           )}
         </div>
+        {selectedAllotteeData && editselectedAllotteeDialogOpen && (
+          <EditAllotteeDialog
+            open={editselectedAllotteeDialogOpen}
+            onOpenChange={(open) => {
+              setEditselectedAllotteeDialogOpen(open);
+            }}
+            SelectedAllotteeData={selectedAllotteeData}
+          />
+        )}
       </div>
-
     </div>
   );
 }
