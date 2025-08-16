@@ -143,20 +143,6 @@ export function EditAllotteeDialog({
     return filtered.slice(0, 100);
   }, [cities, searchCity, form.watch("province"), editingAllottee?.province]);
 
-  //   useEffect(() => {
-  //     const bankId =
-  //       form.watch("bank") || SelectedAllotteeData?.bankId || selectedBankId || 0;
-
-  //     if (bankId !== selectedBankId) {
-  //       setSelectedBankId(Number(bankId));
-  //     }
-  //   }, [
-  //     form.watch("bank"),
-  //     SelectedAllotteeData?.bankId,
-  //     selectedBankId,
-  //     setSelectedBankId,
-  //   ]);
-
   const watchedBank = form.watch("bank"); // watch outside of useMemo
 
   const filteredBranch = useMemo(() => {
@@ -179,7 +165,7 @@ export function EditAllotteeDialog({
       );
     }
 
-    console.log("Filtered Branches:", branchesForThisBank);
+    //console.log("Filtered Branches:", branchesForThisBank);
 
     return branchesForThisBank.slice(0, 100);
   }, [
@@ -344,13 +330,13 @@ export function EditAllotteeDialog({
 
   const handleSaveDraft = (data: EditAllotteeFormData) => {
     // Debug what we're actually getting
-    console.log("Form data received:", data);
-    console.log(
-      "data.relation value:",
-      data.relation,
-      "Type:",
-      typeof data.relation
-    );
+    // console.log("Form data received:", data);
+    // console.log(
+    //   "data.relation value:",
+    //   data.relation,
+    //   "Type:",
+    //   typeof data.relation
+    // );
 
     const draftId = Number(SelectedAllotteeData.id);
 
@@ -371,14 +357,14 @@ export function EditAllotteeDialog({
       allotment: data.allotment,
     };
 
-    console.log("Final relationship value:", updatedDraft.relationship);
+    //console.log("Final relationship value:", updatedDraft.relationship);
 
     // Save to Zustand draft store
     setDraft(draftId, updatedDraft);
 
     // Log the draft to check the values
-    console.log("Saving draft for ID:", draftId, updatedDraft);
-    console.log("Current drafts in store:", drafts);
+    //console.log("Saving draft for ID:", draftId, updatedDraft);
+    //console.log("Current drafts in store:", drafts);
 
     // Show toast
     toast({
@@ -464,11 +450,11 @@ export function EditAllotteeDialog({
                           // Update react-hook-form - this is crucial!
                           field.onChange(numericValue); // Use field.onChange instead of form.setValue
 
-                          console.log("Updated draft:", {
-                            ...currentDraft,
-                            relationship: numericValue,
-                          });
-                          console.log("Form value:", numericValue);
+                        //   console.log("Updated draft:", {
+                        //     ...currentDraft,
+                        //     relationship: numericValue,
+                        //   });
+                        //   console.log("Form value:", numericValue);
                         }}
                       >
                         <SelectTrigger

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AllotteeUiModel, AllotteeApiModel } from "@/types/crewAllottee";
-import { deleteCrewAllottee } from "@/src/services/crew/crewAllottee.api";
+import { deleteCrewAllottee, updateBatchAllottee } from "@/src/services/crew/crewAllottee.api";
 import { toast } from "@/components/ui/use-toast";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 import React from "react";
@@ -73,8 +73,8 @@ export function CrewAllottee({
   const [deletingAllottee, setDeletingAllottee] = useState(false);
   const [allotmentType, setAllotmentType] = useState<number | null>(null);
   const drafts = useEditAllotteeStore((state) => state.drafts);
-  
-  console.log("Current drafts in store:", drafts);
+
+  //console.log("Current drafts in store:", drafts);
 
   const {
     allottees: storeAllottees,
@@ -184,8 +184,8 @@ export function CrewAllottee({
               <div className="flex justify-center items-center w-full h-full">
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isHighPriority
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
                     }`}
                 >
                   {isHighPriority ? (
@@ -213,8 +213,8 @@ export function CrewAllottee({
               <div className="flex justify-center items-center w-full h-full">
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isDollar
-                      ? "bg-blue-200 text-green-700"
-                      : "bg-gray-100 text-gray-700"
+                    ? "bg-blue-200 text-green-700"
+                    : "bg-gray-100 text-gray-700"
                     }`}
                 >
                   <Info className="w-3 h-3" />
@@ -290,6 +290,80 @@ export function CrewAllottee({
 
     return baseColumns;
   }, [allottees[0]?.allotmentType, isLoadingAllottees]);
+
+// --- Trigger save effect for batch allottees
+  useEffect(() => {
+    console.log("useEffect triggered for batch save:", { triggerSave, allottees, crewId });
+
+    if (!triggerSave || !allottees?.length || !crewId) {
+      console.log("Exiting useEffect early: Missing triggerSave, allottees, or crewId");
+      return;
+    }
+
+    const saveAllottees = async () => {
+      console.log("Starting batch saveAllottees");
+      setAllotteeLoading(true);
+
+      try {
+        // Normalize each allottee and merge draft data
+        const finalAllottees: AllotteeApiModel[] = allottees.map((allottee) => {
+          const draftData = drafts[Number(allottee.id)] || {};
+          const normalized: AllotteeApiModel = {
+            //...allottee,
+            name: draftData.name ?? allottee.name,
+            address: draftData.address ?? allottee.address,
+            relation: Number(draftData.relationship ?? allottee.relationshipId),
+            contactNumber: draftData.contactNumber ? String(draftData.contactNumber) : "",
+            accountNumber: draftData.accountNumber ? String(draftData.accountNumber) : "",
+            city: Number(draftData.city ?? allottee.cityId),
+            province: Number(draftData.province ?? allottee.provinceId),
+            bank: draftData.bank ?? 0,
+            branch: draftData.branch ?? 0,
+            allotment: draftData.allotment ?? allottee.allotment,
+            priority: allottee.priority ?? 0,
+            active: allottee.active ?? 0,
+            allotteeDetailID: allottee.allotteeDetailID,
+            allotmentType: allottee.allotmentType,
+            //receivePayslip: allottee.receivePayslip ?? 0,
+            //Percentage: allottee.Percentage ?? 0,
+          };
+          console.log("Normalized allottee:", normalized);
+          return normalized;
+        });
+
+        console.log("Final payload to save:", finalAllottees);
+
+        await updateBatchAllottee(crewId.toString(), finalAllottees);
+        console.log("updateBatchAllottee completed successfully");
+
+        toast({
+          title: "Allottees saved successfully",
+          description: `${finalAllottees.length} allottee(s) have been updated.`,
+          variant: "success",
+        });
+
+        fetchCrewAllottees(crewId.toString());
+        console.log("fetchCrewAllottees called");
+
+        setIsEditingAllottee(false);
+      } catch (error: any) {
+        console.error("Error saving batch of allottees:", error);
+        setIsEditingAllottee(true);
+
+        toast({
+          title: "Error saving allottees",
+          description: error?.response?.data?.message || "There was an error saving the allottees.",
+          variant: "destructive",
+        });
+      } finally {
+        setAllotteeLoading(false);
+        setTriggerSave(false);
+        console.log("Finished batch saveAllottees, loading set to false, triggerSave reset");
+      }
+    };
+
+    saveAllottees();
+  }, [triggerSave, crewId, allottees, drafts]);
 
   const handleDeleteAllottee = async (allottee: AllotteeUiModel | null) => {
     if (!allottee) return;
