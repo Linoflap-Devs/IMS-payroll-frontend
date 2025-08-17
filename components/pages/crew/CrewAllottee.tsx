@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Swal from "sweetalert2";
-import { useEditAllotteeStore } from "@/src/store/useEditAllotteeStore";
+import { DraftAllottee, useEditAllotteeStore } from "@/src/store/useEditAllotteeStore";
 import { EditAllotteeDialog } from "./EditCrewAllotteeDialog";
 
 interface ICrewAllotteeProps {
@@ -66,16 +66,15 @@ export function CrewAllottee({
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<AllotteeUiModel[]>([]);
-  const [currentAllottee, setCurrentAllottee] = useState<AllotteeUiModel | null>(null);
   const [editingAllottee, setEditingAllottee] = useState<AllotteeUiModel | null>(null);
   const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
   const [selectedAllotteeData, setSelectedAllotteeData] = useState<AllotteeUiModel | null>(null);
   const [editselectedAllotteeDialogOpen, setEditselectedAllotteeDialogOpen] = useState(false);
   const [deletingAllottee, setDeletingAllottee] = useState(false);
-  const [allotmentType, setAllotmentType] = useState<number | null>(null);
+  const [savedAllotments, setSavedAllotments] = useState<Record<number, SavedAllotmentData>>({});
   const drafts = useEditAllotteeStore((state) => state.drafts);
   //console.log("Current drafts in store:", drafts);
-  const [savedAllotments, setSavedAllotments] = useState<Record<number, SavedAllotmentData>>({});
+  const [editedAllottees, setEditedAllottees] = useState<Record<number, boolean>>({});
 
   const {
     allottees: storeAllottees,
@@ -92,6 +91,19 @@ export function CrewAllottee({
       resetAllottees();
     };
   }, [crewId, fetchCrewAllottees, resetAllottees]);
+
+  useEffect(() => {
+    const newStatus: Record<number, boolean> = {};
+
+    Object.keys(drafts).forEach((key) => {
+      const allotteeId = Number(key);
+      const draft = drafts[allotteeId];
+
+      newStatus[allotteeId] = draft && Object.keys(draft).length > 0;
+    });
+
+    setEditedAllottees(newStatus);
+  }, [drafts]);
 
   useEffect(() => {
     const mapped = storeAllottees.map((a) => ({
@@ -226,11 +238,10 @@ export function CrewAllottee({
             return (
               <div className="flex justify-center items-center w-full h-full">
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                    isDollar
-                      ? "bg-blue-200 text-green-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isDollar
+                    ? "bg-blue-200 text-green-700"
+                    : "bg-gray-100 text-gray-700"
+                    }`}
                 >
                   <Info className="w-3 h-3" />
                   {isDollar ? "USD" : "PHP"}
@@ -255,6 +266,28 @@ export function CrewAllottee({
               {allotmentType === 2
                 ? `${allotmentValue}%`
                 : allotmentValue ?? "-"}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "isEdited",
+        header: () => <div className="items-center">Edited Status</div>,
+        cell: ({ row }) => {
+          const allotteeId = Number(row.original.id);
+          const isEdited = editedAllottees[allotteeId];
+
+          return (
+            <div className="text-center">
+              {isEdited ? (
+                <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs font-semibold">
+                  Edited
+                </span>
+              ) : (
+                <span className="px-2 py-1 bg-gray-200 text-gray-500 rounded-full text-xs font-semibold">
+                  Not Edited
+                </span>
+              )}
             </div>
           );
         },
@@ -304,7 +337,7 @@ export function CrewAllottee({
     );
 
     return baseColumns;
-  }, [allottees[0]?.allotmentType, isLoadingAllottees]);
+  }, [allottees[0]?.allotmentType, isLoadingAllottees, editedAllottees]);
 
   // --- Trigger save effect for batch allottees
   useEffect(() => {
@@ -478,8 +511,6 @@ export function CrewAllottee({
     validateAllotteeForm();
   }, [allottees[0], setIsAllotteeValid]);
 
-  //console.log('EDITING ALLOTTEE: ', currentAllottee);
-
   useEffect(() => {
     if (editselectedAllotteeDialogOpen) {
       document.body.style.overflow = "hidden"; // prevent scrolling
@@ -529,47 +560,45 @@ export function CrewAllottee({
                           </span>
                         </div>
                         <div className="flex-1 w-full flex items-center">
-                            <Select
-                              value={allottees[0]?.allotmentType?.toString() || ""}
-                              onValueChange={(value) => {
-                                const parsed = parseInt(value);
+                          <Select
+                            value={allottees[0]?.allotmentType?.toString() || ""}
+                            onValueChange={(value) => {
+                              const parsed = parseInt(value);
 
-                                setAllottees((prev) => {
-                                  const prevType = prev[0]?.allotmentType;
+                              setAllottees((prev) => {
+                                const prevType = prev[0]?.allotmentType;
 
-                                  // Save current allotments under their type
-                                  if (prevType) {
-                                    setSavedAllotments((prevSaved) => ({
-                                      ...prevSaved,
-                                      [prevType]: {
-                                        allotments: prev.map((a) => a.allotment),
-                                        receivePayslips: prev.map((a) => a.receivePayslip), // <-- number[]
-                                      },
-                                    }));
-                                  }
+                                // Save current allotments under their type
+                                if (prevType) {
+                                  setSavedAllotments((prevSaved) => ({
+                                    ...prevSaved,
+                                    [prevType]: {
+                                      allotments: prev.map((a) => a.allotment),
+                                      receivePayslips: prev.map((a) => a.receivePayslip), // <-- number[]
+                                    },
+                                  }));
+                                }
 
-                                  // If we have saved data for the new type, restore it
-                                  if (savedAllotments[parsed]) {
-                                    console.log(`Restoring saved allotments for type ${parsed}`, savedAllotments[parsed]);
-                                    return prev.map((allottee, index) => ({
-                                      ...allottee,
-                                      allotmentType: parsed,
-                                      allotment: savedAllotments[parsed].allotments[index] ?? 0,
-                                      receivePayslip: savedAllotments[parsed].receivePayslips[index] ?? undefined,
-                                    }));
-                                  }
-
-                                  // Otherwise reset to 0
-                                  console.log(`No saved allotments for type ${parsed}, resetting to 0`);
-                                  return prev.map((allottee) => ({
+                                // If we have saved data for the new type, restore it
+                                if (savedAllotments[parsed]) {
+                                  return prev.map((allottee, index) => ({
                                     ...allottee,
                                     allotmentType: parsed,
-                                    allotment: 0,
-                                    receivePayslip: undefined,
+                                    allotment: savedAllotments[parsed].allotments[index] ?? 0,
+                                    receivePayslip: savedAllotments[parsed].receivePayslips[index] ?? undefined,
                                   }));
-                                });
-                              }}
-                            >
+                                }
+
+                                // Otherwise reset to 0
+                                return prev.map((allottee) => ({
+                                  ...allottee,
+                                  allotmentType: parsed,
+                                  allotment: 0,
+                                  receivePayslip: undefined,
+                                }));
+                              });
+                            }}
+                          >
                             <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                               <SelectValue placeholder="Amount" />
                             </SelectTrigger>
@@ -622,6 +651,17 @@ export function CrewAllottee({
               <div className="text-center">
                 <DataTable columns={columns} data={allottees} pageSize={7} />
               </div>
+              {/* <div className="text-center">
+                <DataTable
+                  columns={draftsColumns}
+                  data={Object.entries(drafts).map(([id, values]) => ({
+                    allotteeId: Number(id),
+                    ...values,
+                  }))}
+                  pageSize={7}
+                  pagination={false}
+                />
+              </div> */}
             </>
           )}
         </div>

@@ -19,6 +19,7 @@ export interface AllotteeApiModel {
 }
 
 export interface AllotteeUiModel {
+  relation?: number;
   priority?: number;
   id: string;
   name: string;
@@ -26,9 +27,9 @@ export interface AllotteeUiModel {
   relationshipId: number;
   contactNumber: string;
   address: string;
-  city: string;
+  city?: string | number | undefined;
   cityId: string;
-  province: string;
+  province?: string | number | undefined;
   provinceId: string;
   bankName: string;
   bankId: string;
