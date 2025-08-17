@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Dispatch, SetStateAction, useMemo } from "react";
+import { useState, useEffect, Dispatch, SetStateAction, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCrewStore } from "@/src/store/useCrewStore";
 import {
@@ -48,6 +48,7 @@ interface ICrewAllotteeProps {
 }
 
 type SavedAllotmentData = {
+  allotmentType?: number;
   priority: any;
   allotments: number[];
   receivePayslips: (number | undefined)[]; // number not boolean
@@ -74,8 +75,13 @@ export function CrewAllottee({
   const [deletingAllottee, setDeletingAllottee] = useState(false);
   const [savedAllotments, setSavedAllotments] = useState<Record<number, SavedAllotmentData>>({});
   const drafts = useEditAllotteeStore((state) => state.drafts);
+  const clearDraft = useEditAllotteeStore((state) => state.clearDraft);
+
   //console.log("Current drafts in store:", drafts);
   const [editedAllottees, setEditedAllottees] = useState<Record<number, boolean>>({});
+  console.log('ALLOTTEES: ', allottees);
+
+  console.log(isEditingAllottee); // true or false
 
   const {
     allottees: storeAllottees,
@@ -105,6 +111,36 @@ export function CrewAllottee({
 
     setEditedAllottees(newStatus);
   }, [drafts]);
+
+  const originalTypeRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (allottees.length > 0 && originalTypeRef.current === undefined) {
+      originalTypeRef.current = allottees[0].allotmentType;
+    }
+  }, [allottees]);
+
+  useEffect(() => {
+    if (!isEditingAllottee && allottees.length > 0) {
+
+      const firstType = originalTypeRef.current;
+
+      if (firstType && savedAllotments[firstType]) {
+        const saved = savedAllotments[firstType];
+        setAllottees((prev) =>
+          prev.map((a, i) => ({
+            ...a,
+            allotmentType: firstType,
+            allotment: saved.allotments[i] ?? 0,
+            receivePayslip: saved.receivePayslips[i] ?? undefined,
+            priority: saved.priority[i] ?? undefined,
+          }))
+        );
+      } else {
+        console.warn("No saved data found for the original type, nothing restored.");
+      }
+    }
+  }, [isEditingAllottee]);
 
   useEffect(() => {
     const mapped = storeAllottees.map((a) => ({
@@ -189,77 +225,70 @@ export function CrewAllottee({
       baseColumns.push(
         {
           accessorKey: "priority",
-          header: () => <div className="text-justify">Priority</div>,
+          header: () => <div className="text-center">Priority</div>,
           cell: ({ row }) => {
-            const value = row.getValue("priority");
-            const isHighPriority = value === 1;
+            const value = row.getValue<number>("priority");
+            const allotteeId = row.original.id;
 
-            if (value === null || value === undefined) {
-              return (
-                <div className="flex justify-center items-center w-full h-full">
-                  <span className="inline-flex gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-500">
-                    <Info className="w-3 h-3" />
-                    -----
-                  </span>
-                </div>
-              );
-            } return (
-              <div className="flex justify-center items-center w-full h-full">
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isHighPriority
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
-                    }`}
+            return (
+              <div className="flex justify-center w-full h-full">
+                <Select
+                  value={value?.toString() ?? ""}
+                  disabled={!isEditingAllottee}
+                  onValueChange={(newValue) => {
+                    const parsed = parseInt(newValue);
+                    setAllottees((prev) =>
+                      prev.map((a) =>
+                        a.id === allotteeId ? { ...a, priority: parsed } : a
+                      )
+                    );
+                  }}
                 >
-                  {isHighPriority ? (
-                    <>
-                      <Check className="w-3 h-3" /> Yes
-                    </>
-                  ) : (
-                    <>
-                      <X className="w-3 h-3" /> No
-                    </>
-                  )}
-                </span>
+                  <SelectTrigger>
+                    {value === 1 ? "Yes" : value === 0 ? "No" : "Select"}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Yes</SelectItem>
+                    <SelectItem value="0">No</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             );
           },
         },
         {
           accessorKey: "receivePayslip",
-          header: () => <div className="text-justify">Currency</div>,
+          header: () => <div className="text-center">Currency</div>,
           cell: ({ row }) => {
-            const value = row.getValue("receivePayslip");
-
-            // If value is null/undefined → show "-----"
-            if (value === null || value === undefined) {
-              return (
-                <div className="flex justify-center items-center w-full h-full">
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-500">
-                    <Info className="w-3 h-3" />
-                    -----
-                  </span>
-                </div>
-              );
-            }
-
-            const isDollar = value === 1;
+            const value = row.getValue<number | undefined>("receivePayslip");
+            const allotteeId = row.original.id;
 
             return (
-              <div className="flex justify-center items-center w-full h-full">
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isDollar
-                    ? "bg-blue-200 text-green-700"
-                    : "bg-gray-100 text-gray-700"
-                    }`}
+              <div className="flex justify-center w-full h-full">
+                <Select
+                  value={value?.toString() ?? ""}
+                  disabled={!isEditingAllottee}
+                  onValueChange={(newValue) => {
+                    const parsed = parseInt(newValue);
+                    setAllottees((prev) =>
+                      prev.map((a) =>
+                        a.id === allotteeId ? { ...a, receivePayslip: parsed } : a
+                      )
+                    );
+                  }}
                 >
-                  <Info className="w-3 h-3" />
-                  {isDollar ? "USD" : "PHP"}
-                </span>
+                  <SelectTrigger>
+                    {value === 1 ? "USD" : value === 2 ? "PHP" : "Select"}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">USD</SelectItem>
+                    <SelectItem value="2">PHP</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             );
           },
-        },
+        }
       );
     }
 
@@ -268,21 +297,31 @@ export function CrewAllottee({
         accessorKey: "allotment",
         header: () => <div className="text-justify">Allotment</div>,
         cell: ({ row }) => {
-          const allotmentValue = row.getValue<number>("allotment");
-          const allotmentType = row.original.allotmentType;
+          //const allotmentType = row.original.allotmentType;
+          const allotteeId = row.original.id;
+          const allotmentValue = row.getValue<number>("allotment") ?? 0;
 
           return (
-            <div className="text-justify">
-              {allotmentType === 2
-                ? `${allotmentValue}%`
-                : allotmentValue ?? "-"}
-            </div>
+            <input
+              type="number"
+              disabled={!isEditingAllottee}
+              value={allotmentValue}
+              onChange={(e) => {
+                const newValue = parseInt(e.target.value);
+                setAllottees((prev) =>
+                  prev.map((a) =>
+                    a.id === allotteeId ? { ...a, allotment: newValue } : a
+                  )
+                );
+              }}
+              className="w-16 text-center border border-gray-300 rounded px-1 py-0.5 text-sm"
+            />
           );
         },
       },
       {
         accessorKey: "isEdited",
-        header: () => <div className="items-center">Edited Status</div>,
+        header: () => <div className="items-center">Modal Status</div>,
         cell: ({ row }) => {
           const allotteeId = Number(row.original.id);
           const isEdited = editedAllottees[allotteeId];
@@ -343,7 +382,7 @@ export function CrewAllottee({
     );
 
     return baseColumns;
-  }, [allottees[0]?.allotmentType, isLoadingAllottees, editedAllottees]);
+  }, [allottees[0]?.allotmentType, isLoadingAllottees, editedAllottees, isEditingAllottee]);
 
   // --- Trigger save effect for batch allottees
   useEffect(() => {
@@ -373,6 +412,10 @@ export function CrewAllottee({
             province: Number(draftData.province ?? allottee.provinceId),
             bank: draftData.bank ?? 0,
             branch: draftData.branch ?? 0,
+            //receivePayslip: allottee.receivePayslip ?? 0,
+
+            receivePayslip: Number(draftData.receivePayslip ?? allottee.receivePayslip),
+
             priority: allottee.priority ?? 0,
             active: allottee.active ?? 0,
           };
@@ -388,6 +431,25 @@ export function CrewAllottee({
 
         console.log("Payload to save:", payload);
         await updateBatchAllottee(crewId.toString(), payload);
+
+        // After successfully saving allottees
+        // edit.forEach((a) => {
+        //   if (a.allotteeDetailId !== undefined) {
+        //     clearDraft(Number(a.allotteeDetailId));
+        //   }
+        // });
+
+        // // Reset allottees if you want to clear the UI
+        // setAllottees(prev =>
+        //   prev.map(a => ({
+        //     ...a,
+        //     allotment: 0,
+        //     receivePayslip: undefined,
+        //     priority: undefined,
+        //   }))
+        // );
+        // Clear allottees completely
+        //setAllottees([]); 
 
         toast({
           title: "Allottees saved successfully",
@@ -568,26 +630,35 @@ export function CrewAllottee({
                         <div className="flex-1 w-full flex items-center">
                           <Select
                             value={allottees[0]?.allotmentType?.toString() || ""}
+                            disabled={!isEditingAllottee}
                             onValueChange={(value) => {
                               const parsed = parseInt(value);
+                              console.log("Selected value:", value, "Parsed:", parsed);
 
                               setAllottees((prev) => {
                                 const prevType = prev[0]?.allotmentType;
+                                console.log("Previous type:", prevType);
+                                console.log("Current allottees before change:", prev);
 
                                 // Save current allotments under their type
                                 if (prevType) {
-                                  setSavedAllotments((prevSaved) => ({
-                                    ...prevSaved,
-                                    [prevType]: {
-                                      allotments: prev.map((a) => a.allotment),
-                                      receivePayslips: prev.map((a) => a.receivePayslip), // <-- number[]
-                                      priority: prev.map((a) => a.priority)
-                                    },
-                                  }));
+                                  setSavedAllotments((prevSaved) => {
+                                    const newSaved = {
+                                      ...prevSaved,
+                                      [prevType]: {
+                                        allotments: prev.map((a) => a.allotment),
+                                        receivePayslips: prev.map((a) => a.receivePayslip),
+                                        priority: prev.map((a) => a.priority),
+                                      },
+                                    };
+                                    console.log("Saved allotments:", newSaved);
+                                    return newSaved;
+                                  });
                                 }
 
-                                // If we have saved data for the new type, restore it
+                                // Restore saved data for the new type
                                 if (savedAllotments[parsed]) {
+                                  console.log("Restoring saved allotments for type:", parsed);
                                   return prev.map((allottee, index) => ({
                                     ...allottee,
                                     allotmentType: parsed,
@@ -597,7 +668,14 @@ export function CrewAllottee({
                                   }));
                                 }
 
-                                // Otherwise reset to 0
+                                // If not editing, revert to previous type
+                                if (!isEditingAllottee) {
+                                  console.log("Not editing, reverting to previous type:", prevType);
+                                  return prev.map((a) => ({ ...a, allotmentType: prevType }));
+                                }
+
+                                // Otherwise, reset to defaults
+                                console.log("Resetting allotments to defaults for new type:", parsed);
                                 return prev.map((allottee) => ({
                                   ...allottee,
                                   allotmentType: parsed,

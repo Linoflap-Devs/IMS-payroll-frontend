@@ -12,6 +12,7 @@ export interface DraftAllottee {
     relationship: number;
     accountNumber: number;
     allotment: number;
+    receivePayslip: number;
   }>;
 }
 
