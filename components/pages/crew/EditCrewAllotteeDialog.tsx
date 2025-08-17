@@ -176,7 +176,9 @@ export function EditAllotteeDialog({
     searchBranch,
     getBranchesByBankId,
   ]);
+  
   const { reset } = form;
+  console.log(drafts);
 
   useEffect(() => {
     if (!SelectedAllotteeData) return;
@@ -247,46 +249,35 @@ export function EditAllotteeDialog({
   useEffect(() => {
     if (!SelectedAllotteeData || uniqueBanks.length === 0) return;
 
-    const draftId = Number(SelectedAllotteeData.id);
-    const draftData = drafts[draftId];
+    const currentBankValue = form.getValues().bank;
+    const currentBranchValue = form.getValues().branch;
 
-    // Only initialize if no draft exists
-    if (draftData?.bank !== undefined && draftData?.branch !== undefined)
+    if (currentBankValue && currentBranchValue) {
+      console.warn("Form already has values, skipping init");
       return;
+    }
 
     const matchedBank = uniqueBanks.find(
       (b) => b.BankName === SelectedAllotteeData.bankName
     );
+    
     if (!matchedBank) return;
 
-    if (form.getValues().bank !== matchedBank.BankID) {
+    if (!currentBankValue) {
       form.setValue("bank", matchedBank.BankID);
-    }
-
-    if (selectedBankId !== matchedBank.BankID) {
       setSelectedBankId(matchedBank.BankID);
     }
 
-    const branchesForThisBank = getBranchesForSelectedBank();
-    if (!branchesForThisBank.length || !SelectedAllotteeData.bankBranch) return;
-
-    const matchedBranch = branchesForThisBank.find(
-      (b) => b.BankBranchName === SelectedAllotteeData.bankBranch
-    );
-
-    if (
-      matchedBranch &&
-      form.getValues().branch !== matchedBranch.BankBranchID
-    ) {
-      form.setValue("branch", matchedBranch.BankBranchID);
+    if (!currentBranchValue && SelectedAllotteeData.bankBranch) {
+      const branchesForThisBank = getBranchesByBankId(matchedBank.BankID);
+      const matchedBranch = branchesForThisBank.find(
+        (b) => b.BankBranchName === SelectedAllotteeData.bankBranch
+      );
+      if (matchedBranch) {
+        form.setValue("branch", matchedBranch.BankBranchID);
+      }
     }
-  }, [
-    SelectedAllotteeData,
-    uniqueBanks,
-    setSelectedBankId,
-    selectedBankId,
-    form,
-  ]); // no selectedBankId
+  }, [SelectedAllotteeData, uniqueBanks, form, setSelectedBankId]);
 
   const isInitialLoad = useRef(true);
 
@@ -330,13 +321,13 @@ export function EditAllotteeDialog({
 
   const handleSaveDraft = (data: EditAllotteeFormData) => {
     // Debug what we're actually getting
-    // console.log("Form data received:", data);
-    // console.log(
-    //   "data.relation value:",
-    //   data.relation,
-    //   "Type:",
-    //   typeof data.relation
-    // );
+    console.log("Form data received:", data);
+    console.log(
+      "data.relation value:",
+      data.relation,
+      "Type:",
+      typeof data.relation
+    );
 
     const draftId = Number(SelectedAllotteeData.id);
 
@@ -711,13 +702,14 @@ export function EditAllotteeDialog({
                   <FormLabel>Branch</FormLabel>
                   <FormControl>
                     <Select
-                      onValueChange={(value) => {
-                        const numericValue = Number(value); // relationship ID
-                        field.onChange(numericValue); // update react-hook-form
-                        setDraft(Number(SelectedAllotteeData.id), {
-                          branch: numericValue,
-                        }); // update draft in Zustand
-                      }}
+onValueChange={(value) => {
+  const numericValue = Number(value);
+  field.onChange(numericValue); // store as number
+  setDraft(Number(SelectedAllotteeData.id), {
+    branch: numericValue,
+  });
+  console.log(field.value);
+}}
                       value={
                         field.value !== undefined
                           ? field.value.toString()
