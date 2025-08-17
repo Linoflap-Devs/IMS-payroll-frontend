@@ -47,6 +47,11 @@ interface ICrewAllotteeProps {
   //setIsDeletingAllottee: Dispatch<SetStateAction<boolean>>;
 }
 
+type SavedAllotmentData = {
+  allotments: number[];
+  receivePayslips: (number | undefined)[]; // number not boolean
+};
+
 export function CrewAllottee({
   isEditingAllottee = false,
   isAdding = false,
@@ -70,6 +75,7 @@ export function CrewAllottee({
   const [allotmentType, setAllotmentType] = useState<number | null>(null);
   const drafts = useEditAllotteeStore((state) => state.drafts);
   //console.log("Current drafts in store:", drafts);
+  const [savedAllotments, setSavedAllotments] = useState<Record<number, SavedAllotmentData>>({});
 
   const {
     allottees: storeAllottees,
@@ -202,15 +208,29 @@ export function CrewAllottee({
           header: () => <div className="text-justify">Currency</div>,
           cell: ({ row }) => {
             const value = row.getValue("receivePayslip");
+
+            // If value is null/undefined → show "-----"
+            if (value === null || value === undefined) {
+              return (
+                <div className="flex justify-center items-center w-full h-full">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-500">
+                    <Info className="w-3 h-3" />
+                    -----
+                  </span>
+                </div>
+              );
+            }
+
             const isDollar = value === 1;
 
             return (
               <div className="flex justify-center items-center w-full h-full">
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isDollar
-                    ? "bg-blue-200 text-green-700"
-                    : "bg-gray-100 text-gray-700"
-                    }`}
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                    isDollar
+                      ? "bg-blue-200 text-green-700"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
                 >
                   <Info className="w-3 h-3" />
                   {isDollar ? "USD" : "PHP"}
@@ -218,7 +238,7 @@ export function CrewAllottee({
               </div>
             );
           },
-        }
+        },
       );
     }
 
@@ -509,39 +529,47 @@ export function CrewAllottee({
                           </span>
                         </div>
                         <div className="flex-1 w-full flex items-center">
-                          <Select
-                            value={
-                              (isEditingAllottee || isAdding
-                                ? allottees[0]?.allotmentType
-                                : allottees[0]?.allotmentType
-                              )?.toString() || ""
-                            }
-                            onValueChange={(value) => {
-                              if (isEditingAllottee || isAdding) {
-                                setAllottees((prev) =>
-                                  prev.map((allottee, index) =>
-                                    index === 0
-                                      ? {
-                                        ...allottee,
-                                        allotmentType: parseInt(value),
-                                      }
-                                      : allottee
-                                  )
-                                );
-                              } else {
-                                setAllottees((prev) =>
-                                  prev.map((allottee, index) =>
-                                    index === 0
-                                      ? {
-                                        ...allottee,
-                                        allotmentType: parseInt(value),
-                                      }
-                                      : allottee
-                                  )
-                                );
-                              }
-                            }}
-                          >
+                            <Select
+                              value={allottees[0]?.allotmentType?.toString() || ""}
+                              onValueChange={(value) => {
+                                const parsed = parseInt(value);
+
+                                setAllottees((prev) => {
+                                  const prevType = prev[0]?.allotmentType;
+
+                                  // Save current allotments under their type
+                                  if (prevType) {
+                                    setSavedAllotments((prevSaved) => ({
+                                      ...prevSaved,
+                                      [prevType]: {
+                                        allotments: prev.map((a) => a.allotment),
+                                        receivePayslips: prev.map((a) => a.receivePayslip), // <-- number[]
+                                      },
+                                    }));
+                                  }
+
+                                  // If we have saved data for the new type, restore it
+                                  if (savedAllotments[parsed]) {
+                                    console.log(`Restoring saved allotments for type ${parsed}`, savedAllotments[parsed]);
+                                    return prev.map((allottee, index) => ({
+                                      ...allottee,
+                                      allotmentType: parsed,
+                                      allotment: savedAllotments[parsed].allotments[index] ?? 0,
+                                      receivePayslip: savedAllotments[parsed].receivePayslips[index] ?? undefined,
+                                    }));
+                                  }
+
+                                  // Otherwise reset to 0
+                                  console.log(`No saved allotments for type ${parsed}, resetting to 0`);
+                                  return prev.map((allottee) => ({
+                                    ...allottee,
+                                    allotmentType: parsed,
+                                    allotment: 0,
+                                    receivePayslip: undefined,
+                                  }));
+                                });
+                              }}
+                            >
                             <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                               <SelectValue placeholder="Amount" />
                             </SelectTrigger>
