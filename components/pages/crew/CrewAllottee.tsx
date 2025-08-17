@@ -48,6 +48,7 @@ interface ICrewAllotteeProps {
 }
 
 type SavedAllotmentData = {
+  priority: any;
   allotments: number[];
   receivePayslips: (number | undefined)[]; // number not boolean
 };
@@ -193,7 +194,16 @@ export function CrewAllottee({
             const value = row.getValue("priority");
             const isHighPriority = value === 1;
 
-            return (
+            if (value === null || value === undefined) {
+              return (
+                <div className="flex justify-center items-center w-full h-full">
+                  <span className="inline-flex gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-500">
+                    <Info className="w-3 h-3" />
+                    -----
+                  </span>
+                </div>
+              );
+            } return (
               <div className="flex justify-center items-center w-full h-full">
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${isHighPriority
@@ -319,10 +329,6 @@ export function CrewAllottee({
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
                   onClick={() => {
-                    console.log(
-                      "Delete button clicked for allottee:",
-                      row.original
-                    );
                     handleDeleteAllottee(row.original);
                   }}
                 >
@@ -575,6 +581,7 @@ export function CrewAllottee({
                                     [prevType]: {
                                       allotments: prev.map((a) => a.allotment),
                                       receivePayslips: prev.map((a) => a.receivePayslip), // <-- number[]
+                                      priority: prev.map((a) => a.priority)
                                     },
                                   }));
                                 }
@@ -586,6 +593,7 @@ export function CrewAllottee({
                                     allotmentType: parsed,
                                     allotment: savedAllotments[parsed].allotments[index] ?? 0,
                                     receivePayslip: savedAllotments[parsed].receivePayslips[index] ?? undefined,
+                                    priority: savedAllotments[parsed].priority[index] ?? undefined,
                                   }));
                                 }
 
@@ -595,6 +603,7 @@ export function CrewAllottee({
                                   allotmentType: parsed,
                                   allotment: 0,
                                   receivePayslip: undefined,
+                                  priority: undefined,
                                 }));
                               });
                             }}
