@@ -44,7 +44,7 @@ const editAllotteeSchema = z.object({
   bank: z.number().optional(),
   branch: z.number().optional(),
   accountNumber: z.string().optional(),
-  allotment: z.number().optional(),
+  //allotment: z.number().optional(),
 });
 
 type EditAllotteeFormData = z.infer<typeof editAllotteeSchema>;
@@ -109,7 +109,7 @@ export function EditAllotteeDialog({
       bank: undefined,
       branch: undefined,
       accountNumber: "",
-      allotment: undefined,
+      //allotment: undefined,
     },
   });
 
@@ -312,7 +312,7 @@ export function EditAllotteeDialog({
       accountNumber: String(
         draftData.accountNumber ?? SelectedAllotteeData.accountNumber ?? ""
       ),
-      allotment: draftData.allotment ?? SelectedAllotteeData.allotment ?? 0,
+      //allotment: draftData.allotment ?? SelectedAllotteeData.allotment ?? 0,
     };
 
     reset(initialValues);
@@ -345,7 +345,7 @@ export function EditAllotteeDialog({
       accountNumber: data.accountNumber
         ? Number(data.accountNumber)
         : undefined,
-      allotment: data.allotment,
+      //allotment: data.allotment,
     };
 
     //console.log("Final relationship value:", updatedDraft.relationship);
@@ -702,14 +702,14 @@ export function EditAllotteeDialog({
                   <FormLabel>Branch</FormLabel>
                   <FormControl>
                     <Select
-onValueChange={(value) => {
-  const numericValue = Number(value);
-  field.onChange(numericValue); // store as number
-  setDraft(Number(SelectedAllotteeData.id), {
-    branch: numericValue,
-  });
-  console.log(field.value);
-}}
+                      onValueChange={(value) => {
+                        const numericValue = Number(value);
+                        field.onChange(numericValue); // store as number
+                        setDraft(Number(SelectedAllotteeData.id), {
+                          branch: numericValue,
+                        });
+                        console.log(field.value);
+                      }}
                       value={
                         field.value !== undefined
                           ? field.value.toString()
@@ -777,7 +777,7 @@ onValueChange={(value) => {
             />
 
             {/* Allotment */}
-            <FormField
+            {/* <FormField
               control={form.control}
               name="allotment"
               render={({ field }) => (
@@ -800,7 +800,7 @@ onValueChange={(value) => {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
 
             {/* Actions */}
             <div className="flex gap-3 pt-4">

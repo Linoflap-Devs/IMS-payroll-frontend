@@ -295,7 +295,7 @@ export function CrewAllottee({
     baseColumns.push(
       {
         accessorKey: "allotment",
-        header: () => <div className="text-justify">Allotment</div>,
+        header: () => <div className="text-center">Allotment</div>,
         cell: ({ row }) => {
           //const allotmentType = row.original.allotmentType;
           const allotteeId = row.original.id;
