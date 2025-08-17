@@ -13,7 +13,7 @@ export interface AllotteeApiModel {
   allotment: number;
   priority: number;
   active: number;
-  allotteeDetailID?: string;
+  allotteeDetailId?: string;
   receivePayslip?: number;
   Percentage?: number;
 }

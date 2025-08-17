@@ -7,7 +7,7 @@ export const updateCrewAllottee = async (
 ): Promise<CrewAllotteeResponse> => {
   try {
     const response = await axiosInstance.patch<CrewAllotteeResponse>(
-      `crew/${crewCode}/allottee/${allottee.allotteeDetailID}`,
+      `crew/${crewCode}/allottee/${allottee.allotteeDetailId}`,
       allottee
     );
 
@@ -38,9 +38,14 @@ export const deleteCrewAllottee = async (crewCode: string, allotteeId: string): 
     return response.data;
 }
 
+interface BatchAllotteePayload {
+  edit: AllotteeApiModel[];
+  create: AllotteeApiModel[];
+}
+
 export const updateBatchAllottee = async (
   crewCode: string,
-  allottees: AllotteeApiModel[]
+  allottees: BatchAllotteePayload
 ): Promise<CrewAllotteeResponse> => {
   console.log("updateBatchAllottee called with:", { crewCode, allottees });
 

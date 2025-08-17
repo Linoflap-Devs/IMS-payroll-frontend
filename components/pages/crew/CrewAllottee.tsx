@@ -61,19 +61,14 @@ export function CrewAllottee({
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<AllotteeUiModel[]>([]);
-  const [currentAllottee, setCurrentAllottee] =
-    useState<AllotteeUiModel | null>(null);
-  const [editingAllottee, setEditingAllottee] =
-    useState<AllotteeUiModel | null>(null);
+  const [currentAllottee, setCurrentAllottee] = useState<AllotteeUiModel | null>(null);
+  const [editingAllottee, setEditingAllottee] = useState<AllotteeUiModel | null>(null);
   const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
-  const [selectedAllotteeData, setSelectedAllotteeData] =
-    useState<AllotteeUiModel | null>(null);
-  const [editselectedAllotteeDialogOpen, setEditselectedAllotteeDialogOpen] =
-    useState(false);
+  const [selectedAllotteeData, setSelectedAllotteeData] = useState<AllotteeUiModel | null>(null);
+  const [editselectedAllotteeDialogOpen, setEditselectedAllotteeDialogOpen] = useState(false);
   const [deletingAllottee, setDeletingAllottee] = useState(false);
   const [allotmentType, setAllotmentType] = useState<number | null>(null);
   const drafts = useEditAllotteeStore((state) => state.drafts);
-
   //console.log("Current drafts in store:", drafts);
 
   const {
@@ -291,25 +286,25 @@ export function CrewAllottee({
     return baseColumns;
   }, [allottees[0]?.allotmentType, isLoadingAllottees]);
 
-// --- Trigger save effect for batch allottees
+  // --- Trigger save effect for batch allottees
   useEffect(() => {
-    console.log("useEffect triggered for batch save:", { triggerSave, allottees, crewId });
-
-    if (!triggerSave || !allottees?.length || !crewId) {
-      console.log("Exiting useEffect early: Missing triggerSave, allottees, or crewId");
-      return;
-    }
+    if (!triggerSave || !allottees?.length || !crewId) return;
 
     const saveAllottees = async () => {
-      console.log("Starting batch saveAllottees");
       setAllotteeLoading(true);
 
       try {
-        // Normalize each allottee and merge draft data
-        const finalAllottees: AllotteeApiModel[] = allottees.map((allottee) => {
+        const edit: AllotteeApiModel[] = [];
+        const create: AllotteeApiModel[] = [];
+
+        allottees.forEach((allottee) => {
           const draftData = drafts[Number(allottee.id)] || {};
+          const isNew = !allottee.allotteeDetailID;
+
           const normalized: AllotteeApiModel = {
-            //...allottee,
+            allotteeDetailId: allottee.allotteeDetailID ?? 0,
+            allotmentType: allottee.allotmentType,
+            allotment: draftData.allotment ?? allottee.allotment,
             name: draftData.name ?? allottee.name,
             address: draftData.address ?? allottee.address,
             relation: Number(draftData.relationship ?? allottee.relationshipId),
@@ -319,35 +314,32 @@ export function CrewAllottee({
             province: Number(draftData.province ?? allottee.provinceId),
             bank: draftData.bank ?? 0,
             branch: draftData.branch ?? 0,
-            allotment: draftData.allotment ?? allottee.allotment,
             priority: allottee.priority ?? 0,
             active: allottee.active ?? 0,
-            allotteeDetailID: allottee.allotteeDetailID,
-            allotmentType: allottee.allotmentType,
-            //receivePayslip: allottee.receivePayslip ?? 0,
-            //Percentage: allottee.Percentage ?? 0,
           };
-          console.log("Normalized allottee:", normalized);
-          return normalized;
+
+          if (isNew) {
+            create.push(normalized);
+          } else {
+            edit.push(normalized);
+          }
         });
 
-        console.log("Final payload to save:", finalAllottees);
+        const payload = { edit, create };
 
-        await updateBatchAllottee(crewId.toString(), finalAllottees);
-        console.log("updateBatchAllottee completed successfully");
+        console.log("Payload to save:", payload);
+        await updateBatchAllottee(crewId.toString(), payload);
 
         toast({
           title: "Allottees saved successfully",
-          description: `${finalAllottees.length} allottee(s) have been updated.`,
+          description: `${edit.length} edited, ${create.length} created.`,
           variant: "success",
         });
 
         fetchCrewAllottees(crewId.toString());
-        console.log("fetchCrewAllottees called");
-
         setIsEditingAllottee(false);
       } catch (error: any) {
-        console.error("Error saving batch of allottees:", error);
+        console.error("Error saving allottees:", error);
         setIsEditingAllottee(true);
 
         toast({
@@ -358,7 +350,6 @@ export function CrewAllottee({
       } finally {
         setAllotteeLoading(false);
         setTriggerSave(false);
-        console.log("Finished batch saveAllottees, loading set to false, triggerSave reset");
       }
     };
 
