@@ -12,13 +12,15 @@ export interface AllotteeApiModel {
   accountNumber: string;
   allotment: number;
   priority: number;
-  active: number;
-  allotteeDetailID?: string;
+  active?: number;
+  allotteeDetailId?: string;
   receivePayslip?: number;
   Percentage?: number;
+  isActive?: number;
 }
 
 export interface AllotteeUiModel {
+  relation?: number;
   priority?: number;
   id: string;
   name: string;
@@ -26,13 +28,14 @@ export interface AllotteeUiModel {
   relationshipId: number;
   contactNumber: string;
   address: string;
-  city: string;
+  city?: string | number | undefined;
   cityId: string;
-  province: string;
+  province?: string | number | undefined;
   provinceId: string;
   bankName: string;
   bankId: string;
   bankBranch: string;
+  
   branchId: string;
   accountNumber: string;
   allotment: number;

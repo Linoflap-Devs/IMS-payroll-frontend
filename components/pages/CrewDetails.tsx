@@ -19,8 +19,7 @@ import { useCrewDetails } from "@/src/hooks/useCrewDetails";
 import { CrewSidebar } from "@/components/CrewSidebar";
 import { CrewHeader } from "@/components/CrewHeader";
 import { ImageModal } from "@/components/ImageModal";
-import { Crew, formatDate, formatDayMonthYear } from "@/types/crew";
-import AddCrewAllottee from "./crew/AddCrewAllottee";
+import { formatDate, formatDayMonthYear } from "@/types/crew";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import Base64Image from "../Base64Image";
 import Image from "next/image";
@@ -74,9 +73,9 @@ export default function CrewDetails() {
     setHandleDecline((prev) => !prev);
   };
 
-  const handleTriggerAdd = () => {
-    setTriggerAdd((prev) => !prev);
-  };
+  // const handleTriggerAdd = () => {
+  //   setTriggerAdd((prev) => !prev);
+  // };
 
   const {
     crew,
@@ -384,6 +383,7 @@ export default function CrewDetails() {
     setIsEditingAllottee(!isEditingAllottee);
   };
 
+  // working to -> true
   const toggleAllotteeAdd = () => {
     setIsAddingAllottee(!isAddingAllottee);
   };
@@ -469,7 +469,6 @@ export default function CrewDetails() {
           handleSave={handleSave}
           allotteeLoading={allotteeLoading}
           handleDeleteAllottee={handleDeleteAllottee}
-          handleTriggerAdd={handleTriggerAdd}
           isAddLoading={isAddLoading}
           isDeletingAllottee={isDeletingAllottee}
           handleTriggerVerify={handleTriggerVerify}
@@ -1346,7 +1345,7 @@ export default function CrewDetails() {
                       </div>
                     </div>
                   </div>
-                </TabsContent>  
+                </TabsContent>
 
                 <TabsContent
                   value="movement"
@@ -1359,32 +1358,20 @@ export default function CrewDetails() {
                   value="allottee"
                   className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1"
                 >
-                  {!isAddingAllottee ? (
-                    <>
-                      <CrewAllottee
-                        isEditingAllottee={isEditingAllottee}
-                        isAdding={isAddingAllottee}
-                        handleSave={handleSave}
-                        triggerSave={triggerSave}
-                        allotteeLoading={allotteeLoading}
-                        setAllotteeLoading={setAllotteeLoading}
-                        setTriggerSave={setTriggerSave}
-                        setIsEditingAllottee={setIsEditingAllottee}
-                        triggerDelete={triggerDelete}
-                        setTriggerDelete={setTriggerDelete}
-                        setIsDeletingAllottee={setIsDeletingAllottee}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <AddCrewAllottee
-                        triggerAdd={triggerAdd}
-                        setIsAddingAllottee={setIsAddingAllottee}
-                        setTriggerAdd={setTriggerAdd}
-                        setIsAddLoading={setIsAddLoading}
-                      />
-                    </>
-                  )}
+                  <>
+                    <CrewAllottee
+                      isEditingAllottee={isEditingAllottee}
+                      isAdding={isAddingAllottee}
+                      handleSave={handleSave}
+                      triggerSave={triggerSave}
+                      allotteeLoading={allotteeLoading}
+                      setAllotteeLoading={setAllotteeLoading}
+                      setTriggerSave={setTriggerSave}
+                      setIsEditingAllottee={setIsEditingAllottee}
+                      setIsAddingAllottee={setIsAddingAllottee}
+                      isAddingAllottee={isAddingAllottee}
+                    />
+                  </>
                 </TabsContent>
 
                 <TabsContent

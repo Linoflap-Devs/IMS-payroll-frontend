@@ -119,6 +119,10 @@ export function generateAllotmentExcel(
 
       if (crew.Allottee?.length) {
         crew.Allottee.forEach((allottee, index) => {
+          const netAllotment =
+            allottee.Currency === 1
+              ? allottee.NetAllotment
+              : allottee.NetAllotment;
           const row =
             index === 0
               ? [
@@ -127,17 +131,19 @@ export function generateAllotmentExcel(
                 allottee.AccountNumber,
                 allottee.Bank,
                 formatNumber(allottee.NetAllotment),
+                //formatNumber(netAllotment.toFixed(2)), 
               ]
               : new Array(9).fill("").concat([
                 allottee.AllotteeName,
                 allottee.AccountNumber,
                 allottee.Bank,
                 formatNumber(allottee.NetAllotment),
+                //formatNumber(netAllotment.toFixed(2)),
               ]);
           wsData.push(row);
         });
       } else {
-        wsData.push([...baseRow, "", "", "", ""]);
+        wsData.push([...baseRow, "", "", "", "", ""]);
       }
     });
 
@@ -145,13 +151,13 @@ export function generateAllotmentExcel(
     const totals = calculateVesselTotals(vessel);
     wsData.push([]); // Spacer before totals
     wsData.push([
-      "TOTALS", "", "", "", "",
+      "TOTALS", "", "", "", "", "",
       // Uncomment and format Dollar Gross if you want it later
-      // totals.totalDollarGross.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      //totals.totalDollarGross.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       totals.totalPesoGross.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       totals.totalDeduction.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       totals.totalNet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-      "", "", "", ""
+      "", "", "", "", "",
     ]);
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);

@@ -7,7 +7,7 @@ export const updateCrewAllottee = async (
 ): Promise<CrewAllotteeResponse> => {
   try {
     const response = await axiosInstance.patch<CrewAllotteeResponse>(
-      `crew/${crewCode}/allottee/${allottee.allotteeDetailID}`,
+      `crew/${crewCode}/allottee/${allottee.allotteeDetailId}`,
       allottee
     );
 
@@ -37,3 +37,32 @@ export const deleteCrewAllottee = async (crewCode: string, allotteeId: string): 
     const response = await axiosInstance.delete<CrewAllotteeResponse>(`crew/${crewCode}/allottee/${allotteeId}`);
     return response.data;
 }
+
+interface BatchAllotteePayload {
+  edit: AllotteeApiModel[];
+  create: AllotteeApiModel[];
+}
+
+export const updateBatchAllottee = async (
+  crewCode: string,
+  allottees: BatchAllotteePayload
+): Promise<CrewAllotteeResponse> => {
+  console.log("updateBatchAllottee called with:", { crewCode, allottees });
+
+  try {
+    const response = await axiosInstance.patch<CrewAllotteeResponse>(
+      `crew/${crewCode}/allottee/`,
+      allottees
+    );
+
+    console.log("API response:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error updating allottees:", error);
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      console.error("Response status:", error.response.status);
+    }
+    throw error;
+  }
+};
