@@ -56,17 +56,13 @@ export default function AddAllotteeForm() {
   });
 
   const { control, watch, setValue, handleSubmit, formState } = form;
-  const { errors } = formState;
   const province = watch("province");
   const bank = watch("bank");
   const allotmentType = watch("allotmentType");
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
-  const addAllottee = useAddAllotteeStore((state) => state.setNewAllottee);
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd); // get the function
-  console.log("TRIGGER ADD IN THE FORM: ", triggerAdd);
-  const setTriggerAdd = useAllotteeTriggerStore(
-    (state) => state.setTriggerAdd
-  ); // get the function
+  const setTriggerAdd = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
+  const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
 
   useEffect(() => {
     if (triggerAdd) {
@@ -91,7 +87,6 @@ export default function AddAllotteeForm() {
   }, [fetchRelationships, fetchBanks, fetchProvinces, fetchCities]);
 
   useEffect(() => {
-    // When bankId changes, update the selected bank in the store and reset branchId
     if (bank) {
       setSelectedBankId(Number(bank));
       setValue("branch", 0);
@@ -99,7 +94,6 @@ export default function AddAllotteeForm() {
   }, [setSelectedBankId, setValue, bank]);
 
   useEffect(() => {
-    // When province changes, reset city
     if (province) {
       setValue("city", 0);
     }
@@ -120,7 +114,6 @@ export default function AddAllotteeForm() {
   }, [cities, province]);
 
   const handleSaveAdd = (data: IAddAllottee) => {
-    setTriggerAdd(true);
     const payload: AllotteeApiModel = {
       name: data.name,
       relation: data.relation,
@@ -138,17 +131,32 @@ export default function AddAllotteeForm() {
       isActive: 1,
     };
 
-    // Add directly to store
+    // Only add to store if validated
     useAddAllotteeStore.getState().setNewAllottee(payload);
     console.log("NEW ALLOTTEES IN STORE:", useAddAllotteeStore.getState().newAllottee);
 
     // Reset form
     form.reset();
+
+    // Reset trigger so it doesn’t loop
+    setTriggerAdd(false);
   };
 
-  // automatically submit form when triggerAdd is set from button
   useEffect(() => {
-    if (triggerAdd) handleSubmit(handleSaveAdd)();
+    if (triggerAdd) {
+      handleSubmit(
+        (data) => {
+          console.log("Form is valid:", data); // only runs if valid
+          handleSaveAdd(data);
+          setTriggerEdit(true);
+        },
+        (errors) => {
+          console.log("Form validation errors:", errors); // shows what failed
+          setTriggerAdd(false); // reset trigger to prevent loop
+          setTriggerEdit(false);
+        }
+      )();
+    }
   }, [triggerAdd, handleSubmit]);
 
   return (

@@ -56,7 +56,7 @@ const getStatusBgColor = (status: string) => {
       return "bg-gray-100 text-gray-800 rounded-full";
   }
 };
-    
+
 const columns: ColumnDef<CrewItem>[] = [
   {
     accessorKey: "CrewCode",
@@ -288,13 +288,15 @@ export default function CrewList() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [rankFilter, setRankFilter] = useState("all");
   const [validationFilter, setValidationFilter] = useState("all");
-  const {crews, isLoading, error, fetchCrews} = useCrewStore();
+  const [inactiveFilter, setInactiveFilter] = useState("verified"); // default to active
+  const { crews, isLoading, error, fetchCrews } = useCrewStore();
 
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("all");
     setRankFilter("all");
     setValidationFilter("all");
+    setInactiveFilter("verified");
   };
 
   // Fetch crew data on component mount
@@ -304,6 +306,16 @@ export default function CrewList() {
 
   // Filter crew based on search term and filters
   const filteredCrew = crews.filter((crew) => {
+    // Determine whether to include based on your inactive filter
+    if (inactiveFilter === "verified") {
+      // Only show active
+      if (crew.IsActive !== 1) return false;
+    } else if (inactiveFilter === "pending") {
+      // Only show inactive
+      if (crew.IsActive === 1) return false;
+    }
+    // else "all" shows all crews
+
     const matchesSearch =
       crew.FirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crew.LastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -408,6 +420,21 @@ export default function CrewList() {
                   <SelectItem value="not registered">Not Registered</SelectItem>
                 </SelectContent>
               </Select>
+              <Select
+                value={inactiveFilter}
+                onValueChange={setInactiveFilter}
+              >
+                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                  <SelectValue placeholder="Filter by inactive" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Crews</SelectItem>
+                  <SelectItem value="verified">Active</SelectItem>
+                  <SelectItem value="pending">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Button
                 variant="outline"
                 onClick={clearFilters}

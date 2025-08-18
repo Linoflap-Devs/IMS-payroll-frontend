@@ -82,27 +82,16 @@ export function CrewAllottee({
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
   const [allottees, setAllottees] = useState<AllotteeUiModel[]>([]);
-  const [editingAllottee, setEditingAllottee] =
-    useState<AllotteeUiModel | null>(null);
+  const [editingAllottee, setEditingAllottee] = useState<AllotteeUiModel | null>(null);
   const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
-  const [selectedAllotteeData, setSelectedAllotteeData] =
-    useState<AllotteeUiModel | null>(null);
-  const [editselectedAllotteeDialogOpen, setEditselectedAllotteeDialogOpen] =
-    useState(false);
+  const [selectedAllotteeData, setSelectedAllotteeData] = useState<AllotteeUiModel | null>(null);
+  const [editselectedAllotteeDialogOpen, setEditselectedAllotteeDialogOpen] = useState(false);
   const [deletingAllottee, setDeletingAllottee] = useState(false);
-  const [savedAllotments, setSavedAllotments] = useState<
-    Record<number, SavedAllotmentData>
-  >({});
+  const [savedAllotments, setSavedAllotments] = useState<Record<number, SavedAllotmentData>>({});
   const drafts = useEditAllotteeStore((state) => state.drafts);
   const clearDraft = useEditAllotteeStore((state) => state.clearDraft);
-  //console.log("Current drafts in store:", drafts);
-  const [editedAllottees, setEditedAllottees] = useState<
-    Record<number, boolean>
-  >({});
-  //console.log("ALLOTTEES: ", allottees);
-  console.log("IS ADDING: ", isAddingAllottee);
+  const [editedAllottees, setEditedAllottees] = useState<Record<number, boolean>>({});
   const newAllottee = useAddAllotteeStore((state) => state.newAllottee);
-  //console.log('NEW ALLOTTEES: ', newAllottees);
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
   const triggerEdit = useAllotteeTriggerStore((state) => state.triggerAdd);
 
@@ -417,15 +406,6 @@ export function CrewAllottee({
   // --- Trigger save effect for batch allottees
   useEffect(() => {
     console.log("=== useEffect triggered for saving allottees ===");
-    console.log(
-      "triggerAdd:",
-      triggerAdd,
-      "triggerEdit:",
-      triggerEdit,
-      "crewId:",
-      crewId
-    );
-    console.log("New allottee in store:", newAllottee);
 
     // Exit early if nothing to do
     if ((!triggerSave && !triggerEdit) || !crewId) {
