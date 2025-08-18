@@ -81,7 +81,7 @@ export function CrewAllottee({
   const [editedAllottees, setEditedAllottees] = useState<Record<number, boolean>>({});
   console.log('ALLOTTEES: ', allottees);
 
-  console.log(isEditingAllottee); // true or false
+  //console.log(isEditingAllottee); // true or false
 
   const {
     allottees: storeAllottees,
@@ -160,11 +160,9 @@ export function CrewAllottee({
       branchId: a.BankBranchID?.toString() || "",
       accountNumber: a.AccountNumber,
       allotment: a.Allotment,
-
-      priority: a.priority ? 1 : 0,
-      receivePayslip: a.receivePayslip ? 1 : 0,
+      priority: a.priority,
+      receivePayslip: a.receivePayslip,
       active: a.active ? 1 : 0,
-
       allotmentType: a.AllotmentType,
       allotteeDetailID: a.AllotteeDetailID,
     }));
@@ -278,11 +276,11 @@ export function CrewAllottee({
                   }}
                 >
                   <SelectTrigger>
-                    {value === 1 ? "USD" : value === 2 ? "PHP" : "Select"}
+                    {value === 1 ? "PHP" : value === 2 ? "USD" : "Select"}
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">USD</SelectItem>
-                    <SelectItem value="2">PHP</SelectItem>
+                    <SelectItem value="1">PHP</SelectItem>
+                    <SelectItem value="2">USD</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -400,7 +398,7 @@ export function CrewAllottee({
           const isNew = !allottee.allotteeDetailID;
 
           const normalized: AllotteeApiModel = {
-            allotteeDetailId: allottee.allotteeDetailID ?? 0,
+            allotteeDetailId: allottee.allotteeDetailID ?? 0, 
             allotmentType: allottee.allotmentType,
             allotment: draftData.allotment ?? allottee.allotment,
             name: draftData.name ?? allottee.name,
