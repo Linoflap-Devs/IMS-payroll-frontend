@@ -26,7 +26,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Info, MoreHorizontal, Pencil, Trash, X } from "lucide-react";
+import { Check, Eye, Info, MoreHorizontal, Pencil, Plus, Trash, X } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -172,7 +172,7 @@ export function CrewAllottee({
       bankBranch: a.BankBranch,
       branchId: a.BankBranchID?.toString() || "",
       accountNumber: a.AccountNumber,
-      allotment: a.Allotment,
+      allotment: a.Allotment, 
       priority: a.priority,
       receivePayslip: a.receivePayslip,
       active: a.active ? 1 : 0,
@@ -191,7 +191,7 @@ export function CrewAllottee({
         cell: ({ row }) => {
           const name = row.getValue("name") as string;
 
-          return (
+          return (  
             <div className="flex items-center space-x-3 text-justify">
               {isLoadingAllottees ? (
                 <img
@@ -500,8 +500,10 @@ export function CrewAllottee({
         });
 
         fetchCrewAllottees(crewId.toString());
-        setIsEditingAllottee(false);
-        setIsAddingAllottee(false);
+        //setIsEditingAllottee(false);
+        //setIsAddingAllottee(false);
+
+        setAllottees([]);
 
         // Reset store & triggers
         useAddAllotteeStore.getState().resetAllottee();
@@ -511,6 +513,7 @@ export function CrewAllottee({
       } catch (error: any) {
         console.error("Error saving allottees:", error);
         setIsEditingAllottee(true);
+        setIsEditingAllottee(false);
 
         toast({
           title: "Error saving allottees",
@@ -602,8 +605,8 @@ export function CrewAllottee({
         });
       } finally {
         setDeletingAllottee(false);
-        setIsEditingAllottee(false);
-        setIsAddingAllottee(false);
+        //setIsEditingAllottee(false);
+        //setIsAddingAllottee(false);
       }
     } else if (result.dismiss === Swal.DismissReason.cancel) {
       swalWithBootstrapButtons.fire({
@@ -798,7 +801,24 @@ export function CrewAllottee({
                     </div>
                   </div>
                 </div>
-
+                <div className="w-84 text-left mt-2">
+                  {isEditingAllottee ? (
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
+                      <Pencil size={16} />
+                      Editing
+                    </span>
+                  ) : isAddingAllottee ? (
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-green-700 bg-green-100 rounded-full">
+                      <Plus size={16} />
+                      Adding
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
+                      <Eye size={16} />
+                      Viewing
+                    </span>
+                  )}
+                </div>
                 {/* <div className="p-3 space-y-6">
                   <div className="flex items-center justify-end mb-3">
                     <div className="flex items-center gap-6">
