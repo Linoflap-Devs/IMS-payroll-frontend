@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { z } from "zod";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pencil } from "lucide-react";
+import { Pencil, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -176,7 +176,7 @@ export function EditAllotteeDialog({
     searchBranch,
     getBranchesByBankId,
   ]);
-  
+
   const { reset } = form;
   console.log(drafts);
 
@@ -197,8 +197,8 @@ export function EditAllotteeDialog({
     const relationId = matchedRelation?.RelationID
       ? Number(matchedRelation.RelationID)
       : SelectedAllotteeData.relationshipId
-      ? Number(SelectedAllotteeData.relationshipId)
-      : undefined;
+        ? Number(SelectedAllotteeData.relationshipId)
+        : undefined;
 
     const currentRelation = form.getValues().relation;
     if (relationId !== currentRelation) {
@@ -253,14 +253,14 @@ export function EditAllotteeDialog({
     const currentBranchValue = form.getValues().branch;
 
     if (currentBankValue && currentBranchValue) {
-      console.warn("Form already has values, skipping init");
+      //console.warn("Form already has values, skipping init");
       return;
     }
 
     const matchedBank = uniqueBanks.find(
       (b) => b.BankName === SelectedAllotteeData.bankName
     );
-    
+
     if (!matchedBank) return;
 
     if (!currentBankValue) {
@@ -307,8 +307,8 @@ export function EditAllotteeDialog({
         draftData.relationship !== undefined
           ? Number(draftData.relationship)
           : SelectedAllotteeData.relationship !== undefined
-          ? Number(SelectedAllotteeData.relationship)
-          : undefined,
+            ? Number(SelectedAllotteeData.relationship)
+            : undefined,
       accountNumber: String(
         draftData.accountNumber ?? SelectedAllotteeData.accountNumber ?? ""
       ),
@@ -321,14 +321,6 @@ export function EditAllotteeDialog({
 
   const handleSaveDraft = (data: EditAllotteeFormData) => {
     // Debug what we're actually getting
-    console.log("Form data received:", data);
-    console.log(
-      "data.relation value:",
-      data.relation,
-      "Type:",
-      typeof data.relation
-    );
-
     const draftId = Number(SelectedAllotteeData.id);
 
     const updatedDraft = {
@@ -348,14 +340,8 @@ export function EditAllotteeDialog({
       //allotment: data.allotment,
     };
 
-    //console.log("Final relationship value:", updatedDraft.relationship);
-
     // Save to Zustand draft store
     setDraft(draftId, updatedDraft);
-
-    // Log the draft to check the values
-    //console.log("Saving draft for ID:", draftId, updatedDraft);
-    //console.log("Current drafts in store:", drafts);
 
     // Show toast
     toast({
@@ -370,7 +356,7 @@ export function EditAllotteeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">
+      <DialogContent className="sm:max-w-[750px] bg-[#FCFCFC] p-10">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
             Edit Allottee
@@ -379,7 +365,7 @@ export function EditAllotteeDialog({
 
         <Form {...form}>
           <form
-            className="space-y-4 gap-2"
+            className="space-y-3 grid grid-cols-2 gap-4"
             onSubmit={form.handleSubmit(handleSaveDraft)}
           >
             {/* Name */}
@@ -387,7 +373,7 @@ export function EditAllotteeDialog({
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
@@ -415,7 +401,6 @@ export function EditAllotteeDialog({
                 const draftId = Number(SelectedAllotteeData?.id);
                 const currentDraft = drafts[draftId] ?? {};
 
-                // Determine value: draft takes priority over SelectedAllotteeData
                 const value =
                   currentDraft.relationship ??
                   SelectedAllotteeData?.relationship ??
@@ -441,11 +426,11 @@ export function EditAllotteeDialog({
                           // Update react-hook-form - this is crucial!
                           field.onChange(numericValue); // Use field.onChange instead of form.setValue
 
-                        //   console.log("Updated draft:", {
-                        //     ...currentDraft,
-                        //     relationship: numericValue,
-                        //   });
-                        //   console.log("Form value:", numericValue);
+                          //   console.log("Updated draft:", {
+                          //     ...currentDraft,
+                          //     relationship: numericValue,
+                          //   });
+                          //   console.log("Form value:", numericValue);
                         }}
                       >
                         <SelectTrigger
@@ -803,7 +788,7 @@ export function EditAllotteeDialog({
             /> */}
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4">
+            <div className="col-span-2 flex gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -825,8 +810,8 @@ export function EditAllotteeDialog({
                   "Updating..."
                 ) : (
                   <>
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Update Allottee
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Draft
                   </>
                 )}
               </Button>

@@ -184,7 +184,7 @@ export function CrewAllottee({
   }, [storeAllottees]);
 
   const columns = useMemo<ColumnDef<(typeof allottees)[number]>[]>(() => {
-    const baseColumns: ColumnDef<(typeof allottees)[number]>[] = [
+    const baseColumns: ColumnDef<(typeof allottees)[number]>[] = [  
       {
         accessorKey: "name",
         header: () => <div className="text-justify">Crew Name</div>,
