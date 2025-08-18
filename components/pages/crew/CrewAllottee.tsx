@@ -100,7 +100,7 @@ export function CrewAllottee({
     Record<number, boolean>
   >({});
   //console.log("ALLOTTEES: ", allottees);
-  //console.log("IS ADDING: ", isAddingAllottee);
+  console.log("IS ADDING: ", isAddingAllottee);
   const newAllottee = useAddAllotteeStore((state) => state.newAllottee);
   //console.log('NEW ALLOTTEES: ', newAllottees);
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
@@ -256,7 +256,7 @@ export function CrewAllottee({
               <div className="flex justify-center w-full h-full">
                 <Select
                   value={value?.toString() ?? ""}
-                  disabled={!isEditingAllottee}
+                  disabled={!(isEditingAllottee || isAddingAllottee)}
                   onValueChange={(newValue) => {
                     const parsed = parseInt(newValue);
                     setAllottees((prev) =>
@@ -289,7 +289,7 @@ export function CrewAllottee({
               <div className="flex justify-center w-full h-full">
                 <Select
                   value={value?.toString() ?? ""}
-                  disabled={!isEditingAllottee}
+                  disabled={!(isEditingAllottee || isAddingAllottee)}
                   onValueChange={(newValue) => {
                     const parsed = parseInt(newValue);
                     setAllottees((prev) =>
@@ -328,7 +328,7 @@ export function CrewAllottee({
           return (
             <input
               type="number"
-              disabled={!isEditingAllottee}
+              disabled={!(isEditingAllottee || isAddingAllottee)}
               value={allotmentValue}
               onChange={(e) => {
                 const newValue = parseInt(e.target.value);
@@ -411,6 +411,7 @@ export function CrewAllottee({
     isLoadingAllottees,
     editedAllottees,
     isEditingAllottee,
+    isAddingAllottee,
   ]);
 
   // --- Trigger save effect for batch allottees
@@ -427,7 +428,7 @@ export function CrewAllottee({
     console.log("New allottee in store:", newAllottee);
 
     // Exit early if nothing to do
-    if ((!triggerAdd && !triggerEdit) || !crewId) {
+    if ((!triggerSave && !triggerEdit) || !crewId) {
       console.log("Nothing to do. Exiting effect.");
       return;
     }
@@ -516,6 +517,7 @@ export function CrewAllottee({
 
         fetchCrewAllottees(crewId.toString());
         setIsEditingAllottee(false);
+        setIsAddingAllottee(false);
 
         // Reset store & triggers
         useAddAllotteeStore.getState().resetAllottee();
@@ -539,7 +541,7 @@ export function CrewAllottee({
     };
 
     saveAllottees();
-  }, [triggerAdd, triggerEdit, crewId, allottees, drafts, newAllottee]);
+  }, [triggerSave, triggerEdit, crewId, allottees, drafts, newAllottee]);
 
   const handleDeleteAllottee = async (allottee: AllotteeUiModel | null) => {
     if (!allottee) return;
@@ -617,6 +619,7 @@ export function CrewAllottee({
       } finally {
         setDeletingAllottee(false);
         setIsEditingAllottee(false);
+        setIsAddingAllottee(false);
       }
     } else if (result.dismiss === Swal.DismissReason.cancel) {
       swalWithBootstrapButtons.fire({
@@ -710,7 +713,7 @@ export function CrewAllottee({
                             value={
                               allottees[0]?.allotmentType?.toString() || ""
                             }
-                            disabled={isEditingAllottee || isAddingAllottee}
+                            disabled={!isEditingAllottee && !isAddingAllottee}
                             onValueChange={(value) => {
                               const parsed = parseInt(value);
                               console.log(
@@ -772,7 +775,7 @@ export function CrewAllottee({
                                 }
 
                                 // If not editing, revert to previous type
-                                if (!isEditingAllottee) {
+                                if (!isEditingAllottee && !isAddingAllottee) {
                                   console.log(
                                     "Not editing, reverting to previous type:",
                                     prevType
