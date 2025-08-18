@@ -112,7 +112,7 @@ export default function CrewMovementList() {
           const totalCrewCount = response.data.length;
 
           const offBoardCrews: IOffBoardCrew[] = response.data
-            .filter((crew) => crew.CrewStatusID === 2)
+            .filter((crew) => crew.CrewStatusID === 2 && crew.IsActive === 1)
             .map((crew) => ({
               CrewID: crew.CrewID,
               CrewCode: crew.CrewCode,
@@ -143,7 +143,7 @@ export default function CrewMovementList() {
       });
   }, []);
 
-  //console.log('ALL CREWS: ', allCrews);
+  console.log('ALL CREWS: ', allCrews);
   //console.log('TOTAL CREWS: ', totalCrews);
 
   //const selectedCrews = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]).map((id) => displayedCrews[parseInt(id, 10)]);
@@ -164,6 +164,7 @@ export default function CrewMovementList() {
     }
   }, [debouncedSearch, allCrews]);
 
+
   const crewData = useMemo(
     () =>
       vesselData?.data.Crew.map((crew, index) => ({
@@ -179,6 +180,8 @@ export default function CrewMovementList() {
       })) || [],
     [vesselData]
   );
+
+  //console.log(crewData);
 
   //console.log(allCrews);
 
