@@ -469,7 +469,6 @@ export default function CrewDetails() {
           handleSave={handleSave}
           allotteeLoading={allotteeLoading}
           handleDeleteAllottee={handleDeleteAllottee}
-          //handleTriggerAdd={handleTriggerAdd}
           isAddLoading={isAddLoading}
           isDeletingAllottee={isDeletingAllottee}
           handleTriggerVerify={handleTriggerVerify}

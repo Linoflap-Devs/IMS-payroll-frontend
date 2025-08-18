@@ -367,17 +367,21 @@ export function CrewAllottee({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                <DropdownMenuItem
-                  className="text-xs sm:text-sm"
-                  onClick={() => {
-                    setSelectedAllotteeData(row.original);
-                    setEditselectedAllotteeDialogOpen(true);
-                  }}
-                >
-                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  Edit Allottee
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {isEditingAllottee && (
+                  <>
+                    <DropdownMenuItem
+                      className="text-xs sm:text-sm"
+                      onClick={() => {
+                        setSelectedAllotteeData(row.original);
+                        setEditselectedAllotteeDialogOpen(true);
+                      }}
+                    >
+                      <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                      Edit Allottee
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
                   onClick={() => {
@@ -391,7 +395,7 @@ export function CrewAllottee({
             </DropdownMenu>
           </div>
         ),
-      }
+      },
     );
 
     return baseColumns;
