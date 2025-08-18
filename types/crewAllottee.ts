@@ -12,10 +12,11 @@ export interface AllotteeApiModel {
   accountNumber: string;
   allotment: number;
   priority: number;
-  active: number;
+  active?: number;
   allotteeDetailId?: string;
   receivePayslip?: number;
   Percentage?: number;
+  isActive?: number;
 }
 
 export interface AllotteeUiModel {
@@ -34,6 +35,7 @@ export interface AllotteeUiModel {
   bankName: string;
   bankId: string;
   bankBranch: string;
+  
   branchId: string;
   accountNumber: string;
   allotment: number;

@@ -74,9 +74,9 @@ export default function CrewDetails() {
     setHandleDecline((prev) => !prev);
   };
 
-  const handleTriggerAdd = () => {
-    setTriggerAdd((prev) => !prev);
-  };
+  // const handleTriggerAdd = () => {
+  //   setTriggerAdd((prev) => !prev);
+  // };
 
   const {
     crew,
@@ -384,6 +384,7 @@ export default function CrewDetails() {
     setIsEditingAllottee(!isEditingAllottee);
   };
 
+  // working to -> true
   const toggleAllotteeAdd = () => {
     setIsAddingAllottee(!isAddingAllottee);
   };
@@ -469,7 +470,7 @@ export default function CrewDetails() {
           handleSave={handleSave}
           allotteeLoading={allotteeLoading}
           handleDeleteAllottee={handleDeleteAllottee}
-          handleTriggerAdd={handleTriggerAdd}
+          //handleTriggerAdd={handleTriggerAdd}
           isAddLoading={isAddLoading}
           isDeletingAllottee={isDeletingAllottee}
           handleTriggerVerify={handleTriggerVerify}
@@ -1359,32 +1360,20 @@ export default function CrewDetails() {
                   value="allottee"
                   className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1"
                 >
-                  {!isAddingAllottee ? (
-                    <>
-                      <CrewAllottee
-                        isEditingAllottee={isEditingAllottee}
-                        isAdding={isAddingAllottee}
-                        handleSave={handleSave}
-                        triggerSave={triggerSave}
-                        allotteeLoading={allotteeLoading}
-                        setAllotteeLoading={setAllotteeLoading}
-                        setTriggerSave={setTriggerSave}
-                        setIsEditingAllottee={setIsEditingAllottee}
-                      //triggerDelete={triggerDelete}
-                      //setTriggerDelete={setTriggerDelete}
-                      //setIsDeletingAllottee={setIsDeletingAllottee}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <AddCrewAllottee
-                        triggerAdd={triggerAdd}
-                        setIsAddingAllottee={setIsAddingAllottee}
-                        setTriggerAdd={setTriggerAdd}
-                        setIsAddLoading={setIsAddLoading}
-                      />
-                    </>
-                  )}
+                  <>
+                    <CrewAllottee
+                      isEditingAllottee={isEditingAllottee}
+                      isAdding={isAddingAllottee}
+                      handleSave={handleSave}
+                      triggerSave={triggerSave}
+                      allotteeLoading={allotteeLoading}
+                      setAllotteeLoading={setAllotteeLoading}
+                      setTriggerSave={setTriggerSave}
+                      setIsEditingAllottee={setIsEditingAllottee}
+                      setIsAddingAllottee={setIsAddingAllottee}
+                      isAddingAllottee={isAddingAllottee}
+                    />
+                  </>
                 </TabsContent>
 
                 <TabsContent

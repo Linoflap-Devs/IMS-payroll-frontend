@@ -5,23 +5,14 @@ import {
   X,
   Plus,
   CircleMinus,
-  CircleAlert,
 } from "lucide-react";
 import { TbUserCheck } from "react-icons/tb";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
+import { useAllotteeTriggerStore } from "@/src/store/usetriggerAdd";
+import { useAddAllotteeStore } from "@/src/store/useAddAllotteeStore";
 
 interface CrewHeaderProps {
   isEditing: boolean;
@@ -38,9 +29,8 @@ interface CrewHeaderProps {
   isRegistered: Date | null;
   isAddingAllottee: boolean;
   toggleAllotteeAdd: () => void;
-  handleTriggerAdd: () => void;
+  //handleTriggerAdd: () => void;
   isAddLoading: boolean;
-
   isEditingAllottee: boolean;
   toggleAllotteeEdit: () => void;
   handleSaveAllottee: () => void;
@@ -65,17 +55,16 @@ export function CrewHeader({
   isAddingAllottee,
   toggleAllotteeAdd,
   isAddLoading,
-  handleTriggerAdd,
-
+  //handleTriggerAdd,
   isEditingAllottee,
   toggleAllotteeEdit,
-  handleSave,
   allotteeLoading,
-  handleDeleteAllottee,
-  isDeletingAllottee,
   handleSaveAllottee
 }: CrewHeaderProps) {
+
   const { isAllotteeValid, setIsAllotteeValid } = useAllotteeFormStore();
+  const setTriggerAdd = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
+
   return (
     <>
       <div className="flex items-center justify-between">
@@ -131,7 +120,7 @@ export function CrewHeader({
         {activeTab === "allottee" && (
           <div className="px-4 pt-0 flex justify-end gap-3">
             {isEditingAllottee && !isAddingAllottee ? (
-              <>
+              <>  
                 <Button
                   variant="outline"
                   onClick={toggleAllotteeEdit}
@@ -170,7 +159,7 @@ export function CrewHeader({
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={handleTriggerAdd}
+                  onClick={() => setTriggerAdd(true)}
                   disabled={isAddLoading}
                   className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white"
                 >
@@ -208,49 +197,6 @@ export function CrewHeader({
             )}
           </div>
         )}
-
-        {/* {activeTab === "allottee" && (
-          <div className="px-4 pt-0 flex justify-end gap-3">
-            {isAddingAllottee ? (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={toggleAllotteeAdd}
-                  className="border-red-400 border-2 bg-white w-40 text-red-500 hover:text-red-500 flex items-center justify-center gap-2"
-                >
-                  <X className="h-4 w-4" />
-                  Cancel
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleTriggerAdd}
-                  disabled={isAddLoading}
-                  className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white flex items-center justify-center gap-2"
-                >
-                  {isAddLoading ? (
-                    <>
-                      <Loader2 className="animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" />
-                      Save Allottee
-                    </>
-                  )}
-                </Button>
-              </>
-            ) : (
-              <Button
-                className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 flex items-center justify-center gap-2"
-                onClick={toggleAllotteeAdd}
-              >
-                <Plus className="h-4 w-4" />
-                Add Allottee
-              </Button>
-            )}
-          </div>
-        )} */}
 
         {activeTab === "validation" && (
           <div className="px-4 pt-0 flex justify-end gap-3">
@@ -296,3 +242,7 @@ export function CrewHeader({
     </>
   );
 }
+function AddTriggerAllotteeStore(arg0: (state: any) => any) {
+  throw new Error("Function not implemented.");
+}
+
