@@ -328,6 +328,7 @@ export function EditAllotteeDialog({
       contactNumber: data.contactNumber
         ? Number(data.contactNumber)
         : undefined,
+      //contactNumber: data.contactNumber
       address: data.address,
       province: data.province,
       city: data.city,
