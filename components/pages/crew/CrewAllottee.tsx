@@ -318,7 +318,7 @@ export function CrewAllottee({
     baseColumns.push(
       {
         accessorKey: "allotment",
-        header: () => <div className="text-center">Allotment</div>,
+        header: () => <div className="text-center">Allotment {}</div>,
         cell: ({ row }) => {
           //const allotmentType = row.original.allotmentType;
           const allotteeId = row.original.id;
@@ -377,7 +377,6 @@ export function CrewAllottee({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                {isEditingAllottee && (
                   <>
                     <DropdownMenuItem
                       className="text-xs sm:text-sm"
@@ -387,11 +386,10 @@ export function CrewAllottee({
                       }}
                     >
                       <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                      Edit Allottee
+                     {isEditingAllottee ? "Edit Allottee" : "View Allottee"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
-                )}
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm cursor-pointer"
                   onClick={() => {
@@ -510,7 +508,7 @@ export function CrewAllottee({
         });
 
         fetchCrewAllottees(crewId.toString());
-        //setIsEditingAllottee(false);
+        setIsEditingAllottee(false); // 
         //setIsAddingAllottee(false);
 
         setAllottees([]);
@@ -615,7 +613,7 @@ export function CrewAllottee({
         });
       } finally {
         setDeletingAllottee(false);
-        //setIsEditingAllottee(false);
+        setIsEditingAllottee(false);
         //setIsAddingAllottee(false);
       }
     } else if (result.dismiss === Swal.DismissReason.cancel) {
@@ -880,6 +878,7 @@ export function CrewAllottee({
               setEditselectedAllotteeDialogOpen(open);
             }}
             SelectedAllotteeData={selectedAllotteeData}
+            isEditingAllottee={isEditingAllottee}
           />
         )}
       </div>

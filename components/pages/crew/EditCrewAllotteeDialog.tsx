@@ -54,6 +54,7 @@ interface EditUserDialogProps {
   onOpenChange: (open: boolean) => void;
   SelectedAllotteeData: AllotteeUiModel;
   onSuccess?: (updatedUser: AllotteeUiModel) => void;
+  isEditingAllottee: boolean
 }
 
 export function EditAllotteeDialog({
@@ -61,6 +62,7 @@ export function EditAllotteeDialog({
   onOpenChange,
   SelectedAllotteeData,
   onSuccess,
+  isEditingAllottee,
 }: EditUserDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -360,7 +362,7 @@ export function EditAllotteeDialog({
       <DialogContent className="sm:max-w-[750px] bg-[#FCFCFC] p-10">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
-            Edit Allottee
+            { isEditingAllottee ? "Edit Allottee" : "View Allottee"}
           </DialogTitle>
         </DialogHeader>
 
@@ -373,6 +375,7 @@ export function EditAllotteeDialog({
             <FormField
               control={form.control}
               name="name"
+              disabled={!isEditingAllottee}
               render={({ field }) => (
                 <FormItem className="col-span-2">
                   <FormLabel>Name</FormLabel>
@@ -412,6 +415,7 @@ export function EditAllotteeDialog({
                     <FormLabel>Relationship</FormLabel>
                     <FormControl>
                       <Select
+                        disabled={!isEditingAllottee}
                         value={field.value ? field.value.toString() : ""} // Use field.value, not the computed value
                         onValueChange={(val: string) => {
                           const numericValue = Number(val);
@@ -466,6 +470,7 @@ export function EditAllotteeDialog({
             <FormField
               control={form.control}
               name="contactNumber"
+              disabled={!isEditingAllottee}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Contact Number</FormLabel>
@@ -491,6 +496,7 @@ export function EditAllotteeDialog({
             <FormField
               control={form.control}
               name="address"
+              disabled={!isEditingAllottee}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Address</FormLabel>
@@ -520,6 +526,7 @@ export function EditAllotteeDialog({
                   <FormLabel>Province</FormLabel>
                   <FormControl>
                     <Select
+                      disabled={!isEditingAllottee}
                       onValueChange={(value) => {
                         const numericValue = Number(value);
                         field.onChange(numericValue);
@@ -582,6 +589,7 @@ export function EditAllotteeDialog({
                   <FormLabel>City</FormLabel>
                   <FormControl>
                     <Select
+                      disabled={!isEditingAllottee}
                       onValueChange={(value) => {
                         const numericValue = Number(value); // relationship ID
                         field.onChange(numericValue); // update react-hook-form
@@ -639,6 +647,7 @@ export function EditAllotteeDialog({
                   <FormLabel>Bank</FormLabel>
                   <FormControl>
                     <Select
+                      disabled={!isEditingAllottee}
                       onValueChange={(value) => {
                         const numericValue = Number(value); // relationship ID
                         field.onChange(numericValue); // update react-hook-form
@@ -688,6 +697,7 @@ export function EditAllotteeDialog({
                   <FormLabel>Branch</FormLabel>
                   <FormControl>
                     <Select
+                      disabled={!isEditingAllottee}
                       onValueChange={(value) => {
                         const numericValue = Number(value);
                         field.onChange(numericValue); // store as number
@@ -741,6 +751,7 @@ export function EditAllotteeDialog({
             <FormField
               control={form.control}
               name="accountNumber"
+              disabled={!isEditingAllottee}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Account Number</FormLabel>
@@ -792,7 +803,7 @@ export function EditAllotteeDialog({
             <div className="col-span-2 flex gap-3 pt-4">
               <Button
                 type="button"
-                variant="outline"
+                variant={ isEditingAllottee ? "outline" : "default"}
                 className="flex-1"
                 onClick={() => {
                   onOpenChange(false);
@@ -802,20 +813,22 @@ export function EditAllotteeDialog({
               >
                 Back
               </Button>
-              <Button
-                type="submit"
-                className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  "Updating..."
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Draft
-                  </>
-                )}
-              </Button>
+              {isEditingAllottee && (
+                <Button
+                  type="submit"
+                  className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    "Updating..."
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Draft
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </form>
         </Form>
