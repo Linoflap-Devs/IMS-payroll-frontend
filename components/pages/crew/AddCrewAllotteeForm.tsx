@@ -562,7 +562,12 @@ allottees,
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
-                      Allotment {allottees[0].allotmentType == 2 ? "Percentage" : "Amount"}
+                      Allotment {allottees?.[0]?.allotmentType === 2 
+                        ? "Percentage" 
+                        : allottees?.[0]?.allotmentType === 1 
+                          ? "Amount" 
+                          : "N/A" // fallback
+                      }
                     </FormLabel>
                     <FormControl>
                       <Input  
