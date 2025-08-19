@@ -388,8 +388,12 @@ export function CrewAllottee({
                         setEditselectedAllotteeDialogOpen(true);
                       }}
                     >
-                      <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                     {isEditingAllottee ? "Edit Allottee" : "View Allottee"}
+                      {isEditingAllottee ? (
+                        <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                      ) : (
+                        <Eye className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                      )}
+                      {isEditingAllottee ? "Edit Allottee" : "View Allottee"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
