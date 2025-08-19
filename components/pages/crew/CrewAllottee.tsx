@@ -550,6 +550,7 @@ export function CrewAllottee({
 
         fetchCrewAllottees(crewId.toString());
         setIsEditingAllottee(false);
+        setIsAddingAllottee(false);
 
         setAllottees([]);
         // Reset store & triggers
@@ -563,6 +564,7 @@ export function CrewAllottee({
         // Only set editing state to true on error
         setIsEditingAllottee(true);
         setTriggerSave(false);
+        
 
         toast({
           title: "Error saving allottees",
@@ -843,6 +845,7 @@ export function CrewAllottee({
               {isAddingAllottee && (
                 <AddCrewAllotteeForm
                   allottees={allottees}
+                  setIsAddingAllottee={setIsAddingAllottee}
                 />
               )}
             </>

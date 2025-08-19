@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {
   Select,
@@ -30,10 +30,12 @@ import { toast } from "@/components/ui/use-toast";
 
 interface AddAllotteeFormProps {
   allottees: AllotteeUiModel[];
+  setIsAddingAllottee: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function AddAllotteeForm({
 allottees,
+setIsAddingAllottee
 }: AddAllotteeFormProps) {
   const defaultValues: IAddAllottee = useMemo(
     () => ({
