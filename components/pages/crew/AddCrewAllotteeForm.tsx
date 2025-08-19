@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Select,
@@ -22,10 +22,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { addCrewAllotteeSchema } from "@/lib/zod-validations";
-import { AllotteeApiModel, IAddAllottee } from "@/types/crewAllottee";
+import { AllotteeApiModel, AllotteeUiModel, IAddAllottee } from "@/types/crewAllottee";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAddAllotteeStore } from "@/src/store/useAddAllotteeStore";
 import { useAllotteeTriggerStore } from "@/src/store/usetriggerAdd";
+import { useCrewStore } from "@/src/store/useCrewStore";
+import { useSearchParams } from "next/navigation";
 
 export default function AddAllotteeForm() {
   const defaultValues: IAddAllottee = useMemo(
@@ -63,6 +65,19 @@ export default function AddAllotteeForm() {
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd); // get the function
   const setTriggerAdd = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
   const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
+  const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
+  const allottees = useAllotteeTriggerStore((state) => state.allotteesZustand);
+  console.log(allottees);
+
+  const savedAllotmentsType = useAllotteeTriggerStore((state) => state.savedAllotmentsType);
+const latestType =
+  savedAllotmentsType[savedAllotmentsType.length - 1]?.allotmentType ??
+  allottees[0]?.allotmentType; // <-- safe fallback  console.log(latestType);
+
+  const currentAllottee = allottees[0];
+  console.log('CURRENT ALLOTTEE TYPE: ', currentAllottee);
+
+  console.log(allottees);
 
   useEffect(() => {
     if (triggerAdd) {
@@ -76,8 +91,6 @@ export default function AddAllotteeForm() {
     getUniqueBanks,
     getBranchesForSelectedBank,
   } = useBankStore();
-
-  const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
 
   useEffect(() => {
     fetchRelationships();
@@ -168,47 +181,50 @@ export default function AddAllotteeForm() {
               <h3 className="text-lg font-semibold mb-3 text-primary">
                 Add Allottee
               </h3>
-              <div className="flex justify-end gap-10 w-1/2">
-                <FormField
-                  control={control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value === true}
-                          onCheckedChange={(checked) => field.onChange(checked)}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm text-gray-500">
-                        Priority Allotment
-                      </FormLabel>
-                      <FormMessage className="text-xs text-red-500" />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="receivePayslip"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center">
-                      <FormControl>
-                        <Checkbox
-                          {...field}
-                          checked={field.value === 1}
-                          onCheckedChange={(checked) =>
-                            field.onChange(checked ? 1 : 0)
-                          }
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm text-gray-500">
-                        Dollar Allotment (receivePayslip)
-                      </FormLabel>
-                      <FormMessage className="text-xs text-red-500" />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                {latestType !== 2 && (
+                  <div className="flex justify-end gap-10 w-1/2">
+                    {/* Priority Checkbox */}
+                    <FormField
+                      control={control}
+                      name="priority"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value === true}
+                              onCheckedChange={(checked) => field.onChange(checked)}
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm text-gray-500">
+                            Priority Allotment
+                          </FormLabel>
+                          <FormMessage className="text-xs text-red-500" />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={control}
+                      name="receivePayslip"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center">
+                          <FormControl>
+                            <Checkbox
+                              {...field}
+                              checked={field.value === 1}
+                              onCheckedChange={(checked) =>
+                                field.onChange(checked ? 1 : 0)
+                              }
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm text-gray-500">
+                            Dollar Allotment (receivePayslip)
+                          </FormLabel>
+                          <FormMessage className="text-xs text-red-500" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -554,9 +570,7 @@ export default function AddAllotteeForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
-                      {allotmentType === 1
-                        ? "Allotment Amount"
-                        : "Allotment Percentage"}
+                     Allotment
                     </FormLabel>
                     <FormControl>
                       <Input
