@@ -187,11 +187,11 @@ export function CrewAllottee({
     setAllotteesZustand(mapped);
   }, [storeAllottees]);
 
-// useEffect(() => {
-//   if (allottees) {
-// setAllotteesZustand(allottees.map(a => a.allotmentType));
-//   }
-// }, [allottees]);
+  // useEffect(() => {
+  //   if (allottees) {
+  // setAllotteesZustand(allottees.map(a => a.allotmentType));
+  //   }
+  // }, [allottees]);
 
   const columns = useMemo<ColumnDef<(typeof allottees)[number]>[]>(() => {
     const baseColumns: ColumnDef<(typeof allottees)[number]>[] = [
@@ -266,11 +266,11 @@ export function CrewAllottee({
                   }}
                 >
                   <SelectTrigger>
-                    {value === 1 ? "Yes" : value === 0 ? "No" : "Select"}
+                    {value === 0 ? "Yes" : value === 1 ? "No" : "Select"}
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">Yes</SelectItem>
-                    <SelectItem value="0">No</SelectItem>
+                    <SelectItem value="0">Yes</SelectItem>
+                    <SelectItem value="1">No</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
