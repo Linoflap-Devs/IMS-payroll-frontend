@@ -26,6 +26,7 @@ import {
   Filter,
   Users,
   Pencil,
+  Download,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
@@ -43,6 +44,8 @@ import {
   getVesselList,
   VesselItem,
   deleteVessel,
+  getOnboardCrewReport,
+  OnboardCrewReportResponse,
 } from "@/src/services/vessel/vessel.api";
 import {
   getVesselTypeList,
@@ -55,6 +58,8 @@ import {
   deleteVesselPrincipal,
 } from "@/src/services/vessel/vesselPrincipal.api";
 import { NewVesselItem, UpdatedVesselFromApi } from "@/types/vessel";
+import generateOnboardCrewReport from "../PDFs/onboardCrewReportPDF";
+import { format } from "date-fns";
 
 interface Vessel {
   vesselId: number;
@@ -105,6 +110,18 @@ export default function VesselProfile() {
   const [isLoadingVessels, setLoadingVessels] = useState(false);
   const [isLoadingTypes, setLoadingTypes] = useState(false);
   const [isLoadingPrincipals, setLoadingPrincipals] = useState(false);
+
+  const [onBoardCrewData, setOnBoardCrewData] = useState<OnboardCrewReportResponse>({} as OnboardCrewReportResponse);
+
+  useEffect( () => {
+    const fetchOnboardCrewReport = async () => {
+      const response = await getOnboardCrewReport(7, 2025)
+      setOnBoardCrewData(response);
+      console.log("Onboard Crew Data:", response);
+    }
+
+    fetchOnboardCrewReport();
+  }, [])
 
   const handleVesselTypeAdded = (newVesselType: VesselTypeItem) => {
     // Convert API response format to your internal format
@@ -820,6 +837,15 @@ export default function VesselProfile() {
                       >
                         <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                         Add Vessel
+                      </Button>
+
+                      <Button
+                        className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
+                        size="default"
+                        onClick={() => generateOnboardCrewReport(onBoardCrewData, format(new Date(), 'yyyy-mm-dd hh:mm aa'), 'all')}
+                      >
+                        <Download className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
+                        Export PDF
                       </Button>
                     </div>
                   </div>

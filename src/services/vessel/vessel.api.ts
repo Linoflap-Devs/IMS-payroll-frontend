@@ -104,8 +104,37 @@ export interface VesselCrewResponse {
   };
 }
 
+export interface OnboardCrewReportResponse {
+  success: boolean;
+  message: string;
+  data: {
+    VesselID: number,
+    VesselName: string ,
+    Crew: {
+      FirstName: string,
+      MiddleName: string | null,
+      LastName: string,
+      SeamansBook: string | null,
+      Birthday: Date,
+      JoinDate: Date,
+      Rank: string,
+      RSequence: number
+    }[]
+  }[]
+}
+
 export const getVesselCrew = async (vesselId: string | number): Promise<VesselCrewResponse> => {
   const response = await axiosInstance.get<VesselCrewResponse>(`/vessels/${vesselId}/crew`);
   return response.data;
 };
 
+export const getOnboardCrewReport = async (month: number, year: number, vesselId?: number): Promise<OnboardCrewReportResponse> => {
+  if (vesselId) {
+    const response = await axiosInstance.get(`/vessels/${vesselId}/onboard-crew/${year}/${month}`)
+    return response.data
+  }
+  else {
+    const response = await axiosInstance.get(`/vessels/onboard-crew/${year}/${month}`)
+    return response.data
+  }
+}
