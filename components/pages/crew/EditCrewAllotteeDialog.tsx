@@ -55,6 +55,7 @@ interface EditUserDialogProps {
   SelectedAllotteeData: AllotteeUiModel;
   onSuccess?: (updatedUser: AllotteeUiModel) => void;
   isEditingAllottee: boolean
+  isAddingAllottee: boolean | null
 }
 
 export function EditAllotteeDialog({
@@ -63,6 +64,7 @@ export function EditAllotteeDialog({
   SelectedAllotteeData,
   onSuccess,
   isEditingAllottee,
+  isAddingAllottee,
 }: EditUserDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -803,7 +805,7 @@ export function EditAllotteeDialog({
             <div className="col-span-2 flex gap-3 pt-4">
               <Button
                 type="button"
-                variant={ isEditingAllottee ? "outline" : "default"}
+                variant={ isEditingAllottee || isAddingAllottee ? "outline" : "default"}
                 className="flex-1"
                 onClick={() => {
                   onOpenChange(false);
@@ -813,7 +815,7 @@ export function EditAllotteeDialog({
               >
                 Back
               </Button>
-              {isEditingAllottee && (
+              {(isEditingAllottee || isAddingAllottee) && (
                 <Button
                   type="submit"
                   className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
