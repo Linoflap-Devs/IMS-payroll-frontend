@@ -167,16 +167,16 @@ allottees,
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSaveAdd)} className="mt-2">
-        <div className="p-4 mt-2 space-y-6">
+      <form onSubmit={form.handleSubmit(handleSaveAdd)} className="mt-0">
+        <div className="px-2 pt-2 pb-0 mt-2 space-y-6">
           <div>
-            <div className="flex items-center justify-between mb-4 w-full">
+            <div className="flex items-center justify-between mb-3 w-full">
               <h3 className="text-lg font-semibold mb-3 text-primary">
                 Add Allottee
               </h3>
 
               {allottees[0]?.allotmentType === 1 && (
-                <div className="flex justify-end gap-10 w-1/2">
+                <div className="flex justify-end gap-6 w-1/2">
                   <FormField
                     control={control}
                     name="priority"
@@ -242,7 +242,7 @@ allottees,
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={control}
                 name="name"
@@ -457,7 +457,7 @@ allottees,
             <h3 className="text-lg font-semibold mb-3 text-primary">
               Bank Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Bank field */}
               <FormField
                 control={control}
