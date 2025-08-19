@@ -75,7 +75,7 @@ export function CrewAllottee({
   triggerSave,
   setAllotteeLoading,
   setTriggerSave,
-  setIsEditingAllottee = () => {},
+  setIsEditingAllottee = () => { },
   setIsAddingAllottee,
   isAddingAllottee,
 }: ICrewAllotteeProps) {
@@ -94,6 +94,9 @@ export function CrewAllottee({
   const newAllottee = useAddAllotteeStore((state) => state.newAllottee);
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
   const triggerEdit = useAllotteeTriggerStore((state) => state.triggerAdd);
+  const setAllotteesZustand = useAllotteeTriggerStore((state) => state.setAllotteesZustand);
+  console.log('SAVED ALLOTMENTS: ', savedAllotments);
+  const setSavedAllotmentsTypes = useAllotteeTriggerStore((state) => state.setSavedAllotmentsTypes);
 
   const {
     allottees: storeAllottees,
@@ -172,7 +175,7 @@ export function CrewAllottee({
       bankBranch: a.BankBranch,
       branchId: a.BankBranchID?.toString() || "",
       accountNumber: a.AccountNumber,
-      allotment: a.Allotment, 
+      allotment: a.Allotment,
       priority: a.priority,
       receivePayslip: a.receivePayslip,
       active: a.active ? 1 : 0,
@@ -181,17 +184,24 @@ export function CrewAllottee({
     }));
 
     setAllottees(mapped);
+    setAllotteesZustand(mapped);
   }, [storeAllottees]);
 
+  // useEffect(() => {
+  //   if (allottees) {
+  // setAllotteesZustand(allottees.map(a => a.allotmentType));
+  //   }
+  // }, [allottees]);
+
   const columns = useMemo<ColumnDef<(typeof allottees)[number]>[]>(() => {
-    const baseColumns: ColumnDef<(typeof allottees)[number]>[] = [  
+    const baseColumns: ColumnDef<(typeof allottees)[number]>[] = [
       {
         accessorKey: "name",
         header: () => <div className="text-justify">Crew Name</div>,
         cell: ({ row }) => {
           const name = row.getValue("name") as string;
 
-          return (  
+          return (
             <div className="flex items-center space-x-3 text-justify">
               {isLoadingAllottees ? (
                 <img
@@ -256,11 +266,11 @@ export function CrewAllottee({
                   }}
                 >
                   <SelectTrigger>
-                    {value === 1 ? "Yes" : value === 0 ? "No" : "Select"}
+                    {value === 0 ? "Yes" : value === 1 ? "No" : "Select"}
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">Yes</SelectItem>
-                    <SelectItem value="0">No</SelectItem>
+                    <SelectItem value="0">Yes</SelectItem>
+                    <SelectItem value="1">No</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -308,13 +318,14 @@ export function CrewAllottee({
     baseColumns.push(
       {
         accessorKey: "allotment",
-        header: () => <div className="text-center">Allotment</div>,
+        header: () => <div className="text-center">Allotment {allottees?.[0]?.allotmentType === 2 ? "%" : ""}</div>,
         cell: ({ row }) => {
           //const allotmentType = row.original.allotmentType;
           const allotteeId = row.original.id;
           const allotmentValue = row.getValue<number>("allotment") ?? 0;
 
           return (
+            <>
             <input
               type="number"
               disabled={!(isEditingAllottee || isAddingAllottee)}
@@ -327,8 +338,10 @@ export function CrewAllottee({
                   )
                 );
               }}
-              className="w-16 text-center border border-gray-300 rounded px-1 py-0.5 text-sm"
+              className="w-16 text-center border border-gray-300 rounded px-1 py-0.5 text-sm mr-1"
             />
+              {allottees?.[0]?.allotmentType === 2 ? "%" : ""}
+            </>
           );
         },
       },
@@ -367,7 +380,6 @@ export function CrewAllottee({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                {isEditingAllottee && (
                   <>
                     <DropdownMenuItem
                       className="text-xs sm:text-sm"
@@ -377,13 +389,12 @@ export function CrewAllottee({
                       }}
                     >
                       <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                      Edit Allottee
+                     {isEditingAllottee ? "Edit Allottee" : "View Allottee"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
-                )}
                 <DropdownMenuItem
-                  className="text-xs sm:text-sm"
+                  className="text-destructive text-xs sm:text-sm cursor-pointer"
                   onClick={() => {
                     handleDeleteAllottee(row.original);
                   }}
@@ -500,7 +511,7 @@ export function CrewAllottee({
         });
 
         fetchCrewAllottees(crewId.toString());
-        //setIsEditingAllottee(false);
+        setIsEditingAllottee(false); // 
         //setIsAddingAllottee(false);
 
         setAllottees([]);
@@ -605,7 +616,7 @@ export function CrewAllottee({
         });
       } finally {
         setDeletingAllottee(false);
-        //setIsEditingAllottee(false);
+        setIsEditingAllottee(false);
         //setIsAddingAllottee(false);
       }
     } else if (result.dismiss === Swal.DismissReason.cancel) {
@@ -703,70 +714,56 @@ export function CrewAllottee({
                             disabled={!isEditingAllottee && !isAddingAllottee}
                             onValueChange={(value) => {
                               const parsed = parseInt(value);
-                              console.log(
-                                "Selected value:",
-                                value,
-                                "Parsed:",
-                                parsed
-                              );
+                              console.log("Selected value:", value, "Parsed:", parsed);
 
                               setAllottees((prev) => {
                                 const prevType = prev[0]?.allotmentType;
                                 console.log("Previous type:", prevType);
-                                console.log(
-                                  "Current allottees before change:",
-                                  prev
-                                );
+                                console.log("Current allottees before change:", prev);
 
                                 // Save current allotments under their type
                                 if (prevType) {
+                                  // save the detailed allotments
                                   setSavedAllotments((prevSaved) => {
                                     const newSaved = {
                                       ...prevSaved,
                                       [prevType]: {
-                                        allotments: prev.map(
-                                          (a) => a.allotment
-                                        ),
-                                        receivePayslips: prev.map(
-                                          (a) => a.receivePayslip
-                                        ),
+                                        allotments: prev.map((a) => a.allotment),
+                                        receivePayslips: prev.map((a) => a.receivePayslip),
                                         priority: prev.map((a) => a.priority),
                                       },
                                     };
                                     console.log("Saved allotments:", newSaved);
                                     return newSaved;
                                   });
+
+                                  // save only the type (just an array of numbers)
+                                  setSavedAllotmentsTypes((prev) =>
+                                    prev.map((a, idx) =>
+                                      idx === prev.length - 1 ? { ...a, allotmentType: 1 } : a
+                                    )
+                                  );
                                 }
+
 
                                 // Restore saved data for the new type
                                 if (savedAllotments[parsed]) {
-                                  console.log(
-                                    "Restoring saved allotments for type:",
-                                    parsed
-                                  );
+                                  console.log("Restoring saved allotments for type:", parsed);
                                   return prev.map((allottee, index) => ({
                                     ...allottee,
                                     allotmentType: parsed,
                                     allotment:
-                                      savedAllotments[parsed].allotments[
-                                        index
-                                      ] ?? 0,
+                                      savedAllotments[parsed].allotments[index] ?? 0,
                                     receivePayslip:
-                                      savedAllotments[parsed].receivePayslips[
-                                        index
-                                      ] ?? undefined,
+                                      savedAllotments[parsed].receivePayslips[index] ?? undefined,
                                     priority:
-                                      savedAllotments[parsed].priority[index] ??
-                                      undefined,
+                                      savedAllotments[parsed].priority[index] ?? undefined,
                                   }));
                                 }
 
                                 // If not editing, revert to previous type
                                 if (!isEditingAllottee && !isAddingAllottee) {
-                                  console.log(
-                                    "Not editing, reverting to previous type:",
-                                    prevType
-                                  );
+                                  console.log("Not editing, reverting to previous type:", prevType);
                                   return prev.map((a) => ({
                                     ...a,
                                     allotmentType: prevType,
@@ -774,10 +771,7 @@ export function CrewAllottee({
                                 }
 
                                 // Otherwise, reset to defaults
-                                console.log(
-                                  "Resetting allotments to defaults for new type:",
-                                  parsed
-                                );
+                                console.log("Resetting allotments to defaults for new type:", parsed);
                                 return prev.map((allottee) => ({
                                   ...allottee,
                                   allotmentType: parsed,
@@ -787,6 +781,7 @@ export function CrewAllottee({
                                 }));
                               });
                             }}
+
                           >
                             <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
                               <SelectValue placeholder="Amount" />
@@ -874,12 +869,7 @@ export function CrewAllottee({
                 />
               </div> */}
               {isAddingAllottee && (
-                <>
-                  {console.log(
-                    "Rendering AddAllotteeForm because isEditingAllottee is true"
-                  )}
-                  <AddCrewAllotteeForm />
-                </>
+                <AddCrewAllotteeForm />
               )}
             </>
           )}
@@ -891,6 +881,7 @@ export function CrewAllottee({
               setEditselectedAllotteeDialogOpen(open);
             }}
             SelectedAllotteeData={selectedAllotteeData}
+            isEditingAllottee={isEditingAllottee}
           />
         )}
       </div>
