@@ -22,12 +22,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { addCrewAllotteeSchema } from "@/lib/zod-validations";
-import { AllotteeApiModel, IAddAllottee } from "@/types/crewAllottee";
+import { AllotteeApiModel, AllotteeUiModel, IAddAllottee } from "@/types/crewAllottee";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAddAllotteeStore } from "@/src/store/useAddAllotteeStore";
 import { useAllotteeTriggerStore } from "@/src/store/usetriggerAdd";
 
-export default function AddAllotteeForm() {
+interface AddAllotteeFormProps {
+  allottees: AllotteeUiModel[];
+}
+
+export default function AddAllotteeForm({
+allottees
+}: AddAllotteeFormProps) {
   const defaultValues: IAddAllottee = useMemo(
     () => ({
       name: "",
@@ -47,7 +53,6 @@ export default function AddAllotteeForm() {
     }),
     []
   );
-
   const form = useForm<IAddAllottee>({
     resolver: zodResolver(addCrewAllotteeSchema),
     defaultValues,
@@ -554,9 +559,7 @@ export default function AddAllotteeForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
-                      {allotmentType === 1
-                        ? "Allotment Amount"
-                        : "Allotment Percentage"}
+                      Allotment
                     </FormLabel>
                     <FormControl>
                       <Input

@@ -94,9 +94,6 @@ export function CrewAllottee({
   const newAllottee = useAddAllotteeStore((state) => state.newAllottee);
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
   const triggerEdit = useAllotteeTriggerStore((state) => state.triggerAdd);
-  const setAllotteesZustand = useAllotteeTriggerStore((state) => state.setAllotteesZustand);
-  console.log('SAVED ALLOTMENTS: ', savedAllotments);
-  const setSavedAllotmentsTypes = useAllotteeTriggerStore((state) => state.setSavedAllotmentsTypes);
 
   const {
     allottees: storeAllottees,
@@ -184,7 +181,6 @@ export function CrewAllottee({
     }));
 
     setAllottees(mapped);
-    setAllotteesZustand(mapped);
   }, [storeAllottees]);
 
   // useEffect(() => {
@@ -393,7 +389,7 @@ export function CrewAllottee({
                       ) : (
                         <Eye className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                       )}
-                      {isEditingAllottee ? "Edit Allottee" : "View Allottee"}
+                      {isEditingAllottee || isAddingAllottee ? "Edit Allottee" : "View Allottee"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
@@ -515,8 +511,7 @@ export function CrewAllottee({
         });
 
         fetchCrewAllottees(crewId.toString());
-        setIsEditingAllottee(false); // 
-        //setIsAddingAllottee(false);
+        setIsEditingAllottee(false);
 
         setAllottees([]);
 
@@ -739,14 +734,7 @@ export function CrewAllottee({
                                     };
                                     console.log("Saved allotments:", newSaved);
                                     return newSaved;
-                                  });
-
-                                  // save only the type (just an array of numbers)
-                                  setSavedAllotmentsTypes((prev) =>
-                                    prev.map((a, idx) =>
-                                      idx === prev.length - 1 ? { ...a, allotmentType: 1 } : a
-                                    )
-                                  );
+                                  });                            
                                 }
 
 
@@ -873,7 +861,9 @@ export function CrewAllottee({
                 />
               </div> */}
               {isAddingAllottee && (
-                <AddCrewAllotteeForm />
+                <AddCrewAllotteeForm
+                  allottees={allottees}
+                />
               )}
             </>
           )}
@@ -886,6 +876,7 @@ export function CrewAllottee({
             }}
             SelectedAllotteeData={selectedAllotteeData}
             isEditingAllottee={isEditingAllottee}
+            isAddingAllottee={isAddingAllottee ?? null} 
           />
         )}
       </div>
