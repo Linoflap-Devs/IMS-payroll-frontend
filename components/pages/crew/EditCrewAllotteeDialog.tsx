@@ -416,7 +416,7 @@ export function EditAllotteeDialog({
                     <FormControl>
                       <Select
                         disabled={!isEditingAllottee}
-                        value={field.value ? field.value.toString() : ""} // Use field.value, not the computed value
+                        value={field.value ? field.value.toString() : ""}
                         onValueChange={(val: string) => {
                           const numericValue = Number(val);
                           const draftId = Number(SelectedAllotteeData?.id);

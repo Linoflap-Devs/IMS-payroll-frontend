@@ -318,13 +318,14 @@ export function CrewAllottee({
     baseColumns.push(
       {
         accessorKey: "allotment",
-        header: () => <div className="text-center">Allotment {}</div>,
+        header: () => <div className="text-center">Allotment {allottees?.[0]?.allotmentType === 2 ? "%" : ""}</div>,
         cell: ({ row }) => {
           //const allotmentType = row.original.allotmentType;
           const allotteeId = row.original.id;
           const allotmentValue = row.getValue<number>("allotment") ?? 0;
 
           return (
+            <>
             <input
               type="number"
               disabled={!(isEditingAllottee || isAddingAllottee)}
@@ -337,8 +338,10 @@ export function CrewAllottee({
                   )
                 );
               }}
-              className="w-16 text-center border border-gray-300 rounded px-1 py-0.5 text-sm"
+              className="w-16 text-center border border-gray-300 rounded px-1 py-0.5 text-sm mr-1"
             />
+              {allottees?.[0]?.allotmentType === 2 ? "%" : ""}
+            </>
           );
         },
       },
