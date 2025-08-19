@@ -178,7 +178,7 @@ export function EditAllotteeDialog({
   ]);
 
   const { reset } = form;
-  console.log(drafts);
+  //console.log(drafts);
 
   useEffect(() => {
     if (!SelectedAllotteeData) return;

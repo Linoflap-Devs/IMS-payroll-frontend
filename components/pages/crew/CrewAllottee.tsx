@@ -291,11 +291,11 @@ export function CrewAllottee({
                   }}
                 >
                   <SelectTrigger>
-                    {value === 1 ? "PHP" : value === 2 ? "USD" : "Select"}
+                    {value === 0 ? "PHP" : value === 1 ? "USD" : "Select"}
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">PHP</SelectItem>
-                    <SelectItem value="2">USD</SelectItem>
+                    <SelectItem value="0">PHP</SelectItem>
+                    <SelectItem value="1">USD</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
