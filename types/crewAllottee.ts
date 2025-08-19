@@ -61,7 +61,7 @@ export interface IAddAllottee {
   branch: number;
   accountNumber: string;
   allotment: number;
-  priority: boolean;
+  priority: number;
   isActive: number;
   receivePayslip: number;
 }

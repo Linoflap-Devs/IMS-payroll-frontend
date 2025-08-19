@@ -52,7 +52,7 @@ export const addCrewAllotteeSchema = z.object({
         .min(0.01, { message: "Allotment must be greater than 0" }),
     receivePayslip: z.number().min(0).max(1),
     isActive: z.number().min(0).max(1),
-    priority: z.boolean(),
+    priority: z.number(),
 });
 
 export const addVesselSchema = z.object({

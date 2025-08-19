@@ -45,6 +45,7 @@ import { EditAllotteeDialog } from "./EditCrewAllotteeDialog";
 import AddCrewAllotteeForm from "./AddCrewAllotteeForm";
 import { useAddAllotteeStore } from "@/src/store/useAddAllotteeStore";
 import { useAllotteeTriggerStore } from "@/src/store/usetriggerAdd";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ICrewAllotteeProps {
   onAdd?: () => void;
@@ -236,8 +237,7 @@ export function CrewAllottee({
         ),
       },
     ];
-
-    // Add conditional columns
+    
     if (allottees[0]?.allotmentType === 1) {
       baseColumns.push(
         {
@@ -248,27 +248,39 @@ export function CrewAllottee({
             const allotteeId = row.original.id;
 
             return (
-              <div className="flex justify-center w-full h-full">
-                <Select
-                  value={value?.toString() ?? ""}
+              <div className="flex justify-center items-center w-full h-full">
+                <Checkbox
+                  checked={value === 1}
                   disabled={!(isEditingAllottee || isAddingAllottee)}
-                  onValueChange={(newValue) => {
-                    const parsed = parseInt(newValue);
-                    setAllottees((prev) =>
-                      prev.map((a) =>
-                        a.id === allotteeId ? { ...a, priority: parsed } : a
-                      )
-                    );
+                  onCheckedChange={(checked) => {
+                    let showToast = false;
+
+                    setAllottees((prev) => {
+                      // Count how many already have priority 1
+                      const currentPriorityCount = prev.filter(a => a.priority === 1).length;
+
+                      // If trying to check this one and already one exists, mark to show toast
+                      if (checked && currentPriorityCount >= 1 && value !== 1) {
+                        showToast = true;
+                        return prev; // no changes
+                      }
+
+                      // Otherwise update normally
+                      return prev.map((a) =>
+                        a.id === allotteeId ? { ...a, priority: checked ? 1 : 0 } : a
+                      );
+                    });
+
+                    // Call toast outside of state updater
+                    if (showToast) {
+                      toast({
+                        title: "Validation Error",
+                        description: "Only one allottee can have priority.",
+                        variant: "destructive",
+                      });
+                    }
                   }}
-                >
-                  <SelectTrigger>
-                    {value === 0 ? "Yes" : value === 1 ? "No" : "Select"}
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Yes</SelectItem>
-                    <SelectItem value="1">No</SelectItem>
-                  </SelectContent>
-                </Select>
+                />
               </div>
             );
           },
@@ -376,23 +388,23 @@ export function CrewAllottee({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                  <>
-                    <DropdownMenuItem
-                      className="text-xs sm:text-sm"
-                      onClick={() => {
-                        setSelectedAllotteeData(row.original);
-                        setEditselectedAllotteeDialogOpen(true);
-                      }}
-                    >
-                      {isEditingAllottee ? (
-                        <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                      ) : (
-                        <Eye className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                      )}
-                      {isEditingAllottee || isAddingAllottee ? "Edit Allottee" : "View Allottee"}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
+                <>
+                  <DropdownMenuItem
+                    className="text-xs sm:text-sm"
+                    onClick={() => {
+                      setSelectedAllotteeData(row.original);
+                      setEditselectedAllotteeDialogOpen(true);
+                    }}
+                  >
+                    {isEditingAllottee ? (
+                      <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    ) : (
+                      <Eye className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    )}
+                    {isEditingAllottee || isAddingAllottee ? "Edit Allottee" : "View Allottee"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
                 <DropdownMenuItem
                   className="text-destructive text-xs sm:text-sm cursor-pointer"
                   onClick={() => {

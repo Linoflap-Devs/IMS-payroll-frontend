@@ -26,6 +26,7 @@ import { AllotteeApiModel, AllotteeUiModel, IAddAllottee } from "@/types/crewAll
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAddAllotteeStore } from "@/src/store/useAddAllotteeStore";
 import { useAllotteeTriggerStore } from "@/src/store/usetriggerAdd";
+import { toast } from "@/components/ui/use-toast";
 
 interface AddAllotteeFormProps {
   allottees: AllotteeUiModel[];
@@ -42,7 +43,7 @@ allottees,
       contactNumber: "",
       accountNumber: "",
       isActive: 1,
-      priority: false,
+      priority: 0,
       allotmentType: 0,
       city: 0,
       province: 0,
@@ -183,8 +184,29 @@ allottees,
                       <FormItem className="flex items-center">
                         <FormControl>
                           <Checkbox
-                            checked={field.value === true}
-                            onCheckedChange={(checked) => field.onChange(checked)}
+                            checked={Number(field.value) === 1} // cast to number
+                            onCheckedChange={(checked: boolean) => {
+                              let showToast = false;
+
+                              // Count how many other allottees already have priority 1
+                              const currentPriorityCount = allottees.filter(
+                                (a) => a.priority === 1 && a.id !== field.name
+                              ).length;
+
+                              if (checked && currentPriorityCount >= 1) {
+                                showToast = true;
+                              } else {
+                                field.onChange(checked ? 1 : 0);
+                              }
+
+                              if (showToast) {
+                                toast({
+                                  title: "Validation Error",
+                                  description: "Only one allottee can have priority.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
                           />
                         </FormControl>
                         <FormLabel className="text-sm text-gray-500">
@@ -194,6 +216,7 @@ allottees,
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={control}
                     name="receivePayslip"
