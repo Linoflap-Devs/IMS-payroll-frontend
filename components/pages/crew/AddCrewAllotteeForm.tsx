@@ -32,7 +32,7 @@ interface AddAllotteeFormProps {
 }
 
 export default function AddAllotteeForm({
-allottees
+allottees,
 }: AddAllotteeFormProps) {
   const defaultValues: IAddAllottee = useMemo(
     () => ({
@@ -138,7 +138,7 @@ allottees
 
     // Only add to store if validated
     useAddAllotteeStore.getState().setNewAllottee(payload);
-    console.log("NEW ALLOTTEES IN STORE:", useAddAllotteeStore.getState().newAllottee);
+    //console.log("NEW ALLOTTEES IN STORE:", useAddAllotteeStore.getState().newAllottee);
 
     // Reset form
     form.reset();
@@ -151,12 +151,12 @@ allottees
     if (triggerAdd) {
       handleSubmit(
         (data) => {
-          console.log("Form is valid:", data); // only runs if valid
+          //console.log("Form is valid:", data); // only runs if valid
           handleSaveAdd(data);
           setTriggerEdit(true);
         },
         (errors) => {
-          console.log("Form validation errors:", errors); // shows what failed
+          //console.log("Form validation errors:", errors); // shows what failed
           setTriggerAdd(false); // reset trigger to prevent loop
           setTriggerEdit(false);
         }
@@ -173,47 +173,50 @@ allottees
               <h3 className="text-lg font-semibold mb-3 text-primary">
                 Add Allottee
               </h3>
-              <div className="flex justify-end gap-10 w-1/2">
-                <FormField
-                  control={control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value === true}
-                          onCheckedChange={(checked) => field.onChange(checked)}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm text-gray-500">
-                        Priority Allotment
-                      </FormLabel>
-                      <FormMessage className="text-xs text-red-500" />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="receivePayslip"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center">
-                      <FormControl>
-                        <Checkbox
-                          {...field}
-                          checked={field.value === 1}
-                          onCheckedChange={(checked) =>
-                            field.onChange(checked ? 1 : 0)
-                          }
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm text-gray-500">
-                        Dollar Allotment (receivePayslip)
-                      </FormLabel>
-                      <FormMessage className="text-xs text-red-500" />
-                    </FormItem>
-                  )}
-                />
-              </div>
+
+              {allottees[0]?.allotmentType === 1 && (
+                <div className="flex justify-end gap-10 w-1/2">
+                  <FormField
+                    control={control}
+                    name="priority"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value === true}
+                            onCheckedChange={(checked) => field.onChange(checked)}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm text-gray-500">
+                          Priority Allotment
+                        </FormLabel>
+                        <FormMessage className="text-xs text-red-500" />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name="receivePayslip"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center">
+                        <FormControl>
+                          <Checkbox
+                            {...field}
+                            checked={field.value === 1}
+                            onCheckedChange={(checked) =>
+                              field.onChange(checked ? 1 : 0)
+                            }
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm text-gray-500">
+                          Dollar Allotment (receivePayslip)
+                        </FormLabel>
+                        <FormMessage className="text-xs text-red-500" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -539,7 +542,7 @@ allottees
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
-                      Account Number
+                      Account Number 
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -559,10 +562,10 @@ allottees
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
-                      Allotment
+                      Allotment {allottees[0].allotmentType == 2 ? "Percentage" : "Amount"}
                     </FormLabel>
                     <FormControl>
-                      <Input
+                      <Input  
                         type="number"
                         step="0.01"
                         {...field}

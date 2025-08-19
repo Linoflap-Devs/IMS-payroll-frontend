@@ -62,7 +62,7 @@ interface ICrewAllotteeProps {
   isAddingAllottee?: boolean;
 }
 
-type SavedAllotmentData = {
+export type SavedAllotmentData = {
   allotmentType?: number;
   priority: any;
   allotments: number[];
@@ -727,6 +727,7 @@ export function CrewAllottee({
                                     const newSaved = {
                                       ...prevSaved,
                                       [prevType]: {
+                                        allotmentType: prevType,
                                         allotments: prev.map((a) => a.allotment),
                                         receivePayslips: prev.map((a) => a.receivePayslip),
                                         priority: prev.map((a) => a.priority),
