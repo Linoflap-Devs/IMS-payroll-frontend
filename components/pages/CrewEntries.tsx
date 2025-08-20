@@ -62,7 +62,9 @@ export default function Deduction() {
         if (res.success) {
           const mapped: CrewDeduction[] = res.data.map((item) => ({
             ...item,
-            crewName: `${item.FirstName} ${item.MiddleName} ${item.LastName}`,
+          crewName: [item.FirstName, item.MiddleName, item.LastName]
+            .filter(Boolean) // remove null, undefined, or empty string
+            .join(" "),
           }));
           setCrewDeductionData(mapped);
         } else {
