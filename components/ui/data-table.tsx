@@ -115,7 +115,7 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className={`h-12 sm:h-14 hover:bg-muted/20 ${
-                    selectedRowIds[row.original.CrewCode ?? row.original.crewCode] ? "bg-blue-100" : ""
+                    selectedRowIds[row.original.CrewCode ?? row.original.crewCode] ? "bg-[#eef1f6]" : ""
                   }`}
                 >
                   {row.getVisibleCells().map((cell) => (

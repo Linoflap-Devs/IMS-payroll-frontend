@@ -143,7 +143,7 @@ export default function CrewMovementList() {
       });
   }, []);
 
-  console.log('ALL CREWS: ', allCrews);
+  //console.log('ALL CREWS: ', allCrews);
   //console.log('TOTAL CREWS: ', totalCrews);
 
   //const selectedCrews = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]).map((id) => displayedCrews[parseInt(id, 10)]);
