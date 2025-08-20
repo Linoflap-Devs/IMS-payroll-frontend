@@ -3,7 +3,7 @@ import { create } from 'zustand';
 export interface DraftAllottee {
   [allotteeId: number]: Partial<{
     name: string;
-    contactNumber: number;
+    contactNumber: string;
     address: string;
     province: number;
     city: number;

@@ -105,7 +105,7 @@ export function EditAllotteeDialog({
     defaultValues: {
       name: "",
       relation: undefined,
-      contactNumber: "",
+      contactNumber: undefined,
       address: "",
       province: undefined,
       city: undefined,
@@ -319,19 +319,16 @@ export function EditAllotteeDialog({
     };
 
     reset(initialValues);
+
     isInitialLoad.current = false;
   }, [SelectedAllotteeData, drafts, reset]);
 
   const handleSaveDraft = (data: EditAllotteeFormData) => {
-    // Debug what we're actually getting
     const draftId = Number(SelectedAllotteeData.id);
 
     const updatedDraft = {
       name: data.name,
-      contactNumber: data.contactNumber
-        ? Number(data.contactNumber)
-        : undefined,
-      //contactNumber: data.contactNumber
+      contactNumber: data.contactNumber,
       address: data.address,
       province: data.province,
       city: data.city,
@@ -339,10 +336,6 @@ export function EditAllotteeDialog({
       branch: data.branch,
       relationship: data.relation,
       accountNumber: data.accountNumber ?? "",
-      // accountNumber: data.accountNumber
-      //   ? String(data.accountNumber)
-      //   : undefined,
-      //allotment: data.allotment,
     };
 
     // Save to Zustand draft store
@@ -424,20 +417,11 @@ export function EditAllotteeDialog({
                           const draftId = Number(SelectedAllotteeData?.id);
                           const currentDraft = drafts[draftId] ?? {};
 
-                          // Update Zustand draft
                           setDraft(draftId, {
                             ...currentDraft,
                             relationship: numericValue,
                           });
-
-                          // Update react-hook-form - this is crucial!
                           field.onChange(numericValue);
-
-                          //   console.log("Updated draft:", {
-                          //     ...currentDraft,
-                          //     relationship: numericValue,
-                          //   });
-                          //   console.log("Form value:", numericValue);
                         }}
                       >
                         <SelectTrigger
@@ -477,17 +461,17 @@ export function EditAllotteeDialog({
                 <FormItem>
                   <FormLabel>Contact Number</FormLabel>
                   <FormControl>
-                    <Input
-                      type="text"
-                      {...field}
-                      placeholder="Enter contact number"
-                      onChange={(e) => {
-                        field.onChange(e); // update react-hook-form
-                        setDraft(Number(SelectedAllotteeData.id), {
-                          contactNumber: Number(e.target.value), // convert to number
-                        });
-                      }}
-                    />
+<Input
+  type="text"
+  {...field}
+  placeholder="Enter contact number"
+  onChange={(e) => {
+    field.onChange(e); // react-hook-form update
+    setDraft(Number(SelectedAllotteeData.id), {
+      contactNumber: e.target.value, // <-- keep as string
+    });
+  }}
+/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
