@@ -53,8 +53,8 @@ export interface IAddAllottee {
   name: string;
   allotmentType: number;
   relation: number;
-  contactNumber: string;
-  address: string;
+  contactNumber?: string;
+  address?: string;
   city: number;
   province: number;
   bank: number;

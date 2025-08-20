@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {
   Select,
@@ -27,13 +27,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAddAllotteeStore } from "@/src/store/useAddAllotteeStore";
 import { useAllotteeTriggerStore } from "@/src/store/usetriggerAdd";
 import { toast } from "@/components/ui/use-toast";
+import { useAddAllotteeValidationStore } from "@/src/store/useAddAllotteeValidationStore";
 
 interface AddAllotteeFormProps {
   allottees: AllotteeUiModel[];
+  setIsAddingAllottee: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function AddAllotteeForm({
-allottees,
+  allottees,
+  setIsAddingAllottee
 }: AddAllotteeFormProps) {
   const defaultValues: IAddAllottee = useMemo(
     () => ({
@@ -68,7 +71,17 @@ allottees,
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd); // get the function
   const setTriggerAdd = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
+  const setValidationAdd = useAddAllotteeValidationStore((state) => state.setValidationAdd);
+  const validationAdd = useAddAllotteeValidationStore((state) => state.validationAdd);
+  //console.log(allottees);
   const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
+
+  const totalAllotment = allottees?.reduce(
+    (sum, allottee) => sum + Number(allottee.allotment || 0),
+    0
+  );
+
+  console.log(totalAllotment);
 
   useEffect(() => {
     if (triggerAdd) {
@@ -118,65 +131,83 @@ allottees,
 
     return citiesInProvince.slice(0, 100);
   }, [cities, province]);
+  console.log(validationAdd);
 
   const handleSaveAdd = (data: IAddAllottee) => {
+    console.log("handleSaveAdd triggered with form data:", data);
+
     const payload: AllotteeApiModel = {
       name: data.name,
       relation: data.relation,
-      address: data.address,
-      contactNumber: data.contactNumber,
+      address: data.address ?? "",
+      contactNumber: data.contactNumber ?? "",
       city: data.city,
       province: data.province,
       bank: data.bank,
       branch: data.branch,
       accountNumber: data.accountNumber,
-      allotment: data.allotment,
+      allotment: data.allotment ?? 0,
       allotmentType: data.allotmentType,
       priority: data.priority ? 1 : 0,
       receivePayslip: data.receivePayslip ? 1 : 0,
       isActive: 1,
     };
 
-    // Only add to store if validated
+    console.log("📦 Payload ready to save:", payload);
+
+    // Save to store
     useAddAllotteeStore.getState().setNewAllottee(payload);
-    //console.log("NEW ALLOTTEES IN STORE:", useAddAllotteeStore.getState().newAllottee);
+    console.log("🗂️ New allottee set in store:", useAddAllotteeStore.getState().newAllottee);
 
     // Reset form
     form.reset();
+    console.log("🧹 Form reset done");
 
     // Reset trigger so it doesn’t loop
     setTriggerAdd(false);
+    console.log("🔄 TriggerAdd reset to false");
   };
 
   useEffect(() => {
     if (triggerAdd) {
       handleSubmit(
         (data) => {
-          //console.log("Form is valid:", data); // only runs if valid
+          // Form is valid
           handleSaveAdd(data);
+
+          // mark validation success
+          setValidationAdd(true);
+
+          // reset trigger
           setTriggerEdit(true);
         },
         (errors) => {
-          //console.log("Form validation errors:", errors); // shows what failed
-          setTriggerAdd(false); // reset trigger to prevent loop
+          // Form has validation errors
+          console.log("❌ Validation errors:", errors);
+
+          // mark validation failed
+          setValidationAdd(false);
+
+          // reset trigger
+          setTriggerAdd(false);
           setTriggerEdit(false);
         }
       )();
     }
-  }, [triggerAdd, handleSubmit]);
+  }, [triggerAdd, handleSubmit, setTriggerAdd, setValidationAdd]);
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSaveAdd)} className="mt-2">
-        <div className="p-4 mt-2 space-y-6">
+      <form onSubmit={form.handleSubmit(handleSaveAdd)} className="mt-0">
+        <div className="px-2 pt-2 pb-0 mt-2 space-y-6">
           <div>
-            <div className="flex items-center justify-between mb-4 w-full">
+            <div className="flex items-center justify-between mb-3 w-full">
               <h3 className="text-lg font-semibold mb-3 text-primary">
                 Add Allottee
               </h3>
 
-              {allottees[0]?.allotmentType === 1 && (
-                <div className="flex justify-end gap-10 w-1/2">
+              {(allottees.length === 0 || allottees[0]?.allotmentType === 1) && (
+                <div className="flex justify-end gap-6 w-1/2">
                   <FormField
                     control={control}
                     name="priority"
@@ -242,7 +273,7 @@ allottees,
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={control}
                 name="name"
@@ -285,8 +316,8 @@ allottees,
                         <SelectTrigger
                           id="relationship"
                           className={`w-full !h-10 ${fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
                             }`}
                         >
                           <SelectValue placeholder="Select a relationship" />
@@ -370,8 +401,8 @@ allottees,
                       >
                         <SelectTrigger
                           className={`w-full !h-10 ${fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
                             }`}
                         >
                           <SelectValue placeholder="Select a province" />
@@ -419,8 +450,8 @@ allottees,
                       >
                         <SelectTrigger
                           className={`w-full !h-10 ${fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
                             }`}
                         >
                           <SelectValue placeholder="Select a city" />
@@ -457,7 +488,7 @@ allottees,
             <h3 className="text-lg font-semibold mb-3 text-primary">
               Bank Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Bank field */}
               <FormField
                 control={control}
@@ -481,8 +512,8 @@ allottees,
                         <SelectTrigger
                           id="bank"
                           className={`w-full !h-10 ${fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
                             }`}
                         >
                           <SelectValue placeholder="Select a bank" />
@@ -528,8 +559,8 @@ allottees,
                         <SelectTrigger
                           id="branch"
                           className={`w-full !h-10 ${fieldState.error
-                              ? "border-red-500 focus:!ring-red-400/50"
-                              : ""
+                            ? "border-red-500 focus:!ring-red-400/50"
+                            : ""
                             }`}
                         >
                           <SelectValue placeholder="Select a branch" />
@@ -565,7 +596,7 @@ allottees,
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
-                      Account Number 
+                      Account Number
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -585,15 +616,15 @@ allottees,
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
-                      Allotment {allottees?.[0]?.allotmentType === 2 
-                        ? "Percentage" 
-                        : allottees?.[0]?.allotmentType === 1 
-                          ? "Amount" 
-                          : "N/A" // fallback
+                      Allotment {allottees?.[0]?.allotmentType === 2
+                        ? "Percentage"
+                        : allottees?.[0]?.allotmentType === 1
+                          ? "Amount"
+                          : "" // fallback
                       }
                     </FormLabel>
                     <FormControl>
-                      <Input  
+                      <Input
                         type="number"
                         step="0.01"
                         {...field}

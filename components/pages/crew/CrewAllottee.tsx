@@ -46,6 +46,7 @@ import AddCrewAllotteeForm from "./AddCrewAllotteeForm";
 import { useAddAllotteeStore } from "@/src/store/useAddAllotteeStore";
 import { useAllotteeTriggerStore } from "@/src/store/usetriggerAdd";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAddAllotteeValidationStore } from "@/src/store/useAddAllotteeValidationStore";
 
 interface ICrewAllotteeProps {
   onAdd?: () => void;
@@ -60,6 +61,7 @@ interface ICrewAllotteeProps {
   setTriggerSave: Dispatch<SetStateAction<boolean>>;
   setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>;
   setIsAddingAllottee: Dispatch<SetStateAction<boolean>>;
+  setIsDeletingAllottee: Dispatch<SetStateAction<boolean>>;
   isAddingAllottee?: boolean;
 }
 
@@ -79,6 +81,7 @@ export function CrewAllottee({
   setIsEditingAllottee = () => { },
   setIsAddingAllottee,
   isAddingAllottee,
+  setIsDeletingAllottee,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
@@ -95,6 +98,8 @@ export function CrewAllottee({
   const newAllottee = useAddAllotteeStore((state) => state.newAllottee);
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
   const triggerEdit = useAllotteeTriggerStore((state) => state.triggerAdd);
+  const validationAdd = useAddAllotteeValidationStore((state) => state.validationAdd);
+  const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
 
   const {
     allottees: storeAllottees,
@@ -237,7 +242,7 @@ export function CrewAllottee({
         ),
       },
     ];
-    
+
     if (allottees[0]?.allotmentType === 1) {
       baseColumns.push(
         {
@@ -334,20 +339,20 @@ export function CrewAllottee({
 
           return (
             <>
-            <input
-              type="number"
-              disabled={!(isEditingAllottee || isAddingAllottee)}
-              value={allotmentValue}
-              onChange={(e) => {
-                const newValue = parseInt(e.target.value);
-                setAllottees((prev) =>
-                  prev.map((a) =>
-                    a.id === allotteeId ? { ...a, allotment: newValue } : a
-                  )
-                );
-              }}
-              className="w-16 text-center border border-gray-300 rounded px-1 py-0.5 text-sm mr-1"
-            />
+              <input
+                type="number"
+                disabled={!(isEditingAllottee || isAddingAllottee)}
+                value={allotmentValue}
+                onChange={(e) => {
+                  const newValue = parseInt(e.target.value);
+                  setAllottees((prev) =>
+                    prev.map((a) =>
+                      a.id === allotteeId ? { ...a, allotment: newValue } : a
+                    )
+                  );
+                }}
+                className="w-16 text-center border border-gray-300 rounded px-1 py-0.5 text-sm mr-1"
+              />
               {allottees?.[0]?.allotmentType === 2 ? "%" : ""}
             </>
           );
@@ -430,13 +435,59 @@ export function CrewAllottee({
     isAddingAllottee,
   ]);
 
+  // validating the name form for disable only!
+  useEffect(() => {
+    const validateAllotteeForm = () => {
+      const isValid = Boolean(allottees[0]?.name?.trim());
+      setIsAllotteeValid(isValid);
+    };
+
+    validateAllotteeForm();
+  }, [allottees[0], setIsAllotteeValid]);
+
+  useEffect(() => {
+    if (editselectedAllotteeDialogOpen) {
+      document.body.style.overflow = "hidden";
+      document.body.style.pointerEvents = "none";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.pointerEvents = "";
+    }
+
+    // Clean up when component unmounts
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.pointerEvents = "";
+    };
+  }, [editselectedAllotteeDialogOpen]);
+
   // --- Trigger save effect for batch allottees
   useEffect(() => {
     console.log("=== useEffect triggered for saving allottees ===");
+    console.log("triggerSave:", triggerSave, "triggerEdit:", triggerEdit, "crewId:", crewId);
 
-    // Exit early if nothing to do
     if ((!triggerSave && !triggerEdit) || !crewId) {
       console.log("Nothing to do. Exiting effect.");
+      return;
+    }
+
+    if (isAddingAllottee) {
+      console.log("Add mode detected. Running validation...");
+      if (!validationAdd) {
+        console.log("Validation failed for Add mode. Stopping save.");
+        toast({ title: "Error", description: "Check the validation errors.", variant: "destructive" });
+        setTriggerSave(false);
+        return;
+      }
+      console.log("Validation passed. Proceeding with Add save...");
+      //handleSaveAdd(...);
+      setTriggerSave(false);
+    }
+
+    if (!isEditingAllottee && !triggerEdit) {
+      console.log("Edit mode detected. Skipping add validation...");
+      // handleSaveEdit(...);
+      //setTriggerEdit(false);
       return;
     }
 
@@ -524,27 +575,37 @@ export function CrewAllottee({
 
         fetchCrewAllottees(crewId.toString());
         setIsEditingAllottee(false);
+        setIsAddingAllottee(false);
+        setIsDeletingAllottee(false);
 
         setAllottees([]);
-
         // Reset store & triggers
         useAddAllotteeStore.getState().resetAllottee();
         setTriggerSave(false);
         useAllotteeTriggerStore.getState().setTriggerAdd(false);
         console.log("Reset triggerSave and triggerAdd");
-      } catch (error: any) {
-        console.error("Error saving allottees:", error);
-        setIsEditingAllottee(true);
-        setIsEditingAllottee(false);
+        } catch (error: any) {
+          console.error("Error saving allottees:", error);
 
-        toast({
-          title: "Error saving allottees",
-          description:
-            error?.response?.data?.message ||
-            "There was an error saving the allottees.",
-          variant: "destructive",
-        });
-      } finally {
+          setIsEditingAllottee(true);
+
+          const backendMessage = error?.response?.data?.message;
+
+          if (backendMessage === "Allotment percentage would not be 100 percent.") {
+            toast({
+              title: "Validation Error",
+              description: backendMessage,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Error saving allottees",
+              description:
+                backendMessage || "There was an error saving the allottees.",
+              variant: "destructive",
+            });
+          }
+        } finally {
         setAllotteeLoading(false);
       }
     };
@@ -645,32 +706,6 @@ export function CrewAllottee({
     );
   }
 
-  // validating the name form for disable only!
-  useEffect(() => {
-    const validateAllotteeForm = () => {
-      const isValid = Boolean(allottees[0]?.name?.trim());
-      setIsAllotteeValid(isValid);
-    };
-
-    validateAllotteeForm();
-  }, [allottees[0], setIsAllotteeValid]);
-
-  useEffect(() => {
-    if (editselectedAllotteeDialogOpen) {
-      document.body.style.overflow = "hidden";
-      document.body.style.pointerEvents = "none";
-    } else {
-      document.body.style.overflow = "";
-      document.body.style.pointerEvents = "";
-    }
-
-    // Clean up when component unmounts
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.pointerEvents = "";
-    };
-  }, [editselectedAllotteeDialogOpen]);
-
   return (
     <div className="h-full w-full pt-2">
       <style jsx global>{`
@@ -747,7 +782,7 @@ export function CrewAllottee({
                                     };
                                     console.log("Saved allotments:", newSaved);
                                     return newSaved;
-                                  });                            
+                                  });
                                 }
 
 
@@ -819,40 +854,6 @@ export function CrewAllottee({
                     </span>
                   )}
                 </div>
-                {/* <div className="p-3 space-y-6">
-                  <div className="flex items-center justify-end mb-3">
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={!!displayAllottee?.priority}
-                          onChange={(e) =>
-                            handleInputChange("priority", e.target.checked ? 1 : 0)
-                          }
-                          disabled={!isEditingAllottee && !isAdding}
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                        <label className="text-sm font-medium text-gray-900">
-                          Priority Allotment
-                        </label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={!!displayAllottee?.receivePayslip}
-                          onChange={(e) =>
-                            handleInputChange("receivePayslip", e.target.checked ? 1 : 0)
-                          }
-                          disabled={!isEditingAllottee && !isAdding}
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                        <label className="text-sm font-medium text-gray-900">
-                          Dollar Allotment
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
               </div>
               <div className="text-center">
                 <DataTable
@@ -876,6 +877,7 @@ export function CrewAllottee({
               {isAddingAllottee && (
                 <AddCrewAllotteeForm
                   allottees={allottees}
+                  setIsAddingAllottee={setIsAddingAllottee}
                 />
               )}
             </>
@@ -889,7 +891,7 @@ export function CrewAllottee({
             }}
             SelectedAllotteeData={selectedAllotteeData}
             isEditingAllottee={isEditingAllottee}
-            isAddingAllottee={isAddingAllottee ?? null} 
+            isAddingAllottee={isAddingAllottee ?? null}
           />
         )}
       </div>

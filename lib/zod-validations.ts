@@ -40,16 +40,23 @@ export const addCrewAllotteeSchema = z.object({
     ),
     name: z.string().min(2, { message: "Name is required" }).max(50, { message: "Name must be less than 50 characters" }),
     relation: z.number().min(1, { message: "Relationship is required" }),
-    address: z.string().min(2, { message: "Address is required" }).max(100, { message: "Address must be less than 100 characters" }),
-    contactNumber: z.string().min(9, { message: "Contact number is required" }).max(11, { message: "Contact number must be between 9 and 11 characters" }),
+    address: z.string()
+        .max(100, { message: "Address must be less than 100 characters" })
+        .optional(),
+    contactNumber: z
+        .string()
+        .optional()
+        .refine((val) => !val || (val.length >= 9 && val.length <= 11), {
+            message: "Contact number must be between 9 and 11 characters",
+        }),
     city: z.number().min(1, { message: "City is required" }),
     province: z.number().min(1, { message: "Province is required" }),
     bank: z.number().min(1, { message: "Bank is required" }),
     branch: z.number().min(1, { message: "Branch is required" }),
     accountNumber: z.string().min(2, { message: "Account number is required" }).max(50, { message: "Account number must be less than 50 characters" }),
     allotment: z
-        .number()
-        .min(0.01, { message: "Allotment must be greater than 0" }),
+        .number(),
+        // .min(0.01, { message: "Allotment must be greater than 0" }),
     receivePayslip: z.number().min(0).max(1),
     isActive: z.number().min(0).max(1),
     priority: z.number(),
