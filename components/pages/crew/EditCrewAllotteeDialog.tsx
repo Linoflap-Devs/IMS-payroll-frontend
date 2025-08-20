@@ -104,8 +104,8 @@ export function EditAllotteeDialog({
     resolver: zodResolver(editAllotteeSchema),
     defaultValues: {
       name: "",
-      relation: undefined,
-      contactNumber: undefined,
+      relation: undefined,  
+      contactNumber: " ", // space so it stays a string
       address: "",
       province: undefined,
       city: undefined,
@@ -292,9 +292,8 @@ export function EditAllotteeDialog({
 
     const initialValues = {
       name: draftData.name ?? SelectedAllotteeData.name ?? "",
-      contactNumber: String(
-        draftData.contactNumber ?? SelectedAllotteeData.contactNumber ?? ""
-      ),
+      contactNumber: draftData.contactNumber ?? SelectedAllotteeData.contactNumber ?? " ",
+
       address: draftData.address ?? SelectedAllotteeData.address ?? "",
       province: Number(
         draftData.province ?? SelectedAllotteeData.provinceId ?? undefined
@@ -328,7 +327,7 @@ export function EditAllotteeDialog({
 
     const updatedDraft = {
       name: data.name,
-      contactNumber: data.contactNumber,
+      contactNumber: data.contactNumber ?? "",
       address: data.address,
       province: data.province,
       city: data.city,
