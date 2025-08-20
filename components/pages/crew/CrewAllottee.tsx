@@ -100,6 +100,7 @@ export function CrewAllottee({
   const triggerEdit = useAllotteeTriggerStore((state) => state.triggerAdd);
   const validationAdd = useAddAllotteeValidationStore((state) => state.validationAdd);
   const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
+  const [newAllotmentType, setNewAllotmentType] = useState("0");
 
   const {
     allottees: storeAllottees,
@@ -471,7 +472,7 @@ export function CrewAllottee({
       return;
     }
 
-    if (isAddingAllottee) {
+    if (isAddingAllottee && !validationAdd) {
       console.log("Add mode detected. Running validation...");
       if (!validationAdd) {
         console.log("Validation failed for Add mode. Stopping save.");
@@ -542,7 +543,7 @@ export function CrewAllottee({
         // Add the single new allottee if triggerAdd is true
         if (triggerAdd && newAllottee) {
           const newItem: AllotteeApiModel = {
-            allotmentType: newAllottee.allotmentType,
+            allotmentType: Number(newAllottee.allotmentType ?? newAllotmentType), // adjusted as new Allotment Type
             allotment: newAllottee.allotment,
             name: newAllottee.name,
             address: newAllottee.address,
@@ -557,7 +558,7 @@ export function CrewAllottee({
             priority: newAllottee.priority,
             isActive: 1,
           };
-          console.log("Adding new allottee:", newItem);
+          console.log("Adding new allottee:", newItem);3
           create.push(newItem);
         }
 
@@ -582,12 +583,14 @@ export function CrewAllottee({
         // Reset store & triggers
         useAddAllotteeStore.getState().resetAllottee();
         setTriggerSave(false);
+
         useAllotteeTriggerStore.getState().setTriggerAdd(false);
         console.log("Reset triggerSave and triggerAdd");
         } catch (error: any) {
           console.error("Error saving allottees:", error);
 
-          setIsEditingAllottee(true);
+          setIsEditingAllottee(false);
+          setTriggerSave(false);
 
           const backendMessage = error?.response?.data?.message;
 
@@ -746,7 +749,7 @@ export function CrewAllottee({
                 <div className="pr-8">
                   <div className="grid grid-cols-1 gap-6">
                     <div className="relative rounded-lg border shadow-sm overflow-hidden">
-                      <div className="flex h-11 w-full">
+                      <div className="flex h-11 w-full">  
                         <div className="flex items-center px-4 bg-gray-50 border-r">
                           <span className="text-gray-700 font-medium whitespace-nowrap">
                             Allotment Type
@@ -755,12 +758,37 @@ export function CrewAllottee({
                         <div className="flex-1 w-full flex items-center">
                           <Select
                             value={
-                              allottees[0]?.allotmentType?.toString() || ""
+                              allottees.length > 0 && allottees[0]?.allotmentType != null
+                                ? allottees[0].allotmentType.toString()
+                                : newAllotmentType
                             }
                             disabled={!isEditingAllottee && !isAddingAllottee}
                             onValueChange={(value) => {
                               const parsed = parseInt(value);
                               console.log("Selected value:", value, "Parsed:", parsed);
+
+                                if (parsed === 0) {
+                                  console.log("No allotment type selected yet");
+                                  return;
+                                }
+                                if (isAddingAllottee) {
+                                  // separate handling for new allottee
+                                  console.log("Setting allotment type for NEW allottee");
+                                  setNewAllotmentType(value);
+                                  console.log('NEW ALLOTMENT TYPE: ', value);
+
+                                  // update allottees if needed
+                                  setAllottees((prev) =>
+                                    prev.map((a) => ({
+                                      ...a,
+                                      allotmentType: parsed,
+                                      allotment: 0,
+                                      receivePayslip: undefined,
+                                      priority: undefined,
+                                    }))
+                                  );
+                                  return;
+                                }
 
                               setAllottees((prev) => {
                                 const prevType = prev[0]?.allotmentType;
@@ -821,12 +849,12 @@ export function CrewAllottee({
                                 }));
                               });
                             }}
-
                           >
                             <SelectTrigger className="h-full w-full border-0 shadow-none focus:ring-0 rounded-none px-4 font-medium cursor-pointer">
-                              <SelectValue placeholder="Amount" />
+                              <SelectValue placeholder="Select Allotment Type" />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="0">Select Allotment Type</SelectItem>
                               <SelectItem value="1">Amount</SelectItem>
                               <SelectItem value="2">Percentage</SelectItem>
                             </SelectContent>
@@ -878,6 +906,7 @@ export function CrewAllottee({
                 <AddCrewAllotteeForm
                   allottees={allottees}
                   setIsAddingAllottee={setIsAddingAllottee}
+                  newAllotmentType={newAllotmentType}
                 />
               )}
             </>

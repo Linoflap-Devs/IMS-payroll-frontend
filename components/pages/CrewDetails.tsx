@@ -633,7 +633,7 @@ export default function CrewDetails() {
                         </div>
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
-                            Marital Status
+                            Marital  Status
                           </label>
                           <Select
                             value={

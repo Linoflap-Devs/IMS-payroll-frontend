@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { z } from "zod";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pencil, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,7 +44,6 @@ const editAllotteeSchema = z.object({
   bank: z.number().optional(),
   branch: z.number().optional(),
   accountNumber: z.string().optional(),
-  //allotment: z.number().optional(),
 });
 
 type EditAllotteeFormData = z.infer<typeof editAllotteeSchema>;
@@ -339,14 +338,15 @@ export function EditAllotteeDialog({
       bank: data.bank,
       branch: data.branch,
       relationship: data.relation,
-      accountNumber: data.accountNumber
-        ? Number(data.accountNumber)
-        : undefined,
+      accountNumber: data.accountNumber ?? "",
+      // accountNumber: data.accountNumber
+      //   ? String(data.accountNumber)
+      //   : undefined,
       //allotment: data.allotment,
     };
 
     // Save to Zustand draft store
-    setDraft(draftId, updatedDraft);
+    setDraft(draftId, updatedDraft); // 
 
     // Show toast
     toast({
@@ -364,7 +364,7 @@ export function EditAllotteeDialog({
       <DialogContent className="sm:max-w-[750px] bg-[#FCFCFC] p-10">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
-            { isEditingAllottee || isAddingAllottee ? "Edit Allottee" : "View Allottee"}
+            {isEditingAllottee || isAddingAllottee ? "Edit Allottee" : "View Allottee"}
           </DialogTitle>
         </DialogHeader>
 
@@ -431,7 +431,7 @@ export function EditAllotteeDialog({
                           });
 
                           // Update react-hook-form - this is crucial!
-                          field.onChange(numericValue); // Use field.onChange instead of form.setValue
+                          field.onChange(numericValue);
 
                           //   console.log("Updated draft:", {
                           //     ...currentDraft,
@@ -765,7 +765,7 @@ export function EditAllotteeDialog({
                       onChange={(e) => {
                         field.onChange(e); // update react-hook-form
                         setDraft(Number(SelectedAllotteeData.id), {
-                          accountNumber: Number(e.target.value), // convert to number
+                          accountNumber: e.target.value, // string just updated
                         });
                       }}
                     />
@@ -805,7 +805,7 @@ export function EditAllotteeDialog({
             <div className="col-span-2 flex gap-3 pt-4">
               <Button
                 type="button"
-                variant={ isEditingAllottee || isAddingAllottee ? "outline" : "default"}
+                variant={isEditingAllottee || isAddingAllottee ? "outline" : "default"}
                 className="flex-1"
                 onClick={() => {
                   onOpenChange(false);
