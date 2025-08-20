@@ -516,7 +516,7 @@ export function CrewAllottee({
             relation: Number(draftData.relationship ?? allottee.relationshipId),
             contactNumber: draftData.contactNumber
               ? String(draftData.contactNumber)
-              : "",
+              : " ",
             accountNumber: draftData.accountNumber
               ? String(draftData.accountNumber)
               : "",
