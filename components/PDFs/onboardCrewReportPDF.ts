@@ -51,7 +51,7 @@ function extractPeriod(message: string): { month: string, year: number } {
 
 export function generateOnboardCrewReportPDF(
     data: OnboardCrewReportResponse,
-    dateGenerated: string = "04/14/25 9:55 AM",
+    dateGenerated: Date,
     mode: 'all' | 'vessel' = 'vessel'
 ): boolean {
     if (typeof window === 'undefined') {
@@ -129,7 +129,7 @@ export function generateOnboardCrewReportPDF(
         const tableHeaderHeight = 8;
 
         // Function to draw the header (company info, vessel info, etc.)
-        const drawPageHeader = (vesselName: string) => {
+        const drawPageHeader = (vesselName: string, crewNumber?: number) => {
             // Draw header table (3-column structure)
             const headerWidth = pageWidth - margins.left - margins.right;
             const companyColWidth = 90;
@@ -190,17 +190,21 @@ export function generateOnboardCrewReportPDF(
             doc.line(margins.left + companyColWidth + middleColWidth, 30, margins.left + companyColWidth + middleColWidth, 40);
 
             // Add exchange rate and date
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'normal');
-            // doc.text(
-            //     `EXCHANGE RATE: USD 1.00 = PHP ${data.data[0].ExchangeRate}`,
-            //     margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-            //     vesselInfoY + 6,
-            //     { align: 'right' }
-            // );
+            if(crewNumber){
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.text(
+                    `${crewNumber} Crew On-Board`,
+                    margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
+                    vesselInfoY + 6,
+                    { align: 'right' }
+                );
+
+            }
+
             doc.setFont('helvetica', 'italic');
             doc.text(
-                dateGenerated,
+                format(dateGenerated, 'yyyy-MM-dd HH:mm aa'),
                 margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
                 vesselInfoY + 16,
                 { align: 'right' }
@@ -250,7 +254,7 @@ export function generateOnboardCrewReportPDF(
                 doc.addPage();
             }
             currentY = margins.top;
-            drawPageHeader(mode === 'vessel' ? vesselData[0].VesselName : vessel.VesselName);
+            drawPageHeader(mode === 'vessel' ? vesselData[0].VesselName : vessel.VesselName, vessel.Crew.length);
             drawTableHeader();
 
             vessel.Crew.forEach((crew, crewIndex) => {
@@ -262,7 +266,7 @@ export function generateOnboardCrewReportPDF(
                 if (currentY + totalEntryHeight > pageHeight - margins.bottom - 20) { // Leave space for page number
                     doc.addPage();
                     currentY = margins.top;
-                    drawPageHeader(mode === 'vessel' ? vesselData[0].VesselName : vessel.VesselName);
+                    drawPageHeader(mode === 'vessel' ? vesselData[0].VesselName : vessel.VesselName, vessel.Crew.length);
                     drawTableHeader();
                 }
     
@@ -353,7 +357,7 @@ export function generateOnboardCrewReportPDF(
 }
 
 // Function to generate the PDF with real data
-export function generateOnboardCrewReport(data: OnboardCrewReportResponse, dateGenerated: string, mode: 'all' | 'vessel' = 'vessel'): boolean {
+export function generateOnboardCrewReport(data: OnboardCrewReportResponse, dateGenerated: Date, mode: 'all' | 'vessel' = 'vessel'): boolean {
     return generateOnboardCrewReportPDF(
         data,
         dateGenerated,

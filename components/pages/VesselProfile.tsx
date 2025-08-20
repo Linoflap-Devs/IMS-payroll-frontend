@@ -842,7 +842,7 @@ export default function VesselProfile() {
                       <Button
                         className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
                         size="default"
-                        onClick={() => generateOnboardCrewReport(onBoardCrewData, format(new Date(), 'yyyy-mm-dd hh:mm aa'), 'all')}
+                        onClick={() => generateOnboardCrewReport(onBoardCrewData, new Date(), 'all')}
                       >
                         <Download className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                         Export PDF
