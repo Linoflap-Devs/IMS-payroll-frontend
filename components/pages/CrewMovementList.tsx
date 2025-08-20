@@ -118,7 +118,7 @@ export default function CrewMovementList() {
               CrewCode: crew.CrewCode,
               LastName: crew.LastName,
               FirstName: crew.FirstName,
-              MiddleName: crew.MiddleName,
+              MiddleName: crew.MiddleName ?? "",
               RankID: crew.RankID,
               Rank: crew.Rank,
               CrewStatusID: crew.CrewStatusID,

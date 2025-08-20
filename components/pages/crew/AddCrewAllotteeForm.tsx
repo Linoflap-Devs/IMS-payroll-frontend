@@ -32,11 +32,13 @@ import { useAddAllotteeValidationStore } from "@/src/store/useAddAllotteeValidat
 interface AddAllotteeFormProps {
   allottees: AllotteeUiModel[];
   setIsAddingAllottee: Dispatch<SetStateAction<boolean>>;
+  newAllotmentType: string;
 }
 
 export default function AddAllotteeForm({
   allottees,
-  setIsAddingAllottee
+  setIsAddingAllottee,
+  newAllotmentType,
 }: AddAllotteeFormProps) {
   const defaultValues: IAddAllottee = useMemo(
     () => ({
@@ -69,19 +71,15 @@ export default function AddAllotteeForm({
   const bank = watch("bank");
   const allotmentType = watch("allotmentType");
   const { allRelationshipData, fetchRelationships } = useRelationshipStore();
-  const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd); // get the function
-  const setTriggerAdd = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
+  const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
+  const setTriggerAdd = useAllotteeTriggerStore((state) => state.setTriggerAdd);
   const setValidationAdd = useAddAllotteeValidationStore((state) => state.setValidationAdd);
-  const validationAdd = useAddAllotteeValidationStore((state) => state.validationAdd);
-  //console.log(allottees);
-  const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
+  const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd);
 
   const totalAllotment = allottees?.reduce(
     (sum, allottee) => sum + Number(allottee.allotment || 0),
     0
-  );
-
-  console.log(totalAllotment);
+  );  
 
   useEffect(() => {
     if (triggerAdd) {
@@ -131,7 +129,6 @@ export default function AddAllotteeForm({
 
     return citiesInProvince.slice(0, 100);
   }, [cities, province]);
-  console.log(validationAdd);
 
   const handleSaveAdd = (data: IAddAllottee) => {
     console.log("handleSaveAdd triggered with form data:", data);
@@ -147,25 +144,36 @@ export default function AddAllotteeForm({
       branch: data.branch,
       accountNumber: data.accountNumber,
       allotment: data.allotment ?? 0,
-      allotmentType: data.allotmentType,
+      allotmentType: data.allotmentType || Number(newAllotmentType),
       priority: data.priority ? 1 : 0,
       receivePayslip: data.receivePayslip ? 1 : 0,
       isActive: 1,
     };
 
-    console.log("📦 Payload ready to save:", payload);
+    //console.log("Payload ready to save:", payload);
 
-    // Save to store
     useAddAllotteeStore.getState().setNewAllottee(payload);
-    console.log("🗂️ New allottee set in store:", useAddAllotteeStore.getState().newAllottee);
+    //console.log("New allottee set in store:", useAddAllotteeStore.getState().newAllottee);
+
+    // Only check total % if allotmentType === 2
+    // if (payload.allotmentType === 2) {
+      //   const updatedTotal = totalAllotment + (data.allotment ?? 0);
+      //   if (updatedTotal > 100) {
+    //     toast({
+    //       title: "Error",
+    //       description: "Allotment percentage cannot exceed 100%.",
+    //       variant: "destructive",
+    //     });
+    //     return;
+    //   }
+    // }
 
     // Reset form
     form.reset();
-    console.log("🧹 Form reset done");
+    //console.log("Form reset done");
 
-    // Reset trigger so it doesn’t loop
     setTriggerAdd(false);
-    console.log("🔄 TriggerAdd reset to false");
+    //console.log("TriggerAdd reset to false");
   };
 
   useEffect(() => {
@@ -175,7 +183,7 @@ export default function AddAllotteeForm({
           // Form is valid
           handleSaveAdd(data);
 
-          // mark validation success
+          // mark validation success  
           setValidationAdd(true);
 
           // reset trigger
@@ -183,7 +191,7 @@ export default function AddAllotteeForm({
         },
         (errors) => {
           // Form has validation errors
-          console.log("❌ Validation errors:", errors);
+          //console.log("Validation errors:", errors);
 
           // mark validation failed
           setValidationAdd(false);
@@ -195,6 +203,19 @@ export default function AddAllotteeForm({
       )();
     }
   }, [triggerAdd, handleSubmit, setTriggerAdd, setValidationAdd]);
+
+  useEffect(() => {
+    if (triggerAdd) {
+      form.trigger().then((isValid) => {
+        if (isValid) {
+          handleSaveAdd(form.getValues());
+          setTriggerAdd(false); // reset lang AFTER success
+        } else {
+          //console.log("Validation failed");
+        }
+      });
+    }
+  }, [triggerAdd]);
 
   return (
     <Form {...form}>
