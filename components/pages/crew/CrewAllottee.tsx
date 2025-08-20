@@ -46,6 +46,7 @@ import AddCrewAllotteeForm from "./AddCrewAllotteeForm";
 import { useAddAllotteeStore } from "@/src/store/useAddAllotteeStore";
 import { useAllotteeTriggerStore } from "@/src/store/usetriggerAdd";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAddAllotteeValidationStore } from "@/src/store/useAddAllotteeValidationStore";
 
 interface ICrewAllotteeProps {
   onAdd?: () => void;
@@ -60,6 +61,7 @@ interface ICrewAllotteeProps {
   setTriggerSave: Dispatch<SetStateAction<boolean>>;
   setIsEditingAllottee?: Dispatch<SetStateAction<boolean>>;
   setIsAddingAllottee: Dispatch<SetStateAction<boolean>>;
+  setIsDeletingAllottee: Dispatch<SetStateAction<boolean>>;
   isAddingAllottee?: boolean;
 }
 
@@ -79,6 +81,7 @@ export function CrewAllottee({
   setIsEditingAllottee = () => { },
   setIsAddingAllottee,
   isAddingAllottee,
+  setIsDeletingAllottee,
 }: ICrewAllotteeProps) {
   const searchParams = useSearchParams();
   const crewId = searchParams.get("id");
@@ -95,6 +98,8 @@ export function CrewAllottee({
   const newAllottee = useAddAllotteeStore((state) => state.newAllottee);
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
   const triggerEdit = useAllotteeTriggerStore((state) => state.triggerAdd);
+  const validationAdd = useAddAllotteeValidationStore((state) => state.validationAdd);
+  const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
 
   const {
     allottees: storeAllottees,
@@ -459,10 +464,30 @@ export function CrewAllottee({
   // --- Trigger save effect for batch allottees
   useEffect(() => {
     console.log("=== useEffect triggered for saving allottees ===");
+    console.log("triggerSave:", triggerSave, "triggerEdit:", triggerEdit, "crewId:", crewId);
 
-    // Exit early if nothing to do
     if ((!triggerSave && !triggerEdit) || !crewId) {
       console.log("Nothing to do. Exiting effect.");
+      return;
+    }
+
+    if (isAddingAllottee) {
+      console.log("Add mode detected. Running validation...");
+      if (!validationAdd) {
+        console.log("Validation failed for Add mode. Stopping save.");
+        toast({ title: "Error", description: "Check the validation errors.", variant: "destructive" });
+        setTriggerSave(false);
+        return;
+      }
+      console.log("Validation passed. Proceeding with Add save...");
+      //handleSaveAdd(...);
+      setTriggerSave(false);
+    }
+
+    if (!isEditingAllottee && !triggerEdit) {
+      console.log("Edit mode detected. Skipping add validation...");
+      // handleSaveEdit(...);
+      //setTriggerEdit(false);
       return;
     }
 
@@ -551,6 +576,7 @@ export function CrewAllottee({
         fetchCrewAllottees(crewId.toString());
         setIsEditingAllottee(false);
         setIsAddingAllottee(false);
+        setIsDeletingAllottee(false);
 
         setAllottees([]);
         // Reset store & triggers
@@ -558,23 +584,29 @@ export function CrewAllottee({
         setTriggerSave(false);
         useAllotteeTriggerStore.getState().setTriggerAdd(false);
         console.log("Reset triggerSave and triggerAdd");
-      } catch (error: any) {
-        console.error("Error saving allottees:", error);
+        } catch (error: any) {
+          console.error("Error saving allottees:", error);
 
-        // Only set editing state to true on error
-        setIsEditingAllottee(true);
-        setTriggerSave(false);
-        
+          setIsEditingAllottee(true);
 
-        toast({
-          title: "Error saving allottees",
-          description:
-            error?.response?.data?.message ||
-            "There was an error saving the allottees.",
-          variant: "destructive",
-        });
-      } finally {
-        setAllotteeLoading(false);  
+          const backendMessage = error?.response?.data?.message;
+
+          if (backendMessage === "Allotment percentage would not be 100 percent.") {
+            toast({
+              title: "Validation Error",
+              description: backendMessage,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Error saving allottees",
+              description:
+                backendMessage || "There was an error saving the allottees.",
+              variant: "destructive",
+            });
+          }
+        } finally {
+        setAllotteeLoading(false);
       }
     };
 

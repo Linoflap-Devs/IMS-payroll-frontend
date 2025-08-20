@@ -1369,6 +1369,7 @@ export default function CrewDetails() {
                       setTriggerSave={setTriggerSave}
                       setIsEditingAllottee={setIsEditingAllottee}
                       setIsAddingAllottee={setIsAddingAllottee}
+                      setIsDeletingAllottee={setIsDeletingAllottee}
                       isAddingAllottee={isAddingAllottee}
                     />
                   </>
