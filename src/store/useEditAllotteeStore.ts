@@ -10,7 +10,7 @@ export interface DraftAllottee {
     bank: number;
     branch: number;
     relationship: number;
-    accountNumber: number;
+    accountNumber: string;
     allotment: number;
     receivePayslip: number;
   }>;

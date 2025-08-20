@@ -226,8 +226,8 @@ export default function AddAllotteeForm({
               <h3 className="text-lg font-semibold mb-3 text-primary">
                 Add Allottee
               </h3>
-
-              {(allottees.length === 0 || allottees[0]?.allotmentType === 1) && (
+              
+              {( Number(newAllotmentType) === 1 || allottees.length === 0 || allottees[0]?.allotmentType === 1) && (
                 <div className="flex justify-end gap-6 w-1/2">
                   <FormField
                     control={control}
