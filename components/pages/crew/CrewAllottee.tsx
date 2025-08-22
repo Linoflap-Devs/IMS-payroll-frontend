@@ -99,8 +99,9 @@ export function CrewAllottee({
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
   const triggerEdit = useAllotteeTriggerStore((state) => state.triggerAdd);
   const validationAdd = useAddAllotteeValidationStore((state) => state.validationAdd);
-  const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd); // get the function
+  const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd);
   const [newAllotmentType, setNewAllotmentType] = useState("0");
+  const [isEditModalStatus, setEditModalStatus] = useState<Record<number, boolean>>({});
 
   const {
     allottees: storeAllottees,
@@ -361,16 +362,16 @@ export function CrewAllottee({
       },
       {
         accessorKey: "isEdited",
-        header: () => <div className="items-center">Modal Status</div>,
+        header: () => <div className="items-center">Draft Status</div>,
         cell: ({ row }) => {
           const allotteeId = Number(row.original.id);
-          const isEdited = editedAllottees[allotteeId];
+          const isEdited = isEditModalStatus[allotteeId] ?? false;
 
           return (
             <div className="text-center">
-              {isEdited ? (
+             {isEdited ? (
                 <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs font-semibold">
-                  Edited
+                  Edited  
                 </span>
               ) : (
                 <span className="px-2 py-1 bg-gray-200 text-gray-500 rounded-full text-xs font-semibold">
@@ -701,7 +702,7 @@ export function CrewAllottee({
         icon: "error",
       });
     }
-  };
+  };  
 
   if (allotteesError) {
     return (
@@ -921,6 +922,8 @@ export function CrewAllottee({
             SelectedAllotteeData={selectedAllotteeData}
             isEditingAllottee={isEditingAllottee}
             isAddingAllottee={isAddingAllottee ?? null}
+            isEditModalStatus={isEditModalStatus}
+            setEditModalStatus={setEditModalStatus}
           />
         )}
       </div>

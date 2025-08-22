@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { z } from "zod";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
@@ -55,6 +55,8 @@ interface EditUserDialogProps {
   onSuccess?: (updatedUser: AllotteeUiModel) => void;
   isEditingAllottee: boolean
   isAddingAllottee: boolean | null
+  isEditModalStatus: Record<number, boolean>;
+  setEditModalStatus: React.Dispatch<React.SetStateAction<Record<number, boolean>>>;
 }
 
 export function EditAllotteeDialog({
@@ -64,6 +66,8 @@ export function EditAllotteeDialog({
   onSuccess,
   isEditingAllottee,
   isAddingAllottee,
+  setEditModalStatus,
+  isEditModalStatus
 }: EditUserDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -337,8 +341,13 @@ export function EditAllotteeDialog({
       accountNumber: data.accountNumber ?? "",
     };
 
+
     // Save to Zustand draft store
-    setDraft(draftId, updatedDraft); // 
+    setDraft(draftId, updatedDraft);
+    setEditModalStatus(prev => ({
+      ...prev,
+      [draftId]: true,
+    }));
 
     // Show toast
     toast({
@@ -460,17 +469,17 @@ export function EditAllotteeDialog({
                 <FormItem>
                   <FormLabel>Contact Number</FormLabel>
                   <FormControl>
-<Input
-  type="text"
-  {...field}
-  placeholder="Enter contact number"
-  onChange={(e) => {
-    field.onChange(e); // react-hook-form update
-    setDraft(Number(SelectedAllotteeData.id), {
-      contactNumber: e.target.value, // <-- keep as string
-    });
-  }}
-/>
+                    <Input
+                      type="text"
+                      {...field}
+                      placeholder="Enter contact number"
+                      onChange={(e) => {
+                        field.onChange(e); // react-hook-form update
+                        setDraft(Number(SelectedAllotteeData.id), {
+                          contactNumber: e.target.value, // <-- keep as string
+                        }); 
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
