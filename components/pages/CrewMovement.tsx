@@ -51,7 +51,7 @@ export default function CrewMovement() {
       setLoadingVessels(true);
       try {
         const res = await getVesselList();
-        const movements = await getCrewMovementHistory()
+       
         if (res.success) {
           const mapped = res.data.map((item: VesselItem) => ({
             vesselId: item.VesselID,
@@ -68,13 +68,7 @@ export default function CrewMovement() {
           console.error("Failed to fetch vessels:", res.message);
         }
 
-        if (movements.success) {
-          console.log("Crew movements fetched successfully:", movements.data);
-          setCrewMovementHistory(movements.data)
-        }
-        else {
-          console.error("Failed to fetch crew movements:", movements.message);
-        }
+       
       } catch (err) {
         console.error("Error fetching vessels:", err);
       } finally {
@@ -84,6 +78,20 @@ export default function CrewMovement() {
 
     fetchVessels();
   }, []);
+
+  const handleFetchCrewMovementHistory = async () => {
+      const movements = await getCrewMovementHistory()
+
+      if (movements.success) {
+        console.log("Crew movements fetched successfully:", movements.data);
+        setCrewMovementHistory(movements.data)
+      }
+      else {
+        console.error("Failed to fetch crew movements:", movements.message);
+      }
+
+      generateMovementHistoryPDF(movements.data, new Date().getMonth() + 1, new Date().getFullYear());
+  }
 
   const columns: ColumnDef<Vessel>[] = [
     {
@@ -210,7 +218,7 @@ export default function CrewMovement() {
             <Button
               className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
               size="default"
-              onClick={() => { generateMovementHistoryPDF(crewMovementHistory, new Date().getMonth() + 1, new Date().getFullYear()); }}
+              onClick={() => { handleFetchCrewMovementHistory(); }}
             >
               <Download className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
               Export PDF
