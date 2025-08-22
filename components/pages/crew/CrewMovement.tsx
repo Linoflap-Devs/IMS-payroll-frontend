@@ -12,11 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable } from "@/components/ui/data-table";
-import { CheckCircle, Download, Filter, MinusCircle } from "lucide-react";
+import { CheckCircle, Download, Filter, Loader2, MinusCircle } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { generateMovementHistoryPDF } from "@/components/PDFs/movmentHistoryPDF";
 import { CrewMovementHistory, getCrewMovementHistory } from "@/src/services/crew/crew.api";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AiOutlinePrinter } from "react-icons/ai";
+import { generateMovementHistoryExcel } from "@/components/Excels/movementHistoryExcel";
 
 interface Movement {
   Vessel: string;
@@ -101,6 +104,8 @@ export function CrewMovement() {
   const [filteredMovements, setFilteredMovements] = useState<Movement[]>([]);
   const [selectedVessel, setSelectedVessel] = useState<string>("all");
   const [crewMovementHistory, setCrewMovementHistory] = useState<CrewMovementHistory[]>([]);
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const [isExcelLoading, setIsExcelLoading] = useState(false);
 
   const {
     movements,
@@ -109,7 +114,7 @@ export function CrewMovement() {
     fetchCrewMovements,
     resetMovements,
   } = useCrewStore();
-  console.log(movements);
+  //console.log(movements);
 
   const clearFilters = () => {
     setSelectedVessel("all");
@@ -140,7 +145,7 @@ export function CrewMovement() {
       resetMovements();
     };
 
-    
+
   }, [crewId, fetchCrewMovements, resetMovements]);
 
   useEffect(() => {
@@ -158,12 +163,38 @@ export function CrewMovement() {
     }
   };
 
+  const handlePdfExport = async () => {
+    setIsPdfLoading(true);
+    try {
+      await generateMovementHistoryPDF(
+        crewMovementHistory,
+        new Date().getMonth() + 1,
+        new Date().getFullYear()
+      );
+    } finally {
+      setIsPdfLoading(false);
+    }
+  };
+
+  const handleExcelExport = async () => {
+    setIsExcelLoading(true);
+    try {
+      await generateMovementHistoryExcel(
+        crewMovementHistory,
+        new Date().getMonth() + 1,
+        new Date().getFullYear()
+      );
+    } finally {
+      setIsExcelLoading(false);
+    }
+  };
+
   if (movementsError) {
     return (
       <div className="text-center text-red-500">Error: {movementsError}</div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
       <div className="flex gap-4">
@@ -202,19 +233,49 @@ export function CrewMovement() {
             onClick={clearFilters}
           >
             <span className="text-gray-700 font-medium">
-              Clear Select 
+              Clear Select
             </span>
           </Button>
         </div>
-         <div>
-          <Button
-            className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
-            size="default"
-            onClick={() => { generateMovementHistoryPDF(crewMovementHistory, new Date().getMonth() + 1, new Date().getFullYear()); }}
-          >
-            <Download className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
-            Export PDF
-          </Button>
+        <div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="h-10 px-4 text-sm">
+                <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                Print Summary
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent className="text-sm w-48">
+              <DropdownMenuItem onClick={handlePdfExport} disabled={isPdfLoading}>
+                {isPdfLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Exporting PDF...
+                  </>
+                ) : (
+                  <>
+                    <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                    Export PDF
+                  </>
+                )}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={handleExcelExport} disabled={isExcelLoading}>
+                {isExcelLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Exporting Excel...
+                  </>
+                ) : (
+                  <>
+                    <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                    Export Excel
+                  </>
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
