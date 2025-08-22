@@ -378,3 +378,39 @@ export const updateCrew = async (
 
   return response.data;
 };
+
+export interface Movement {
+    VesselName: string;
+    Rank: string;
+    OnboardDate: Date | null;
+    OffboardDate: Date | null;
+    Promotion: number;
+    Remarks: string | null;
+}
+export interface CrewMovementHistory {
+    CrewID: number;
+    CrewCode: string;
+    FirstName: string;
+    MiddleName: string | null;
+    LastName: string;
+    Rank: string;
+    Movements: Movement[];
+}
+
+interface CrewMovementHistoryResponse {
+  success: boolean;
+  data: CrewMovementHistory[];
+  message?: string;
+}
+
+export const getCrewMovementHistory = async (crewCode?: string): Promise<CrewMovementHistoryResponse> => {
+  console.log("Fetching crew movement history for crewCode:", crewCode);
+  if(!crewCode) {
+    const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/movement-report`);
+    return response.data;  
+  }
+  else{
+    const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/${crewCode}/movement-report`);
+    return response.data;
+  }
+}
