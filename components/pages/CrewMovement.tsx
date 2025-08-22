@@ -17,11 +17,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreHorizontal, Filter, UserPen } from "lucide-react";
+import { Search, MoreHorizontal, Filter, UserPen, Download } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useDebounce } from "@/lib/useDebounce";
 import { getVesselList, VesselItem } from "@/src/services/vessel/vessel.api";
+import generateOnboardCrewReport from "../PDFs/onboardCrewReportPDF";
+import { CrewMovementHistory, getCrewMovementHistory } from "@/src/services/crew/crew.api";
+import { generateMovementHistoryPDF } from "../PDFs/movmentHistoryPDF";
 
 interface Vessel {
   vesselId: number;
@@ -40,6 +43,7 @@ export default function CrewMovement() {
   const [loadingVessels, setLoadingVessels] = useState(false);
   const [vesselData, setVesselData] = useState<Vessel[]>([]);
   const [vesselTypeFilter, setVesselTypeFilter] = useState("all");
+  const [crewMovementHistory, setCrewMovementHistory] = useState<CrewMovementHistory[]>([]);
 
   // Fetch vessel list on mount
   useEffect(() => {
@@ -47,6 +51,7 @@ export default function CrewMovement() {
       setLoadingVessels(true);
       try {
         const res = await getVesselList();
+       
         if (res.success) {
           const mapped = res.data.map((item: VesselItem) => ({
             vesselId: item.VesselID,
@@ -62,6 +67,8 @@ export default function CrewMovement() {
         } else {
           console.error("Failed to fetch vessels:", res.message);
         }
+
+       
       } catch (err) {
         console.error("Error fetching vessels:", err);
       } finally {
@@ -71,6 +78,20 @@ export default function CrewMovement() {
 
     fetchVessels();
   }, []);
+
+  const handleFetchCrewMovementHistory = async () => {
+      const movements = await getCrewMovementHistory()
+
+      if (movements.success) {
+        console.log("Crew movements fetched successfully:", movements.data);
+        setCrewMovementHistory(movements.data)
+      }
+      else {
+        console.error("Failed to fetch crew movements:", movements.message);
+      }
+
+      generateMovementHistoryPDF(movements.data, new Date().getMonth() + 1, new Date().getFullYear());
+  }
 
   const columns: ColumnDef<Vessel>[] = [
     {
@@ -194,6 +215,14 @@ export default function CrewMovement() {
               </Select>
               
             </div>
+            <Button
+              className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
+              size="default"
+              onClick={() => { handleFetchCrewMovementHistory(); }}
+            >
+              <Download className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
+              Export PDF
+            </Button>
           </div>
           <div className="text-center">
             {loadingVessels ? (

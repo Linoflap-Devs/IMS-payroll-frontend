@@ -12,9 +12,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable } from "@/components/ui/data-table";
-import { CheckCircle, Filter, MinusCircle } from "lucide-react";
+import { CheckCircle, Download, Filter, MinusCircle } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
+import { generateMovementHistoryPDF } from "@/components/PDFs/movmentHistoryPDF";
+import { CrewMovementHistory, getCrewMovementHistory } from "@/src/services/crew/crew.api";
 
 interface Movement {
   Vessel: string;
@@ -98,6 +100,7 @@ export function CrewMovement() {
   const crewId = searchParams.get("id");
   const [filteredMovements, setFilteredMovements] = useState<Movement[]>([]);
   const [selectedVessel, setSelectedVessel] = useState<string>("all");
+  const [crewMovementHistory, setCrewMovementHistory] = useState<CrewMovementHistory[]>([]);
 
   const {
     movements,
@@ -114,11 +117,30 @@ export function CrewMovement() {
   };
 
   useEffect(() => {
+    console.log("Fetching crew movement history...");
+    if (!crewId) return;
+    const fetchMovementHistory = async () => {
+      try {
+        const result = await getCrewMovementHistory(crewId || undefined);
+        setCrewMovementHistory(result.data);
+        console.log("Movement History:", result);
+      } catch (error) {
+        console.error("Failed to fetch crew movement history:", error);
+      }
+    }
+
+    fetchMovementHistory();
+  }, [])
+
+  useEffect(() => {
     if (!crewId) return;
     fetchCrewMovements(crewId);
+
     return () => {
       resetMovements();
     };
+
+    
   }, [crewId, fetchCrewMovements, resetMovements]);
 
   useEffect(() => {
@@ -182,6 +204,16 @@ export function CrewMovement() {
             <span className="text-gray-700 font-medium">
               Clear Select 
             </span>
+          </Button>
+        </div>
+         <div>
+          <Button
+            className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
+            size="default"
+            onClick={() => { generateMovementHistoryPDF(crewMovementHistory, new Date().getMonth() + 1, new Date().getFullYear()); }}
+          >
+            <Download className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
+            Export PDF
           </Button>
         </div>
       </div>
