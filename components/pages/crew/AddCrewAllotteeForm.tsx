@@ -79,7 +79,7 @@ export default function AddAllotteeForm({
   const totalAllotment = allottees?.reduce(
     (sum, allottee) => sum + Number(allottee.allotment || 0),
     0
-  );  
+  );
 
   useEffect(() => {
     if (triggerAdd) {
@@ -157,8 +157,8 @@ export default function AddAllotteeForm({
 
     // Only check total % if allotmentType === 2
     // if (payload.allotmentType === 2) {
-      //   const updatedTotal = totalAllotment + (data.allotment ?? 0);
-      //   if (updatedTotal > 100) {
+    //   const updatedTotal = totalAllotment + (data.allotment ?? 0);
+    //   if (updatedTotal > 100) {
     //     toast({
     //       title: "Error",
     //       description: "Allotment percentage cannot exceed 100%.",
@@ -170,33 +170,20 @@ export default function AddAllotteeForm({
 
     // Reset form
     form.reset();
-    //console.log("Form reset done");
 
     setTriggerAdd(false);
-    //console.log("TriggerAdd reset to false");
   };
 
   useEffect(() => {
     if (triggerAdd) {
       handleSubmit(
         (data) => {
-          // Form is valid
           handleSaveAdd(data);
-
-          // mark validation success  
           setValidationAdd(true);
-
-          // reset trigger
           setTriggerEdit(true);
         },
         (errors) => {
-          // Form has validation errors
-          //console.log("Validation errors:", errors);
-
-          // mark validation failed
           setValidationAdd(false);
-
-          // reset trigger
           setTriggerAdd(false);
           setTriggerEdit(false);
         }
@@ -209,9 +196,9 @@ export default function AddAllotteeForm({
       form.trigger().then((isValid) => {
         if (isValid) {
           handleSaveAdd(form.getValues());
-          setTriggerAdd(false); // reset lang AFTER success
+          setTriggerAdd(false);
         } else {
-          //console.log("Validation failed");
+          console.error("Validation failed");
         }
       });
     }
@@ -226,8 +213,8 @@ export default function AddAllotteeForm({
               <h3 className="text-lg font-semibold mb-3 text-primary">
                 Add Allottee
               </h3>
-              
-              {( Number(newAllotmentType) === 1 || allottees.length === 0 || allottees[0]?.allotmentType === 1) && (
+
+              {(Number(newAllotmentType) === 1 || allottees.length === 0 || allottees[0]?.allotmentType === 1) && (
                 <div className="flex justify-end gap-6 w-1/2">
                   <FormField
                     control={control}
