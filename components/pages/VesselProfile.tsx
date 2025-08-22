@@ -27,6 +27,7 @@ import {
   Users,
   Pencil,
   Download,
+  Loader2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
@@ -59,7 +60,8 @@ import {
 } from "@/src/services/vessel/vesselPrincipal.api";
 import { NewVesselItem, UpdatedVesselFromApi } from "@/types/vessel";
 import generateOnboardCrewReport from "../PDFs/onboardCrewReportPDF";
-import { format } from "date-fns";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 
 interface Vessel {
   vesselId: number;
@@ -91,37 +93,41 @@ export default function VesselProfile() {
   const [addVesselDialogOpen, setAddVesselDialogOpen] = useState(false);
   const [editVesselDialogOpen, setEditVesselDialogOpen] = useState(false);
   const [addVesselTypeDialogOpen, setAddVesselTypeDialogOpen] = useState(false);
-  const [editVesselTypeDialogOpen, setEditVesselTypeDialogOpen] =
-    useState(false);
-  const [addVesselPrincipalDialogOpen, setAddVesselPrincipalDialogOpen] =
-    useState(false);
-  const [editVesselPrincipalDialogOpen, setEditVesselPrincipalDialogOpen] =
-    useState(false);
+  const [editVesselTypeDialogOpen, setEditVesselTypeDialogOpen] = useState(false);
+  const [addVesselPrincipalDialogOpen, setAddVesselPrincipalDialogOpen] = useState(false);
+  const [editVesselPrincipalDialogOpen, setEditVesselPrincipalDialogOpen] = useState(false);
   const [vesselData, setVesselData] = useState<Vessel[]>([]);
   const [selectedVessel, setSelectedVessel] = useState<Vessel | null>(null);
   const [vesselTypeData, setVesselTypeData] = useState<VesselType[]>([]);
-  const [selectedVesselType, setSelectedVesselType] =
-    useState<VesselType | null>(null);
-  const [vesselPrincipalData, setVesselPrincipalData] = useState<
-    VesselPrincipal[]
-  >([]);
-  const [selectedVesselPrincipal, setSelectedVesselPrincipal] =
-    useState<VesselPrincipal | null>(null);
+  const [selectedVesselType, setSelectedVesselType] = useState<VesselType | null>(null);
+  const [vesselPrincipalData, setVesselPrincipalData] = useState<VesselPrincipal[]>([]);
+  const [selectedVesselPrincipal, setSelectedVesselPrincipal] = useState<VesselPrincipal | null>(null);
   const [isLoadingVessels, setLoadingVessels] = useState(false);
   const [isLoadingTypes, setLoadingTypes] = useState(false);
   const [isLoadingPrincipals, setLoadingPrincipals] = useState(false);
-
   const [onBoardCrewData, setOnBoardCrewData] = useState<OnboardCrewReportResponse>({} as OnboardCrewReportResponse);
 
-  useEffect( () => {
-    const fetchOnboardCrewReport = async () => {
-      const response = await getOnboardCrewReport(7, 2025)
-      setOnBoardCrewData(response);
-      console.log("Onboard Crew Data:", response);
-    }
+  const [openExportModal, setOpenExportModal] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [loadingPDFExport, setLoadingPDFExport] = useState(false);
 
-    fetchOnboardCrewReport();
-  }, [])
+  const handleExport = async () => {
+    setLoadingPDFExport(true);
+    // Always fetch fresh data based on selected month & year
+    const response = await getOnboardCrewReport(selectedMonth, selectedYear);
+    setOnBoardCrewData(response);
+
+    // Generate PDF with the latest response
+    generateOnboardCrewReport(
+      response,
+      new Date(`${selectedYear}-${selectedMonth}-01`),
+      "all"
+    );
+
+    setOpenExportModal(false);
+    setLoadingPDFExport(false);
+  };  
 
   const handleVesselTypeAdded = (newVesselType: VesselTypeItem) => {
     // Convert API response format to your internal format
@@ -526,7 +532,6 @@ export default function VesselProfile() {
           }
         };
 
-        //console.log(vesselData);
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -839,13 +844,17 @@ export default function VesselProfile() {
                         Add Vessel
                       </Button>
 
-                      <Button
+                      {/* <Button
                         className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
                         size="default"
                         onClick={() => generateOnboardCrewReport(onBoardCrewData, new Date(), 'all')}
                       >
                         <Download className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                         Export PDF
+                      </Button> */}
+
+                      <Button onClick={() => setOpenExportModal(true)}>
+                        <Download className="mr-2 h-4 w-4" /> Export PDF
                       </Button>
                     </div>
                   </div>
@@ -1006,6 +1015,81 @@ export default function VesselProfile() {
           onSuccess={handleVesselPrincipalUpdated}
         />
       )}
+
+      <Dialog open={openExportModal} onOpenChange={setOpenExportModal}>
+        <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
+              Select Year and Month
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 gap-5 mb-1">
+            <Select
+              onValueChange={(value) => setSelectedMonth(Number(value))}
+              value={selectedMonth.toString()}
+            >
+              <SelectTrigger className="w-full rounded-md h-10 gap-1">
+                <SelectValue placeholder="Select Month" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                    {new Date(0, i).toLocaleString("default", { month: "long" })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              onValueChange={(value) => setSelectedYear(Number(value))}
+              value={selectedYear.toString()}
+            >
+              <SelectTrigger className="w-full rounded-md h-10 gap-1">
+                <SelectValue placeholder="Select Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 5 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => setOpenExportModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleExport}
+              className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
+            >
+              {loadingPDFExport ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span>Exporting...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { capitalizeFirstLetter, formatCurrency, getMonthName, truncateText } fro
 import { DeductionResponse, HDMFDeductionCrew } from "@/src/services/deduction/governmentReports.api";
 import { OnboardCrewReportResponse } from "@/src/services/vessel/vessel.api";
 import { format } from "date-fns";
+import { toast } from "../ui/use-toast";
 
 interface Crew {
     FirstName: string,
@@ -59,8 +60,13 @@ export function generateOnboardCrewReportPDF(
         return false;
     }
 
-    if (!data.success || !data.data || data.data.length === 0 || !data.data[0].Crew || data.data[0].Crew.length === 0) {
-        console.error('Invalid or empty data for deduction register');
+    if (!data.success || !data.data || data.data.length === 0 || !data.data.some(v => v.Crew && v.Crew.length > 0)) {
+        toast({
+          title: "Error",
+          description: 'Invalid or empty data for date.',
+          variant: "destructive",
+        });
+        //console.error('Invalid or empty data for deduction register');
         return false;
     }
 
