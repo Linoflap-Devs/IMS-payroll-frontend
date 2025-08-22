@@ -386,6 +386,7 @@ export default function CrewDetails() {
   // working to -> true
   const toggleAllotteeAdd = () => {
     setIsAddingAllottee(!isAddingAllottee);
+    setTriggerSave(false);
   };
 
   const handleDeleteAllottee = () => {

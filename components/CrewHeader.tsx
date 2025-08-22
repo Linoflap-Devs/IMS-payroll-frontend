@@ -246,7 +246,3 @@ export function CrewHeader({
     </>
   );
 }
-function AddTriggerAllotteeStore(arg0: (state: any) => any) {
-  throw new Error("Function not implemented.");
-}
-

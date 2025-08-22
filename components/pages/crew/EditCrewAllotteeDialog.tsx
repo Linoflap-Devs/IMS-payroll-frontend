@@ -108,7 +108,7 @@ export function EditAllotteeDialog({
     resolver: zodResolver(editAllotteeSchema),
     defaultValues: {
       name: "",
-      relation: undefined,  
+      relation: undefined,
       contactNumber: " ", // space so it stays a string
       address: "",
       province: undefined,
@@ -477,7 +477,7 @@ export function EditAllotteeDialog({
                         field.onChange(e); // react-hook-form update
                         setDraft(Number(SelectedAllotteeData.id), {
                           contactNumber: e.target.value, // <-- keep as string
-                        }); 
+                        });
                       }}
                     />
                   </FormControl>
