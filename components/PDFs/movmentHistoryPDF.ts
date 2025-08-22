@@ -336,7 +336,7 @@ export function generateMovementHistory(
 
             // Draw crew data
             columnKeys.forEach((key: any, i) => {
-                console.log(crew)
+                //console.log(crew)
                 if(key === 'CrewName') {
                     const name = `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + ' ' : ''}`;
                     doc.text(name, colPositions[i] + 5, y + 5, {align: 'left'});

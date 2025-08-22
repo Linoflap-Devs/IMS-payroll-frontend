@@ -10,65 +10,38 @@ function getMonthName(monthNum: number): string {
     return months[monthNum - 1];
 }
 
-export function generateMovementHistoryExcel(
-    crewData: CrewMovementHistory[],
-    month: number,
-    year: number
-): void {
-    if (!crewData || crewData.length === 0) {
-        console.error("Invalid or empty data for movement history");
-        return;
-    }
+// Get surname for grouping
+function getSurname(crew: CrewMovementHistory): string {
+    return crew.LastName?.toUpperCase() ?? "";
+}
 
+// Build one worksheet with header + data
+function buildWorksheet(title: string, crewList: CrewMovementHistory[], month: number, year: number) {
     const rows: any[] = [];
 
-    // HEADER ROWS
     const now = new Date();
-    const dateStr = format(now, "MM/dd/yy hh:mm a"); // e.g. 08/22/25 2:21 PM
+    const dateStr = format(now, "MM/dd/yy hh:mm a");
+
+    // HEADER
     rows.push(["IMS PHILIPPINES"]);
     rows.push(["MARITIME CORP."]);
     rows.push([`${getMonthName(month)} ${year}`]);
     rows.push(["CREW MOVEMENT HISTORY"]);
-    // rows.push([
-    //     `VESSEL: ALL VESSELS`,
-    //     "",
-    //     "",
-    //     "",
-    //     "",
-    //     "",
-    //     `CREW: ${crewData[0].LastName}, ${crewData[0].FirstName} ${crewData[0].MiddleName ?? ""}`,
-    // ]);
     rows.push([`Generated: ${dateStr}`]);
-    rows.push([]); // empty row before table
+    rows.push([]);
+    rows.push(["Crew Code", "Crew Name", "Vessel Name", "Rank", "Sign On Date", "Sign Off Date", "Remarks"]);
 
-    // TABLE HEADERS
-    rows.push([
-        "Crew Code",
-        "Crew Name",
-        "Vessel Name",
-        "Rank",
-        "Sign On Date",
-        "Sign Off Date",
-        "Remarks",
-    ]);
-
-    // TABLE DATA
-    crewData.forEach((crew) => {
+    // DATA
+    crewList.forEach((crew) => {
         if (crew.Movements && crew.Movements.length > 0) {
             crew.Movements.forEach((movement, idx) => {
                 rows.push([
                     idx === 0 ? crew.CrewCode : "",
-                    idx === 0
-                        ? `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ?? ""}`
-                        : "",
+                    idx === 0 ? `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ?? ""}` : "",
                     movement.VesselName,
                     movement.Rank,
-                    movement.OnboardDate
-                        ? format(new Date(movement.OnboardDate), "yyyy-MM-dd")
-                        : "-",
-                    movement.OffboardDate
-                        ? format(new Date(movement.OffboardDate), "yyyy-MM-dd")
-                        : "-",
+                    movement.OnboardDate ? format(new Date(movement.OnboardDate), "yyyy-MM-dd") : "-",
+                    movement.OffboardDate ? format(new Date(movement.OffboardDate), "yyyy-MM-dd") : "-",
                     movement.Remarks ?? "",
                 ]);
             });
@@ -83,57 +56,71 @@ export function generateMovementHistoryExcel(
                 "",
             ]);
         }
+
+        // Add blank row after each crew to create spacing
+        rows.push([]);
     });
 
-    // Create worksheet from full rows
-    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    const ws = XLSX.utils.aoa_to_sheet(rows);
 
-    // Auto column widths (based on table data only)
-    const dataRows = rows.slice(8); // skip header rows
-    const colWidths = dataRows[0].map((_: any, colIndex: number) => {
+    // Auto column widths
+    const dataRows = rows.slice(7);
+    const colWidths = dataRows[0]?.map((_: any, colIndex: number) => {
         const maxLength = dataRows.reduce((max, row) => {
             const val = row[colIndex] ? row[colIndex].toString() : "";
             return Math.max(max, val.length);
-        }, 10); // 10 = minimum width
-        return { wch: maxLength + 1 }; // +2 padding
-    });
+        }, 10);
+        return { wch: maxLength + 2 };
+    }) || [];
 
-    // Force Crew Name column (index 1) wider
-    colWidths[1] = { wch: Math.max(colWidths[1].wch, 40) }; // at least 40 chars wide
+    if (colWidths[1]) colWidths[1].wch = Math.max(colWidths[1].wch, 40);
+    ws["!cols"] = colWidths;
 
-    worksheet["!cols"] = colWidths;
+    return ws;
+}
 
+export function generateMovementHistoryExcel(
+    crewData: CrewMovementHistory[],
+    month: number,
+    year: number
+): void {
+    if (!crewData || crewData.length === 0) {
+        console.error("Invalid or empty data for movement history");
+        return;
+    }
 
-    // Assume you have 8 columns (adjust according to your data)
-    const totalCols = colWidths.length;
-    const lastCol = String.fromCharCode(65 + totalCols - 1); // e.g., "H" if 8 cols
+    // Sorting by LastName ASC
+    const sortedData = [...crewData].sort((a, b) => a.LastName.localeCompare(b.LastName));
 
-    // Merge header rows
-    worksheet["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } }, // IMS PHILIPPINES
-        { s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } }, // MARITIME CORP.
-        { s: { r: 2, c: 0 }, e: { r: 2, c: totalCols - 1 } }, // (etc. adjust as needed)
+    const workbook = XLSX.utils.book_new();
+
+    // Sheet ranges
+    const groups = [
+        { name: "A to C", regex: /^[A-C]/i },
+        { name: "D to L", regex: /^[D-L]/i },
+        { name: "M to R", regex: /^[M-R]/i },
+        { name: "S to Z", regex: /^[S-Z]/i },
     ];
 
-    // Optional: apply alignment style (center text)
-    ["A1", "A2", "A3"].forEach((cell) => {
-        if (worksheet[cell]) {
-            worksheet[cell].s = {
-                alignment: { horizontal: "center", vertical: "center" },
-                font: { bold: true, sz: 14 }, // bold + bigger font
-            };
+    groups.forEach(({ name, regex }) => {
+        const filtered = sortedData.filter((crew) => regex.test(getSurname(crew)));
+        if (filtered.length > 0) {
+            const ws = buildWorksheet(name, filtered, month, year);
+            XLSX.utils.book_append_sheet(workbook, ws, name);
         }
     });
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "MovementHistory");
+    // Temporarily removed "in-active" sheet since no Status field
 
-    const fileName =
-        crewData.length > 1
-            ? `MovementHistory_ALL_${getMonthName(month)}-${year}.xlsx`
-            : `MovementHistory_${crewData[0].LastName}_${crewData[0].FirstName}_${getMonthName(
-                month
-            )}-${year}.xlsx`;
+    // Masterlist (only if ALL)
+    if (sortedData.length > 1) {
+        const ws = buildWorksheet("masterlist", sortedData, month, year);
+        XLSX.utils.book_append_sheet(workbook, ws, "masterlist");
+    }
+
+    const fileName = sortedData.length > 1
+        ? `MovementHistory_ALL_${getMonthName(month)}-${year}.xlsx`
+        : `MovementHistory_${sortedData[0].LastName}_${sortedData[0].FirstName}_${getMonthName(month)}-${year}.xlsx`;
 
     XLSX.writeFile(workbook, fileName);
 }

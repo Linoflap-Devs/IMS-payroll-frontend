@@ -388,6 +388,7 @@ export interface Movement {
     Remarks: string | null;
 }
 export interface CrewMovementHistory {
+    Status: any;
     CrewID: number;
     CrewCode: string;
     FirstName: string;
@@ -404,7 +405,6 @@ interface CrewMovementHistoryResponse {
 }
 
 export const getCrewMovementHistory = async (crewCode?: string): Promise<CrewMovementHistoryResponse> => {
-  console.log("Fetching crew movement history for crewCode:", crewCode);
   if(!crewCode) {
     const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/movement-report`);
     return response.data;  

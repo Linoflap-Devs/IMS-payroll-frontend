@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreHorizontal, Filter, UserPen, Download } from "lucide-react";
+import { Search, MoreHorizontal, Filter, UserPen, Download, Loader2 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useDebounce } from "@/lib/useDebounce";
@@ -25,6 +25,8 @@ import { getVesselList, VesselItem } from "@/src/services/vessel/vessel.api";
 import generateOnboardCrewReport from "../PDFs/onboardCrewReportPDF";
 import { CrewMovementHistory, getCrewMovementHistory } from "@/src/services/crew/crew.api";
 import { generateMovementHistoryPDF } from "../PDFs/movmentHistoryPDF";
+import { AiOutlinePrinter } from "react-icons/ai";
+import { generateMovementHistoryExcel } from "../Excels/movementHistoryExcel";
 
 interface Vessel {
   vesselId: number;
@@ -44,6 +46,7 @@ export default function CrewMovement() {
   const [vesselData, setVesselData] = useState<Vessel[]>([]);
   const [vesselTypeFilter, setVesselTypeFilter] = useState("all");
   const [crewMovementHistory, setCrewMovementHistory] = useState<CrewMovementHistory[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Fetch vessel list on mount
   useEffect(() => {
@@ -51,7 +54,7 @@ export default function CrewMovement() {
       setLoadingVessels(true);
       try {
         const res = await getVesselList();
-       
+
         if (res.success) {
           const mapped = res.data.map((item: VesselItem) => ({
             vesselId: item.VesselID,
@@ -68,7 +71,7 @@ export default function CrewMovement() {
           console.error("Failed to fetch vessels:", res.message);
         }
 
-       
+
       } catch (err) {
         console.error("Error fetching vessels:", err);
       } finally {
@@ -79,19 +82,53 @@ export default function CrewMovement() {
     fetchVessels();
   }, []);
 
-  const handleFetchCrewMovementHistory = async () => {
-      const movements = await getCrewMovementHistory()
+  const handlePdfExport = async () => {
+    try {
+      setIsExporting(true);
+
+      const movements = await getCrewMovementHistory();
 
       if (movements.success) {
-        console.log("Crew movements fetched successfully:", movements.data);
-        setCrewMovementHistory(movements.data)
-      }
-      else {
+        setCrewMovementHistory(movements.data);
+
+        await generateMovementHistoryPDF(
+          movements.data,
+          new Date().getMonth() + 1,
+          new Date().getFullYear()
+        );
+      } else {
         console.error("Failed to fetch crew movements:", movements.message);
       }
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
-      generateMovementHistoryPDF(movements.data, new Date().getMonth() + 1, new Date().getFullYear());
-  }
+  const handleExcelExport = async () => {
+    try {
+      setIsExporting(true);
+
+      const movements = await getCrewMovementHistory();
+
+      if (movements.success) {
+        setCrewMovementHistory(movements.data);
+
+        await generateMovementHistoryExcel(
+          movements.data,
+          new Date().getMonth() + 1,
+          new Date().getFullYear()
+        );
+      } else {
+        console.error("Failed to fetch crew movements:", movements.message);
+      }
+    } catch (error) {
+      console.error("Error generating Excel:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const columns: ColumnDef<Vessel>[] = [
     {
@@ -213,16 +250,36 @@ export default function CrewMovement() {
                   ))}
                 </SelectContent>
               </Select>
-              
             </div>
-            <Button
-              className="whitespace-nowrap h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm w-full sm:w-auto"
-              size="default"
-              onClick={() => { handleFetchCrewMovementHistory(); }}
-            >
-              <Download className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
-              Export PDF
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-10 px-4 text-sm" disabled={isExporting}>
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                      Print Summary
+                    </>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent className="text-sm w-48">
+                <DropdownMenuItem onClick={handlePdfExport} disabled={isExporting}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  Export PDF
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={handleExcelExport} disabled={isExporting}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  Export Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <div className="text-center">
             {loadingVessels ? (
