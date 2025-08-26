@@ -31,6 +31,7 @@ import { PiReceiptFill } from "react-icons/pi";
 import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
 import { otherDeductions, otherDeductionsResponse } from "@/src/services/deduction/crewDeduction.api";
 import generateOtherDeductionsReport from "@/components/PDFs/otherDeductionsReportPDF";
+import { generateDeductionRegisterV3PDF } from "@/components/PDFs/payrollDeductionRegisterV3PDF";
 
 export default function DeductionRegisterComponent() {
   const searchParams = useSearchParams();
@@ -190,6 +191,20 @@ export default function DeductionRegisterComponent() {
     }
   };
 
+  const handlePrintV3 = async () => {
+
+    const response = await getVesselDeductionRegister(
+      vesselId,
+      Number(month),
+      Number(year)
+    );
+
+    generateDeductionRegisterV3PDF(
+      response,
+      new Date(),
+      vesselId ? 'vessel' : 'all'
+    )
+  }
   const handleExcelPrint = () => (
     generateDeductionAllotmentExcel(
       allotmentData, 
@@ -304,23 +319,21 @@ export default function DeductionRegisterComponent() {
               <DropdownMenuContent className="text-sm w-72" align="end">
                 <DropdownMenuItem onClick={handlePrint}>
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
-                    Export PDF
+                    Export PDF (All)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handlePrintOtherDeductions}>
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
-                    Export PDF (w/o Gov. Deductions)
+                    Export PDF (Crew Deductions)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handlePrintV3}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                    Export PDF (Gov. Deductions)
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleExcelPrint}
                 >
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
                   Export Excel
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {}}
-                >
-                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
-                  Export Excel (w/o Gov. Deductions)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
