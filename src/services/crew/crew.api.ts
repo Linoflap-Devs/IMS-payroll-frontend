@@ -323,7 +323,7 @@ export const deleteCrew = async (crewCode: string): Promise<AddCrewResponse> => 
 export const reactivateCrew = async (crewCode: string): Promise<AddCrewResponse> => {
   const response = await axiosInstance.patch<AddCrewResponse>(
     `/crew/reactivate`,
-    { crewCode } // <- body payload
+    { crewCode }
   );
   return response.data;
 }
