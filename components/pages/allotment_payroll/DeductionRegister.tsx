@@ -29,6 +29,8 @@ import { generateDeductionAllotmentV2PDF } from "@/components/PDFs/payrollDeduct
 import { generateDeductionAllotmentExcel } from "@/components/Excels/payrollDeductionRegister";
 import { PiReceiptFill } from "react-icons/pi";
 import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
+import { otherDeductions, otherDeductionsResponse } from "@/src/services/deduction/crewDeduction.api";
+import generateOtherDeductionsReport from "@/components/PDFs/otherDeductionsReportPDF";
 
 export default function DeductionRegisterComponent() {
   const searchParams = useSearchParams();
@@ -41,6 +43,8 @@ export default function DeductionRegisterComponent() {
   const [allotmentData, setAllotmentData] = useState<DeductionRegisterData[]>(
     []
   );
+
+  const [otherDeductionData, setOtherDeductionData] = useState<otherDeductionsResponse>({} as otherDeductionsResponse);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCrew, setSelectedCrew] =
     useState<DeductionRegisterCrew | null>(null);
@@ -61,6 +65,18 @@ export default function DeductionRegisterComponent() {
         if (response.success) {
           setAllotmentData(response.data);
         }
+
+        const otherDeductionResponse = await otherDeductions(
+          parseInt(year),
+          parseInt(month),
+          parseInt(vesselId)
+        );
+        if (otherDeductionResponse.success) {
+          setOtherDeductionData(otherDeductionResponse);
+        }
+        else {
+          console.log("No other deduction data found")
+        }  
       } catch (error) {
         console.error("Error fetching allotment data:", error);
       } finally {
@@ -162,6 +178,16 @@ export default function DeductionRegisterComponent() {
       Number(year),
       Number(forex)
     );
+  };
+
+  const handlePrintOtherDeductions = () => {
+    if(otherDeductionData && otherDeductionData.data){
+      generateOtherDeductionsReport(
+        otherDeductionData,
+        new Date(),
+        vesselId ? 'vessel' : 'all'
+      );
+    }
   };
 
   const handleExcelPrint = () => (
@@ -275,16 +301,26 @@ export default function DeductionRegisterComponent() {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="text-sm w-48">
+              <DropdownMenuContent className="text-sm w-72" align="end">
                 <DropdownMenuItem onClick={handlePrint}>
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
                     Export PDF
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={handlePrintOtherDeductions}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                    Export PDF (w/o Gov. Deductions)
+                </DropdownMenuItem>
                 <DropdownMenuItem
-                onClick={handleExcelPrint}
+                  onClick={handleExcelPrint}
                 >
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
                   Export Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {}}
+                >
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  Export Excel (w/o Gov. Deductions)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

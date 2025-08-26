@@ -54,12 +54,14 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
 import { generatePayrollPDF } from "../PDFs/payrollStatementPDF";
-import { PiFileTextFill, PiReceiptFill, PiUserListFill } from "react-icons/pi";
+import { PiFileTextFill, PiReceiptFill, PiUserListFill, PiFileMinusFill } from "react-icons/pi";
 import { generateDeductionAllotmentV2PDF } from "../PDFs/payrollDeductionRegisterV2PDF";
 import { generateAllotmentExcel } from "../Excels/allotmentAllotmentRegister";
 import { generateDeductionAllotmentExcel } from "../Excels/payrollDeductionRegister";
 import { generatePayrollExcel } from "../Excels/payrollStatementExcel";
 import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
+import { otherDeductions } from "@/src/services/deduction/crewDeduction.api";
+import generateOtherDeductionsReport from "../PDFs/otherDeductionsReportPDF";
 
 type Payroll = {
   vesselId: number;
@@ -603,6 +605,19 @@ const fetchPayrollData = async () => {
     setIsDataLoading(false);
   };
 
+  const handleOtherDeductionsPDF = async () => {
+    setIsDataLoading(true)
+    const response = await otherDeductions(Number(year), Number(month), vesselId ? parseInt(vesselId) : undefined)
+
+    if(response.success) {
+      generateOtherDeductionsReport(response, new Date(), vesselId ? 'vessel' : 'all')
+    }
+    else {
+      console.log("No other deduction data found")
+    }
+    setIsDataLoading(false)
+  }
+
   return (
     <div className="h-full w-full p-4 pt-2">
       <style jsx global>{`
@@ -772,7 +787,7 @@ const fetchPayrollData = async () => {
                   <DropdownMenuItem
                     onClick={handleGenerateAllotmentRegisterPDF}
                   >
-                    <PiUserListFill className="mr-2 h-4 w-4" />
+                  <PiUserListFill className="mr-2 h-4 w-4" />
                     Allotment Register
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -780,6 +795,12 @@ const fetchPayrollData = async () => {
                   >
                     <PiReceiptFill className="mr-2 h-4 w-4" />
                     Deduction Register
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleOtherDeductionsPDF}
+                  >
+                    <PiFileMinusFill className="mr-2 h-4 w-4" />
+                    Crew Deductions
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleGeneratePayslipPDF}>
                     <PiFileTextFill className="mr-2 h-4 w-4" />
