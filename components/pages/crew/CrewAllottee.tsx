@@ -343,10 +343,18 @@ export function CrewAllottee({
             <>
               <input
                 type="number"
+                step="0.01"   // allows 2 decimal increments
+                min="0"
                 disabled={!(isEditingAllottee || isAddingAllottee)}
                 value={allotmentValue}
                 onChange={(e) => {
-                  const newValue = parseInt(e.target.value);
+                  let newValue = parseFloat(e.target.value);
+
+                  // limit to 2 decimal places
+                  if (!isNaN(newValue)) {
+                    newValue = parseFloat(newValue.toFixed(2));
+                  }
+
                   setAllottees((prev) =>
                     prev.map((a) =>
                       a.id === allotteeId ? { ...a, allotment: newValue } : a

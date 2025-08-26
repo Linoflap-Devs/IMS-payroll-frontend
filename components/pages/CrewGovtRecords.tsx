@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { CrewItem } from "../../src/services/crew/crew.api";
+import { CrewItem, UpdateCrewDataForm } from "../../src/services/crew/crew.api";
 import { EditCrewGovtRecordsDialog } from "../dialogs/EditCrewGovtRecordsDialog";
 
 export default function CrewGovtRecords() {
@@ -260,21 +260,16 @@ export default function CrewGovtRecords() {
     (col) => col.id && columnVisibility[col.id] !== false
   );
 
-  const handleCrewDataUpdated = (updatedData: {
-    sssNumber?: string;
-    taxIdNumber?: string;
-    philhealthNumber?: string;
-    hdmfNumber?: string;
-  }) => {
+  const handleCrewDataUpdated = (updatedData: Partial<UpdateCrewDataForm>) => {
     setSelectedCrewData((prev) => {
       if (!prev) return prev;
 
       return {
         ...prev,
-        ...(updatedData.sssNumber !== undefined ? { SSSNumber: updatedData.sssNumber } : {}),
-        ...(updatedData.taxIdNumber !== undefined ? { TaxIDNumber: updatedData.taxIdNumber } : {}),
-        ...(updatedData.philhealthNumber !== undefined ? { PhilHealthNumber: updatedData.philhealthNumber } : {}),
-        ...(updatedData.hdmfNumber !== undefined ? { HDMFNumber: updatedData.hdmfNumber } : {}),
+        ...(updatedData.sssNumber !== undefined ? { SSSNumber: String(updatedData.sssNumber ?? "") } : {}),
+        ...(updatedData.taxIdNumber !== undefined ? { TaxIDNumber: String(updatedData.taxIdNumber ?? "") } : {}),
+        ...(updatedData.philhealthNumber !== undefined ? { PhilHealthNumber: String(updatedData.philhealthNumber ?? "") } : {}),
+        ...(updatedData.hdmfNumber !== undefined ? { HDMFNumber: String(updatedData.hdmfNumber ?? "") } : {}),
       };
     });
 

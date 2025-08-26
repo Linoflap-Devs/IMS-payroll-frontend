@@ -320,9 +320,17 @@ export const deleteCrew = async (crewCode: string): Promise<AddCrewResponse> => 
   return response.data;
 }
 
+export const reactivateCrew = async (crewCode: string): Promise<AddCrewResponse> => {
+  const response = await axiosInstance.patch<AddCrewResponse>(
+    `/crew/reactivate`,
+    { crewCode } // <- body payload
+  );
+  return response.data;
+}
+
 export const updateCrew = async (
   crewCode: string,
-  crewData: UpdateCrewDataForm
+  crewData: Partial<UpdateCrewDataForm>
 ): Promise<UpdateCrewResponse> => {
   const formData = new FormData();
 
@@ -381,22 +389,22 @@ export const updateCrew = async (
 };
 
 export interface Movement {
-    VesselName: string;
-    Rank: string;
-    OnboardDate: Date | null;
-    OffboardDate: Date | null;
-    Promotion: number;
-    Remarks: string | null;
+  VesselName: string;
+  Rank: string;
+  OnboardDate: Date | null;
+  OffboardDate: Date | null;
+  Promotion: number;
+  Remarks: string | null;
 }
 export interface CrewMovementHistory {
-    Status: any;
-    CrewID: number;
-    CrewCode: string;
-    FirstName: string;
-    MiddleName: string | null;
-    LastName: string;
-    Rank: string;
-    Movements: Movement[];
+  Status: any;
+  CrewID: number;
+  CrewCode: string;
+  FirstName: string;
+  MiddleName: string | null;
+  LastName: string;
+  Rank: string;
+  Movements: Movement[];
 }
 
 interface CrewMovementHistoryResponse {
@@ -406,11 +414,11 @@ interface CrewMovementHistoryResponse {
 }
 
 export const getCrewMovementHistory = async (crewCode?: string): Promise<CrewMovementHistoryResponse> => {
-  if(!crewCode) {
+  if (!crewCode) {
     const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/movement-report`);
-    return response.data;  
+    return response.data;
   }
-  else{
+  else {
     const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/${crewCode}/movement-report`);
     return response.data;
   }
