@@ -24,9 +24,9 @@ export function CrewSidebar({
   handleInputChange,
   submitted,
 }: CrewSidebarProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null); // For triggering file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [crewPhotoFile, setCrewPhotoFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>("/image.png"); // For image preview
+  const [imagePreview, setImagePreview] = useState<string | null>("/image.png");
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -204,22 +204,18 @@ export function CrewSidebar({
                           if (handleInputChange) {
                             handleInputChange("phone", e.target.value);
                           }
-                        }}                        
+                        }}
                         className={`h-9 ${
                           submitted &&
-                          (!editedCrew?.phone ||
-                            !/^09\d{9}$/.test(editedCrew.phone))
+                          editedCrew?.phone &&
+                            !/^09\d{9}$/.test(editedCrew.phone)
                             ? "border-red-500 focus:!ring-red-500/50"
                             : "border-primary"
                         }`}
                       />
-                      {submitted &&
-                        (!editedCrew?.phone ||
-                          !/^09\d{9}$/.test(editedCrew.phone)) && (
+                      {submitted && editedCrew?.phone && !/^09\d{9}$/.test(editedCrew.phone) && (
                           <p className="text-red-500 text-sm mt-1">
-                            {!editedCrew?.phone
-                              ? "Mobile number is required."
-                              : 'Mobile number must be 11 digits and start with "09".'}
+                            Mobile number must be 11 digits and start with "09".
                           </p>
                         )}
                     </>
@@ -249,19 +245,13 @@ export function CrewSidebar({
                           }
                         }}
                         className={`h-9 ${
-                          submitted &&
-                          (!editedCrew?.landline ||
-                            !/^\d{7,10}$/.test(editedCrew.landline))
+                          submitted && editedCrew?.landline && !/^\d{7,10}$/.test(editedCrew.landline)
                             ? "border-red-500 focus:!ring-red-500/50"
                             : "border-primary"
                         }`}
                       />
-                      {submitted &&
-                        (!editedCrew?.landline ? (
-                          <p className="text-red-500 text-sm mt-1">
-                            Landline number is required.
-                          </p>
-                        ) : !/^\d+$/.test(editedCrew.landline) ? (
+                      {submitted && editedCrew?.landline && (
+                          !/^\d+$/.test(editedCrew.landline) ? (
                           <p className="text-red-500 text-sm mt-1">
                             Landline must contain digits only.
                           </p>
@@ -295,20 +285,18 @@ export function CrewSidebar({
                           }
                         }}
                         className={`h-9 ${
-                          submitted &&
-                          (!editedCrew?.email ||
-                            !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
+                          submitted && editedCrew?.email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
                               editedCrew.email
-                            ))
+                            )
                             ? "border-red-500 focus:!ring-red-500/50"
                             : "border-primary"
                         }`}
                       />
-                      {submitted && !editedCrew?.email && (
+                      {/* {submitted && !editedCrew?.email && (
                         <p className="text-red-500 text-sm mt-1">
                           Email is required.
                         </p>
-                      )}
+                      )} */}
                       {submitted &&
                         editedCrew?.email &&
                         !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(

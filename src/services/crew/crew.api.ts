@@ -205,6 +205,8 @@ export interface AddCrewDataForm {
 }
 
 export interface UpdateCrewDataForm {
+  taxIdNumber: string | number | File | null | undefined;
+  address: string | number | File | null | undefined;
   crewCode?: string;
   rank?: string; // Backend's Zod schema: z.coerce.number()
   vessel?: string; // Backend's Zod schema: z.optional(z.coerce.number())
@@ -350,10 +352,10 @@ export const updateCrew = async (
   appendIfExists("dateOfBirth", crewData.dateOfBirth);
   appendIfExists("city", crewData.city);
   appendIfExists("province", crewData.province);
-  //appendIfExists("address", crewData.address);
+  appendIfExists("address", crewData.address);
   appendIfExists("sssNumber", crewData.sssNumber);
   appendIfExists("philhealthNumber", crewData.philhealthNumber);
-  //appendIfExists("taxIdNumber", crewData.taxIdNumber);
+  appendIfExists("taxIdNumber", crewData.taxIdNumber);
   appendIfExists("hdmfNumber", crewData.hdmfNumber);
   appendIfExists("passportNumber", crewData.passportNumber);
   appendIfExists("passportIssueDate", crewData.passportIssueDate);

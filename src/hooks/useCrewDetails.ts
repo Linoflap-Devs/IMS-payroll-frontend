@@ -55,9 +55,8 @@ export function useCrewDetails(crewId: string | null) {
         status: crewBasic.CrewStatusID === 1 ? "On board" : "Off board",
         email: crewBasic.EmailAddress,
         phone: crewBasic.MobileNo,
-        landline: crewBasic.LandLineNo, // Fixed casing from LandlineNo to LandLineNo
+        landline: crewBasic.LandLineNo,
         vessel: crewBasic.Vessel,
-
         firstName: crewDetails.FirstName,
         lastName: crewDetails.LastName,
         middleName: crewDetails.MiddleName,
@@ -78,7 +77,7 @@ export function useCrewDetails(crewId: string | null) {
         seamansBookNumber: crewDetails.SRIBNumber,
         seamansBookIssueDate: crewDetails.SRIBIssueDate,
         seamansBookExpiryDate: crewDetails.SRIBExpiredDate,
-        crewPhoto: crewDetails.crewPhoto, // include this explicitly
+        crewPhoto: crewDetails.crewPhoto,
         ProfileImage: crewDetails.ProfileImage,
       };
 
@@ -107,14 +106,14 @@ export function useCrewDetails(crewId: string | null) {
       ...editedCrew,
       name: `${editedCrew.firstName} ${editedCrew.lastName}`,
     };
+
     //console.log("updatedCrew object:", updatedCrew);
 
     const crewToBeUpdated = {
       status: updatedCrew.status,
-      emailAddress: updatedCrew.email,
-      mobileNumber: updatedCrew.phone,
+      emailAddress: updatedCrew.email?.trim(),
+      mobileNumber: updatedCrew.phone?.trim(),
       landlineNumber: updatedCrew.landline || undefined,
-
       firstName: updatedCrew.firstName,
       lastName: updatedCrew.lastName,
       middleName: updatedCrew.middleName ? updatedCrew.middleName : undefined,
@@ -156,12 +155,12 @@ export function useCrewDetails(crewId: string | null) {
           : undefined,
     };
 
-    //console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
+    console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
 
     try {
       const response = await updateCrew(editedCrew.id, crewToBeUpdated);
 
-      //console.log("Response from updateCrew:", response);
+      console.log("Response from updateCrew:", response);
 
       if (response.success) {
         //console.log("Refetching crew data...");
