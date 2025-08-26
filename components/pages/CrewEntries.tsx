@@ -38,6 +38,7 @@ export default function Deduction() {
   const [searchTerm, setSearchTerm] = useState("");
   const [rankFilter, setRankFilter] = useState("all");
   const [vesselFilter, setVesselFilter] = useState("all");
+  //const [inactiveFilter, setInactiveFilter] = useState("verified");
   const [ranks, setRanks] = useState<CrewRankItem[]>([]);
   //const [vessels, setVessels] = useState<VesselItem[]>([]);
   const [crewDeductionData, setCrewDeductionData] = useState<CrewDeduction[]>(
@@ -62,9 +63,9 @@ export default function Deduction() {
         if (res.success) {
           const mapped: CrewDeduction[] = res.data.map((item) => ({
             ...item,
-          crewName: [item.FirstName, item.MiddleName, item.LastName]
-            .filter(Boolean) // remove null, undefined, or empty string
-            .join(" "),
+            crewName: [item.FirstName, item.MiddleName, item.LastName]
+              .filter(Boolean) // remove null, undefined, or empty string
+              .join(" "),
           }));
           setCrewDeductionData(mapped);
         } else {
@@ -101,6 +102,11 @@ export default function Deduction() {
         item.crewName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.VesselName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.Rank.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // const matchesStatus =
+      //   inactiveFilter === "all" ||
+      //   (crewDeductionData.CrewStatusID === 1 && inactiveFilter.toLowerCase() === "active") ||
+      //   (crewDeductionData.CrewStatusID !== 1 && inactiveFilter.toLowerCase() === "inactive");
 
       const matchesRank = rankFilter === "all" || item.Rank === rankFilter;
 
@@ -254,7 +260,7 @@ export default function Deduction() {
                   <Select
                     value={vesselFilter}
                     onValueChange={setVesselFilter}
-                    //disabled={isLoading.vessels}
+                  //disabled={isLoading.vessels}
                   >
                     <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                       <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
@@ -305,6 +311,23 @@ export default function Deduction() {
                     </SelectContent>
                   </Select>
                 </div>
+                {/* <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+                  <Select
+                    value={inactiveFilter}
+                    onValueChange={setInactiveFilter}
+                  >
+                    <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                      <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                      <SelectValue placeholder="Filter by inactive" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="allCrews">All Crews</SelectItem>
+                      <SelectItem value="verified">Active</SelectItem>
+                      <SelectItem value="pending">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div> */}
+
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                   <Button
                     variant="outline"
