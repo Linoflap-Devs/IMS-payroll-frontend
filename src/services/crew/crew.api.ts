@@ -155,7 +155,6 @@ export interface CrewAllotteeResponse {
 
 export const getCrewAllottee = async (crewCode: string): Promise<CrewAllotteeResponse> => {
   const response = await axiosInstance.get<CrewAllotteeResponse>(`/crew/${crewCode}/allottee`);
-  console.log(response);  
   return response.data;
 }
 
