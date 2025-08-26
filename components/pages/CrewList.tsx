@@ -29,6 +29,7 @@ import {
   FolderClock,
   Users,
   ArrowUpDown,
+  RotateCcw,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
@@ -227,6 +228,60 @@ const columns: ColumnDef<CrewItem>[] = [
           });
       };
 
+      const handleReactivate = async (crewId: string) => {
+        const swalWithBootstrapButtons = Swal.mixin({
+          customClass: {
+            confirmButton:
+              "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
+            cancelButton:
+              "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+          },
+          buttonsStyling: false,
+        });
+
+        swalWithBootstrapButtons
+          .fire({
+            title: "Are you sure?",
+            text: "Are you sure you want to reactivate this crew member? This action cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, reactivate it!",
+            cancelButtonText: "No, cancel!",
+            reverseButtons: true,
+          })
+          .then(async (result) => {
+            if (result.isConfirmed) {
+
+              try {
+                // Delete the crew member
+                await deleteCrew(crewId);
+
+                // Refresh the crew list after successful deletion
+                useCrewStore.getState().fetchCrews();
+
+                swalWithBootstrapButtons.fire({
+                  title: "Reactivated!",
+                  text: "The crew has been successfully reactivated.",
+                  icon: "success",
+                });
+              } catch (error) {
+                console.error("Error reactivating crew:", error);
+                swalWithBootstrapButtons.fire({
+                  title: "Error!",
+                  text: "There was an error deleting the crew member.",
+                  icon: "error",
+                });
+              }
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+              swalWithBootstrapButtons.fire({
+                title: "Cancelled",
+                text: "Process Cancelled.",
+                icon: "error",
+              });
+            }
+          });
+      };
+
       return (
         <div className="text-center">
           <DropdownMenu>
@@ -268,13 +323,23 @@ const columns: ColumnDef<CrewItem>[] = [
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleDelete(crew.CrewCode)}
-                className="text-destructive text-xs sm:text-sm cursor-pointer"
-              >
-                <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                Delete
-              </DropdownMenuItem>
+              {crew.IsActive === 1 ? (
+                <DropdownMenuItem
+                  onClick={() => handleDelete(crew.CrewCode)}
+                  className="text-destructive text-xs sm:text-sm cursor-pointer"
+                >
+                  <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Delete
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={() => handleReactivate(crew.CrewCode)}
+                  className="text-green-600 text-xs sm:text-sm cursor-pointer"
+                >
+                  <RotateCcw className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Reactivate
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -306,12 +371,9 @@ export default function CrewList() {
 
   // Filter crew based on search term and filters
   const filteredCrew = crews.filter((crew) => {
-    // Determine whether to include based on your inactive filter
     if (inactiveFilter === "verified") {
-      // Only show active
       if (crew.IsActive !== 1) return false;
     } else if (inactiveFilter === "pending") {
-      // Only show inactive
       if (crew.IsActive === 1) return false;
     }
     // else "all" shows all crews

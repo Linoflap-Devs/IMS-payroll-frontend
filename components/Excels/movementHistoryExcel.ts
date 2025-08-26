@@ -94,33 +94,40 @@ export function generateMovementHistoryExcel(
 
     const workbook = XLSX.utils.book_new();
 
-    // Sheet ranges
-    const groups = [
-        { name: "A to C", regex: /^[A-C]/i },
-        { name: "D to L", regex: /^[D-L]/i },
-        { name: "M to R", regex: /^[M-R]/i },
-        { name: "S to Z", regex: /^[S-Z]/i },
-    ];
+    if (sortedData.length === 1) {
+        // INDIVIDUAL MODE (only 1 crew)
+        const crew = sortedData[0];
+        const sheetName = `${crew.LastName}, ${crew.FirstName}`.slice(0, 31); // Excel sheet names max 31 chars
+        const ws = buildWorksheet(sheetName, [crew], month, year);
+        XLSX.utils.book_append_sheet(workbook, ws, sheetName);
 
-    groups.forEach(({ name, regex }) => {
-        const filtered = sortedData.filter((crew) => regex.test(getSurname(crew)));
-        if (filtered.length > 0) {
-            const ws = buildWorksheet(name, filtered, month, year);
-            XLSX.utils.book_append_sheet(workbook, ws, name);
-        }
-    });
+    } else {
+        // GROUPED MODE (all crew, with A–C, D–L, …)
+        const groups = [
+            { name: "A to C", regex: /^[A-C]/i },
+            { name: "D to L", regex: /^[D-L]/i },
+            { name: "M to R", regex: /^[M-R]/i },
+            { name: "S to Z", regex: /^[S-Z]/i },
+        ];
 
-    // Temporarily removed "in-active" sheet since no Status field
+        groups.forEach(({ name, regex }) => {
+            const filtered = sortedData.filter((crew) => regex.test(getSurname(crew)));
+            if (filtered.length > 0) {
+                const ws = buildWorksheet(name, filtered, month, year);
+                XLSX.utils.book_append_sheet(workbook, ws, name);
+            }
+        });
 
-    // Masterlist (only if ALL)
-    if (sortedData.length > 1) {
-        const ws = buildWorksheet("masterlist", sortedData, month, year);
-        XLSX.utils.book_append_sheet(workbook, ws, "masterlist");
+        // Masterlist
+        const ws = buildWorksheet("Masterlist", sortedData, month, year);
+        XLSX.utils.book_append_sheet(workbook, ws, "Masterlist");
     }
 
-    const fileName = sortedData.length > 1
-        ? `MovementHistory_ALL_${getMonthName(month)}-${year}.xlsx`
-        : `MovementHistory_${sortedData[0].LastName}_${sortedData[0].FirstName}_${getMonthName(month)}-${year}.xlsx`;
+    // File name changes depending on single vs multiple
+    const fileName = sortedData.length === 1
+        ? `MovementHistory_${sortedData[0].LastName}_${sortedData[0].FirstName}_${getMonthName(month)}-${year}.xlsx`
+        : `MovementHistory_ALL_${getMonthName(month)}-${year}.xlsx`;
 
     XLSX.writeFile(workbook, fileName);
 }
+

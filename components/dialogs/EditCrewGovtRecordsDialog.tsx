@@ -68,7 +68,7 @@ interface EditCrewGovtRecordsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   crewGovtTypeData: CrewItem;
-  onSuccess?: (updatedData: CrewGovtFormData) => void;
+  onSuccess?: (data: Partial<UpdateCrewDataForm>) => void;
   setSelectedCrewData?: React.Dispatch<React.SetStateAction<CrewItem | null>>;
 }
 
@@ -116,33 +116,29 @@ export function EditCrewGovtRecordsDialog({
     setIsSubmitting(true);
 
     try {
-
+      // Return type is explicitly string | undefined
       const buildPayloadField = (
         formValue?: string,
         originalValue?: string | null
-      ) => {
-        // normalize empty strings (trim)
+      ): string | undefined => {
         const normalizedFormValue = formValue?.trim() ?? "";
-
-        // Original value normalized for comparison (null => empty string)
         const normalizedOriginalValue = originalValue ?? "";
 
-        // If unchanged, exclude from payload (return undefined)
         if (normalizedFormValue === normalizedOriginalValue) {
           return undefined;
         }
 
-        // Else include formValue (even if blank)
         return normalizedFormValue;
       };
 
-      const payload: Record<string, string> = {};
+      // Allow only optional keys from UpdateCrewDataForm
+      const payload: Partial<UpdateCrewDataForm> = {};
 
       const sssNumber = buildPayloadField(values.sssNumber, crewGovtTypeData.SSSNumber);
       if (sssNumber !== undefined) payload.sssNumber = sssNumber;
 
-      const tinNumber = buildPayloadField(values.taxIdNumber, crewGovtTypeData.TaxIDNumber);
-      if (tinNumber !== undefined) payload.tinNumber = tinNumber;
+      const taxIdNumber = buildPayloadField(values.taxIdNumber, crewGovtTypeData.TaxIDNumber);
+      if (taxIdNumber !== undefined) payload.taxIdNumber = taxIdNumber;
 
       const philhealthNumber = buildPayloadField(values.philhealthNumber, crewGovtTypeData.PhilHealthNumber);
       if (philhealthNumber !== undefined) payload.philhealthNumber = philhealthNumber;
@@ -163,6 +159,7 @@ export function EditCrewGovtRecordsDialog({
         return;
       }
 
+      // updateCrew should accept Partial<UpdateCrewDataForm>
       const response = await updateCrew(crewGovtTypeData.CrewCode, payload);
 
       if (response.success) {
@@ -172,6 +169,7 @@ export function EditCrewGovtRecordsDialog({
           variant: "success",
         });
 
+        // onSuccess should also accept Partial<UpdateCrewDataForm>
         onSuccess?.(payload);
       } else {
         console.warn("API returned failure response:", response);
@@ -189,7 +187,7 @@ export function EditCrewGovtRecordsDialog({
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">

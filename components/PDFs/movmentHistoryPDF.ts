@@ -113,8 +113,8 @@ export function generateMovementHistory(
 
         // Set document properties
         doc.setProperties({
-            title: `Allotment Deduction Register - ${month} ${year}`,
-            subject: `Alltoment Deduction Register`,
+            title: `Movement History - ${month} ${year}`,
+            subject: `Movement History`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });

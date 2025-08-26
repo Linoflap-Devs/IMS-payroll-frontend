@@ -155,7 +155,6 @@ export interface CrewAllotteeResponse {
 
 export const getCrewAllottee = async (crewCode: string): Promise<CrewAllotteeResponse> => {
   const response = await axiosInstance.get<CrewAllotteeResponse>(`/crew/${crewCode}/allottee`);
-  console.log(response);  
   return response.data;
 }
 
@@ -205,6 +204,8 @@ export interface AddCrewDataForm {
 }
 
 export interface UpdateCrewDataForm {
+  taxIdNumber: string | number | File | null | undefined;
+  address: string | number | File | null | undefined;
   crewCode?: string;
   rank?: string; // Backend's Zod schema: z.coerce.number()
   vessel?: string; // Backend's Zod schema: z.optional(z.coerce.number())
@@ -319,9 +320,17 @@ export const deleteCrew = async (crewCode: string): Promise<AddCrewResponse> => 
   return response.data;
 }
 
+export const reactivateCrew = async (crewCode: string): Promise<AddCrewResponse> => {
+  const response = await axiosInstance.patch<AddCrewResponse>(
+    `/crew/reactivate`,
+    { crewCode } // <- body payload
+  );
+  return response.data;
+}
+
 export const updateCrew = async (
   crewCode: string,
-  crewData: UpdateCrewDataForm
+  crewData: Partial<UpdateCrewDataForm>
 ): Promise<UpdateCrewResponse> => {
   const formData = new FormData();
 
@@ -350,10 +359,10 @@ export const updateCrew = async (
   appendIfExists("dateOfBirth", crewData.dateOfBirth);
   appendIfExists("city", crewData.city);
   appendIfExists("province", crewData.province);
-  //appendIfExists("address", crewData.address);
+  appendIfExists("address", crewData.address);
   appendIfExists("sssNumber", crewData.sssNumber);
   appendIfExists("philhealthNumber", crewData.philhealthNumber);
-  //appendIfExists("taxIdNumber", crewData.taxIdNumber);
+  appendIfExists("taxIdNumber", crewData.taxIdNumber);
   appendIfExists("hdmfNumber", crewData.hdmfNumber);
   appendIfExists("passportNumber", crewData.passportNumber);
   appendIfExists("passportIssueDate", crewData.passportIssueDate);
@@ -380,22 +389,22 @@ export const updateCrew = async (
 };
 
 export interface Movement {
-    VesselName: string;
-    Rank: string;
-    OnboardDate: Date | null;
-    OffboardDate: Date | null;
-    Promotion: number;
-    Remarks: string | null;
+  VesselName: string;
+  Rank: string;
+  OnboardDate: Date | null;
+  OffboardDate: Date | null;
+  Promotion: number;
+  Remarks: string | null;
 }
 export interface CrewMovementHistory {
-    Status: any;
-    CrewID: number;
-    CrewCode: string;
-    FirstName: string;
-    MiddleName: string | null;
-    LastName: string;
-    Rank: string;
-    Movements: Movement[];
+  Status: any;
+  CrewID: number;
+  CrewCode: string;
+  FirstName: string;
+  MiddleName: string | null;
+  LastName: string;
+  Rank: string;
+  Movements: Movement[];
 }
 
 interface CrewMovementHistoryResponse {
@@ -405,11 +414,11 @@ interface CrewMovementHistoryResponse {
 }
 
 export const getCrewMovementHistory = async (crewCode?: string): Promise<CrewMovementHistoryResponse> => {
-  if(!crewCode) {
+  if (!crewCode) {
     const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/movement-report`);
-    return response.data;  
+    return response.data;
   }
-  else{
+  else {
     const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/${crewCode}/movement-report`);
     return response.data;
   }
