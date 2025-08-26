@@ -200,7 +200,7 @@ export function generateOnboardCrewReportPDF(
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
                 doc.text(
-                    `${crewNumber} Crew On-Board`,
+                    `${crewNumber} CREW ON-BOARD`,
                     margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
                     vesselInfoY + 6,
                     { align: 'right' }
@@ -210,7 +210,7 @@ export function generateOnboardCrewReportPDF(
 
             doc.setFont('helvetica', 'italic');
             doc.text(
-                format(dateGenerated, 'yyyy-MM-dd HH:mm aa'),
+                format(dateGenerated, 'yyyy-MM-dd hh:mm aa'),
                 margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
                 vesselInfoY + 16,
                 { align: 'right' }
@@ -243,7 +243,7 @@ export function generateOnboardCrewReportPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
-            const headers = ["", "Rank", "Crew Name", "Join Date", "Birthday", "Seaman's Book" ];
+            const headers = ["", "RANK", "CREW NAME", "JOINED DATE", "BIRTHDAY", "SEAMAN'S BOOK" ];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
