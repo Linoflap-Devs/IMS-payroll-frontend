@@ -35,7 +35,7 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";
-import { CrewItem, deleteCrew } from "../../src/services/crew/crew.api";
+import { CrewItem, deleteCrew, reactivateCrew } from "../../src/services/crew/crew.api";
 
 const getStatusBgColor = (status: string) => {
   switch (status.toLowerCase().trim()) {
@@ -232,7 +232,7 @@ const columns: ColumnDef<CrewItem>[] = [
         const swalWithBootstrapButtons = Swal.mixin({
           customClass: {
             confirmButton:
-              "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
+              "bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 mx-2 rounded",
             cancelButton:
               "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
           },
@@ -253,8 +253,8 @@ const columns: ColumnDef<CrewItem>[] = [
             if (result.isConfirmed) {
 
               try {
-                // Delete the crew member
-                await deleteCrew(crewId);
+                // reactivate the crew member
+                await reactivateCrew(crewId);
 
                 // Refresh the crew list after successful deletion
                 useCrewStore.getState().fetchCrews();
@@ -268,7 +268,7 @@ const columns: ColumnDef<CrewItem>[] = [
                 console.error("Error reactivating crew:", error);
                 swalWithBootstrapButtons.fire({
                   title: "Error!",
-                  text: "There was an error deleting the crew member.",
+                  text: "There was an error reactivating the crew member.",
                   icon: "error",
                 });
               }
