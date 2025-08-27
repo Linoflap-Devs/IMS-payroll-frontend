@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { generateMovementHistoryPDF } from "@/components/PDFs/movmentHistoryPDF";
 import {
   CrewMovementHistory,
+  deleteMovement,
   getCrewMovementHistory,
 } from "@/src/services/crew/crew.api";
 import {
@@ -185,8 +186,9 @@ export function CrewMovement() {
       header: "Actions",
       cell: ({ row }) => {
         const movementId = row.original.MovementDetailID;
+        const vesselName = row.original.VesselName;
 
-        const handleDelete = async (crewId: string) => {
+        const handleDelete = async (movementId: number) => {
           const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
               confirmButton:
@@ -200,7 +202,7 @@ export function CrewMovement() {
           swalWithBootstrapButtons
             .fire({
               title: "Are you sure?",
-              text: "Are you sure you want to delete this crew member? This action cannot be undone.",
+              text: `Are you sure you want to delete this movement ${movementId}? This action cannot be undone.`,
               icon: "warning",
               showCancelButton: true,
               confirmButtonText: "Yes, delete it!",
@@ -209,33 +211,43 @@ export function CrewMovement() {
             })
             .then(async (result) => {
               if (result.isConfirmed) {
-                // Place your delete logic here, e.g. API call or state update
-
                 try {
+
+                  if (!crewId) {
+                    console.error("Crew ID is missing");
+                    return;
+                  }
+
                   // Delete the crew member
-                  //await deleteCrew(crewId);
+                  await deleteMovement(crewId, movementId);
 
-                  // Refresh the crew list after successful deletion
-                  useCrewStore.getState().fetchCrews();
+                  setFilteredMovements(prev =>
+                    prev.filter(m => m.MovementDetailID !== movementId)
+                  );
 
-                  swalWithBootstrapButtons.fire({
+                  toast({
                     title: "Deleted!",
-                    text: "The crew has been successfully deleted.",
-                    icon: "success",
-                  });
+                    description: "The movement has been successfully deleted.",
+                    variant: "success"
+                  })
+                  // swalWithBootstrapButtons.fire({
+                  //   title: "Deleted!",
+                  //   text: "The movement has been successfully deleted.",
+                  //   icon: "success",
+                  // });
                 } catch (error) {
                   console.error("Error deleting crew:", error);
-                  swalWithBootstrapButtons.fire({
+                  toast({
                     title: "Error!",
-                    text: "There was an error deleting the crew member.",
-                    icon: "error",
+                    description: "There was an error deleting the movement.",
+                    variant: "destructive",
                   });
                 }
               } else if (result.dismiss === Swal.DismissReason.cancel) {
-                swalWithBootstrapButtons.fire({
+                toast({
                   title: "Cancelled",
-                  text: "Your crew member is safe :)",
-                  icon: "error",
+                  description: "Process Cancelled.",
+                  variant: "destructive",
                 });
               }
             });
@@ -263,7 +275,7 @@ export function CrewMovement() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  //onClick={() => handleDelete(crew.CrewCode)}
+                  onClick={() => handleDelete(movementId)}
                   className="text-destructive text-xs sm:text-sm cursor-pointer"
                 >
                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
@@ -303,8 +315,6 @@ export function CrewMovement() {
     }
   };
 
-  console.log(filteredMovements);
-
   const handleCrewMovementUpdated = async (updatedMovement: Movement) => {
     console.log("Movement updated:", updatedMovement);
 
@@ -312,20 +322,20 @@ export function CrewMovement() {
       const response = await getCrewMovementHistory(crewId ?? undefined);
 
       if (response.success) {
-      
-      setFilteredMovements(prev =>
-        prev.map(mv =>
-          mv.MovementDetailID === updatedMovement.MovementDetailID
-            ? {
+
+        setFilteredMovements(prev =>
+          prev.map(mv =>
+            mv.MovementDetailID === updatedMovement.MovementDetailID
+              ? {
                 ...mv,
                 Vessel: updatedMovement.Vessel,
                 Rank: updatedMovement.Rank,
                 SignOffDate: updatedMovement.SignOffDate,
                 SignOnDate: updatedMovement.SignOnDate,
               }
-            : mv
-        )
-      );
+              : mv
+          )
+        );
 
       } else {
         console.error("Failed to fetch updated movement history:", response.message);
@@ -344,7 +354,6 @@ export function CrewMovement() {
       });
     }
   };
-
 
   if (movementsError) {
     return (

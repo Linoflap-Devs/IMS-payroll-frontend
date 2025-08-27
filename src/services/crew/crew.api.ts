@@ -444,3 +444,8 @@ export const updateCrewMovement = async (crewCode: string, movementId: number, p
   return response.data;
 }
 
+export const deleteMovement = async (crewCode: string, movementId: number): Promise<CrewMovementResponse> => {
+  const response = await axiosInstance.delete<CrewMovementResponse>(`/movements/${crewCode}/id/${movementId}`);
+  return response.data;
+}
+
