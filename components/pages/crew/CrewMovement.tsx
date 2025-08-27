@@ -49,6 +49,8 @@ export interface Movement {
   SignOnDate?: Date;
   SignOffDate?: Date;
   Rank: string;
+  TransactionType?: boolean;
+  Posted?: boolean;
 }
 
 export function CrewMovement() {
@@ -187,6 +189,8 @@ export function CrewMovement() {
       cell: ({ row }) => {
         const movementId = row.original.MovementDetailID;
         const vesselName = row.original.VesselName;
+        const isPosted = !!row.original.Posted;
+        console.log(isPosted);
 
         const handleDelete = async (movementId: number) => {
           const swalWithBootstrapButtons = Swal.mixin({
@@ -230,11 +234,7 @@ export function CrewMovement() {
                     description: "The movement has been successfully deleted.",
                     variant: "success"
                   })
-                  // swalWithBootstrapButtons.fire({
-                  //   title: "Deleted!",
-                  //   text: "The movement has been successfully deleted.",
-                  //   icon: "success",
-                  // });
+
                 } catch (error) {
                   console.error("Error deleting crew:", error);
                   toast({
@@ -244,10 +244,10 @@ export function CrewMovement() {
                   });
                 }
               } else if (result.dismiss === Swal.DismissReason.cancel) {
-                toast({
+                swalWithBootstrapButtons.fire({
                   title: "Cancelled",
-                  description: "Process Cancelled.",
-                  variant: "destructive",
+                  text: "Process Cancelled.",
+                  icon: "error",
                 });
               }
             });
@@ -266,6 +266,15 @@ export function CrewMovement() {
                 <DropdownMenuItem
                   className="text-xs sm:text-sm"
                   onClick={() => {
+                    if (isPosted) {
+                      Swal.fire({
+                        title: "Not Editable",
+                        text: "This movement cannot be edited. Payment has already been posted.",
+                        icon: "error",
+                        //confirmButtonText: "OK",
+                      });
+                      return;
+                    }
                     setSelectedMovement(row.original);
                     setEditMovementDialogOpen(true);
                   }}

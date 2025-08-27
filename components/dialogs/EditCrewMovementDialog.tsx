@@ -151,8 +151,6 @@ export function EditMovementDialog({
       label: rank.RankName,
     }));
 
-    console.log(vesselList);
-
   useEffect(() => {
     if (selectedMovement && open) {
       // find rank object based on RankName
@@ -213,9 +211,7 @@ export function EditMovementDialog({
           SignOnDate: updatedPayload.signOnDate ?? selectedMovement.SignOnDate,
           SignOffDate: updatedPayload.signOffDate ?? selectedMovement.SignOffDate,
           Rank: (() => {
-            console.log("Matching RankID from API:", updatedPayload.RankID);
             const matchedRank = rankList.find(r => r.RankID === updatedPayload.RankID);
-            console.log("Matched rank object:", matchedRank);
             return matchedRank ? matchedRank.RankCode.trim() : selectedMovement.Rank;
           })(),
           VesselID: updatedPayload.vesselId ?? selectedMovement.VesselID,
@@ -292,9 +288,9 @@ export function EditMovementDialog({
                     <FormControl>
                       <Input
                         type="date"
+                        disabled={isSubmitting}
                         name={name}
                         ref={ref}
-                        disabled={isSubmitting}
                         value={value ? value.toISOString().split("T")[0] : ""}
                         onChange={(e) =>
                           onChange(
@@ -356,7 +352,7 @@ export function EditMovementDialog({
                   <Select
                     onValueChange={(value) => field.onChange(Number(value))}
                     value={field.value?.toString() ?? ""}
-                    disabled={IsLoadingRank}
+                    disabled={isSubmitting}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full border border-[#E0E0E0] rounded-md">
