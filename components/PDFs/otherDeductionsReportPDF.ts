@@ -287,7 +287,21 @@ export function generateOtherDeductionsReportPDF(
                 }
                 else if (i === 2) {
                     // Amount
-                    doc.text(`${formatCurrency(crew[key as keyof otherDeductionsCrew])}`, colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                    
+                    let value = 0
+                    if(crew.Currency === 2){
+                        // multiply by exchange rate
+                        console.log(`Multiyplying ${crew.OriginalAmount} by ${crew.ExchangeRate}`)
+                        value = crew.OriginalAmount
+                    }
+                    else {
+                        value = crew.DeductionAmount
+                    }
+
+                    doc.setFont('NotoSans', 'normal');
+                    doc.text(`${crew.Currency == 2 ? '$' : '\u20B1' }${formatCurrency(value)}`, colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                    doc.setFont('helvetica', 'normal');
+                    
                 }
                 else {
                     doc.text(crew[key as keyof otherDeductionsCrew]?.toString() || '', colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});

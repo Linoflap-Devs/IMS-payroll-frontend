@@ -164,6 +164,9 @@ export interface otherDeductionsCrew {
   DeductionAmount: number,
   DeductionName: string, 
   DeductionRemarks: string,
+  OriginalAmount: number,
+  Currency: number,
+  ExchangeRate: number,
   VesselName: string
 }
 
