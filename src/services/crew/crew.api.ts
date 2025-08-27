@@ -432,9 +432,10 @@ export const getCrewMovementHistory = async (filters?: {crewCode?: string, start
 }
 
 export interface UpdateCrewMovementPayload {
+  TransactionType?: number;
   RankID?: number;
-  signOnDate: string;
-  signOffDate: string;
+  signOnDate?: string;
+  signOffDate?: string;
   rankId: number;
   vesselId: number;
   vesselName?: string;
