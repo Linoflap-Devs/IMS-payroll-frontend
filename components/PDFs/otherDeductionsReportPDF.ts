@@ -8,28 +8,12 @@ import { DeductionResponse, HDMFDeductionCrew } from "@/src/services/deduction/g
 import { OnboardCrewReportResponse } from "@/src/services/vessel/vessel.api";
 import { format } from "date-fns";
 import { toast } from "../ui/use-toast";
+import { otherDeductionsCrew, otherDeductionsData, otherDeductionsResponse } from "@/src/services/deduction/crewDeduction.api";
 
-interface Crew {
-    FirstName: string,
-    MiddleName: string | null,
-    LastName: string,
-    SeamansBook: string | null,
-    Birthday: Date,
-    JoinDate: Date,
-    Rank: string,
-    RSequence: number
-}
-
-interface VesselData {
-    VesselID: number;
-    VesselName: string;
-    Crew: Crew[];
-}
-
-export interface OnboardCrewReportData {
+export interface OtherDeductionsResponse {
     success: boolean;
     message: string;
-    data: VesselData[];
+    data: otherDeductionsData;
 }
 
 // Get month and year from message (e.g., "3/2025")
@@ -50,8 +34,8 @@ function extractPeriod(message: string): { month: string, year: number } {
     };
 }
 
-export function generateOnboardCrewReportPDF(
-    data: OnboardCrewReportResponse,
+export function generateOtherDeductionsReportPDF(
+    data: OtherDeductionsResponse,
     dateGenerated: Date,
     mode: 'all' | 'vessel' = 'vessel'
 ): boolean {
@@ -60,7 +44,7 @@ export function generateOnboardCrewReportPDF(
         return false;
     }
 
-    if (!data.success || !data.data || data.data.length === 0 || !data.data.some(v => v.Crew && v.Crew.length > 0)) {
+    if (!data.success || !data.data || data.data.Crew.length === 0) {
         toast({
           title: "Error",
           description: 'Invalid or empty data for date.',
@@ -94,8 +78,8 @@ export function generateOnboardCrewReportPDF(
 
         // Set document properties
         doc.setProperties({
-            title: `On-Board Crew List - ${mode === 'vessel' ? vesselData[0].VesselName: 'All Vessels'} - ${period.month} ${period.year}`,
-            subject: `On-Board Crew List for ${mode === 'vessel' ? vesselData[0].VesselName: 'all vessels'} - ${period.month} ${period.year}`,
+            title: `Crew Deductions Report - ${period.month}/${period.year}`,
+            subject: `Crew Deductions Report - ${period.month}/${period.year}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
@@ -113,12 +97,11 @@ export function generateOnboardCrewReportPDF(
 
         // Define columns for the main table
         const colWidths = [
-            mainTableWidth * 0.05, // No.
-            mainTableWidth * 0.15, // Rank
-            mainTableWidth * 0.45, // Crew Name
-            mainTableWidth * 0.10, // Join Date
-            mainTableWidth * 0.10, // Birthday
-            mainTableWidth * 0.15, // Seamans Book
+            mainTableWidth * 0.30, // CrewName
+            mainTableWidth * 0.25, // VesselName
+            mainTableWidth * 0.05, // Deduction Amount
+            mainTableWidth * 0.20, // Deduction Name
+            mainTableWidth * 0.20, // Remarks
         ];
 
         // Calculate column positions
@@ -135,7 +118,7 @@ export function generateOnboardCrewReportPDF(
         const tableHeaderHeight = 8;
 
         // Function to draw the header (company info, vessel info, etc.)
-        const drawPageHeader = (vesselName: string, crewNumber?: number) => {
+        const drawPageHeader = (vesselName?: string) => {
             // Draw header table (3-column structure)
             const headerWidth = pageWidth - margins.left - margins.right;
             const companyColWidth = 90;
@@ -170,7 +153,7 @@ export function generateOnboardCrewReportPDF(
                 { align: 'right' }
             );
             doc.text(
-                "ON-BOARD CREW LIST",
+                "CREW DEDUCTIONS REPORT",
                 margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
                 currentY + 16,
                 { align: 'right' }
@@ -190,27 +173,24 @@ export function generateOnboardCrewReportPDF(
             doc.setTextColor(0);
             doc.setFontSize(8);
             doc.setFont('helvetica', 'bold');
-            doc.text(vesselName, margins.left + 2, vesselInfoY + 7.5);
+            doc.text(vesselName || 'ALL VESSELS', margins.left + 2, vesselInfoY + 7.5);
             doc.line(margins.left, vesselInfoY + 10, pageWidth - margins.right, vesselInfoY + 10);
 
             doc.line(margins.left + companyColWidth + middleColWidth, 30, margins.left + companyColWidth + middleColWidth, 40);
 
             // Add exchange rate and date
-            if(crewNumber){
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text(
-                    `${crewNumber} CREW ON-BOARD`,
-                    margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-                    vesselInfoY + 6,
-                    { align: 'right' }
-                );
-
-            }
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(
+                `EXCHANGE RATE: 1 USD = ${formatCurrency(data.data.ExchangeRate)} PHP`,
+                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
+                vesselInfoY + 6,
+                { align: 'right' }
+            );
 
             doc.setFont('helvetica', 'italic');
             doc.text(
-                format(dateGenerated, 'yyyy-MM-dd hh:mm aa'),
+                format(dateGenerated, 'yyyy-MM-dd HH:mm aa'),
                 margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
                 vesselInfoY + 16,
                 { align: 'right' }
@@ -243,92 +223,82 @@ export function generateOnboardCrewReportPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
-            const headers = ["", "RANK", "CREW NAME", "JOINED DATE", "BIRTHDAY", "SEAMAN'S BOOK" ];
+            const headers = ["Crew Name", "Vessel Name", "Amount", "Deduction", "Remarks"];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' })
+                if(header === "Amount") {
+                    doc.text(header, colX + colWidth - 5, currentY + tableHeaderHeight / 2 + 1, { align: 'right' })
+                }
+                else {
+                    doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' })
+                }
             });
 
             currentY += tableHeaderHeight;
         };
 
-        // Process each vessel, starting each on a new page with full header
-        vesselData.forEach((vessel, vesselIndex) => {
-            // For the first vessel, no addPage; for subsequent, add a new page
-            if (vesselIndex > 0) {
-                doc.addPage();
-            }
-            currentY = margins.top;
-            drawPageHeader(mode === 'vessel' ? vesselData[0].VesselName : vessel.VesselName, vessel.Crew.length);
-            drawTableHeader();
+        currentY = margins.top;
+        drawPageHeader(data.data.VesselName);
+        drawTableHeader();
 
-            vessel.Crew.forEach((crew, crewIndex) => {
-                // Calculate height needed for this crew entry
-                const crewHeight = rowHeight;
-                const totalEntryHeight = crewHeight;
-    
-                // Check if we need a new page
-                if (currentY + totalEntryHeight > pageHeight - margins.bottom - 20) { // Leave space for page number
-                    doc.addPage();
-                    currentY = margins.top;
-                    drawPageHeader(mode === 'vessel' ? vesselData[0].VesselName : vessel.VesselName, vessel.Crew.length);
-                    drawTableHeader();
+        // Process each vessel, starting each on a new page with full header
+        data.data.Crew.forEach((crew, crewIndex) => {
+            // For the first vessel, no addPage; for subsequent, add a new page
+            // if (crewIndex > 0) {
+            //     doc.addPage();
+            // }
+
+            
+            // Calculate height needed for this crew entry
+            const crewHeight = rowHeight;
+            const totalEntryHeight = crewHeight;
+
+            // Check if we need a new page
+            if (currentY + totalEntryHeight > pageHeight - margins.bottom - 20) { // Leave space for page number
+                doc.addPage();
+                currentY = margins.top;
+                drawPageHeader();
+                drawTableHeader();
+            }
+
+            // Set font for crew data
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+
+            // Draw left and right borders only
+            doc.line(margins.left, currentY, margins.left, currentY + rowHeight); // Left border
+            doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight); // Right border
+
+            // Draw crew data
+            const columnKeys: string[] = [
+                "CrewName",
+                "VesselName",
+                "DeductionAmount",
+                "DeductionName",
+                "DeductionRemarks",
+            ];
+
+            columnKeys.forEach((key, i) => {
+                if(i === 0) {
+                    // Crew Name
+                    const crewName = `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + ' ' : ''}`;
+                    doc.text(crewName, colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
-    
-                // Set font for crew data
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'normal');
-    
-                // Draw horizontal line at the top of crew row
-                if (crewIndex > 0 || vesselIndex > 0) {
-                    doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
+                else if (i === 2) {
+                    // Amount
+                    doc.text(`${formatCurrency(crew[key as keyof otherDeductionsCrew])}`, colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
                 }
-    
-                // Draw left and right borders only
-                doc.line(margins.left, currentY, margins.left, currentY + rowHeight); // Left border
-                doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight); // Right border
-    
-                // Draw crew data
-                const columnKeys: string[] = [
-                    "No.",
-                    "Rank",
-                    "CrewName",
-                    "JoinDate",
-                    "Birthday",
-                    "SeamansBook",
-                ];
-    
-                columnKeys.forEach((key, i) => {
-                    if(i === 2) {
-                        // Crew Name
-                        const crewName = `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + ' ' : ''}`;
-                        doc.text(crewName, colPositions[2] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
-                    }
-                    else if (i === 0) {
-                        // No.
-                        doc.text((crewIndex + 1).toString(), colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
-                    }
-                    else {
-                        let value = '-'
-                        if(crew[key as keyof Crew]) {
-                            if (key === "Birthday" || key === "JoinDate") {
-                                value = format(crew[key as keyof Crew] as Date, 'yyyy-MM-dd');
-                            }
-                            else {
-                                value = crew[key as keyof Crew] as string;
-                            }
-                        }
-                        doc.text(value, colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
-                    }
-                });
-    
-                // Draw horizontal line at the bottom of crew row
-                doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
-    
-                // Move to next row
-                currentY += rowHeight;
+                else {
+                    doc.text(crew[key as keyof otherDeductionsCrew]?.toString() || '', colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                }
             });
+
+            // Draw horizontal line at the bottom of crew row
+            doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
+
+            // Move to next row
+            currentY += rowHeight;
         });
 
         // NOW ADD PAGE NUMBERS TO ALL PAGES
@@ -351,20 +321,20 @@ export function generateOnboardCrewReportPDF(
 
         // Save the PDF
         const fileName = mode === 'vessel' ?
-        `OnBoardCrewList_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
-        `OnBoardCrewList_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.pdf`;
+        `CrewDeductions_${capitalizeFirstLetter(data.data.VesselName?.replace(' ', '-') || "")}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
+        `CrewDeductions_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.pdf`;
         doc.save(fileName);
 
         return true;
     } catch (error) {
-        console.error("Error generating On Board Crew List:", error);
+        console.error("Error generating Crew Deductions List:", error);
         return false;
     }
 }
 
 // Function to generate the PDF with real data
-export function generateOnboardCrewReport(data: OnboardCrewReportResponse, dateGenerated: Date, mode: 'all' | 'vessel' = 'vessel'): boolean {
-    return generateOnboardCrewReportPDF(
+export function generateOtherDeductionsReport(data: OtherDeductionsResponse, dateGenerated: Date, mode: 'all' | 'vessel' = 'vessel'): boolean {
+    return generateOtherDeductionsReportPDF(
         data,
         dateGenerated,
         mode
@@ -372,4 +342,4 @@ export function generateOnboardCrewReport(data: OnboardCrewReportResponse, dateG
 }
 
 // Default export for easy importing
-export default generateOnboardCrewReport;
+export default generateOtherDeductionsReport;

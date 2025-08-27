@@ -121,7 +121,7 @@ export default function VesselProfile() {
     // Generate PDF with the latest response
     generateOnboardCrewReport(
       response,
-      new Date(`${selectedYear}-${selectedMonth}-01`),
+      new Date(),
       "all"
     );
 

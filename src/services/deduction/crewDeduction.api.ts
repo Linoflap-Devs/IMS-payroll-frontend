@@ -152,3 +152,40 @@ export const getCrewSSS = async (crewCode: string, year: number): Promise<sssDed
   const response = await axiosInstance.get<sssDeductionResponse>(`/v2/deductions/${crewCode}/sss?year=${year}`);
   return response.data;
 }
+
+export interface otherDeductionsCrew {
+  CrewID: number,
+  CrewCode: string,
+  FirstName: string,
+  MiddleName: string | null,
+  LastName: string,
+  Rank: string,
+  RankID: number,
+  DeductionAmount: number,
+  DeductionName: string, 
+  DeductionRemarks: string,
+  VesselName: string
+}
+
+export interface otherDeductionsData {
+  ExchangeRate: number,
+  VesselName: string | undefined,
+  Crew: otherDeductionsCrew[],
+}
+
+export interface otherDeductionsResponse {
+  success: boolean;
+  data: otherDeductionsData;
+  message: string;
+}
+
+export const otherDeductions = async (year: number, month: number, vesselId?: number): Promise<otherDeductionsResponse> => {
+  if(vesselId){
+    const response = await axiosInstance.get<otherDeductionsResponse>(`/deductions/other-deductions/${vesselId}/${year}/${month}`);
+    return response.data;
+  }
+  else {
+    const response = await axiosInstance.get<otherDeductionsResponse>(`/deductions/other-deductions/${year}/${month}`);
+    return response.data;
+  }
+}
