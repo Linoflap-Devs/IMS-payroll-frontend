@@ -438,6 +438,7 @@ export interface UpdateCrewMovementPayload {
   rankId: number;
   vesselId: number;
   vesselName?: string;
+  movementDate?: string;
 }
 
 interface UpdateMovementResponse {

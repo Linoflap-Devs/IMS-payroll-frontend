@@ -97,7 +97,7 @@ export function EditMovementDialog({
             if (currentRank) {
               setSelectedRank(currentRank.RankID.toString());
               setCurrentRank(currentRank.RankID.toString());
-            } 
+            }
           } else {
             console.error("Failed to fetch rank list:", response.message);
           }
@@ -175,43 +175,48 @@ export function EditMovementDialog({
   }, [selectedMovement, open, reset, rankList]);
 
   const onSubmit = async (data: MovementFormValues) => {
-    console.log("Form submitted with data:", data);
-
     if (!selectedMovement) {
       console.warn("No selectedMovement found!");
       return;
     }
 
     try {
+      // Decide which date to send as movementDate
+      const movementDate = data.signOnDate
+        ? data.signOnDate.toISOString()
+        : data.signOffDate
+          ? data.signOffDate.toISOString()
+          : "";
+
       const payload: UpdateCrewMovementPayload = {
-        signOnDate: data.signOnDate ? data.signOnDate.toISOString() : "",
-        signOffDate: data.signOffDate ? data.signOffDate.toISOString() : "",
+        movementDate,
         rankId: data.rankId!,
         vesselId: data.vesselId!,
-        vesselName: data.vesselName!
+        vesselName: vesselList.find(v => v.VesselID === data.vesselId)?.VesselName ??
+          selectedMovement.Vessel,
+        signOnDate: "",
+        signOffDate: ""
       };
-
-      console.log("Payload to send to API:", payload);
 
       const crewCode = CrewCode;
       const movementId = selectedMovement.MovementDetailID;
 
       const response = await updateCrewMovement(crewCode, movementId, payload);
 
-      console.log("API response:", response);
-
       if (response?.success) {
         const updatedPayload = Array.isArray(response.data)
           ? response.data[0]
           : response.data;
 
-        console.log("Updated payload from API:", updatedPayload);
-
-        // Merge with the existing selectedMovement
         const updatedMovement: Movement = {
           ...selectedMovement,
-          SignOnDate: updatedPayload.signOnDate ?? selectedMovement.SignOnDate,
-          SignOffDate: updatedPayload.signOffDate ?? selectedMovement.SignOffDate,
+          // Update depending on which one was edited
+          SignOnDate: data.signOnDate
+            ? movementDate
+            : selectedMovement.SignOnDate,
+          SignOffDate: data.signOffDate
+            ? movementDate
+            : selectedMovement.SignOffDate,
           Rank: (() => {
             const matchedRank = rankList.find(r => r.RankID === updatedPayload.RankID);
             return matchedRank ? matchedRank.RankCode.trim() : selectedMovement.Rank;
@@ -221,9 +226,6 @@ export function EditMovementDialog({
             vesselList.find(v => v.VesselID === data.vesselId)?.VesselName ??
             selectedMovement.Vessel,
         };
-
-        console.log("Updated payload from API:", updatedPayload);
-        console.log("Merged updatedMovement:", updatedMovement);
 
         onSuccess(updatedMovement);
 

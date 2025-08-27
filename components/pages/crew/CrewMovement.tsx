@@ -51,6 +51,7 @@ export interface Movement {
   Rank: string;
   TransactionType?: number;
   Posted?: boolean;
+  movementDate?: string;
 }
 
 export function CrewMovement() {
@@ -81,7 +82,7 @@ export function CrewMovement() {
     if (!crewId) return;
     const fetchMovementHistory = async () => {
       try {
-        const result = await getCrewMovementHistory(crewId || undefined);
+        const result = await getCrewMovementHistory({ crewCode: crewId });
         setCrewMovementHistory(result.data);
       } catch (error) {
         console.error("Failed to fetch crew movement history:", error);
@@ -270,7 +271,7 @@ export function CrewMovement() {
                         title: "Not Editable",
                         text: "This movement cannot be edited. Payment has already been posted.",
                         icon: "error",
-                        //confirmButtonText: "OK",
+                        confirmButtonText: "OK",
                       });
                       return;
                     }
@@ -324,10 +325,9 @@ export function CrewMovement() {
   };
 
   const handleCrewMovementUpdated = async (updatedMovement: Movement) => {
-    console.log("Movement updated:", updatedMovement);
-
     try {
-      const response = await getCrewMovementHistory(crewId ?? undefined);
+      if (!crewId) return;
+      const response = await getCrewMovementHistory({ crewCode: crewId });
 
       if (response.success) {
 
