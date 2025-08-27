@@ -76,7 +76,7 @@ export default function DeductionRegisterComponent() {
           setOtherDeductionData(otherDeductionResponse);
         }
         else {
-          console.log("No other deduction data found")
+          console.error("No other deduction data found")
         }  
       } catch (error) {
         console.error("Error fetching allotment data:", error);

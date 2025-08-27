@@ -503,7 +503,7 @@ export default function RemittanceDetails() {
             setRemittanceData([]);
           }
         } catch (error) {
-          console.log("Error fetching remittance data:", error);
+          console.error("Error fetching remittance data:", error);
           setRemittanceData([]);
         }
       }
@@ -562,7 +562,7 @@ export default function RemittanceDetails() {
             setRemittanceData([]);
           }
         } catch (error) {
-          console.log("Error fetching remittance data:", error);
+          console.error("Error fetching remittance data:", error);
           setRemittanceData([]);
         }
       }
@@ -580,7 +580,7 @@ export default function RemittanceDetails() {
           setAllottees([]);
         }
       } catch (error) {
-        console.log("Error fetching allottees:", error);
+        console.error("Error fetching allottees:", error);
         setAllottees([]);
       }
     }
@@ -627,7 +627,7 @@ export default function RemittanceDetails() {
           }
         })
         .catch((error) => {
-          console.log("Error fetching crew data:", error);
+          console.error("Error fetching crew data:", error);
         });
     }
   }, [fetchInitialRemittanceData]);

@@ -146,8 +146,6 @@ export function EditCrewGovtRecordsDialog({
       const hdmfNumber = buildPayloadField(values.hdmfNumber, crewGovtTypeData.HDMFNumber);
       if (hdmfNumber !== undefined) payload.hdmfNumber = hdmfNumber;
 
-      console.log("Payload to send to API:", payload);
-
       // Call API only if payload is not empty
       if (Object.keys(payload).length === 0) {
         toast({

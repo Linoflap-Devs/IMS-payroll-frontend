@@ -160,9 +160,7 @@ export function CrewHeader({
                 <Button
                   variant="outline"
                   onClick={() => {
-                    console.log("Add button clicked ✅");
                     setTriggerAdd(true);
-                    console.log("TriggerAdd state set to true 🚀");
                   }}
                   disabled={isAddLoading}
                   className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40 text-white hover:text-white"
