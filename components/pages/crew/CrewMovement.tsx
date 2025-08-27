@@ -206,7 +206,7 @@ export function CrewMovement() {
           swalWithBootstrapButtons
             .fire({
               title: "Are you sure?",
-              text: `Are you sure you want to delete this movement ${movementId}? This action cannot be undone.`,
+              text: `Are you sure you want to delete this movement? This action cannot be undone.`,
               icon: "warning",
               showCancelButton: true,
               confirmButtonText: "Yes, delete it!",

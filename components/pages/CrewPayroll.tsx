@@ -170,7 +170,7 @@ export default function CrewPayroll() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [rankFilter, setRankFilter] = useState("all");
   const [inactiveFilter, setInactiveFilter] = useState("verified");
-  const {crews, isLoading, error, fetchCrews} = useCrewStore();
+  const { crews, isLoading, error, fetchCrews } = useCrewStore();
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -206,7 +206,7 @@ export default function CrewPayroll() {
 
     return matchesSearch && matchesInactive && matchesStatus && matchesRank;
   });
-  
+
   const uniqueRanks = Array.from(
     new Map(crews.map((crew) => [crew.RankID, crew.Rank])).entries()
   ).map(([id, name]) => ({ id, name }));

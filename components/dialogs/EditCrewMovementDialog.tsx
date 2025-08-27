@@ -174,6 +174,8 @@ export function EditMovementDialog({
     }
   }, [selectedMovement, open, reset, rankList]);
 
+  //console.log(selectedMovement);
+
   const onSubmit = async (data: MovementFormValues) => {
     if (!selectedMovement) {
       console.warn("No selectedMovement found!");
@@ -182,20 +184,19 @@ export function EditMovementDialog({
 
     try {
       // Decide which date to send as movementDate
-      const movementDate = data.signOnDate
-        ? data.signOnDate.toISOString()
-        : data.signOffDate
-          ? data.signOffDate.toISOString()
+      const movementDate = data.signOffDate
+        ? data.signOffDate.toISOString()
+        : data.signOnDate
+          ? data.signOnDate.toISOString()
           : "";
 
       const payload: UpdateCrewMovementPayload = {
         movementDate,
         rankId: data.rankId!,
         vesselId: data.vesselId!,
-        vesselName: vesselList.find(v => v.VesselID === data.vesselId)?.VesselName ??
+        vesselName:
+          vesselList.find((v) => v.VesselID === data.vesselId)?.VesselName ??
           selectedMovement.Vessel,
-        signOnDate: "",
-        signOffDate: ""
       };
 
       const crewCode = CrewCode;
@@ -203,31 +204,32 @@ export function EditMovementDialog({
 
       const response = await updateCrewMovement(crewCode, movementId, payload);
 
+      //console.log('response', response);
+
       if (response?.success) {
         const updatedPayload = Array.isArray(response.data)
           ? response.data[0]
           : response.data;
 
+        //console.log('UPDATED MOVEMENT',updatedPayload);
+
         const updatedMovement: Movement = {
           ...selectedMovement,
-          // Update depending on which one was edited
-          SignOnDate: data.signOnDate
-            ? movementDate
-            : selectedMovement.SignOnDate,
-          SignOffDate: data.signOffDate
-            ? movementDate
-            : selectedMovement.SignOffDate,
+          SignOnDate: updatedPayload.TransactionType === 1 ? movementDate : selectedMovement.SignOnDate,
+          SignOffDate: updatedPayload.TransactionType === 2 ? movementDate : selectedMovement.SignOffDate,
           Rank: (() => {
             const matchedRank = rankList.find(r => r.RankID === updatedPayload.RankID);
             return matchedRank ? matchedRank.RankCode.trim() : selectedMovement.Rank;
           })(),
           VesselID: updatedPayload.vesselId ?? selectedMovement.VesselID,
           VesselName:
-            vesselList.find(v => v.VesselID === data.vesselId)?.VesselName ??
+            vesselList.find((v) => v.VesselID === data.vesselId)?.VesselName ??
             selectedMovement.Vessel,
         };
 
         onSuccess(updatedMovement);
+
+        //console.log('THEN MOVEMENT: ', updatedMovement);
 
         toast({
           title: "Crew Movement Updated",
