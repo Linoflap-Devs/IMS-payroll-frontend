@@ -353,7 +353,7 @@ export default function CrewList() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [rankFilter, setRankFilter] = useState("all");
   const [validationFilter, setValidationFilter] = useState("all");
-  const [inactiveFilter, setInactiveFilter] = useState("verified"); // default to active
+  const [inactiveFilter, setInactiveFilter] = useState("verified");
   const { crews, isLoading, error, fetchCrews } = useCrewStore();
 
   const clearFilters = () => {

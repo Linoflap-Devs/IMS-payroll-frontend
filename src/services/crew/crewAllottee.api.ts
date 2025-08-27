@@ -47,15 +47,13 @@ export const updateBatchAllottee = async (
   crewCode: string,
   allottees: BatchAllotteePayload
 ): Promise<CrewAllotteeResponse> => {
-  console.log("updateBatchAllottee called with:", { crewCode, allottees });
-
   try {
     const response = await axiosInstance.patch<CrewAllotteeResponse>(
       `crew/${crewCode}/allottee/`,
       allottees
     );
 
-    console.log("API response:", response.data);
+    //console.log("API response:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("Error updating allottees:", error);

@@ -155,12 +155,12 @@ export function useCrewDetails(crewId: string | null) {
           : undefined,
     };
 
-    console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
+    //console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
 
     try {
       const response = await updateCrew(editedCrew.id, crewToBeUpdated);
 
-      console.log("Response from updateCrew:", response);
+      //console.log("Response from updateCrew:", response);
 
       if (response.success) {
         //console.log("Refetching crew data...");

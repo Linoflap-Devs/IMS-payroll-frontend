@@ -50,7 +50,6 @@ export default function CrewMovement() {
   const [vesselTypeFilter, setVesselTypeFilter] = useState("all");
   const [crewMovementHistory, setCrewMovementHistory] = useState<CrewMovementHistory[]>([]);
   const [isExporting, setIsExporting] = useState(false);
-
   const [openExportModal, setOpenExportModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
@@ -91,26 +90,10 @@ export default function CrewMovement() {
     fetchVessels();
   }, []);
 
-  useEffect(() => {
-    console.log("Selected vessel:", selectedVessel);
-    console.log("Vessel: ", vesselData.find((v) => v.vesselId === selectedVessel));
-  }, [selectedVessel])
-
   // useEffect(() => {
-  //   if (!openExportModal) {
-  //     document.body.style.overflow = "hidden";
-  //     document.body.style.pointerEvents = "none";
-  //   } else {
-  //     document.body.style.overflow = "";
-  //     document.body.style.pointerEvents = "";
-  //   }
-
-  //   // Clean up when component unmounts
-  //   return () => {
-  //     document.body.style.overflow = "";
-  //     document.body.style.pointerEvents = "";
-  //   };
-  // }, [openExportModal]);
+  //   console.log("Selected vessel:", selectedVessel);
+  //   console.log("Vessel: ", vesselData.find((v) => v.vesselId === selectedVessel));
+  // }, [selectedVessel])
 
   const handlePdfExport = async () => {
     try {
@@ -118,7 +101,7 @@ export default function CrewMovement() {
 
       const movements = await getCrewMovementHistory(
         {
-          startDate: selectedMonth ? new Date(selectedYear, selectedMonth - 1, 1): undefined,
+          startDate: selectedMonth ? new Date(selectedYear, selectedMonth - 1, 1) : undefined,
           endDate: selectedYear ? lastDayOfMonth(new Date(selectedYear, selectedMonth - 1, 1)) : undefined,
           vesselId: selectedVessel > 0 ? selectedVessel : undefined
         }
@@ -239,6 +222,22 @@ export default function CrewMovement() {
     return matchesSearch && matchesVesselType;
   });
 
+  useEffect(() => {
+    if (openExportModal) {
+      document.body.style.overflow = "hidden";
+      document.body.style.pointerEvents = "none";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.pointerEvents = "";
+    }
+
+    // Clean up when component unmounts
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.pointerEvents = "";
+    };
+  }, [openExportModal]);
+
   return (
     <div className="h-full w-full p-4 pt-2">
       <style jsx global>{`
@@ -342,105 +341,106 @@ export default function CrewMovement() {
           </div>
         </div>
       </div>
-      <Dialog open={openExportModal} onOpenChange={setOpenExportModal}>
-        <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
-              Select Year, Month, and Vessel
-            </DialogTitle>
-          </DialogHeader>
 
-          <div className="grid grid-cols-1 gap-5 mb-1">
-            <Select
-              onValueChange={(value) => setSelectedMonth(Number(value))}
-              value={selectedMonth.toString()}
-            >
-              <SelectTrigger className="w-full rounded-md h-10 gap-1">
-                <SelectValue placeholder="Select Month" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 12 }, (_, i) => (
-                  <SelectItem key={i + 1} value={(i + 1).toString()}>
-                    {new Date(0, i).toLocaleString("default", { month: "long" })}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {openExportModal && (
+        <Dialog open={openExportModal} onOpenChange={setOpenExportModal}>
+          <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
+                Select Year, Month, and Vessel
+              </DialogTitle>
+            </DialogHeader>
 
-            <Select
-              onValueChange={(value) => setSelectedYear(Number(value))}
-              value={selectedYear.toString()}
-            >
-              <SelectTrigger className="w-full rounded-md h-10 gap-1">
-                <SelectValue placeholder="Select Year" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 5 }, (_, i) => {
-                  const year = new Date().getFullYear() - i;
-                  return (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
+            <div className="grid grid-cols-1 gap-5 mb-1">
+              <Select
+                onValueChange={(value) => setSelectedMonth(Number(value))}
+                value={selectedMonth.toString()}
+              >
+                <SelectTrigger className="w-full rounded-md h-10 gap-1">
+                  <SelectValue placeholder="Select Month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <SelectItem key={i + 1} value={(i + 1).toString()}>
+                      {new Date(0, i).toLocaleString("default", { month: "long" })}
                     </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <Select
-              onValueChange={(value) => setSelectedVessel(Number(value))}
-              value={selectedVessel.toString()}
-            >
-              <SelectTrigger className="w-full rounded-md h-10 gap-1">
-                <SelectValue placeholder="Select Vessel" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem key={0} value={"0"}>
-                  {'All'}
-                </SelectItem>
-                {
-                  vesselData.map((vessel) => {
+              <Select
+                onValueChange={(value) => setSelectedYear(Number(value))}
+                value={selectedYear.toString()}
+              >
+                <SelectTrigger className="w-full rounded-md h-10 gap-1">
+                  <SelectValue placeholder="Select Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 5 }, (_, i) => {
+                    const year = new Date().getFullYear() - i;
                     return (
-                      <SelectItem key={vessel.vesselId} value={vessel.vesselId.toString()}>
-                        {vessel.vesselName}
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
                       </SelectItem>
-                    )
-                  })
-                }
-              </SelectContent>
-            </Select>
-          </div>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={() => setOpenExportModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handlePdfExport}
-              className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
-            >
-              {loadingPDFExport ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  <span>Exporting...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  Export
-                </>
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+              <Select
+                onValueChange={(value) => setSelectedVessel(Number(value))}
+                value={selectedVessel.toString()}
+              >
+                <SelectTrigger className="w-full rounded-md h-10 gap-1">
+                  <SelectValue placeholder="Select Vessel" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem key={0} value={"0"}>
+                    {'All'}
+                  </SelectItem>
+                  {
+                    vesselData.map((vessel) => {
+                      return (
+                        <SelectItem key={vessel.vesselId} value={vessel.vesselId.toString()}>
+                          {vessel.vesselName}
+                        </SelectItem>
+                      )
+                    })
+                  }
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setOpenExportModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handlePdfExport}
+                className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
+              >
+                {loadingPDFExport ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
-
-    
   );
 }

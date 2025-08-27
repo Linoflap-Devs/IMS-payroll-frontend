@@ -748,7 +748,7 @@ export default function DeductionEntries() {
           setHDMFUpgradeAmount(Amount.HDMFAmount ?? 0);
           setIsDollar(Amount.DollarCurrency === 1);
           setHDMFHistoryAmount(History ?? []);
-          console.log("History:", History);
+          //console.log("History:", History);
 
           const uniqueYears = Array.from(
             new Set((History ?? []).map((entry) => entry.PayYear.toString()))

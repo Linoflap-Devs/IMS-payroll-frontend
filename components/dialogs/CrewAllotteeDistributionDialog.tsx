@@ -65,13 +65,3 @@ export function CrewAllotteeDistribution({
     </Dialog>
   );
 }
-
-// can i display the fields here in the table there?:
-// fields: 
-// Allottee Name 
-// Account Number
-// Bank
-// Allotment
-
-// this is the data:
-// Object PayrollMonth : 6 PayrollYear : 2025 PostedPayrollID : 1254 allotmentDeductions : Array(4) 0 : {name: 'SSS Contribution', currency: 'PHP', amount: '1000', forex: 56.65, dollar: '1000'} 1 : {name: 'SSS Provident', currency: 'PHP', amount: '750', forex: 56.65, dollar: '1000'} 2 : {name: 'PhilHealth Contribution', currency: 'PHP', amount: '2113.05', forex: 56.65, dollar: '1000'} 3 : {name: 'Pag-Ibig Contribution', currency: 'PHP', amount: '2000', forex: 56.65, dollar: '1000'} length : 4 [[Prototype]] : Array(0) allotteeDistribution : Array(2) 0 : {name: 'CARRERA, JENY JOY MOLINA', amount: 64500, currency: 0, bank: 'BPI-MAGALLANES NORTH', accountNumber: '3539-1667-69'} 1 : {name: 'CARRERA, JOSEPH CLIFTON S.', amount: 78162.91, currency: 0, bank: 'BPI-DEWEY', accountNumber: '4939-4787-82'} length : 2 [[Prototype]] : Array(0) crewCode : "2332" crewId : 2177 crewName : "CARRERA, JOSEPH CLIFTON S." payrollDetails : {basicWage: '1492', fixedOT: '1110.4', guaranteedOT: '0', dollarGross: '2602.4', pesoGross: '147425.96', …} rank : "C/OFF " vesselId : 29 vesselName : "SJ CORAL" [[Prototype]] : Object
