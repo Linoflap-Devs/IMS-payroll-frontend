@@ -413,13 +413,19 @@ interface CrewMovementHistoryResponse {
   message?: string;
 }
 
-export const getCrewMovementHistory = async (crewCode?: string): Promise<CrewMovementHistoryResponse> => {
-  if (!crewCode) {
-    const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/movement-report`);
+export const getCrewMovementHistory = async (filters?: {crewCode?: string, startDate?: Date, endDate?: Date, vesselId?: number}): Promise<CrewMovementHistoryResponse> => {
+  if (!filters?.crewCode) {
+    const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/movement-report`, {
+      params: {
+        startDate: filters?.startDate,
+        endDate: filters?.endDate,
+        vesselId: filters?.vesselId
+      }
+    });
     return response.data;
   }
   else {
-    const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/${crewCode}/movement-report`);
+    const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/${filters.crewCode}/movement-report`);
     return response.data;
   }
 }
