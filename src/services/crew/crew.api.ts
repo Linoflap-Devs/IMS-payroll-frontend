@@ -101,8 +101,8 @@ export interface CrewMovement {
   VesselID?: number;
   MovementDetailID: number;
   Vessel: string;
-  SignOnDate?: Date;
-  SignOffDate?: Date;
+  SignOnDate?: string;
+  SignOffDate?: string;
   Rank: string;
 }
 
@@ -427,10 +427,11 @@ export const getCrewMovementHistory = async (crewCode?: string): Promise<CrewMov
 
 export interface UpdateCrewMovementPayload {
   RankID?: number;
-  signOnDate: Date;
-  signOffDate: Date;
+  signOnDate: string;
+  signOffDate: string;
   rankId: number;
   vesselId: number;
+  vesselName?: string;
 }
 
 interface UpdateMovementResponse {

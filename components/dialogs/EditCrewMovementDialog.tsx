@@ -44,6 +44,7 @@ const movementSchema = z.object({
   signOffDate: z.date().optional(),
   rankId: z.number().optional(),
   vesselId: z.number().optional(),
+  vesselName: z.string().optional(),
 });
 
 type MovementFormValues = z.infer<typeof movementSchema>;
@@ -96,7 +97,7 @@ export function EditMovementDialog({
             if (currentRank) {
               setSelectedRank(currentRank.RankID.toString());
               setCurrentRank(currentRank.RankID.toString());
-            }
+            } 
           } else {
             console.error("Failed to fetch rank list:", response.message);
           }
@@ -183,10 +184,11 @@ export function EditMovementDialog({
 
     try {
       const payload: UpdateCrewMovementPayload = {
-        signOnDate: data.signOnDate!,
-        signOffDate: data.signOffDate!,
+        signOnDate: data.signOnDate ? data.signOnDate.toISOString() : "",
+        signOffDate: data.signOffDate ? data.signOffDate.toISOString() : "",
         rankId: data.rankId!,
         vesselId: data.vesselId!,
+        vesselName: data.vesselName!
       };
 
       console.log("Payload to send to API:", payload);
@@ -215,17 +217,12 @@ export function EditMovementDialog({
             return matchedRank ? matchedRank.RankCode.trim() : selectedMovement.Rank;
           })(),
           VesselID: updatedPayload.vesselId ?? selectedMovement.VesselID,
-          Vessel: (() => {
-            const matchedVessel = vesselList.find(r => r.VesselID === updatedPayload.vesselId);
-            return matchedVessel ? matchedVessel.VesselName.trim() : selectedMovement.Vessel;
-          })(),
-          //VesselID: updatedPayload.vesselId ?? selectedMovement.VesselID,
+          VesselName:
+            vesselList.find(v => v.VesselID === data.vesselId)?.VesselName ??
+            selectedMovement.Vessel,
         };
 
-        console.log("Original selectedMovement:", selectedMovement);
         console.log("Updated payload from API:", updatedPayload);
-        console.log("Merged updatedMovement:", updatedMovement);
-
         console.log("Merged updatedMovement:", updatedMovement);
 
         onSuccess(updatedMovement);
@@ -288,7 +285,7 @@ export function EditMovementDialog({
                     <FormControl>
                       <Input
                         type="date"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || selectedMovement?.TransactionType !== 1}
                         name={name}
                         ref={ref}
                         value={value ? value.toISOString().split("T")[0] : ""}
@@ -324,7 +321,7 @@ export function EditMovementDialog({
                         type="date"
                         name={name}
                         ref={ref}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || selectedMovement?.TransactionType !== 2}
                         value={value ? value.toISOString().split("T")[0] : ""}
                         onChange={(e) =>
                           onChange(

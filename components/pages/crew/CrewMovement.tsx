@@ -46,10 +46,10 @@ export interface Movement {
   VesselID?: number;
   MovementDetailID: number;
   Vessel: string;
-  SignOnDate?: Date;
-  SignOffDate?: Date;
+  SignOnDate?: string;
+  SignOffDate?: string;
   Rank: string;
-  TransactionType?: boolean;
+  TransactionType?: number;
   Posted?: boolean;
 }
 
@@ -190,7 +190,6 @@ export function CrewMovement() {
         const movementId = row.original.MovementDetailID;
         const vesselName = row.original.VesselName;
         const isPosted = !!row.original.Posted;
-        console.log(isPosted);
 
         const handleDelete = async (movementId: number) => {
           const swalWithBootstrapButtons = Swal.mixin({
@@ -337,7 +336,7 @@ export function CrewMovement() {
             mv.MovementDetailID === updatedMovement.MovementDetailID
               ? {
                 ...mv,
-                Vessel: updatedMovement.Vessel,
+                Vessel: updatedMovement.VesselName,
                 Rank: updatedMovement.Rank,
                 SignOffDate: updatedMovement.SignOffDate,
                 SignOnDate: updatedMovement.SignOnDate,
