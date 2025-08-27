@@ -19,6 +19,7 @@ import { Badge } from "../ui/badge";
 import { batchAddCrewToVessel, CrewSignOnPayload } from "@/src/services/vessel/vesselCrew.api";
 
 export interface IVesselItem {
+  vesselId?: number | undefined;
   VesselID: number;
   VesselCode: string;
   VesselName: string;

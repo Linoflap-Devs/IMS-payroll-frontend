@@ -98,9 +98,11 @@ export const getCrewBasic = async (crewCode: string): Promise<CrewBasicResponse>
 }
 
 export interface CrewMovement {
+  VesselID?: number;
+  MovementDetailID: number;
   Vessel: string;
-  TransactionType: number;
-  TransactionDate: string;
+  SignOnDate?: Date;
+  SignOffDate?: Date;
   Rank: string;
 }
 
@@ -176,30 +178,30 @@ export const getCrewRankList = async (): Promise<CrewRankResponse> => {
 
 export interface AddCrewDataForm {
   crewCode: string;
-  rank: string; // Backend's Zod schema: z.coerce.number()
-  vessel?: string; // Backend's Zod schema: z.optional(z.coerce.number())
+  rank: string;
+  vessel?: string;
   mobileNumber: string;
   landlineNumber?: string;
   emailAddress: string;
   lastName: string;
   firstName: string;
   middleName?: string;
-  sex: string; // Backend's Zod schema: z.string().min(1).max(6) (e.g., "Male", "Female", or string "0", "1")
-  maritalStatus: string; // Backend's Zod schema: z.optional(z.coerce.number())
-  dateOfBirth: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
-  city: string; // Backend's Zod schema: z.string().min(2).max(50)
-  province: string; // Backend's Zod schema: z.string().min(2).max(50)
+  sex: string;
+  maritalStatus: string;
+  dateOfBirth: string; 
+  city: string;
+  province: string;
   address: string;
   sssNumber?: string;
   tinNumber?: string;
   philhealthNumber?: string;
   hdmfNumber?: string;
   passportNumber: string;
-  passportIssueDate: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
-  passportExpiryDate: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  passportIssueDate: string; 
+  passportExpiryDate: string; 
   seamanBookNumber: string;
-  seamanBookIssueDate: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
-  seamanBookExpiryDate: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  seamanBookIssueDate: string; 
+  seamanBookExpiryDate: string; 
   crewPhoto?: File; // Optional file upload
 }
 
@@ -217,7 +219,7 @@ export interface UpdateCrewDataForm {
   middleName?: string;
   sex?: string; // Backend's Zod schema: z.string().min(1).max(6) (e.g., "Male", "Female", or string "0", "1")
   maritalStatus?: string; // Backend's Zod schema: z.optional(z.coerce.number())
-  dateOfBirth?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  dateOfBirth?: string; 
   city?: string; // Backend's Zod schema: z.string().min(2).max(50)
   province?: string; // Backend's Zod schema: z.string().min(2).max(50)
   sssNumber?: string | null;
@@ -225,13 +227,12 @@ export interface UpdateCrewDataForm {
   philhealthNumber?: string | null;
   hdmfNumber?: string | null;
   passportNumber?: string;
-  passportIssueDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
-  passportExpiryDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
+  passportIssueDate?: string; 
+  passportExpiryDate?: string; 
   seamanBookNumber?: string;
-  seamanBookIssueDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
-  seamanBookExpiryDate?: string; // ISO format string e.g., "YYYY-MM-DD". Backend's Zod schema: z.coerce.date()
-  crewPhoto?: File; // Optional file upload
-  //profileImage?: string | File;
+  seamanBookIssueDate?: string; 
+  seamanBookExpiryDate?: string;
+  crewPhoto?: File;
 }
 
 export interface AddCrewSuccessData {
@@ -305,7 +306,6 @@ export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewRespons
     formData.append("crewPhoto", crewData.crewPhoto);
   }
 
-  // The endpoint from Insomnia was /crew/
   // Axios automatically sets 'Content-Type': 'multipart/form-data' when FormData is used.
   const response = await axiosInstance.post<AddCrewResponse>("/crew/", formData, {
     headers: {
@@ -397,6 +397,7 @@ export interface Movement {
   Remarks: string | null;
 }
 export interface CrewMovementHistory {
+  MovementDetailID: number;
   Status: any;
   CrewID: number;
   CrewCode: string;
@@ -423,3 +424,23 @@ export const getCrewMovementHistory = async (crewCode?: string): Promise<CrewMov
     return response.data;
   }
 }
+
+export interface UpdateCrewMovementPayload {
+  RankID?: number;
+  signOnDate: Date;
+  signOffDate: Date;
+  rankId: number;
+  vesselId: number;
+}
+
+interface UpdateMovementResponse {
+  success: boolean;
+  data: UpdateCrewMovementPayload[];
+  message?: string
+}
+
+export const updateCrewMovement = async (crewCode: string, movementId: number, payload: UpdateCrewMovementPayload): Promise<UpdateMovementResponse> => {
+  const response = await axiosInstance.patch<UpdateMovementResponse>(`/movements/${crewCode}/id/${movementId}`, payload);
+  return response.data;
+}
+
