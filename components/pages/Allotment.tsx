@@ -63,6 +63,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { otherDeductions } from "@/src/services/deduction/crewDeduction.api";
 import generateOtherDeductionsReport from "../PDFs/otherDeductionsReportPDF";
 import { generateDeductionRegisterV3PDF } from "../PDFs/payrollDeductionRegisterV3PDF";
+import { generateDeductionRegisterV3Excel } from "../Excels/payrollDeductionRegisterV3Excel";
+import { generateOtherDeductionsReportExcel } from "../Excels/otherDeductionsReportExcel";
 
 type Payroll = {
   vesselId: number;
@@ -635,6 +637,35 @@ const fetchPayrollData = async () => {
     setIsDataLoading(false);
   };
 
+  const handleGenerateDeductionRegisterV3Excel = async () => {
+    setIsDataLoading(true);
+    const response = await getVesselDeductionRegister(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null
+    );
+
+    generateDeductionRegisterV3Excel(
+      response,
+      new Date(),
+      vesselId ? 'vessel' : 'all'
+    );
+    setIsDataLoading(false);
+  };
+
+  const handleOtherDeductionsExcel = async () => {
+    setIsDataLoading(true)
+    const response = await otherDeductions(Number(year), Number(month), vesselId ? parseInt(vesselId) : undefined)
+
+    if(response.success) {
+      generateOtherDeductionsReportExcel(response, new Date(), vesselId ? 'vessel' : 'all')
+    }
+    else {
+      console.log("No other deduction data found")
+    }
+    setIsDataLoading(false)
+  }
+
   return (
     <div className="h-full w-full p-4 pt-2">
       <style jsx global>{`
@@ -862,6 +893,18 @@ const fetchPayrollData = async () => {
                   >
                     <PiReceiptFill className="mr-2 h-4 w-4" />
                     Deduction Register
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleGenerateDeductionRegisterV3Excel}
+                  >
+                    <PiGavelFill className="mr-2 h-4 w-4" />
+                    Gov. Deduction Register
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleOtherDeductionsExcel}
+                  >
+                    <PiFileMinusFill className="mr-2 h-4 w-4" />
+                    Crew Deductions
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleGeneratePayslipExcel}>
                     <PiFileTextFill className="mr-2 h-4 w-4" />
