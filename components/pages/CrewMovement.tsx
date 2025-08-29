@@ -92,11 +92,6 @@ export default function CrewMovement() {
     fetchVessels();
   }, []);
 
-  // useEffect(() => {
-  //   console.log("Selected vessel:", selectedVessel);
-  //   console.log("Vessel: ", vesselData.find((v) => v.vesselId === selectedVessel));
-  // }, [selectedVessel])
-
   const handlePdfExport = async () => {
     try {
       setIsExporting(true);
