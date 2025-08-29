@@ -98,10 +98,9 @@ export interface DeductionRegisterResponse {
   data: DeductionRegisterData[];
 }
 
-
-
 export const getVesselDeductionRegister = async (vesselId: string | number | null, month: number | null, year: number | null): Promise<DeductionRegisterResponse> => {
   const response = await axiosInstance.get<DeductionRegisterResponse>(`/payroll/${vesselId}/deduction?month=${month}&year=${year}`);
+  console.log(response);
   return response.data;
 }
 

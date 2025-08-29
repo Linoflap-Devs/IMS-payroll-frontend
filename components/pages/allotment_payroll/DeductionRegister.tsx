@@ -38,20 +38,15 @@ export default function DeductionRegisterComponent() {
   const vesselId = searchParams.get("vesselId");
   const month = searchParams.get("month");
   const year = searchParams.get("year");
+  const forex = searchParams.get("forex");
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
-
-  const [allotmentData, setAllotmentData] = useState<DeductionRegisterData[]>(
-    []
-  );
-
+  const [allotmentData, setAllotmentData] = useState<DeductionRegisterData[]>([]);
   const [otherDeductionData, setOtherDeductionData] = useState<otherDeductionsResponse>({} as otherDeductionsResponse);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCrew, setSelectedCrew] =
-    useState<DeductionRegisterCrew | null>(null);
+  const [selectedCrew, setSelectedCrew] = useState<DeductionRegisterCrew | null>(null);
   const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
 
-  const forex = searchParams.get("forex");
   useEffect(() => {
     const fetchAllotmentData = async () => {
       if (!vesselId || !month || !year) return;
@@ -63,10 +58,20 @@ export default function DeductionRegisterComponent() {
           parseInt(month),
           parseInt(year)
         );
-        if (response.success) {
-          setAllotmentData(response.data);
+        if (response.success && Array.isArray(response.data)) {
+        const cleanedData = response.data.map((item) => ({
+          ...item,
+          Crew: Array.isArray(item.Crew)
+            ? item.Crew.map((crew) => ({
+              ...crew,
+              CrewName: crew.CrewName
+                ? crew.CrewName.replace(/\bnull\b/g, "").replace(/\s+/g, " ").trim()
+                : ""
+            }))
+            : []
+        }))
+          setAllotmentData(cleanedData);
         }
-
         const otherDeductionResponse = await otherDeductions(
           parseInt(year),
           parseInt(month),
@@ -168,9 +173,12 @@ export default function DeductionRegisterComponent() {
   ];
 
   const filterCrew = allotmentData[0]?.Crew || [];
+
   const filteredData = filterCrew.filter((item) =>
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
-  );
+  ); 
+
+  console.log(allotmentData);
 
   const handlePrint = () => {
     generateDeductionAllotmentV2PDF(
