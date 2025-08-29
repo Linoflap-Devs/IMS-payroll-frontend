@@ -28,9 +28,9 @@ import { AiOutlinePrinter } from "react-icons/ai";
 import { generateMovementHistoryExcel } from "../Excels/movementHistoryExcel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { lastDayOfMonth, set } from "date-fns";
-import { se } from "date-fns/locale";
 import { toast } from "../ui/use-toast";
 import { generateMovementHistoryPDFV2 } from "../PDFs/movmentHistoryPDFV2";
+import { generateMovementHistoryExcelV2 } from "../Excels/movmentHistoryExcelV2";
 
 interface Vessel {
   vesselId: number;
@@ -63,6 +63,9 @@ export default function CrewMovement() {
   const [selectedMonthCrew, setSelectedMonthCrew] = useState<number>(new Date().getMonth() + 1);
   const [selectedYearCrew, setSelectedYearCrew] = useState<number>(new Date().getFullYear());
   const [loadingPDFExportCrew, setLoadingPDFExportCrew] = useState(false);
+  const [loadingExcelExportCrew, setLoadingExcelExportCrew] = useState(false);
+
+  const [exportType, setExportType] = useState<"pdf" | "excel" | null>(null);
 
   // Fetch vessel list on mount
   useEffect(() => {
@@ -148,15 +151,23 @@ export default function CrewMovement() {
       setIsExportingVessel(true);
       setLoadingExcelExportVessel(true);
 
-      const movements = await getCrewMovementHistory();
+      const movements = await getCrewMovementHistory(
+        {
+          startDate: selectedMonthVessel ? new Date(selectedYearVessel, selectedMonthVessel - 1, 1) : undefined,
+          endDate: selectedYearVessel ? lastDayOfMonth(new Date(selectedYearVessel, selectedMonthVessel - 1, 1)) : undefined,
+          vesselId: selectedVessel > 0 ? selectedVessel : undefined
+        }
+      );
 
       if (movements.success) {
         setCrewMovementHistory(movements.data);
 
-        await generateMovementHistoryExcel(
+        await generateMovementHistoryExcelV2(
           movements.data,
-          new Date().getMonth() + 1,
-          new Date().getFullYear()
+          selectedMonthVessel,
+          selectedYearVessel,
+          new Date(),
+          selectedVessel > 0 ? "vessel" : "all"
         );
       } else {
         console.error("Failed to fetch crew movements:", movements.message);
@@ -216,6 +227,8 @@ export default function CrewMovement() {
   const handleExcelExportCrew = async () => {
     try {
       setIsExportingCrew(true);
+      setOpenExportModalCrew(true);
+      setLoadingExcelExportCrew(true);
 
       const movements = await getCrewMovementHistory();
 
@@ -234,6 +247,8 @@ export default function CrewMovement() {
       console.error("Error generating Excel:", error);
     } finally {
       setIsExportingCrew(false);
+      setOpenExportModalCrew(false);
+      setLoadingExcelExportCrew(false);
     }
   };
 
@@ -393,12 +408,16 @@ export default function CrewMovement() {
               </DropdownMenuTrigger>
 
               <DropdownMenuContent className="text-sm w-48">
-                <DropdownMenuItem onClick={() => setOpenExportModalVessel(true)} disabled={isExportingVessel}>
+                <DropdownMenuItem onClick={() => { setExportType("pdf"); setOpenExportModalVessel(true); }}
+                  //onClick={() => setOpenExportModalVessel(true)} 
+                  disabled={isExportingVessel}>
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
                   Export PDF
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={handleExcelExportVessel} disabled={isExportingVessel}>
+                <DropdownMenuItem onClick={() => { setExportType("excel"); setOpenExportModalVessel(true); }}
+                  //onClick={() => setOpenExportModalVessel(true)} 
+                  disabled={isExportingVessel}>
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
                   Export Excel
                 </DropdownMenuItem>
@@ -423,12 +442,15 @@ export default function CrewMovement() {
               </DropdownMenuTrigger>
 
               <DropdownMenuContent className="text-sm w-48">
-                <DropdownMenuItem onClick={() => setOpenExportModalCrew(true)} disabled={isExportingCrew}>
+                <DropdownMenuItem onClick={() => { setExportType("pdf"); setOpenExportModalCrew(true); }}
+                  //onClick={() => setOpenExportModalCrew(true)} 
+                  disabled={isExportingCrew}>
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
                   Export PDF
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={handleExcelExportCrew}
+                <DropdownMenuItem onClick={() => { setExportType("excel"); setOpenExportModalCrew(true); }}
+                  //onClick={handleExcelExportCrew}
                   disabled={isExportingCrew}>
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
                   Export Excel
@@ -531,10 +553,16 @@ export default function CrewMovement() {
               </Button>
               <Button
                 type="button"
-                onClick={handlePdfExportVessel}
+                onClick={() => {
+                  if (exportType == "pdf") {
+                    handlePdfExportVessel();
+                  } else if (exportType == "excel") {
+                    handleExcelExportVessel();
+                  }
+                }}
                 className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
               >
-                {loadingPDFExportVessel ? (
+                {(loadingPDFExportVessel || loadingExcelExportVessel) ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     <span>Exporting...</span>
@@ -542,7 +570,7 @@ export default function CrewMovement() {
                 ) : (
                   <>
                     <Download className="mr-2 h-4 w-4" />
-                    Export
+                    Export {exportType?.toUpperCase()}
                   </>
                 )}
               </Button>
@@ -610,10 +638,16 @@ export default function CrewMovement() {
               </Button>
               <Button
                 type="button"
-                onClick={handlePdfExportCrew}
+                onClick={() => {
+                  if (exportType == "pdf") {
+                    handlePdfExportCrew();
+                  } else if (exportType == "excel") {
+                    handleExcelExportCrew();
+                  }
+                }}
                 className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
               >
-                {loadingPDFExportCrew ? (
+                {(loadingPDFExportCrew || loadingExcelExportCrew) ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     <span>Exporting...</span>
@@ -621,7 +655,7 @@ export default function CrewMovement() {
                 ) : (
                   <>
                     <Download className="mr-2 h-4 w-4" />
-                    Export
+                    Export {exportType?.toUpperCase()}
                   </>
                 )}
               </Button>
