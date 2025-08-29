@@ -365,7 +365,8 @@ export default function CrewMovement() {
               </DialogTitle>
             </DialogHeader>
 
-            <div className="grid grid-cols-1 gap-5 mb-1">
+            <div className="grid grid-cols-1 gap-6 mb-1">
+              <div className="flex gap-4">
               <Select
                 onValueChange={(value) => setSelectedMonth(Number(value))}
                 value={selectedMonth.toString()}
@@ -400,6 +401,7 @@ export default function CrewMovement() {
                   })}
                 </SelectContent>
               </Select>
+            </div>
 
               <Select
                 onValueChange={(value) => setSelectedVessel(Number(value))}
@@ -410,7 +412,7 @@ export default function CrewMovement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem key={0} value={"0"}>
-                    {'All'}
+                    {'All Vessels'}
                   </SelectItem>
                   {
                     vesselData.map((vessel) => {

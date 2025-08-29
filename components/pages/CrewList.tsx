@@ -32,13 +32,20 @@ import {
   RotateCcw,
   Loader2,
   FilterX,
+  Download,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";
-import { CrewItem, deleteCrew, reactivateCrew } from "../../src/services/crew/crew.api";
+import { CrewItem, CrewMovementHistory, deleteCrew, getCrewMovementHistory, reactivateCrew } from "../../src/services/crew/crew.api";
 import { AiOutlinePrinter } from "react-icons/ai";
+import { MdClose } from "react-icons/md";
+import { toast } from "../ui/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { generateMovementHistoryPDFV2 } from "../PDFs/movmentHistoryPDFV2";
+import { lastDayOfMonth, set } from "date-fns";
+import { generateMovementHistoryExcel } from "../Excels/movementHistoryExcel";
 
 const getStatusBgColor = (status: string) => {
   switch (status.toLowerCase().trim()) {
@@ -358,9 +365,6 @@ export default function CrewList() {
   const [validationFilter, setValidationFilter] = useState("all");
   const [inactiveFilter, setInactiveFilter] = useState("verified");
   const { crews, isLoading, error, fetchCrews } = useCrewStore();
-  const [isExporting, setIsExporting] = useState(false);
-  const [openExportModal, setOpenExportModal] = useState(false);
-  const [isOpenFilter, setIsOpenFilter] = useState(false);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -370,7 +374,10 @@ export default function CrewList() {
     setInactiveFilter("verified");
   };
 
-  // Fetch crew data on component mount
+  // const handleFilterOpen = () => {
+  //   setIsOpenFilter((prev) => !prev);
+  // }
+
   useEffect(() => {
     fetchCrews();
   }, [fetchCrews]);
@@ -382,7 +389,7 @@ export default function CrewList() {
     } else if (inactiveFilter === "pending") {
       if (crew.IsActive === 1) return false;
     }
-    // else "all" shows all crews
+    else "all" //shows all crews
 
     const matchesSearch =
       crew.FirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -414,10 +421,6 @@ export default function CrewList() {
   const uniqueRanks = Array.from(
     new Map(crews.map((crew) => [crew.RankID, crew.Rank])).entries()
   ).map(([id, name]) => ({ id, name }));
-
-  const handleFilterOpen = () => {
-    setIsOpenFilter((prev) => !prev);
-  }
 
   if (error) {
     return <div className="text-center text-red-500">Error: {error}</div>;
@@ -453,55 +456,72 @@ export default function CrewList() {
               />
             </div>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={handleFilterOpen}
-                className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
-              >
-                {isOpenFilter ? (
-                  <span className="flex items-center">
-                    <Filter className="mr-3 h-3.5 sm:h-4 w-3.5 sm:w-4 flex-shrink-0 self-center" />
-                    Close Filters
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full">
+                <Select value={rankFilter} onValueChange={setRankFilter}>
+                  <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
+                    <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                    <SelectValue placeholder="Filter by rank" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-80">
+                    <SelectItem value="all">All Ranks</SelectItem>
+                    {uniqueRanks.map((rank) => (
+                      <SelectItem key={rank.id} value={rank.id.toString()}>
+                        {rank.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
+                    <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">On Board</SelectItem>
+                    <SelectItem value="inactive">Off Board</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={validationFilter}
+                  onValueChange={setValidationFilter}
+                >
+                  <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
+                    <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                    <SelectValue placeholder="Filter by validation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Accounts</SelectItem>
+                    <SelectItem value="verified">Verified</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="not registered">Not Registered</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={inactiveFilter}
+                  onValueChange={setInactiveFilter}
+                >
+                  <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
+                    <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                    <SelectValue placeholder="Filter by inactive" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Crews</SelectItem>
+                    <SelectItem value="verified">Active</SelectItem>
+                    <SelectItem value="pending">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+                >
+                  <span className="flex items-center" >
+                    <MdClose className="mr-2" />
+                    Clear Filters
                   </span>
-                ) : (
-                  <span className="flex items-center">
-                    <FilterX className="mr-3 h-3.5 sm:h-4 w-3.5 sm:w-4 flex-shrink-0 self-center" />
-                    Show Filters
-                  </span>
-                )}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild className="w-auto">
-                  <Button className="h-10 px-4 text-sm" variant="outline" disabled={isExporting}>
-                    {isExporting ? (
-                      <>
-                        <Loader2 className="mr-3 h-4 w-4 animate-spin" />
-                        Exporting...
-                      </>
-                    ) : (
-                      <>
-                        <AiOutlinePrinter className="mr-3 h-4 w-4" />
-                          Movement Summary
-                      </>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent className="text-sm">
-                  <DropdownMenuItem //onClick={() => setOpenExportModal(true)} 
-                    disabled={isExporting}>
-                    <AiOutlinePrinter className="mr-2 h-4 w-4" />
-                    Export PDF
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem //onClick={handleExcelExport} 
-                    disabled={isExporting}>
-                    <AiOutlinePrinter className="mr-2 h-4 w-4" />
-                    Export Excel
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
+                </Button>
+              </div>
               <Link href="/home/crew/add-crew">
                 <Button
                   className="whitespace-nowrap h-9 sm:h-10 px-6 sm:px-7 text-xs sm:text-sm w-full sm:w-auto"
@@ -513,72 +533,6 @@ export default function CrewList() {
               </Link>
             </div>
           </div>
-
-          {isOpenFilter && (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full">
-              <Select value={rankFilter} onValueChange={setRankFilter}>
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
-                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by rank" />
-                </SelectTrigger>
-                <SelectContent className="max-h-80">
-                  <SelectItem value="all">All Ranks</SelectItem>
-                  {uniqueRanks.map((rank) => (
-                    <SelectItem key={rank.id} value={rank.id.toString()}>
-                      {rank.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
-                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Filter by Status</SelectItem>
-                  <SelectItem value="active">On Board</SelectItem>
-                  <SelectItem value="inactive">Off Board</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={validationFilter}
-                onValueChange={setValidationFilter}
-              >
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
-                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by validation" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Account Validations</SelectItem>
-                  <SelectItem value="verified">Verified</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="not registered">Not Registered</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={inactiveFilter}
-                onValueChange={setInactiveFilter}
-              >
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
-                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by inactive" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Crews</SelectItem>
-                  <SelectItem value="verified">Active</SelectItem>
-                  <SelectItem value="pending">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                onClick={clearFilters}
-                className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
-              >
-                Clear Filters
-              </Button>
-            </div>
-          )}
           {isLoading ? (
             <div className="flex justify-center items-center h-40">
               <p className="text-muted-foreground">Loading crew data...</p>
