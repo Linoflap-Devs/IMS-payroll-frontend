@@ -217,7 +217,7 @@ export default function PaymentReference() {
     },
     {
       accessorKey: "Amount",
-      header: ({ column }) => (
+      header: ({ column }) => ( 
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
