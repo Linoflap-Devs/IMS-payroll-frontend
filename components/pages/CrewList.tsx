@@ -30,12 +30,15 @@ import {
   Users,
   ArrowUpDown,
   RotateCcw,
+  Loader2,
+  FilterX,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";
 import { CrewItem, deleteCrew, reactivateCrew } from "../../src/services/crew/crew.api";
+import { AiOutlinePrinter } from "react-icons/ai";
 
 const getStatusBgColor = (status: string) => {
   switch (status.toLowerCase().trim()) {
@@ -355,6 +358,9 @@ export default function CrewList() {
   const [validationFilter, setValidationFilter] = useState("all");
   const [inactiveFilter, setInactiveFilter] = useState("verified");
   const { crews, isLoading, error, fetchCrews } = useCrewStore();
+  const [isExporting, setIsExporting] = useState(false);
+  const [openExportModal, setOpenExportModal] = useState(false);
+  const [isOpenFilter, setIsOpenFilter] = useState(false);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -409,6 +415,10 @@ export default function CrewList() {
     new Map(crews.map((crew) => [crew.RankID, crew.Rank])).entries()
   ).map(([id, name]) => ({ id, name }));
 
+  const handleFilterOpen = () => {
+    setIsOpenFilter((prev) => !prev);
+  }
+
   if (error) {
     return <div className="text-center text-red-500">Error: {error}</div>;
   }
@@ -430,6 +440,7 @@ export default function CrewList() {
         <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-semibold mb-0">Crew List</h1>
+
           </div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
             <div className="relative w-full md:flex-1">
@@ -441,9 +452,72 @@ export default function CrewList() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={handleFilterOpen}
+                className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+              >
+                {isOpenFilter ? (
+                  <span className="flex items-center">
+                    <Filter className="mr-3 h-3.5 sm:h-4 w-3.5 sm:w-4 flex-shrink-0 self-center" />
+                    Close Filters
+                  </span>
+                ) : (
+                  <span className="flex items-center">
+                    <FilterX className="mr-3 h-3.5 sm:h-4 w-3.5 sm:w-4 flex-shrink-0 self-center" />
+                    Show Filters
+                  </span>
+                )}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild className="w-auto">
+                  <Button className="h-10 px-4 text-sm" variant="outline" disabled={isExporting}>
+                    {isExporting ? (
+                      <>
+                        <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <AiOutlinePrinter className="mr-3 h-4 w-4" />
+                          Movement Summary
+                      </>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent className="text-sm">
+                  <DropdownMenuItem //onClick={() => setOpenExportModal(true)} 
+                    disabled={isExporting}>
+                    <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                    Export PDF
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem //onClick={handleExcelExport} 
+                    disabled={isExporting}>
+                    <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                    Export Excel
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Link href="/home/crew/add-crew">
+                <Button
+                  className="whitespace-nowrap h-9 sm:h-10 px-6 sm:px-7 text-xs sm:text-sm w-full sm:w-auto"
+                  size="default"
+                >
+                  <Plus className="mr-3 sm:mr-6 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
+                  <p className="mr-4">Add Crew</p>
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {isOpenFilter && (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full">
               <Select value={rankFilter} onValueChange={setRankFilter}>
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
                   <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
                   <SelectValue placeholder="Filter by rank" />
                 </SelectTrigger>
@@ -457,7 +531,7 @@ export default function CrewList() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
                   <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
@@ -471,7 +545,7 @@ export default function CrewList() {
                 value={validationFilter}
                 onValueChange={setValidationFilter}
               >
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
                   <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
                   <SelectValue placeholder="Filter by validation" />
                 </SelectTrigger>
@@ -486,7 +560,7 @@ export default function CrewList() {
                 value={inactiveFilter}
                 onValueChange={setInactiveFilter}
               >
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
+                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
                   <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
                   <SelectValue placeholder="Filter by inactive" />
                 </SelectTrigger>
@@ -496,7 +570,6 @@ export default function CrewList() {
                   <SelectItem value="pending">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-
               <Button
                 variant="outline"
                 onClick={clearFilters}
@@ -504,24 +577,15 @@ export default function CrewList() {
               >
                 Clear Filters
               </Button>
-              <Link href="/home/crew/add-crew">
-                <Button
-                  className="whitespace-nowrap h-9 sm:h-10 px-5 sm:px-7 text-xs sm:text-sm w-full sm:w-auto"
-                  size="default"
-                >
-                  <Plus className="mr-3 sm:mr-5 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
-                  <p className="mr-4">Add Crew</p>
-                </Button>
-              </Link>
             </div>
-          </div>
+          )}
           {isLoading ? (
             <div className="flex justify-center items-center h-40">
               <p className="text-muted-foreground">Loading crew data...</p>
             </div>
           ) : (
             <div className="bg-white rounded-md border pb-3">
-              <DataTable columns={columns} data={filteredCrew} />
+              <DataTable columns={columns} pageSize={10} data={filteredCrew} />
             </div>
           )}
         </div>
