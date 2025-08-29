@@ -30,6 +30,8 @@ import { generateMovementHistoryExcel } from "../Excels/movementHistoryExcel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { lastDayOfMonth, set } from "date-fns";
 import { se } from "date-fns/locale";
+import { toast } from "../ui/use-toast";
+import { generateMovementHistoryPDFV2 } from "../PDFs/movmentHistoryPDFV2";
 
 interface Vessel {
   vesselId: number;
@@ -110,16 +112,28 @@ export default function CrewMovement() {
       if (movements.success) {
         setCrewMovementHistory(movements.data);
 
-        await generateMovementHistoryPDF(
+        await generateMovementHistoryPDFV2(
           movements.data,
           selectedMonth,
-          selectedYear
+          selectedYear,
+          new Date(),
+          selectedVessel > 0 ? "vessel" : "all"
         );
       } else {
         console.error("Failed to fetch crew movements:", movements.message);
+        toast({
+          title: "Export failed.",
+          description: `No matching data for the selected parameters.`,
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error generating PDF:", error);
+      toast({
+          title: "Export failed.",
+          description: `No matching data for the selected parameters.`,
+          variant: "destructive",
+      });
     } finally {
       setOpenExportModal(false);
       setIsExporting(false)
