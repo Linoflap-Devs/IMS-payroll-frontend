@@ -219,10 +219,10 @@ export function generateMovementHistory(
             doc.setTextColor(130);
             doc.setFont('NotoSans', 'italic');
             doc.setTextColor(0);
-            doc.text("VESSEL", margins.left + 2, vesselInfoY + 3);
+            doc.text("CREW", margins.left + 2, vesselInfoY + 3);
             doc.setFontSize(7);
             doc.setFont('NotoSans', 'bold');
-            doc.text('ALL VESSELS', margins.left + 2, vesselInfoY + 6.5);
+            doc.text('ALL CREWS', margins.left + 2, vesselInfoY + 6.5);
 
             // Vertical line for right column
             doc.setDrawColor(0);

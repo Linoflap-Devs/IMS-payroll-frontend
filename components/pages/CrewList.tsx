@@ -38,14 +38,8 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";
-import { CrewItem, CrewMovementHistory, deleteCrew, getCrewMovementHistory, reactivateCrew } from "../../src/services/crew/crew.api";
-import { AiOutlinePrinter } from "react-icons/ai";
+import { CrewItem, deleteCrew, reactivateCrew } from "../../src/services/crew/crew.api";
 import { MdClose } from "react-icons/md";
-import { toast } from "../ui/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { generateMovementHistoryPDFV2 } from "../PDFs/movmentHistoryPDFV2";
-import { lastDayOfMonth, set } from "date-fns";
-import { generateMovementHistoryExcel } from "../Excels/movementHistoryExcel";
 
 const getStatusBgColor = (status: string) => {
   switch (status.toLowerCase().trim()) {
@@ -373,10 +367,6 @@ export default function CrewList() {
     setValidationFilter("all");
     setInactiveFilter("verified");
   };
-
-  // const handleFilterOpen = () => {
-  //   setIsOpenFilter((prev) => !prev);
-  // }
 
   useEffect(() => {
     fetchCrews();
