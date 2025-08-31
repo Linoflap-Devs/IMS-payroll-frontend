@@ -26,6 +26,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  Trash,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,6 +42,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DataTable } from "@/components/ui/data-table";
@@ -60,6 +62,7 @@ import {
   getCrewSSS,
   sssDeductionItem,
   HDMFHistoryEntry,
+  deleteCrewDeductionEntry,
 } from "@/src/services/deduction/crewDeduction.api";
 import { getCrewBasic } from "@/src/services/crew/crew.api";
 import Base64Image from "../Base64Image";
@@ -67,6 +70,7 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { toast } from "../ui/use-toast";
 import { EditDeductionDialog } from "../dialogs/EditDeductionDialog";
+import Swal from "sweetalert2";
 
 type Props = {
   crewCode: string | null;
@@ -312,7 +316,7 @@ export default function DeductionEntries() {
     []
   );
 
-  //console.log('DEDUCTION ENTRIES:   ', deductionEntries);
+  console.log('DEDUCTION ENTRIES:   ', deductionEntries);
 
   useEffect(() => {
     if (crewCode) {
@@ -546,80 +550,59 @@ export default function DeductionEntries() {
         cell: ({ row }) => {
           const deductionId = row.original.DeductionDetailID;
 
-          // const statusMap: Record<number, string> = {
-          //   1: "Completed",
-          //   0: "Pending",
-          //   2: "Declined",
-          //   3: "On Hold",
-          // };
+          const handleDelete = (crewCode: string, deductionId: number) => {
+            const swalWithBootstrapButtons = Swal.mixin({
+              customClass: {
+                confirmButton:
+                  "bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mx-2 rounded",
+                cancelButton:
+                  "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-2 rounded",
+              },
+              buttonsStyling: false,
+            });
 
-          // const handleEdit = (status: number) => {
-          //   if (!crewCode) {
-          //     console.error(
-          //       "Crew code is not available for updating deduction entry."
-          //     );
-          //     return;
-          //   }
-
-          //   const payload = {
-          //     status,
-          //   };
-
-          //   updateCrewDeductionEntry(crewCode, deductionId, payload)
-          //     .then((response) => {
-          //       if (response.success) {
-          //         toast({
-          //           title: "Deduction entry updated successfully",
-          //           description: `Status changed to ${statusMap[status]}`,
-          //           variant: "success",
-          //         });
-          //         setOnSuccess(true);
-          //       } else {
-          //         toast({
-          //           title: "Failed to update deduction entry",
-          //           description: response.message || "Unknown error",
-          //           variant: "destructive",
-          //         });
-          //       }
-          //     })
-          //     .catch((error) => {
-          //       console.error("Error updating deduction entry:", error);
-          //       toast({
-          //         title: "Error updating deduction entry",
-          //         description: error.message || "An error occurred",
-          //         variant: "destructive",
-          //       });
-          //     });
-          // };
+            swalWithBootstrapButtons
+              .fire({
+                title: "Are you sure?",
+                text: `Are you sure you want to delete deduction ${deductionId}? This action cannot be undone.`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                reverseButtons: true,
+              })
+              .then(async (result) => {
+                if (result.isConfirmed) {
+                  await deleteCrewDeductionEntry(crewCode, deductionId).then(
+                    (response) => {
+                      if (response.success) {
+                        setOnSuccess(true);
+                        toast({
+                          title: "Deleted!",
+                          description: "The deduction has been successfully deleted.",
+                          variant: "success",
+                        });
+                      } else {
+                        swalWithBootstrapButtons.fire({
+                          title: "Error!",
+                          text: response.message || "Failed to delete deduction.",
+                          icon: "error",
+                        });
+                      }
+                    }
+                  );
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                  Swal.fire({
+                    title: "Cancelled",
+                    text: "Process cancelled.",
+                    icon: "error",
+                  });
+                }
+              });
+          };
 
           return (
             <div className="text-center">
-              {/* <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                  <DropdownMenuItem onClick={() => handleEdit(1)}>
-                    <CircleCheck strokeWidth={2} />
-                    Completed
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleEdit(0)}>
-                    <CircleEllipsis strokeWidth={2} />
-                    Pending
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleEdit(2)}>
-                    <CircleX strokeWidth={2} />
-                    Declined
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleEdit(3)}>
-                    <CircleDot strokeWidth={2} />
-                    On Hold
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu> */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
@@ -632,7 +615,7 @@ export default function DeductionEntries() {
                     onClick={() => {
                       const deduction = deductionEntries.find(d => d.DeductionDetailID === deductionId);
                       if (deduction) {
-                        setSelectedDeduction(deduction); 
+                        setSelectedDeduction(deduction);
                         setEditDialogOpen(true);
                       }
                     }}
@@ -640,6 +623,18 @@ export default function DeductionEntries() {
                     <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     Edit Deduction Entry
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator/>
+                 <DropdownMenuItem
+                   className="text-destructive text-xs sm:text-sm"
+                   onClick={() => {
+                    if (crewCode) {
+                      handleDelete(crewCode, deductionId)
+                    }
+                   }}
+                 >
+                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                   Delete
+                 </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

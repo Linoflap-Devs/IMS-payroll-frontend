@@ -30,12 +30,16 @@ import {
   Users,
   ArrowUpDown,
   RotateCcw,
+  Loader2,
+  FilterX,
+  Download,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";
 import { CrewItem, deleteCrew, reactivateCrew } from "../../src/services/crew/crew.api";
+import { MdClose } from "react-icons/md";
 
 const getStatusBgColor = (status: string) => {
   switch (status.toLowerCase().trim()) {
@@ -364,7 +368,6 @@ export default function CrewList() {
     setInactiveFilter("verified");
   };
 
-  // Fetch crew data on component mount
   useEffect(() => {
     fetchCrews();
   }, [fetchCrews]);
@@ -376,7 +379,7 @@ export default function CrewList() {
     } else if (inactiveFilter === "pending") {
       if (crew.IsActive === 1) return false;
     }
-    // else "all" shows all crews
+    else "all" //shows all crews
 
     const matchesSearch =
       crew.FirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -430,6 +433,7 @@ export default function CrewList() {
         <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-semibold mb-0">Crew List</h1>
+
           </div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
             <div className="relative w-full md:flex-1">
@@ -441,75 +445,79 @@ export default function CrewList() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-              <Select value={rankFilter} onValueChange={setRankFilter}>
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by rank" />
-                </SelectTrigger>
-                <SelectContent className="max-h-80">
-                  <SelectItem value="all">All Ranks</SelectItem>
-                  {uniqueRanks.map((rank) => (
-                    <SelectItem key={rank.id} value={rank.id.toString()}>
-                      {rank.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Filter by Status</SelectItem>
-                  <SelectItem value="active">On Board</SelectItem>
-                  <SelectItem value="inactive">Off Board</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={validationFilter}
-                onValueChange={setValidationFilter}
-              >
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by validation" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Account Validations</SelectItem>
-                  <SelectItem value="verified">Verified</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="not registered">Not Registered</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={inactiveFilter}
-                onValueChange={setInactiveFilter}
-              >
-                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
-                  <SelectValue placeholder="Filter by inactive" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Crews</SelectItem>
-                  <SelectItem value="verified">Active</SelectItem>
-                  <SelectItem value="pending">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button
-                variant="outline"
-                onClick={clearFilters}
-                className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
-              >
-                Clear Filters
-              </Button>
+            <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full">
+                <Select value={rankFilter} onValueChange={setRankFilter}>
+                  <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
+                    <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                    <SelectValue placeholder="Filter by rank" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-80">
+                    <SelectItem value="all">All Ranks</SelectItem>
+                    {uniqueRanks.map((rank) => (
+                      <SelectItem key={rank.id} value={rank.id.toString()}>
+                        {rank.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
+                    <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">On Board</SelectItem>
+                    <SelectItem value="inactive">Off Board</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={validationFilter}
+                  onValueChange={setValidationFilter}
+                >
+                  <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
+                    <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                    <SelectValue placeholder="Filter by validation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Accounts</SelectItem>
+                    <SelectItem value="verified">Verified</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="not registered">Not Registered</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={inactiveFilter}
+                  onValueChange={setInactiveFilter}
+                >
+                  <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
+                    <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                    <SelectValue placeholder="Filter by inactive" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Crews</SelectItem>
+                    <SelectItem value="verified">Active</SelectItem>
+                    <SelectItem value="pending">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+                >
+                  <span className="flex items-center" >
+                    <MdClose className="mr-2" />
+                    Clear Filters
+                  </span>
+                </Button>
+              </div>
               <Link href="/home/crew/add-crew">
                 <Button
-                  className="whitespace-nowrap h-9 sm:h-10 px-5 sm:px-7 text-xs sm:text-sm w-full sm:w-auto"
+                  className="whitespace-nowrap h-9 sm:h-10 px-6 sm:px-7 text-xs sm:text-sm w-full sm:w-auto"
                   size="default"
                 >
-                  <Plus className="mr-3 sm:mr-5 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
+                  <Plus className="mr-3 sm:mr-6 h-4 sm:h-4.5 w-4 sm:w-4.5" />{" "}
                   <p className="mr-4">Add Crew</p>
                 </Button>
               </Link>
@@ -521,7 +529,7 @@ export default function CrewList() {
             </div>
           ) : (
             <div className="bg-white rounded-md border pb-3">
-              <DataTable columns={columns} data={filteredCrew} />
+              <DataTable columns={columns} pageSize={10} data={filteredCrew} />
             </div>
           )}
         </div>

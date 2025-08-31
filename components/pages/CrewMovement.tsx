@@ -22,16 +22,15 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useDebounce } from "@/lib/useDebounce";
 import { getVesselList, VesselItem } from "@/src/services/vessel/vessel.api";
-import generateOnboardCrewReport from "../PDFs/onboardCrewReportPDF";
 import { CrewMovementHistory, getCrewMovementHistory } from "@/src/services/crew/crew.api";
 import { generateMovementHistoryPDF } from "../PDFs/movmentHistoryPDF";
 import { AiOutlinePrinter } from "react-icons/ai";
 import { generateMovementHistoryExcel } from "../Excels/movementHistoryExcel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { lastDayOfMonth, set } from "date-fns";
-import { se } from "date-fns/locale";
 import { toast } from "../ui/use-toast";
 import { generateMovementHistoryPDFV2 } from "../PDFs/movmentHistoryPDFV2";
+import { generateMovementHistoryExcelV2 } from "../Excels/movmentHistoryExcelV2";
 
 interface Vessel {
   vesselId: number;
@@ -51,12 +50,22 @@ export default function CrewMovement() {
   const [vesselData, setVesselData] = useState<Vessel[]>([]);
   const [vesselTypeFilter, setVesselTypeFilter] = useState("all");
   const [crewMovementHistory, setCrewMovementHistory] = useState<CrewMovementHistory[]>([]);
-  const [isExporting, setIsExporting] = useState(false);
-  const [openExportModal, setOpenExportModal] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [isExportingVessel, setIsExportingVessel] = useState(false);
+  const [openExportModalVessel, setOpenExportModalVessel] = useState(false);
+  const [selectedMonthVessel, setSelectedMonthVessel] = useState<number>(new Date().getMonth() + 1);
+  const [selectedYearVessel, setSelectedYearVessel] = useState<number>(new Date().getFullYear());
   const [selectedVessel, setSelectedVessel] = useState<number>(0);
-  const [loadingPDFExport, setLoadingPDFExport] = useState(false);
+  const [loadingPDFExportVessel, setLoadingPDFExportVessel] = useState(false);
+  const [loadingExcelExportVessel, setLoadingExcelExportVessel] = useState(false);
+
+  const [isExportingCrew, setIsExportingCrew] = useState(false);
+  const [openExportModalCrew, setOpenExportModalCrew] = useState(false);
+  const [selectedMonthCrew, setSelectedMonthCrew] = useState<number>(new Date().getMonth() + 1);
+  const [selectedYearCrew, setSelectedYearCrew] = useState<number>(new Date().getFullYear());
+  const [loadingPDFExportCrew, setLoadingPDFExportCrew] = useState(false);
+  const [loadingExcelExportCrew, setLoadingExcelExportCrew] = useState(false);
+
+  const [exportType, setExportType] = useState<"pdf" | "excel" | null>(null);
 
   // Fetch vessel list on mount
   useEffect(() => {
@@ -92,19 +101,15 @@ export default function CrewMovement() {
     fetchVessels();
   }, []);
 
-  // useEffect(() => {
-  //   console.log("Selected vessel:", selectedVessel);
-  //   console.log("Vessel: ", vesselData.find((v) => v.vesselId === selectedVessel));
-  // }, [selectedVessel])
-
-  const handlePdfExport = async () => {
+  const handlePdfExportVessel = async () => {
     try {
-      setIsExporting(true);
+      setIsExportingVessel(true);
+      setLoadingPDFExportVessel(true);
 
       const movements = await getCrewMovementHistory(
         {
-          startDate: selectedMonth ? new Date(selectedYear, selectedMonth - 1, 1) : undefined,
-          endDate: selectedYear ? lastDayOfMonth(new Date(selectedYear, selectedMonth - 1, 1)) : undefined,
+          startDate: selectedMonthVessel ? new Date(selectedYearVessel, selectedMonthVessel - 1, 1) : undefined,
+          endDate: selectedYearVessel ? lastDayOfMonth(new Date(selectedYearVessel, selectedMonthVessel - 1, 1)) : undefined,
           vesselId: selectedVessel > 0 ? selectedVessel : undefined
         }
       );
@@ -114,8 +119,8 @@ export default function CrewMovement() {
 
         await generateMovementHistoryPDFV2(
           movements.data,
-          selectedMonth,
-          selectedYear,
+          selectedMonthVessel,
+          selectedYearVessel,
           new Date(),
           selectedVessel > 0 ? "vessel" : "all"
         );
@@ -130,19 +135,100 @@ export default function CrewMovement() {
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast({
-          title: "Export failed.",
-          description: `No matching data for the selected parameters.`,
-          variant: "destructive",
+        title: "Export failed.",
+        description: `No matching data for the selected parameters.`,
+        variant: "destructive",
       });
     } finally {
-      setOpenExportModal(false);
-      setIsExporting(false)
+      setOpenExportModalVessel(false);
+      setIsExportingVessel(false)
+      setLoadingPDFExportVessel(false);
     }
   };
 
-  const handleExcelExport = async () => {
+  const handleExcelExportVessel = async () => {
     try {
-      setIsExporting(true);
+      setIsExportingVessel(true);
+      setLoadingExcelExportVessel(true);
+
+      const movements = await getCrewMovementHistory(
+        {
+          startDate: selectedMonthVessel ? new Date(selectedYearVessel, selectedMonthVessel - 1, 1) : undefined,
+          endDate: selectedYearVessel ? lastDayOfMonth(new Date(selectedYearVessel, selectedMonthVessel - 1, 1)) : undefined,
+          vesselId: selectedVessel > 0 ? selectedVessel : undefined
+        }
+      );
+
+      if (movements.success) {
+        setCrewMovementHistory(movements.data);
+
+        await generateMovementHistoryExcelV2(
+          movements.data,
+          selectedMonthVessel,
+          selectedYearVessel,
+          new Date(),
+          selectedVessel > 0 ? "vessel" : "all"
+        );
+      } else {
+        console.error("Failed to fetch crew movements:", movements.message);
+      }
+    } catch (error) {
+      console.error("Error generating Excel:", error);
+    } finally {
+      setIsExportingVessel(false);
+      setLoadingExcelExportVessel(false);
+    }
+  };
+
+  ///// ================= by Crew >> List
+
+  const handlePdfExportCrew = async () => {
+    try {
+      setIsExportingCrew(true);
+      setLoadingPDFExportCrew(true);
+
+      const movements = await getCrewMovementHistory(
+        {
+          startDate: undefined,
+          endDate: lastDayOfMonth(new Date(selectedYearCrew, selectedMonthCrew - 1, 1))
+        }
+      );
+
+      if (movements.success) {
+        setCrewMovementHistory(movements.data);
+
+        await generateMovementHistoryPDF(
+          movements.data,
+          selectedMonthCrew,
+          selectedYearCrew,
+        );
+      } else {
+        console.error("Failed to fetch crew movements:", movements.message);
+        toast({
+          title: "Export failed.",
+          description: `No matching data for the selected parameters.`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Export failed.",
+        description: `No matching data for the selected parameters.`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsExportingCrew(false)
+      setLoadingPDFExportCrew(false);
+      setOpenExportModalCrew(false);
+    }
+  };
+
+  const handleExcelExportCrew = async () => {
+    try {
+      setIsExportingCrew(true);
+      setOpenExportModalCrew(true);
+      setLoadingExcelExportCrew(true);
 
       const movements = await getCrewMovementHistory();
 
@@ -160,7 +246,9 @@ export default function CrewMovement() {
     } catch (error) {
       console.error("Error generating Excel:", error);
     } finally {
-      setIsExporting(false);
+      setIsExportingCrew(false);
+      setOpenExportModalCrew(false);
+      setLoadingExcelExportCrew(false);
     }
   };
 
@@ -237,7 +325,7 @@ export default function CrewMovement() {
   });
 
   useEffect(() => {
-    if (openExportModal) {
+    if (openExportModalVessel && openExportModalCrew) {
       document.body.style.overflow = "hidden";
       document.body.style.pointerEvents = "none";
     } else {
@@ -250,7 +338,7 @@ export default function CrewMovement() {
       document.body.style.overflow = "";
       document.body.style.pointerEvents = "";
     };
-  }, [openExportModal]);
+  }, [openExportModalVessel, openExportModalCrew]);
 
   return (
     <div className="h-full w-full p-4 pt-2">
@@ -282,6 +370,7 @@ export default function CrewMovement() {
               />
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+
               <Select value={vesselTypeFilter} onValueChange={setVesselTypeFilter}>
                 <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
                   <Filter className="h-4 sm:h-4.5 w-4 sm:w-4.5" />
@@ -303,8 +392,8 @@ export default function CrewMovement() {
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="h-10 px-4 text-sm" disabled={isExporting}>
-                  {isExporting ? (
+                <Button className="h-10 px-4 text-sm" disabled={isExportingVessel}>
+                  {isExportingVessel ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Exporting...
@@ -312,26 +401,33 @@ export default function CrewMovement() {
                   ) : (
                     <>
                       <AiOutlinePrinter className="mr-2 h-4 w-4" />
-                      Print Summary
+                      Print Summary by Vessel
                     </>
                   )}
                 </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent className="text-sm w-48">
-                <DropdownMenuItem onClick={() => setOpenExportModal(true)} disabled={isExporting}>
+                <DropdownMenuItem onClick={() => { setExportType("pdf"); setOpenExportModalVessel(true); }}
+                  //onClick={() => setOpenExportModalVessel(true)} 
+                  disabled={isExportingVessel}>
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
                   Export PDF
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={handleExcelExport} disabled={isExporting}>
+                <DropdownMenuItem onClick={() => { setExportType("excel"); setOpenExportModalVessel(true); }}
+                  //onClick={() => setOpenExportModalVessel(true)} 
+                  disabled={isExportingVessel}>
                   <AiOutlinePrinter className="mr-2 h-4 w-4" />
                   Export Excel
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {/* <Button className="h-10 px-4 text-sm" disabled={isExporting} onClick={()=> setOpenExportModal(true)}>
-                  {isExporting ? (
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-10 px-4 text-sm" disabled={isExportingCrew}>
+                  {isExportingCrew ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Exporting...
@@ -339,11 +435,30 @@ export default function CrewMovement() {
                   ) : (
                     <>
                       <AiOutlinePrinter className="mr-2 h-4 w-4" />
-                      Print Summary
+                      Print Summary by Crew
                     </>
                   )}
-                </Button> */}
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent className="text-sm w-48">
+                <DropdownMenuItem onClick={() => { setExportType("pdf"); setOpenExportModalCrew(true); }}
+                  //onClick={() => setOpenExportModalCrew(true)} 
+                  disabled={isExportingCrew}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  Export PDF
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => { setExportType("excel"); setOpenExportModalCrew(true); }}
+                  //onClick={handleExcelExportCrew}
+                  disabled={isExportingCrew}>
+                  <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                  Export Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+
           <div className="text-center">
             {loadingVessels ? (
               <div className="flex justify-center items-center h-32">
@@ -356,8 +471,8 @@ export default function CrewMovement() {
         </div>
       </div>
 
-      {openExportModal && (
-        <Dialog open={openExportModal} onOpenChange={setOpenExportModal}>
+      {openExportModalVessel && (
+        <Dialog open={openExportModalVessel} onOpenChange={setOpenExportModalVessel}>
           <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
@@ -365,41 +480,43 @@ export default function CrewMovement() {
               </DialogTitle>
             </DialogHeader>
 
-            <div className="grid grid-cols-1 gap-5 mb-1">
-              <Select
-                onValueChange={(value) => setSelectedMonth(Number(value))}
-                value={selectedMonth.toString()}
-              >
-                <SelectTrigger className="w-full rounded-md h-10 gap-1">
-                  <SelectValue placeholder="Select Month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <SelectItem key={i + 1} value={(i + 1).toString()}>
-                      {new Date(0, i).toLocaleString("default", { month: "long" })}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                onValueChange={(value) => setSelectedYear(Number(value))}
-                value={selectedYear.toString()}
-              >
-                <SelectTrigger className="w-full rounded-md h-10 gap-1">
-                  <SelectValue placeholder="Select Year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 5 }, (_, i) => {
-                    const year = new Date().getFullYear() - i;
-                    return (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
+            <div className="grid grid-cols-1 gap-6 mb-1">
+              <div className="flex gap-4">
+                <Select
+                  onValueChange={(value) => setSelectedMonthVessel(Number(value))}
+                  value={selectedMonthVessel.toString()}
+                >
+                  <SelectTrigger className="w-full rounded-md h-10 gap-1">
+                    <SelectValue placeholder="Select Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                        {new Date(0, i).toLocaleString("default", { month: "long" })}
                       </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  onValueChange={(value) => setSelectedYearVessel(Number(value))}
+                  value={selectedYearVessel.toString()}
+                >
+                  <SelectTrigger className="w-full rounded-md h-10 gap-1">
+                    <SelectValue placeholder="Select Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 5 }, (_, i) => {
+                      const year = new Date().getFullYear() - i;
+                      return (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <Select
                 onValueChange={(value) => setSelectedVessel(Number(value))}
@@ -410,7 +527,7 @@ export default function CrewMovement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem key={0} value={"0"}>
-                    {'All'}
+                    {'All Vessels'}
                   </SelectItem>
                   {
                     vesselData.map((vessel) => {
@@ -430,16 +547,22 @@ export default function CrewMovement() {
                 type="button"
                 variant="outline"
                 className="flex-1"
-                onClick={() => setOpenExportModal(false)}
+                onClick={() => setOpenExportModalVessel(false)}
               >
                 Cancel
               </Button>
               <Button
                 type="button"
-                onClick={handlePdfExport}
+                onClick={() => {
+                  if (exportType == "pdf") {
+                    handlePdfExportVessel();
+                  } else if (exportType == "excel") {
+                    handleExcelExportVessel();
+                  }
+                }}
                 className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
               >
-                {loadingPDFExport ? (
+                {(loadingPDFExportVessel || loadingExcelExportVessel) ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     <span>Exporting...</span>
@@ -447,7 +570,92 @@ export default function CrewMovement() {
                 ) : (
                   <>
                     <Download className="mr-2 h-4 w-4" />
-                    Export
+                    Export {exportType?.toUpperCase()}
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {openExportModalCrew && (
+        <Dialog open={openExportModalCrew} onOpenChange={setOpenExportModalCrew}>
+          <DialogContent className="sm:max-w-[600px] bg-[#FCFCFC] p-10">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
+                Select Year and Month
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="grid grid-cols-1 gap-6 mb-1">
+              <div>
+                <Select
+                  onValueChange={(value) => setSelectedMonthCrew(Number(value))}
+                  value={selectedMonthCrew.toString()}
+                >
+                  <SelectTrigger className="w-full rounded-md h-10 gap-1 mb-3">
+                    <SelectValue placeholder="Select Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                        {new Date(0, i).toLocaleString("default", { month: "long" })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  onValueChange={(value) => setSelectedYearCrew(Number(value))}
+                  value={selectedYearCrew.toString()}
+                >
+                  <SelectTrigger className="w-full rounded-md h-10 gap-1">
+                    <SelectValue placeholder="Select Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 5 }, (_, i) => {
+                      const year = new Date().getFullYear() - i;
+                      return (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setOpenExportModalCrew(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  if (exportType == "pdf") {
+                    handlePdfExportCrew();
+                  } else if (exportType == "excel") {
+                    handleExcelExportCrew();
+                  }
+                }}
+                className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
+              >
+                {(loadingPDFExportCrew || loadingExcelExportCrew) ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export {exportType?.toUpperCase()}
                   </>
                 )}
               </Button>

@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
-  MoreHorizontal,
   Filter,
   Ship,
   ChevronLeft,
@@ -24,22 +23,10 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "../ui/card";
-import { MdOutlineBadge } from "react-icons/md";
-import { PromoteCrewDialog } from "../dialogs/PromoteCrewDialog";
 import {
   getVesselCrew,
   type VesselCrewResponse,
 } from "@/src/services/vessel/vessel.api";
-
-interface ISelectedCrew {
-  id: number;
-  name: string;
-  status: string;
-  rank: string;
-  crewCode: string;
-  currentVessel?: string;
-  vesselId?: number;
-}
 
 export default function VesselCrewList() {
   const searchParams = useSearchParams();
@@ -48,8 +35,6 @@ export default function VesselCrewList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [vesselData, setVesselData] = useState<VesselCrewResponse | null>(null);
-  const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
-  const [selectedCrew, setSelectedCrew] = useState<ISelectedCrew>();
   const [onSuccess, setOnSuccess] = useState(false);
   const [selectedRank, setSelectedRank] = useState<string | null>(null);
 
@@ -80,9 +65,8 @@ export default function VesselCrewList() {
     () =>
       vesselData?.data.Crew.map((crew, index) => ({
         id: index + 1,
-        name: `${crew.FirstName} ${
-          crew.MiddleName ? crew.MiddleName + " " : ""
-        }${crew.LastName}`,
+        name: `${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + " " : ""
+          }${crew.LastName}`,
         status: crew.Status === 1 ? "On board" : "Inactive",
         rank: crew.Rank,
         crewCode: crew.CrewCode,
@@ -102,8 +86,8 @@ export default function VesselCrewList() {
     return crewData.filter((crew) => {
       const matchesSearch = searchTerm
         ? crew.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          crew.rank.toLowerCase().includes(searchTerm.toLowerCase())
+        crew.crewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        crew.rank.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
 
       const matchesRank = selectedRank ? crew.rank === selectedRank : true;
@@ -177,42 +161,12 @@ export default function VesselCrewList() {
           <div className="flex justify-center">
             <Badge
               variant="secondary"
-              className={`${
-                status === "On board"
+              className={`${status === "On board"
                   ? "bg-green-100 text-green-800 hover:bg-green-100/80"
                   : "bg-gray-100 text-gray-800 hover:bg-gray-100/80"
-              }`}>
+                }`}>
               {status}
             </Badge>
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      header: "Action",
-      cell: ({ row }) => {
-        const crew = row.original;
-        return (
-          <div className="text-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedCrew(crew);
-                    setPromoteDialogOpen(true);
-                  }}>
-                  <MdOutlineBadge />
-                  For Promotion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         );
       },
@@ -267,11 +221,10 @@ export default function VesselCrewList() {
               </h2>
               <Badge
                 variant="secondary"
-                className={`mt-2 px-6 py-0 ${
-                  vesselData?.data.VesselInfo.Status === 1
+                className={`mt-2 px-6 py-0 ${vesselData?.data.VesselInfo.Status === 1
                     ? "bg-blue-100 text-blue-800"
                     : "bg-gray-100 text-gray-800"
-                }`}
+                  }`}
               >
                 {vesselData?.data.VesselInfo.Status === 1
                   ? "Active"
@@ -353,28 +306,6 @@ export default function VesselCrewList() {
           )}
         </div>
       </div>
-
-      <PromoteCrewDialog
-        open={promoteDialogOpen}
-        onOpenChange={setPromoteDialogOpen}
-        crewMember={
-          selectedCrew
-            ? {
-                ...selectedCrew,
-                currentVessel: vesselName || "",
-                vesselId: vesselId ? Number(vesselId) : 0,
-              }
-            : {
-                id: 0,
-                name: "",
-                status: "",
-                rank: "",
-                crewCode: "",
-                currentVessel: "",
-                vesselId: 0,
-              }
-        }
-      />
     </div>
   );
 }

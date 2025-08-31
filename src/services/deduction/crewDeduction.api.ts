@@ -73,6 +73,11 @@ export const updateCrewDeductionEntry = async (crewCode: string, deductionId: nu
   return response.data;
 }
 
+export const deleteCrewDeductionEntry = async (crewCode: string, deductionId: number): Promise<AddDeductionResponse> => {
+  const response = await axiosInstance.delete<AddDeductionResponse>(`/deductions/${crewCode}/entries/${deductionId}`);
+  return response.data;
+}
+
 export const addHDMFUpgrade = async (crewCode: string, hdmfAmount: number, isDollar: number): Promise<AddDeductionResponse> => {
   const response = await axiosInstance.post<AddDeductionResponse>(`/deductions/${crewCode}/hdmf`, {
     hdmfAmount,
