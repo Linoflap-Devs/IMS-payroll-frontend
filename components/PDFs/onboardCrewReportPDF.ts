@@ -302,7 +302,7 @@ export function generateOnboardCrewReportPDF(
                 columnKeys.forEach((key, i) => {
                     if(i === 2) {
                         // Crew Name
-                        const crewName = `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + ' ' : ''}`;
+                        const crewName = `${crew.LastName.toUpperCase()}, ${crew.FirstName.toUpperCase()} ${crew.MiddleName ? crew.MiddleName + ' ' : ''}`;
                         doc.text(crewName, colPositions[2] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                     }
                     else if (i === 0) {

@@ -338,7 +338,7 @@ export function generateMovementHistory(
             columnKeys.forEach((key: any, i) => {
                 //console.log(crew)
                 if(key === 'CrewName') {
-                    const name = `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + ' ' : ''}`;
+                    const name = `${crew.LastName.toUpperCase()}, ${crew.FirstName.toUpperCase()} ${crew.MiddleName ? crew.MiddleName + ' ' : ''}`;
                     doc.text(name, colPositions[i] + 5, y + 5, {align: 'left'});
                 }
                 else if(i <= 1) {

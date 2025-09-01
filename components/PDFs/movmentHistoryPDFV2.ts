@@ -327,7 +327,7 @@ export function generateMovementHistoryV2(
                     let value = '';
                     if (key === 'CrewName') {
                         // Crew Name
-                        value = `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + ' ' : ''}`;
+                        value = `${crew.LastName.toUpperCase()}, ${crew.FirstName.toUpperCase()} ${crew.MiddleName ? crew.MiddleName + ' ' : ''}`;
                     } else if ((key === "OnboardDate" || key === "OffboardDate") && movement[key as keyof Movement]) {
                         value = format(movement[key as keyof Movement] as Date, 'yyyy-MM-dd');
                     }
