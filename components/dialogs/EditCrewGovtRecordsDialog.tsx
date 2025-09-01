@@ -130,11 +130,8 @@ export function EditCrewGovtRecordsDialog({
         payload.hdmfNumber = values.hdmfNumber;
       }
 
-      console.log(payload);
-
       // updateCrew should accept Partial<UpdateCrewDataForm>
       const response = await updateCrew(crewGovtTypeData.CrewCode, payload);
-      console.log('response: ', response)
 
       if (response.success) {
         toast({
@@ -196,6 +193,7 @@ export function EditCrewGovtRecordsDialog({
                           placeholder={`Enter ${label}`}
                           className="border border-[#E0E0E0] rounded-md"
                           {...field}
+                          value={field.value ?? ""} 
                         />
                       </FormControl>
                       <FormMessage />
