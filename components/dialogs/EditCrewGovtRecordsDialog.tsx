@@ -19,47 +19,43 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { updateCrew, CrewItem, UpdateCrewDataForm } from "@/src/services/crew/crew.api";
-import { Pencil, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-// Schema
-const clean = (val: string | undefined) => val?.replace(/[^0-9]/g, "") || "";
-
 // Schema with sanitization
 const crewGovtSchema = z.object({
-  sssNumber: z.preprocess(
-    (val) => {
-      const cleaned = clean(String(val ?? ""));
-      return cleaned === "" ? undefined : cleaned;
-    },
-    z.string().length(10, { message: "Must be 10 digits" }).optional()
-  ),
-  taxIdNumber: z.preprocess(
-    (val) => {
-      const cleaned = clean(String(val ?? ""));
-      return cleaned === "" ? undefined : cleaned;
-    },
-    z.string()
-      .min(9, { message: "Must be 9 to 12 digits" })
-      .max(12, { message: "Must be 9 to 12 digits" })
-      .optional()
-  ),
-  philhealthNumber: z.preprocess(
-    (val) => {
-      const cleaned = clean(String(val ?? ""));
-      return cleaned === "" ? undefined : cleaned;
-    },
-    z.string().length(12, { message: "Must be 12 digits" }).optional()
-  ),
-  hdmfNumber: z.preprocess(
-    (val) => {
-      const cleaned = clean(String(val ?? ""));
-      return cleaned === "" ? undefined : cleaned;
-    },
-    z.string().length(12, { message: "Must be 12 digits" }).optional()
-  ),
+  sssNumber: z
+    .string()
+    .refine((val) => val.replace(/\D/g, "").length === 10, {
+      message: "Must be 10 digits",
+    })
+    .optional(),
+
+  tinNumber: z
+    .string()
+    .refine((val) => {
+      const digits = val.replace(/\D/g, "");
+      return digits.length >= 9 && digits.length <= 12;
+    }, {
+      message: "Must be 9 to 12 digits",
+    })
+    .optional(),
+
+  philhealthNumber: z
+    .string()
+    .refine((val) => val.replace(/\D/g, "").length === 12, {
+      message: "Must be 12 digits",
+    })
+    .optional(),
+
+  hdmfNumber: z
+    .string()
+    .refine((val) => val.replace(/\D/g, "").length === 12, {
+      message: "Must be 12 digits",
+    })
+    .optional(),
 });
 
 type CrewGovtFormData = z.infer<typeof crewGovtSchema>;
@@ -75,7 +71,7 @@ interface EditCrewGovtRecordsProps {
 //  Maps backend data to form format
 const mapCrewDataToForm = (data: CrewItem): CrewGovtFormData => ({
   sssNumber: data.SSSNumber || undefined,
-  taxIdNumber: data.TaxIDNumber || undefined,
+  tinNumber: data.TaxIDNumber || undefined,
   philhealthNumber: data.PhilHealthNumber || undefined,
   hdmfNumber: data.HDMFNumber || undefined,
 });
@@ -85,7 +81,6 @@ export function EditCrewGovtRecordsDialog({
   onOpenChange,
   crewGovtTypeData,
   onSuccess,
-  setSelectedCrewData
 }: EditCrewGovtRecordsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -116,45 +111,23 @@ export function EditCrewGovtRecordsDialog({
     setIsSubmitting(true);
 
     try {
-      // Return type is explicitly string | undefined
-      const buildPayloadField = (
-        formValue?: string,
-        originalValue?: string | null
-      ): string | undefined => {
-        const normalizedFormValue = formValue?.trim() ?? "";
-        const normalizedOriginalValue = originalValue ?? "";
-
-        if (normalizedFormValue === normalizedOriginalValue) {
-          return undefined;
-        }
-
-        return normalizedFormValue;
-      };
-
       // Allow only optional keys from UpdateCrewDataForm
       const payload: Partial<UpdateCrewDataForm> = {};
 
-      const sssNumber = buildPayloadField(values.sssNumber, crewGovtTypeData.SSSNumber);
-      if (sssNumber !== undefined) payload.sssNumber = sssNumber;
+      if (values.sssNumber?.trim() !== crewGovtTypeData.SSSNumber) {
+        payload.sssNumber = values.sssNumber; // send as-is (with spaces/dashes)
+      }
 
-      const taxIdNumber = buildPayloadField(values.taxIdNumber, crewGovtTypeData.TaxIDNumber);
-      if (taxIdNumber !== undefined) payload.taxIdNumber = taxIdNumber;
+      if (values.tinNumber?.trim() !== crewGovtTypeData.TaxIDNumber) {
+        payload.tinNumber = values.tinNumber;
+      }
 
-      const philhealthNumber = buildPayloadField(values.philhealthNumber, crewGovtTypeData.PhilHealthNumber);
-      if (philhealthNumber !== undefined) payload.philhealthNumber = philhealthNumber;
+      if (values.philhealthNumber?.trim() !== crewGovtTypeData.PhilHealthNumber) {
+        payload.philhealthNumber = values.philhealthNumber;
+      }
 
-      const hdmfNumber = buildPayloadField(values.hdmfNumber, crewGovtTypeData.HDMFNumber);
-      if (hdmfNumber !== undefined) payload.hdmfNumber = hdmfNumber;
-
-      // Call API only if payload is not empty
-      if (Object.keys(payload).length === 0) {
-        toast({
-          title: "No changes detected",
-          description: "No updates to send.",
-          variant: "default",
-        });
-        setIsSubmitting(false);
-        return;
+      if (values.hdmfNumber?.trim() !== crewGovtTypeData.HDMFNumber) {
+        payload.hdmfNumber = values.hdmfNumber;
       }
 
       // updateCrew should accept Partial<UpdateCrewDataForm>
@@ -201,7 +174,7 @@ export function EditCrewGovtRecordsDialog({
               {[
                 ["sssNumber", "SSS Number"],
                 ["philhealthNumber", "PhilHealth Number"],
-                ["taxIdNumber", "Tax ID Number"],
+                ["tinNumber", "Tax ID Number"],
                 ["hdmfNumber", "HDMF Number"],
               ].map(([name, label]) => (
                 <FormField
@@ -220,6 +193,7 @@ export function EditCrewGovtRecordsDialog({
                           placeholder={`Enter ${label}`}
                           className="border border-[#E0E0E0] rounded-md"
                           {...field}
+                          value={field.value ?? ""} 
                         />
                       </FormControl>
                       <FormMessage />

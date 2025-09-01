@@ -13,7 +13,6 @@ interface AddAllotteeReqDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedApplicationStatus: string;
-  selectedApplicationOperation: string;
   requestData: {
     AllotteeRequestID: number;
     ApplicationRequestID: number;
@@ -43,14 +42,12 @@ export function AddAllotteeReqDialog({
   open,
   onOpenChange,
   selectedApplicationStatus,
-  selectedApplicationOperation,
   requestData,
   onSuccess,
 }: AddAllotteeReqDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const handleClose = () => onOpenChange(false);
-  //console.log(requestData);
 
   const handleProcess = async (status: number) => {
     setIsSubmitting(true);

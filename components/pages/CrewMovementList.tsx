@@ -44,7 +44,6 @@ interface ISelectedCrew {
   currentVessel?: string;
   vesselId?: number;
   rankId: number;
-  //signOnDate?: Date;
 }
 
 export interface IOffBoardCrew {
@@ -79,7 +78,6 @@ export default function CrewMovementList() {
   const [rankFilter, setRankFilter] = useState("all");
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
-  //const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
   const [totalCrews, setTotalCrews] = useState<number>(0);
 
   useEffect(() => {
@@ -98,9 +96,6 @@ export default function CrewMovementList() {
 
     fetchVesselCrew();
   }, [vesselId, onSuccess]);
-  //console.log('', vesselData?.data.Crew.SignOnDate ?? "")
-
-  //console.log('VESSEL DATA: ', vesselData);
 
   useEffect(() => {
     setIsLoadingJoin(true);
@@ -143,10 +138,6 @@ export default function CrewMovementList() {
       });
   }, []);
 
-  //console.log('ALL CREWS: ', allCrews);
-  //console.log('TOTAL CREWS: ', totalCrews);
-
-  //const selectedCrews = Object.keys(selectedRowIds).filter((id) => selectedRowIds[id]).map((id) => displayedCrews[parseInt(id, 10)]);
   const selectedCrews = allCrews.filter((crew) => selectedRowIds[crew.CrewCode]);
 
   useEffect(() => {
@@ -181,16 +172,11 @@ export default function CrewMovementList() {
     [vesselData]
   );
 
-  //console.log(crewData);
-
-  //console.log(allCrews);
-
   const selectedRows = crewData.filter((row) => selectedRowIds[row.crewCode]);
   const allCrewCodes = useMemo(() => allCrews.map(c => c.CrewCode), [allCrews]);
 
   const filteredCrewData = useMemo(() => {
     return crewData.filter((crew) => {
-      //console.log("Filtering:", crew.name, searchTerm);
 
       const matchesSearch = searchTerm
         ? `${crew.name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -211,12 +197,11 @@ export default function CrewMovementList() {
 
     return allCrews.filter((crew) => {
       const firstName = (crew.FirstName ?? '').trim().toLowerCase();
-      const middleName = (crew.MiddleName ?? '').trim().toLowerCase(); // optional
+      const middleName = (crew.MiddleName ?? '').trim().toLowerCase();
       const lastName = (crew.LastName ?? '').trim().toLowerCase();
 
-      // Include middleName only if it exists
       const fullName = [firstName, middleName, lastName]
-        .filter(Boolean) // remove empty strings
+        .filter(Boolean)
         .join(' ')
         .replace(/\s+/g, ' ')
         .trim();
@@ -233,9 +218,6 @@ export default function CrewMovementList() {
       return matchesSearch && matchesRank;
     });
   }, [allCrews, searchTerm, rankFilter]);
-
-  const totalSelectedCount = Object.values(selectedRowIds).filter(Boolean).length;
-  //console.log('TOTAL SELECT COUNT: ', totalSelectedCount);
 
   const columnJoin: ColumnDef<IOffBoardCrew>[] = [
     {
@@ -358,16 +340,12 @@ export default function CrewMovementList() {
     },
   ];
 
-  //console.log(crewData);
-
   const columRepatriate: ColumnDef<(typeof crewData)[number]>[] = [
     {
       id: "select",
       header: ({ table }) => {
-        // Get crew codes of rows visible on the current page
         const visibleCrewCodes = table.getRowModel().rows.map(row => row.original.crewCode);
 
-        // Check if all visible rows are selected globally
         const allSelected = visibleCrewCodes.length > 0 && visibleCrewCodes.every(code => selectedRowIds[code]);
         const someSelected = visibleCrewCodes.some(code => selectedRowIds[code]);
 
@@ -461,18 +439,18 @@ export default function CrewMovementList() {
           <ArrowDownUp size={15} />
         </div>
       ),
-    cell: ({ row }) => {
-      const rawDate = row.getValue("signOnDate") as string | Date | null;
-      const formattedDate = rawDate
-        ? new Intl.DateTimeFormat("en-US", {
+      cell: ({ row }) => {
+        const rawDate = row.getValue("signOnDate") as string | Date | null;
+        const formattedDate = rawDate
+          ? new Intl.DateTimeFormat("en-US", {
             month: "short",
             day: "2-digit",
             year: "numeric",
           }).format(new Date(rawDate))
-        : "-";
+          : "-";
 
-      return <div className="text-center">{formattedDate}</div>;
-    }
+        return <div className="text-center">{formattedDate}</div>;
+      }
     },
     {
       accessorKey: "status",
@@ -630,8 +608,6 @@ export default function CrewMovementList() {
     }));
 
     setSelectedCrew(enrichedSelectedRows);
-
-    //console.log(enrichedSelectedRows); // now working
     setRepatriateDialogOpen(true);
   };
 

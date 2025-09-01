@@ -1,6 +1,7 @@
 import axiosInstance from "../../lib/axios";
 
 export interface CrewItem {
+  tinNumber: string | null;
   HDMFNumber: string | null;
   PhilHealthNumber: string | null;
   TaxIDNumber: string | null;
@@ -29,6 +30,7 @@ export const getCrewList = async (): Promise<CrewResponse> => {
 };
 
 export interface CrewDetails {
+  tinNumber: string;
   crewPhoto: any;
   FirstName: string;
   MiddleName: string;
@@ -166,17 +168,20 @@ export interface CrewRankItem {
   RankName: string;
   Rsequence: number;
 }
+
 export interface CrewRankResponse {
   success: boolean;
   data: CrewRankItem[];
   message?: string;
 }
+
 export const getCrewRankList = async (): Promise<CrewRankResponse> => {
   const response = await axiosInstance.get<CrewRankResponse>(`/ranks`);
   return response.data;
 }
 
 export interface AddCrewDataForm {
+  taxIdNumber?: string | number | File | null | undefined;
   crewCode: string;
   rank: string;
   vessel?: string;
@@ -193,7 +198,7 @@ export interface AddCrewDataForm {
   province: string;
   address: string;
   sssNumber?: string;
-  tinNumber?: string;
+  tinNumber?: string | null;
   philhealthNumber?: string;
   hdmfNumber?: string;
   passportNumber: string;
@@ -202,26 +207,25 @@ export interface AddCrewDataForm {
   seamanBookNumber: string;
   seamanBookIssueDate: string; 
   seamanBookExpiryDate: string; 
-  crewPhoto?: File; // Optional file upload
+  crewPhoto?: File;
 }
 
 export interface UpdateCrewDataForm {
-  taxIdNumber: string | number | File | null | undefined;
   address: string | number | File | null | undefined;
   crewCode?: string;
-  rank?: string; // Backend's Zod schema: z.coerce.number()
-  vessel?: string; // Backend's Zod schema: z.optional(z.coerce.number())
+  rank?: string;
+  vessel?: string;
   mobileNumber?: string;
   landlineNumber?: string;
   emailAddress?: string;
   lastName?: string;
   firstName?: string;
   middleName?: string;
-  sex?: string; // Backend's Zod schema: z.string().min(1).max(6) (e.g., "Male", "Female", or string "0", "1")
-  maritalStatus?: string; // Backend's Zod schema: z.optional(z.coerce.number())
+  sex?: string;
+  maritalStatus?: string;
   dateOfBirth?: string; 
-  city?: string; // Backend's Zod schema: z.string().min(2).max(50)
-  province?: string; // Backend's Zod schema: z.string().min(2).max(50)
+  city?: string;
+  province?: string;
   sssNumber?: string | null;
   tinNumber?: string | null;
   philhealthNumber?: string | null;
@@ -248,6 +252,7 @@ export interface UpdateCrewSuccessData {
   LastName: string;
   EmailAddress: string;
   crewPhoto: File | undefined;
+  tinNumber: string;
 }
 
 export interface AddCrewResponse {
@@ -292,7 +297,7 @@ export const addCrew = async (crewData: AddCrewDataForm): Promise<AddCrewRespons
   appendIfExists("province", crewData.province);
   appendIfExists("address", crewData.address)
   appendIfExists("sssNumber", crewData.sssNumber);
-  appendIfExists("tinNumber", crewData.tinNumber);
+  appendIfExists("taxIdNumber", crewData.taxIdNumber);
   appendIfExists("philhealthNumber", crewData.philhealthNumber);
   appendIfExists("hdmfNumber", crewData.hdmfNumber);
   appendIfExists("passportNumber", crewData.passportNumber);
@@ -347,7 +352,6 @@ export const updateCrew = async (
     }
   };
 
-  //appendIfExists("status", crewData.status);
   appendIfExists("emailAddress", crewData.emailAddress);
   appendIfExists("mobileNumber", crewData.mobileNumber);
   appendIfExists("landlineNumber", crewData.landlineNumber);
@@ -362,7 +366,7 @@ export const updateCrew = async (
   appendIfExists("address", crewData.address);
   appendIfExists("sssNumber", crewData.sssNumber);
   appendIfExists("philhealthNumber", crewData.philhealthNumber);
-  appendIfExists("taxIdNumber", crewData.taxIdNumber);
+  appendIfExists("tinNumber", crewData.tinNumber);
   appendIfExists("hdmfNumber", crewData.hdmfNumber);
   appendIfExists("passportNumber", crewData.passportNumber);
   appendIfExists("passportIssueDate", crewData.passportIssueDate);

@@ -3,7 +3,6 @@ import { useCrewStore } from "@/src/store/useCrewStore";
 import { Crew, mapMaritalStatus, mapGender } from "@/types/crew";
 import { updateCrew } from "../services/crew/crew.api";
 import { toast } from "@/components/ui/use-toast";
-import { add } from "date-fns";
 
 export function useCrewDetails(crewId: string | null) {
   const [crew, setCrew] = useState<Crew | null>(null);
@@ -68,7 +67,7 @@ export function useCrewDetails(crewId: string | null) {
         province: crewDetails.Province,
         address: crewDetails.HomeAddress,
         sssNumber: crewDetails.SSSNumber,
-        taxIdNumber: crewDetails.TaxIDNumber,
+        TaxIDNumber: crewDetails.TaxIDNumber,
         philhealthNumber: crewDetails.PhilhealthNumber,
         hdmfNumber: crewDetails.HDMFNumber,
         passportNumber: crewDetails.PassportNumber,
@@ -141,7 +140,7 @@ export function useCrewDetails(crewId: string | null) {
       address: updatedCrew.address,
       sssNumber: updatedCrew.sssNumber,
       philhealthNumber: updatedCrew.philhealthNumber,
-      taxIdNumber: updatedCrew.taxIdNumber,
+      tinNumber: updatedCrew.tinNumber,
       hdmfNumber: updatedCrew.hdmfNumber,
       passportNumber: updatedCrew.passportNumber,
       passportIssueDate: updatedCrew.passportIssueDate,
@@ -155,12 +154,12 @@ export function useCrewDetails(crewId: string | null) {
           : undefined,
     };
 
-    //console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
+    console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
 
     try {
       const response = await updateCrew(editedCrew.id, crewToBeUpdated);
 
-      //console.log("Response from updateCrew:", response);
+      console.log("Response from updateCrew:", response);
 
       if (response.success) {
         //console.log("Refetching crew data...");
@@ -170,7 +169,6 @@ export function useCrewDetails(crewId: string | null) {
         ]);
 
         //console.log("Crew data updated and refetched.");
-
         toast({
           title: "Success",
           description: "Crew details updated successfully.",
