@@ -30,15 +30,16 @@ import {
   Users,
   ArrowUpDown,
   RotateCcw,
-  Loader2,
-  FilterX,
-  Download,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import Swal from "sweetalert2";
-import { CrewItem, deleteCrew, reactivateCrew } from "../../src/services/crew/crew.api";
+import { 
+  CrewItem, 
+  deleteCrew, 
+  reactivateCrew 
+} from "../../src/services/crew/crew.api";
 import { MdClose } from "react-icons/md";
 
 const getStatusBgColor = (status: string) => {
@@ -100,9 +101,12 @@ const columns: ColumnDef<CrewItem>[] = [
       const middleName = row.original.MiddleName || "";
       const lastName = row.original.LastName || "";
       const middleInitial = middleName ? ` ${middleName.charAt(0)}.` : "";
+
+      const fullName = `${firstName}${middleInitial} ${lastName}`.trim();
+
       return (
         <div className="text-xs sm:text-sm text-center">
-          {`${firstName}${middleInitial} ${lastName}`.trim()}
+          {fullName.toUpperCase()}
         </div>
       );
     },
