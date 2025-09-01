@@ -24,42 +24,38 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-// Schema
-const clean = (val: string | undefined) => val?.replace(/[^0-9]/g, "") || "";
-
 // Schema with sanitization
 const crewGovtSchema = z.object({
-  sssNumber: z.preprocess(
-    (val) => {
-      const cleaned = clean(String(val ?? ""));
-      return cleaned === "" ? undefined : cleaned;
-    },
-    z.string().length(10, { message: "Must be 10 digits" }).optional()
-  ),
-  tinNumber: z.preprocess(
-    (val) => {
-      const cleaned = clean(String(val ?? ""));
-      return cleaned === "" ? undefined : cleaned;
-    },
-    z.string()
-      .min(9, { message: "Must be 9 to 12 digits" })
-      .max(12, { message: "Must be 9 to 12 digits" })
-      .optional()
-  ),
-  philhealthNumber: z.preprocess(
-    (val) => {
-      const cleaned = clean(String(val ?? ""));
-      return cleaned === "" ? undefined : cleaned;
-    },
-    z.string().length(12, { message: "Must be 12 digits" }).optional()
-  ),
-  hdmfNumber: z.preprocess(
-    (val) => {
-      const cleaned = clean(String(val ?? ""));
-      return cleaned === "" ? undefined : cleaned;
-    },
-    z.string().length(12, { message: "Must be 12 digits" }).optional()
-  ),
+  sssNumber: z
+    .string()
+    .refine((val) => val.replace(/\D/g, "").length === 10, {
+      message: "Must be 10 digits",
+    })
+    .optional(),
+
+  tinNumber: z
+    .string()
+    .refine((val) => {
+      const digits = val.replace(/\D/g, "");
+      return digits.length >= 9 && digits.length <= 12;
+    }, {
+      message: "Must be 9 to 12 digits",
+    })
+    .optional(),
+
+  philhealthNumber: z
+    .string()
+    .refine((val) => val.replace(/\D/g, "").length === 12, {
+      message: "Must be 12 digits",
+    })
+    .optional(),
+
+  hdmfNumber: z
+    .string()
+    .refine((val) => val.replace(/\D/g, "").length === 12, {
+      message: "Must be 12 digits",
+    })
+    .optional(),
 });
 
 type CrewGovtFormData = z.infer<typeof crewGovtSchema>;
@@ -85,7 +81,6 @@ export function EditCrewGovtRecordsDialog({
   onOpenChange,
   crewGovtTypeData,
   onSuccess,
-  setSelectedCrewData
 }: EditCrewGovtRecordsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -116,49 +111,30 @@ export function EditCrewGovtRecordsDialog({
     setIsSubmitting(true);
 
     try {
-      // Return type is explicitly string | undefined
-      const buildPayloadField = (
-        formValue?: string,
-        originalValue?: string | null
-      ): string | undefined => {
-        const normalizedFormValue = formValue?.trim() ?? "";
-        const normalizedOriginalValue = originalValue ?? "";
-
-        if (normalizedFormValue === normalizedOriginalValue) {
-          return undefined;
-        }
-
-        return normalizedFormValue;
-      };
-
       // Allow only optional keys from UpdateCrewDataForm
       const payload: Partial<UpdateCrewDataForm> = {};
 
-      const sssNumber = buildPayloadField(values.sssNumber, crewGovtTypeData.SSSNumber);
-      if (sssNumber !== undefined) payload.sssNumber = sssNumber;
-
-      const tinNumber = buildPayloadField(values.tinNumber, crewGovtTypeData.tinNumber);
-      if (tinNumber !== undefined) payload.tinNumber = tinNumber;
-
-      const philhealthNumber = buildPayloadField(values.philhealthNumber, crewGovtTypeData.PhilHealthNumber);
-      if (philhealthNumber !== undefined) payload.philhealthNumber = philhealthNumber;
-
-      const hdmfNumber = buildPayloadField(values.hdmfNumber, crewGovtTypeData.HDMFNumber);
-      if (hdmfNumber !== undefined) payload.hdmfNumber = hdmfNumber;
-
-      // Call API only if payload is not empty
-      if (Object.keys(payload).length === 0) {
-        toast({
-          title: "No changes detected",
-          description: "No updates to send.",
-          variant: "default",
-        });
-        setIsSubmitting(false);
-        return;
+      if (values.sssNumber?.trim() !== crewGovtTypeData.SSSNumber) {
+        payload.sssNumber = values.sssNumber; // send as-is (with spaces/dashes)
       }
+
+      if (values.tinNumber?.trim() !== crewGovtTypeData.TaxIDNumber) {
+        payload.tinNumber = values.tinNumber;
+      }
+
+      if (values.philhealthNumber?.trim() !== crewGovtTypeData.PhilHealthNumber) {
+        payload.philhealthNumber = values.philhealthNumber;
+      }
+
+      if (values.hdmfNumber?.trim() !== crewGovtTypeData.HDMFNumber) {
+        payload.hdmfNumber = values.hdmfNumber;
+      }
+
+      console.log(payload);
 
       // updateCrew should accept Partial<UpdateCrewDataForm>
       const response = await updateCrew(crewGovtTypeData.CrewCode, payload);
+      console.log('response: ', response)
 
       if (response.success) {
         toast({

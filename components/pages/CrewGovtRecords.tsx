@@ -160,7 +160,7 @@ export default function CrewGovtRecords() {
         const value = row.getValue("SSSNumber");
         return (
           <div className="font-medium text-xs sm:text-sm text-center">
-            {typeof value === "string" ? value.trim() : "N/A"}
+            {row.original.SSSNumber || row.getValue("SSSNumber")}
           </div>
         );
       },
@@ -181,7 +181,7 @@ export default function CrewGovtRecords() {
         const value = row.getValue("PhilHealthNumber");
         return (
           <div className="font-medium text-xs sm:text-sm text-center">
-            {typeof value === "string" ? value.trim() : "N/A"}
+            {row.original.PhilHealthNumber || row.getValue("PhilHealthNumber")}
           </div>
         );
       },
@@ -202,7 +202,7 @@ export default function CrewGovtRecords() {
         const value = row.getValue("TaxIDNumber");
         return (
           <div className="font-medium text-xs sm:text-sm text-center">
-            {typeof value === "string" ? value.trim() : "N/A"}
+            {row.original.TaxIDNumber || row.getValue("TaxIDNumber")}
           </div>
         );
       },
@@ -223,7 +223,7 @@ export default function CrewGovtRecords() {
         const value = row.getValue("HDMFNumber");
         return (
           <div className="font-medium text-xs sm:text-sm text-center">
-            {typeof value === "string" ? value.trim() : "N/A"}
+            {row.original.HDMFNumber || row.getValue("HDMFNumber")}
           </div>
         );
       },
@@ -270,10 +270,11 @@ export default function CrewGovtRecords() {
 
       return {
         ...prev,
-        ...(updatedData.sssNumber !== undefined ? { SSSNumber: String(updatedData.sssNumber ?? "") } : {}),
-        ...(updatedData.tinNumber !== undefined ? { TaxIDNumber: String(updatedData.tinNumber ?? "") } : {}),
-        ...(updatedData.philhealthNumber !== undefined ? { PhilHealthNumber: String(updatedData.philhealthNumber ?? "") } : {}),
-        ...(updatedData.hdmfNumber !== undefined ? { HDMFNumber: String(updatedData.hdmfNumber ?? "") } : {}),
+        ...updatedData,
+        // ...(updatedData.sssNumber !== undefined ? { SSSNumber: String(updatedData.sssNumber ?? "") } : {}),
+        // ...(updatedData.tinNumber !== undefined ? { TaxIDNumber: String(updatedData.tinNumber ?? "") } : {}),
+        // ...(updatedData.philhealthNumber !== undefined ? { PhilHealthNumber: String(updatedData.philhealthNumber ?? "") } : {}),
+        // ...(updatedData.hdmfNumber !== undefined ? { HDMFNumber: String(updatedData.hdmfNumber ?? "") } : {}),
       };
     });
 
