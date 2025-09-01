@@ -47,7 +47,7 @@ export default function CrewGovtRecords() {
   });
   const [selecteCrewData, setSelectedCrewData] = useState<CrewItem | null>(null);
   const [editselectedCrewDialogOpen, setEditselectedCrewDialogOpen] = useState(false);
-
+  const [validationFilter, setValidationFilter] = useState("active");
   const fetchCrews = useCrewStore((state) => state.fetchCrews);
 
   useEffect(() => {
@@ -61,11 +61,16 @@ export default function CrewGovtRecords() {
       crew.CrewCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crew.Rank.toLowerCase().includes(searchTerm.toLowerCase());
 
+    const matchesIsActive =
+      validationFilter === "all" ||
+      (crew.IsActive === 1 && validationFilter.toLowerCase() === "active") ||
+      (crew.IsActive !== 1 && validationFilter.toLowerCase() === "inactive");
+
     const matchesRank =
       rankFilter === "all" ||
       crew.RankID.toString() === rankFilter.toLowerCase();
 
-    return matchesSearch && matchesRank;
+    return matchesSearch && matchesRank && matchesIsActive;
   });
 
   const uniqueRanks = Array.from(
@@ -252,7 +257,6 @@ export default function CrewGovtRecords() {
     }
   ];
 
-  //console.log(crews);
   const toggleColumnVisibility = (columnId: string) =>
     setColumnVisibility((prev) => ({ ...prev, [columnId]: !prev[columnId] }));
 
@@ -323,7 +327,20 @@ export default function CrewGovtRecords() {
                   ))}
                 </SelectContent>
               </Select>
-
+              <Select
+                value={validationFilter}
+                onValueChange={setValidationFilter}
+              >
+                <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 w-full flex-1">
+                  <Filter className="h-4 sm:h-4.5 w-4 text-bold text-primary sm:w-4.5" />
+                  <SelectValue placeholder="Filter by validation" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Crews</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
