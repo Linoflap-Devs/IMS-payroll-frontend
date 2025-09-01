@@ -12,6 +12,8 @@ export type Allottee = {
 };
 
 export interface Crew {
+  TaxIDNumber?: string;
+  tinNumber?: string;
   seamanBookNumber?: string;
   seamanBookIssueDate?: string;
   seamanBookExpiryDate?: string;
@@ -37,7 +39,6 @@ export interface Crew {
   maritalStatus?: string;
   sex?: string;
   sssNumber?: string;
-  taxIdNumber?: string;
   philhealthNumber?: string;
   hdmfNumber?: string;
   passportNumber?: string;

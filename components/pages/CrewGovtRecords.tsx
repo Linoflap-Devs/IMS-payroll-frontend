@@ -271,7 +271,7 @@ export default function CrewGovtRecords() {
       return {
         ...prev,
         ...(updatedData.sssNumber !== undefined ? { SSSNumber: String(updatedData.sssNumber ?? "") } : {}),
-        ...(updatedData.taxIdNumber !== undefined ? { TaxIDNumber: String(updatedData.taxIdNumber ?? "") } : {}),
+        ...(updatedData.tinNumber !== undefined ? { TaxIDNumber: String(updatedData.tinNumber ?? "") } : {}),
         ...(updatedData.philhealthNumber !== undefined ? { PhilHealthNumber: String(updatedData.philhealthNumber ?? "") } : {}),
         ...(updatedData.hdmfNumber !== undefined ? { HDMFNumber: String(updatedData.hdmfNumber ?? "") } : {}),
       };

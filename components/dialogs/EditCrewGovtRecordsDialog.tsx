@@ -36,7 +36,7 @@ const crewGovtSchema = z.object({
     },
     z.string().length(10, { message: "Must be 10 digits" }).optional()
   ),
-  taxIdNumber: z.preprocess(
+  tinNumber: z.preprocess(
     (val) => {
       const cleaned = clean(String(val ?? ""));
       return cleaned === "" ? undefined : cleaned;
@@ -75,7 +75,7 @@ interface EditCrewGovtRecordsProps {
 //  Maps backend data to form format
 const mapCrewDataToForm = (data: CrewItem): CrewGovtFormData => ({
   sssNumber: data.SSSNumber || undefined,
-  taxIdNumber: data.TaxIDNumber || undefined,
+  tinNumber: data.TaxIDNumber || undefined,
   philhealthNumber: data.PhilHealthNumber || undefined,
   hdmfNumber: data.HDMFNumber || undefined,
 });
@@ -137,8 +137,8 @@ export function EditCrewGovtRecordsDialog({
       const sssNumber = buildPayloadField(values.sssNumber, crewGovtTypeData.SSSNumber);
       if (sssNumber !== undefined) payload.sssNumber = sssNumber;
 
-      const taxIdNumber = buildPayloadField(values.taxIdNumber, crewGovtTypeData.TaxIDNumber);
-      if (taxIdNumber !== undefined) payload.taxIdNumber = taxIdNumber;
+      const tinNumber = buildPayloadField(values.tinNumber, crewGovtTypeData.tinNumber);
+      if (tinNumber !== undefined) payload.tinNumber = tinNumber;
 
       const philhealthNumber = buildPayloadField(values.philhealthNumber, crewGovtTypeData.PhilHealthNumber);
       if (philhealthNumber !== undefined) payload.philhealthNumber = philhealthNumber;
@@ -201,7 +201,7 @@ export function EditCrewGovtRecordsDialog({
               {[
                 ["sssNumber", "SSS Number"],
                 ["philhealthNumber", "PhilHealth Number"],
-                ["taxIdNumber", "Tax ID Number"],
+                ["tinNumber", "Tax ID Number"],
                 ["hdmfNumber", "HDMF Number"],
               ].map(([name, label]) => (
                 <FormField

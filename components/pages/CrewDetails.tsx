@@ -11,7 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
 import Swal from "sweetalert2";
 import { CrewMovement } from "./crew/CrewMovement";
 import { CrewAllottee } from "./crew/CrewAllottee";
@@ -40,28 +45,21 @@ export default function CrewDetails() {
   const [isAddingAllottee, setIsAddingAllottee] = useState(false);
   const [triggerSave, setTriggerSave] = useState(false);
   const [allotteeLoading, setAllotteeLoading] = useState(false);
-
   const [triggerDelete, setTriggerDelete] = useState(false);
   const [isDeletingAllottee, setIsDeletingAllottee] = useState(false);
-
-  const [triggerAdd, setTriggerAdd] = useState(false);
   const [isAddLoading, setIsAddLoading] = useState(false);
-
   const [submitted, setSubmitted] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [provinceSearch, setProvinceSearch] = useState("");
   const [currentSelfieIndex, setCurrentSelfieIndex] = useState(0);
-
   const [displayProvinceCity, setDisplayProvinceCity] = useState({
     provinceName: "",
     cityName: "",
     provinceId: "",
     cityId: "",
   });
-
   const [handleVerify, setHandleVerify] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-
   const [handleDecline, setHandleDecline] = useState(false);
   const [isDeclining, setIsDeclining] = useState(false);
 
@@ -72,10 +70,6 @@ export default function CrewDetails() {
   const handleTriggerDecline = () => {
     setHandleDecline((prev) => !prev);
   };
-
-  // const handleTriggerAdd = () => {
-  //   setTriggerAdd((prev) => !prev);
-  // };
 
   const {
     crew,
@@ -94,7 +88,6 @@ export default function CrewDetails() {
   } = useCrewDetails(crewId);
 
   const { fetchCrewValidationDetails } = useCrewStore();
-  //console.log('CREW IN CREW DETAILS: ', crew);
 
   useEffect(() => {
     if (handleVerify) {
@@ -335,7 +328,7 @@ export default function CrewDetails() {
 
     // Sanitize numbers for validation
     const sssDigits = sanitizeDigits(editedCrew?.sssNumber ?? "");
-    const taxDigits = sanitizeDigits(editedCrew?.taxIdNumber ?? "");
+    const taxDigits = sanitizeDigits(editedCrew?.tinNumber ?? "");
     const philhealthDigits = sanitizeDigits(editedCrew?.philhealthNumber ?? "");
     const hdmfDigits = sanitizeDigits(editedCrew?.hdmfNumber ?? "");
     const passportNumberDigits = sanitizeDigits(editedCrew?.passportNumber ?? "");
@@ -343,7 +336,7 @@ export default function CrewDetails() {
 
     // Validate lengths ignoring spaces/dashes
     if (editedCrew?.sssNumber && sssDigits.length !== 10) return false;
-    if (editedCrew.taxIdNumber && (taxDigits.length < 9 || taxDigits.length > 12)) return false;
+    if (editedCrew.tinNumber && (taxDigits.length < 9 || taxDigits.length > 12)) return false;
     if (editedCrew?.philhealthNumber && philhealthDigits.length !== 12) return false;
     if (editedCrew?.hdmfNumber && hdmfDigits.length !== 12) return false;
 
@@ -374,6 +367,15 @@ export default function CrewDetails() {
       setActiveTab(tab.toString());
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (isEditing && editedCrew && !editedCrew.tinNumber) {
+      setEditedCrew(prev => ({
+        ...prev!,
+        tinNumber: prev?.tinNumber ?? crew?.TaxIDNumber ?? "",
+      }));
+    }
+  }, [isEditing, crew, editedCrew]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -859,16 +861,16 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter Tax ID number"
-                            value={isEditing ? editedCrew?.taxIdNumber || "" : crew.taxIdNumber || ""}
+                            value={isEditing ? editedCrew?.tinNumber || "" : crew.TaxIDNumber || ""}
                             onChange={(e) =>
-                              handleInputChange("taxIdNumber", e.target.value)
+                              handleInputChange("tinNumber", e.target.value)
                             }
                             readOnly={!isEditing}
                             className={`
                               ${isEditing
                                 ? submitted &&
                                   (() => {
-                                    const sanitized = (editedCrew?.taxIdNumber ?? "").replace(/[-\s]/g, "");
+                                    const sanitized = (editedCrew?.tinNumber ?? "").replace(/[-\s]/g, "");
                                     return sanitized.length < 9 || sanitized.length > 12;
                                   })()
                                   ? "border-red-500 focus:!ring-red-500/50"
@@ -880,7 +882,7 @@ export default function CrewDetails() {
                           {submitted &&
                             isEditing &&
                             (() => {
-                              const sanitized = (editedCrew?.taxIdNumber ?? "").replace(/[-\s]/g, "");
+                              const sanitized = (editedCrew?.tinNumber ?? "").replace(/[-\s]/g, "");
                               return sanitized.length < 9 || sanitized.length > 12;
                             })() && (
                               <p className="text-red-500 text-sm mt-1">
