@@ -95,7 +95,7 @@ export default function CrewDetails() {
 
   const { fetchCrewValidationDetails } = useCrewStore();
   //console.log('CREW IN CREW DETAILS: ', crew);
-  
+
   useEffect(() => {
     if (handleVerify) {
       setIsVerifying(true);
@@ -316,49 +316,42 @@ export default function CrewDetails() {
     );
   }, [filteredCities, citySearch]);
 
+  const sanitizeInput = (value: string): string => {
+    return value
+      .replace(/[-\s]/g, "")
+      .trim();
+  }
+  const sanitizeDigits = (value: string) => value.replace(/[-\s]/g, "");
+
   const validateForm = () => {
     setSubmitted(true);
 
-    // Basic validation checks
     if (!editedCrew) return false;
 
-    // if (!editedCrew.firstName || editedCrew.firstName.length < 2) return false;
-    // if (!editedCrew.lastName || editedCrew.lastName.length < 2) return false;
-    // if (!editedCrew.sex) return false;
-    // if (!editedCrew.maritalStatus) return false;
-    // if (!editedCrew.dateOfBirth) return false;
-    // if (!editedCrew.province) return false;
-    // if (!editedCrew.city) return false;
-    
+    // Phone, landline, email validations (same)
     if (editedCrew?.phone && !/^09\d{9}$/.test(editedCrew.phone)) return false;
     if (editedCrew?.landline && !/^\d{7,10}$/.test(editedCrew.landline)) return false;
     if (editedCrew?.email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(editedCrew.email)) return false;
 
-    // if (!editedCrew.sssNumber) return false;
-    if (editedCrew?.sssNumber && editedCrew.sssNumber?.length !== 10) return false;
-    if (editedCrew.taxIdNumber && (editedCrew.taxIdNumber.length < 9 || editedCrew.taxIdNumber.length > 12)) return false;
-    if (editedCrew?.philhealthNumber && editedCrew.philhealthNumber?.length !== 12) return false;
-    if (editedCrew?.hdmfNumber && editedCrew.hdmfNumber?.length !== 12) return false;
+    // Sanitize numbers for validation
+    const sssDigits = sanitizeDigits(editedCrew?.sssNumber ?? "");
+    const taxDigits = sanitizeDigits(editedCrew?.taxIdNumber ?? "");
+    const philhealthDigits = sanitizeDigits(editedCrew?.philhealthNumber ?? "");
+    const hdmfDigits = sanitizeDigits(editedCrew?.hdmfNumber ?? "");
+    const passportNumberDigits = sanitizeDigits(editedCrew?.passportNumber ?? "");
+    const seamanBookNumberDigits = sanitizeDigits(editedCrew?.seamanBookNumber ?? "");
 
-    // if (!editedCrew.taxIdNumber) return false;
-    // if (!editedCrew.philhealthNumber) return false;
-    // if (!editedCrew.hdmfNumber) return false;
+    // Validate lengths ignoring spaces/dashes
+    if (editedCrew?.sssNumber && sssDigits.length !== 10) return false;
+    if (editedCrew.taxIdNumber && (taxDigits.length < 9 || taxDigits.length > 12)) return false;
+    if (editedCrew?.philhealthNumber && philhealthDigits.length !== 12) return false;
+    if (editedCrew?.hdmfNumber && hdmfDigits.length !== 12) return false;
 
-    // if (!editedCrew.passportNumber) return false;
-    // if (!editedCrew.passportIssueDate) return false;
-    // if (!editedCrew.passportExpiryDate) return false;
-    // if (!editedCrew.seamansBookNumber) return false;
-    // if (!editedCrew.seamansBookIssueDate) return false;
-    // if (!editedCrew.seamansBookExpiryDate) return false;
+    if (editedCrew.passportNumber && (passportNumberDigits.length < 7 || passportNumberDigits.length > 9)) return false;
+    if (editedCrew.seamanBookNumber && (seamanBookNumberDigits.length < 7 || seamanBookNumberDigits.length > 9)) return false;
 
     return true;
   };
-
-  const sanitizeInput = (value: string) : string => {
-    return value
-      .replace(/\s+/g, " ")
-      .trim();
-  }
 
   const openModal = (src: string): void => {
     setModalImage(src);
@@ -575,25 +568,7 @@ export default function CrewDetails() {
                             }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
-                          // className={
-                          //   isEditing
-                          //     ? `${submitted &&
-                          //       (!editedCrew?.lastName ||
-                          //         editedCrew.lastName.length < 2)
-                          //       ? "border-red-500 focus:!ring-red-500/50"
-                          //       : "border-primary"
-                          //     }`
-                          //     : ""
-                          // }
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            (!editedCrew?.lastName ||
-                              editedCrew.lastName.length < 2) && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Last name must be at least 2 characters.
-                              </p>
-                            )} */}
                         </div>
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -611,25 +586,7 @@ export default function CrewDetails() {
                             }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
-                          // className={
-                          //   isEditing
-                          //     ? `${submitted &&
-                          //       (!editedCrew?.firstName ||
-                          //         editedCrew.firstName.length < 2)
-                          //       ? "border-red-500 focus:!ring-red-500/50"
-                          //       : "border-primary"
-                          //     }`
-                          //     : ""
-                          // }
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            (!editedCrew?.firstName ||
-                              editedCrew.firstName.length < 2) && (
-                              <p className="text-red-500 text-sm mt-1">
-                                First name must be at least 2 characters.
-                              </p>
-                            )} */}
                         </div>
 
                         <div>
@@ -666,14 +623,6 @@ export default function CrewDetails() {
                           >
                             <SelectTrigger
                               className={isEditing ? "border-primary w-full" : "w-full"}
-                            // className={
-                            //   isEditing
-                            //     ? `w-full ${submitted && !editedCrew?.maritalStatus
-                            //       ? "border-red-500 focus:!ring-red-500/50"
-                            //       : "border-primary "
-                            //     }`
-                            //     : "w-full"
-                            // }
                             >
                               <SelectValue placeholder="Select an option" />
                             </SelectTrigger>
@@ -684,13 +633,6 @@ export default function CrewDetails() {
                               <SelectItem value="widowed">Widowed</SelectItem>
                             </SelectContent>
                           </Select>
-                          {/* {submitted &&
-                            isEditing &&
-                            !editedCrew?.maritalStatus && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Please select a marital status.
-                              </p>
-                            )} */}
                         </div>
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -707,14 +649,6 @@ export default function CrewDetails() {
                           >
                             <SelectTrigger
                               className={isEditing ? "border-primary w-full" : "w-full"}
-                            // className={
-                            //   isEditing
-                            //     ? `w-full ${submitted && !editedCrew?.sex
-                            //       ? "border-red-500 focus:!ring-red-500/50"
-                            //       : "border-primary"
-                            //     }`
-                            //     : "w-full"
-                            // }
                             >
                               <SelectValue placeholder="Select an option" />
                             </SelectTrigger>
@@ -724,11 +658,6 @@ export default function CrewDetails() {
                               <SelectItem value="other">Other</SelectItem>
                             </SelectContent>
                           </Select>
-                          {/* {submitted && isEditing && !editedCrew?.sex && (
-                            <p className="text-red-500 text-sm mt-1">
-                              Please select a sex.
-                            </p>
-                          )} */}
                         </div>
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -751,22 +680,7 @@ export default function CrewDetails() {
                             }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
-                          // className={
-                          //   isEditing
-                          //     ? `${submitted && !editedCrew?.dateOfBirth
-                          //       ? "border-red-500 focus:!ring-red-500/50"
-                          //       : "border-primary"
-                          //     }`
-                          //     : ""
-                          // }
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            !editedCrew?.dateOfBirth && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Please enter a valid birthdate.
-                              </p>
-                            )} */}
                         </div>
 
                         {/* Province Select Component */}
@@ -784,11 +698,6 @@ export default function CrewDetails() {
                             >
                               <SelectTrigger
                                 className={isEditing ? "border-primary w-full" : ""}
-                              // className={
-                              //   submitted && !editedCrew?.province
-                              //     ? "border-red-500 focus:!ring-red-500/50 w-full"
-                              //     : "border-primary w-full"
-                              // }
                               >
                                 <SelectValue placeholder="Select a province" />
                               </SelectTrigger>
@@ -825,11 +734,6 @@ export default function CrewDetails() {
                               readOnly
                             />
                           )}
-                          {/* {submitted && isEditing && !editedCrew?.province && (
-                            <p className="text-red-500 text-sm mt-1">
-                              Please select a province.
-                            </p>
-                          )} */}
                         </div>
 
                         {/* City Select Component */}
@@ -847,11 +751,6 @@ export default function CrewDetails() {
                             >
                               <SelectTrigger
                                 className={isEditing ? "border-primary w-full" : ""}
-                              // className={
-                              //   submitted && !editedCrew?.city
-                              //     ? "w-full border-red-500 focus:!ring-red-500/50"
-                              //     : "border-primary w-full"
-                              // }
                               >
                                 <SelectValue placeholder="Select a city" />
                               </SelectTrigger>
@@ -890,11 +789,6 @@ export default function CrewDetails() {
                               readOnly
                             />
                           )}
-                          {/* {submitted && isEditing && !editedCrew?.city && (
-                            <p className="text-red-500 text-sm mt-1">
-                              Please select a city.
-                            </p>
-                          )} */}
                         </div>
 
                         { /* Home address */}
@@ -935,40 +829,27 @@ export default function CrewDetails() {
                                 ? editedCrew?.sssNumber || ""
                                 : crew.sssNumber || ""
                             }
-                            onChange={(e) =>
-                              handleInputChange("sssNumber", sanitizeInput(e.target.value))
-                            }
+                            onChange={(e) => {
+                              handleInputChange("sssNumber", e.target.value);
+                            }}
                             readOnly={!isEditing}
                             className={`
-                              ${isEditing ? (
-                                submitted && editedCrew?.sssNumber && editedCrew?.sssNumber.length !== 10
-                                  ? "border-red-500 focus: !ring-red-500/50"
-                                  : "border-primary"
-                              ) : ""} 
-                              `}
-                          // className={
-                          //   isEditing
-                          //     ? `${submitted &&
-                          //       (!editedCrew?.sssNumber ||
-                          //         (editedCrew.sssNumber &&
-                          //           editedCrew.sssNumber.length !== 10))
-                          //       ? "border-red-500 focus:!ring-red-500/50"
-                          //       : "border-primary"
-                          //     }`
-                          //     : ""
-                          // }
+                              ${isEditing
+                                ? (submitted &&
+                                  editedCrew?.sssNumber &&
+                                  sanitizeDigits(editedCrew.sssNumber).length !== 10
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary")
+                                : ""
+                              }
+                            `}
                           />
-                          {/* {submitted && isEditing && !editedCrew?.sssNumber && (
-                            <p className="text-red-500 text-sm mt-1">
-                              SSS number is required.
-                            </p>
-                          )} */}
                           {submitted &&
                             isEditing &&
                             editedCrew?.sssNumber &&
-                            editedCrew.sssNumber.length !== 10 && (
+                            sanitizeDigits(editedCrew.sssNumber).length !== 10 && (
                               <p className="text-red-500 text-sm mt-1">
-                                SSS number should be 10 characters.
+                                SSS number should be 10 digits.
                               </p>
                             )}
                         </div>
@@ -978,49 +859,32 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter Tax ID number"
-                            value={
-                              isEditing
-                                ? editedCrew?.taxIdNumber || ""
-                                : crew.taxIdNumber || ""
-                            }
+                            value={isEditing ? editedCrew?.taxIdNumber || "" : crew.taxIdNumber || ""}
                             onChange={(e) =>
-                              handleInputChange("taxIdNumber", sanitizeInput(e.target.value))
+                              handleInputChange("taxIdNumber", e.target.value)
                             }
                             readOnly={!isEditing}
                             className={`
-                              ${isEditing ? (
-                                submitted && (editedCrew?.taxIdNumber && (editedCrew?.taxIdNumber.length !== 10 || editedCrew.taxIdNumber.length > 12))
-                                  ? "border-red-500 focus: !ring-red-500/50"
+                              ${isEditing
+                                ? submitted &&
+                                  (() => {
+                                    const sanitized = (editedCrew?.taxIdNumber ?? "").replace(/[-\s]/g, "");
+                                    return sanitized.length < 9 || sanitized.length > 12;
+                                  })()
+                                  ? "border-red-500 focus:!ring-red-500/50"
                                   : "border-primary"
-                              ) : ""}
-                              `}
-                          // className={
-                          //   isEditing
-                          //     ? `${submitted &&
-                          //       (!editedCrew?.taxIdNumber ||
-                          //         (editedCrew.taxIdNumber &&
-                          //           (editedCrew.taxIdNumber.length < 9 ||
-                          //             editedCrew.taxIdNumber.length > 12)))
-                          //       ? "border-red-500 focus:!ring-red-500/50"
-                          //       : "border-primary"
-                          //     }`
-                          //     : ""
-                          // }
+                                : ""
+                              }
+                            `}
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            !editedCrew?.taxIdNumber && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Tax ID number is required.
-                              </p>
-                            )} */}
                           {submitted &&
                             isEditing &&
-                            editedCrew?.taxIdNumber &&
-                            (editedCrew.taxIdNumber.length < 9 ||
-                              editedCrew.taxIdNumber.length > 12) && (
+                            (() => {
+                              const sanitized = (editedCrew?.taxIdNumber ?? "").replace(/[-\s]/g, "");
+                              return sanitized.length < 9 || sanitized.length > 12;
+                            })() && (
                               <p className="text-red-500 text-sm mt-1">
-                                Tax ID should be between 9-12 characters.
+                                Tax ID should be between 9-12 digits.
                               </p>
                             )}
                         </div>
@@ -1030,82 +894,56 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter Philhealth number"
-                            value={
-                              isEditing
-                                ? editedCrew?.philhealthNumber || ""
-                                : crew.philhealthNumber || ""
-                            }
-                            onChange={(e) =>
-                              handleInputChange("philhealthNumber", sanitizeInput(e.target.value))
-                            }
+                            value={isEditing ? editedCrew?.philhealthNumber || "" : crew.philhealthNumber || ""}
+                            onChange={(e) => handleInputChange("philhealthNumber", e.target.value)}
                             readOnly={!isEditing}
-                            className={
-                              isEditing
-                                ? `${submitted &&
-                                  (editedCrew?.philhealthNumber &&
-                                    editedCrew?.philhealthNumber.length !==
-                                    12)
+                            className={`
+                              ${isEditing
+                                ? submitted &&
+                                  editedCrew?.philhealthNumber &&
+                                  sanitizeDigits(editedCrew.philhealthNumber).length !== 12
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : "border-primary"
-                                }`
                                 : ""
-                            }
+                              }
+                            `}
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            !editedCrew?.philhealthNumber && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Philhealth number is required.
-                              </p>
-                            )} */}
                           {submitted &&
                             isEditing &&
                             editedCrew?.philhealthNumber &&
-                            editedCrew.philhealthNumber.length !== 12 && (
+                            sanitizeDigits(editedCrew.philhealthNumber).length !== 12 && (
                               <p className="text-red-500 text-sm mt-1">
-                                Philhealth number should be 12 characters.
+                                Philhealth number should be 12 digits.
                               </p>
                             )}
                         </div>
+
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             HDMF Number
                           </label>
                           <Input
                             placeholder="Enter HDMF number"
-                            value={
-                              isEditing
-                                ? editedCrew?.hdmfNumber || ""
-                                : crew.hdmfNumber || ""
-                            }
-                            onChange={(e) =>
-                              handleInputChange("hdmfNumber", sanitizeInput(e.target.value))
-                            }
+                            value={isEditing ? editedCrew?.hdmfNumber || "" : crew.hdmfNumber || ""}
+                            onChange={(e) => handleInputChange("hdmfNumber", e.target.value)}
                             readOnly={!isEditing}
-                            className={
-                              isEditing
-                                ? `${submitted &&
-                                  (editedCrew?.hdmfNumber && (editedCrew?.hdmfNumber &&
-                                    editedCrew?.hdmfNumber.length !== 12))
+                            className={`
+                              ${isEditing
+                                ? submitted &&
+                                  editedCrew?.hdmfNumber &&
+                                  sanitizeDigits(editedCrew.hdmfNumber).length !== 12
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : "border-primary"
-                                }`
                                 : ""
-                            }
+                              }
+                            `}
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            !editedCrew?.hdmfNumber && (
-                              <p className="text-red-500 text-sm mt-1">
-                                HDMF number is required.
-                              </p>
-                            )} */}
                           {submitted &&
-                            isEditing && (editedCrew?. hdmfNumber&& (editedCrew?.hdmfNumber &&
-                            editedCrew.hdmfNumber.length !== 12 )) &&
-                             (
+                            isEditing &&
+                            editedCrew?.hdmfNumber &&
+                            sanitizeDigits(editedCrew.hdmfNumber).length !== 12 && (
                               <p className="text-red-500 text-sm mt-1">
-                                HDMF number should be 12 characters.
+                                HDMF number should be 12 digits.
                               </p>
                             )}
                         </div>
@@ -1124,43 +962,30 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter passport number"
-                            value={
-                              isEditing
-                                ? editedCrew?.passportNumber || ""
-                                : crew.passportNumber || ""
-                            }
-                            onChange={(e) => {
-                              handleInputChange("passportNumber", sanitizeInput(e.target.value));
-                            }}
+                            value={isEditing ? editedCrew?.passportNumber || "" : crew.passportNumber || ""}
+                            onChange={(e) => handleInputChange("passportNumber", e.target.value)}
                             readOnly={!isEditing}
-                            className={
-                              isEditing
-                                ? `${submitted &&
-                                    (editedCrew?.passportNumber &&
-                                      (editedCrew?.passportNumber.length < 7 ||
-                                        editedCrew?.passportNumber.length >
-                                        9))
+                            className={`
+                            ${isEditing
+                                ? submitted &&
+                                  editedCrew?.passportNumber &&
+                                  (sanitizeDigits(editedCrew.passportNumber ?? "").length < 7 ||
+                                    sanitizeDigits(editedCrew.passportNumber ?? "").length > 9)
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : "border-primary"
-                                }`
                                 : ""
-                            }
+                              }
+                            `}
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            !editedCrew?.passportNumber && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Passport number is required.
-                              </p>
-                            )} */}
                           {submitted &&
                             isEditing &&
                             editedCrew?.passportNumber &&
-                            (editedCrew.passportNumber.length < 7 ||
-                              editedCrew.passportNumber.length > 9) && (
+                            (() => {
+                              const sanitized = sanitizeDigits(editedCrew.passportNumber);
+                              return sanitized.length < 7 || sanitized.length > 9;
+                            })() && (
                               <p className="text-red-500 text-sm mt-1">
-                                Passport number should be between 7-9
-                                characters.
+                                Passport number should be between 7–9 characters.
                               </p>
                             )}
                         </div>
@@ -1181,26 +1006,11 @@ export default function CrewDetails() {
                                   : ""
                             }
                             onChange={(e) =>
-                              handleInputChange("passportIssueDate", sanitizeInput(e.target.value))
+                              handleInputChange("passportIssueDate", e.target.value)
                             }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
-                            // className={
-                            //   isEditing
-                            //     ? `${submitted && !editedCrew?.passportIssueDate
-                            //       ? "border-red-500 focus:!ring-red-500/50"
-                            //       : "border-primary"
-                            //     }`
-                            //     : ""
-                            // }
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            !editedCrew?.passportIssueDate && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Passport issue date is required.
-                              </p>
-                            )} */}
                         </div>
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -1226,22 +1036,7 @@ export default function CrewDetails() {
                             }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
-                            // className={
-                            //   isEditing
-                            //     ? `${submitted && !editedCrew?.passportExpiryDate
-                            //       ? "border-red-500 focus:!ring-red-500/50"
-                            //       : "border-primary"
-                            //     }`
-                            //     : ""
-                            // }
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            !editedCrew?.passportExpiryDate && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Passport expiration date is required.
-                              </p>
-                            )} */}
                         </div>
                         <div className="md:col-span-2">
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -1249,37 +1044,30 @@ export default function CrewDetails() {
                           </label>
                           <Input
                             placeholder="Enter Seaman Book number"
-                            value={
-                              isEditing
-                                ? editedCrew?.seamansBookNumber || ""
-                                : crew.seamansBookNumber || ""
-                            }
+                            value={isEditing ? editedCrew?.seamansBookNumber || "" : crew.seamansBookNumber || ""}
                             onChange={(e) =>
-                              handleInputChange("seamansBookNumber", sanitizeInput(e.target.value))
+                              handleInputChange("seamansBookNumber", e.target.value)
                             }
                             readOnly={!isEditing}
-                            className={
-                              isEditing
-                                ? `${submitted &&
-                                  (editedCrew?.seamansBookNumber &&
-                                    (editedCrew?.seamansBookNumber.length < 7 ||
-                                      editedCrew?.seamansBookNumber.length > 9))
+                            className={`
+                            ${isEditing
+                                ? submitted &&
+                                  editedCrew?.seamansBookNumber &&
+                                  (sanitizeDigits(editedCrew.seamansBookNumber ?? "").length < 7 ||
+                                    sanitizeDigits(editedCrew.seamansBookNumber ?? "").length > 9)
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : "border-primary"
-                                }`
                                 : ""
-                            }
+                              }
+                            `}
                           />
-                          {/* {submitted && isEditing && !editedCrew?.seamansBookNumber && (
-                            <p className="text-red-500 text-sm mt-1">
-                              Seaman Book number is required.
-                            </p>
-                          )} */}
                           {submitted &&
                             isEditing &&
                             editedCrew?.seamansBookNumber &&
-                            (editedCrew.seamansBookNumber.length < 7 ||
-                              editedCrew.seamansBookNumber.length > 9) && (
+                            (() => {
+                              const sanitized = sanitizeDigits(editedCrew.seamansBookNumber);
+                              return sanitized.length < 7 || sanitized.length > 9;
+                            })() && (
                               <p className="text-red-500 text-sm mt-1">
                                 Seaman Book number should be between 7–9 characters.
                               </p>
@@ -1309,23 +1097,7 @@ export default function CrewDetails() {
                             }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
-                            // className={
-                            //   isEditing
-                            //     ? `${submitted &&
-                            //       !editedCrew?.seamansBookIssueDate
-                            //       ? "border-red-500 focus:!ring-red-500/50"
-                            //       : "border-primary"
-                            //     }`
-                            //     : ""
-                            // }
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            !editedCrew?.seamansBookIssueDate && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Seamans book issue date is required.
-                              </p>
-                            )} */}
                         </div>
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
@@ -1348,23 +1120,7 @@ export default function CrewDetails() {
                             }
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
-                            // className={
-                            //   isEditing
-                            //     ? `${submitted &&
-                            //       !editedCrew?.seamansBookExpiryDate
-                            //       ? "border-red-500 focus:!ring-red-500/50"
-                            //       : "border-primary"
-                            //     }`
-                            //     : ""
-                            // }
                           />
-                          {/* {submitted &&
-                            isEditing &&
-                            !editedCrew?.seamansBookExpiryDate && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Seamans book expiration date is required.
-                              </p>
-                            )} */}
                         </div>
                       </div>
                     </div>

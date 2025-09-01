@@ -27,7 +27,8 @@ export function CrewSidebar({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [crewPhotoFile, setCrewPhotoFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>("/image.png");
-  
+  const sanitizeDigits = (value: string) => value.replace(/[-\s]/g, "");
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -96,7 +97,7 @@ export function CrewSidebar({
               />
             )}
           </div>
-        
+
           {isEditing && (
             <div>
               <Button
@@ -125,22 +126,20 @@ export function CrewSidebar({
 
           <div className="flex items-center gap-3 mb-3 flex-wrap justify-center">
             <div
-              className={`text-sm px-2 py-0.5 rounded-full border flex items-center gap-1 flex-shrink-0 ${
-                crew?.status === "On board"
+              className={`text-sm px-2 py-0.5 rounded-full border flex items-center gap-1 flex-shrink-0 ${crew?.status === "On board"
                   ? "bg-green-100 text-green-800 border-green-300"
                   : crew?.status === "Off board"
-                  ? "bg-[#F5ECE4] text-orange-800 border-orange-300"
-                  : "bg-gray-100 text-gray-800 border-gray-300"
-              }`}
+                    ? "bg-[#F5ECE4] text-orange-800 border-orange-300"
+                    : "bg-gray-100 text-gray-800 border-gray-300"
+                }`}
             >
               <p
-                className={`p-0.5 px-2 ${
-                  crew?.status === "On board"
+                className={`p-0.5 px-2 ${crew?.status === "On board"
                     ? "text-green-800"
                     : crew?.status === "Off board"
-                    ? "text-orange-800"
-                    : "text-gray-800"
-                }`}
+                      ? "text-orange-800"
+                      : "text-gray-800"
+                  }`}
               >
                 {crew?.status}
               </p>
@@ -205,15 +204,18 @@ export function CrewSidebar({
                             handleInputChange("phone", e.target.value);
                           }
                         }}
-                        className={`h-9 ${
-                          submitted &&
-                          editedCrew?.phone &&
-                            !/^09\d{9}$/.test(editedCrew.phone)
+                        className={`h-9 ${submitted &&
+                            editedCrew?.phone &&
+                            (sanitizeDigits(editedCrew.phone || "").length !== 11 ||
+                              !/^09\d{9}$/.test(sanitizeDigits(editedCrew.phone || "")))
                             ? "border-red-500 focus:!ring-red-500/50"
                             : "border-primary"
-                        }`}
+                          }`}
                       />
-                      {submitted && editedCrew?.phone && !/^09\d{9}$/.test(editedCrew.phone) && (
+                      {submitted &&
+                        editedCrew?.phone &&
+                        (sanitizeDigits(editedCrew.phone || "").length !== 11 ||
+                          !/^09\d{9}$/.test(sanitizeDigits(editedCrew.phone || ""))) && (
                           <p className="text-red-500 text-sm mt-1">
                             Mobile number must be 11 digits and start with "09".
                           </p>
@@ -225,6 +227,7 @@ export function CrewSidebar({
                     </div>
                   )}
                 </div>
+
               </div>
 
               {/* Landline Number */}
@@ -244,22 +247,26 @@ export function CrewSidebar({
                             handleInputChange("landline", e.target.value);
                           }
                         }}
-                        className={`h-9 ${
-                          submitted && editedCrew?.landline && !/^\d{7,10}$/.test(editedCrew.landline)
+                        className={`h-9 ${submitted &&
+                            editedCrew?.landline &&
+                            (sanitizeDigits(editedCrew.landline).length < 7 ||
+                              sanitizeDigits(editedCrew.landline).length > 10)
                             ? "border-red-500 focus:!ring-red-500/50"
                             : "border-primary"
-                        }`}
+                          }`}
                       />
                       {submitted && editedCrew?.landline && (
-                          !/^\d+$/.test(editedCrew.landline) ? (
+                        sanitizeDigits(editedCrew.landline).length === 0 ? (
                           <p className="text-red-500 text-sm mt-1">
                             Landline must contain digits only.
                           </p>
-                        ) : !/^\d{7,10}$/.test(editedCrew.landline) ? (
+                        ) : sanitizeDigits(editedCrew.landline).length < 7 ||
+                          sanitizeDigits(editedCrew.landline).length > 10 ? (
                           <p className="text-red-500 text-sm mt-1">
                             Landline must be 7 to 10 digits (e.g., 0281234567).
                           </p>
-                        ) : null)}
+                        ) : null
+                      )}
                     </>
                   ) : (
                     <div className="text-sm font-medium truncate">
@@ -284,26 +291,18 @@ export function CrewSidebar({
                             handleInputChange("email", e.target.value);
                           }
                         }}
-                        className={`h-9 ${
-                          submitted && editedCrew?.email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
-                              editedCrew.email
-                            )
+                        className={`h-9 ${submitted &&
+                            editedCrew?.email &&
+                            !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(editedCrew.email.trim())
                             ? "border-red-500 focus:!ring-red-500/50"
                             : "border-primary"
-                        }`}
+                          }`}
                       />
-                      {/* {submitted && !editedCrew?.email && (
-                        <p className="text-red-500 text-sm mt-1">
-                          Email is required.
-                        </p>
-                      )} */}
                       {submitted &&
                         editedCrew?.email &&
-                        !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(
-                          editedCrew.email
-                        ) && (
+                        sanitizeDigits(editedCrew.email).length === 0 && (
                           <p className="text-red-500 text-sm mt-1">
-                            Please enter a valid email.
+                            Email must contain at least one digit.
                           </p>
                         )}
                     </>

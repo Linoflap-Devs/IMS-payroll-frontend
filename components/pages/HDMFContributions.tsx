@@ -35,13 +35,9 @@ export default function HMDFContribution() {
   >([]);
   const [HDMFDeductionResponse, setHDMFDeductionResponse] = useState<DeductionResponse<HDMFDeductionCrew>>({} as DeductionResponse<HDMFDeductionCrew>);
   const [isLoading, setIsLoading] = useState(true);
-
   const yearParam = Number(searchParams.get("year")) || new Date().getFullYear();
-  const monthParam =
-    Number(searchParams.get("month")) || new Date().getMonth() + 1;
-  
+  const monthParam = Number(searchParams.get("month")) || new Date().getMonth() + 1;
   const monthName = getMonthName(monthParam);
-
 
   useEffect(() => {
     const fetchPhilhealthDeductionData = async () => {
@@ -149,37 +145,14 @@ export default function HMDFContribution() {
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
-    const handlePrint = () => {
-      if (!vesselInfo || !vesselInfo.Crew || vesselInfo.Crew.length === 0) {
-        console.error("No allotment register data available");
-        return;
-      }
-
-      const result = generateHDMFRegister(HDMFDeductionResponse, format(new Date(), "MMM dd, yyyy hh:mm aa").toString())
+  const handlePrint = () => {
+    if (!vesselInfo || !vesselInfo.Crew || vesselInfo.Crew.length === 0) {
+      console.error("No allotment register data available");
+      return;
     }
 
-  //     const monthNames = [
-  //       "JANUARY",
-  //       "FEBRUARY",
-  //       "MARCH",
-  //       "APRIL",
-  //       "MAY",
-  //       "JUNE",
-  //       "JULY",
-  //       "AUGUST",
-  //       "SEPTEMBER",
-  //       "OCTOBER",
-  //       "NOVEMBER",
-  //       "DECEMBER",
-  //     ];
-
-  //     generateAllotmentPDF(
-  //       [vesselInfo as unknown as SSSDeductionItem],
-  //       monthNames[Number(month) - 1] ?? "ALL",
-  //       year ? parseInt(year) : new Date().getFullYear(),
-  //       Number(forexRate)
-  //     );
-  //   };
+    const result = generateHDMFRegister(HDMFDeductionResponse, format(new Date(), "MMM dd, yyyy hh:mm aa").toString())
+  }
 
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">
@@ -208,12 +181,12 @@ export default function HMDFContribution() {
       `}</style>
       <div className="flex flex-col gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <Link href={ monthName && yearParam ? `/home/deduction/reports?month=${monthParam}&year=${yearParam}` : "/home/deduction/reports"}>
+          <Link href={monthName && yearParam ? `/home/deduction/reports?month=${monthParam}&year=${yearParam}` : "/home/deduction/reports"}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-semibold mb-0">{ monthName && yearParam ? `HDMF Contribution- ${capitalizeFirstLetter(monthName)} ${yearParam}` : "HDMF Contribution"}</h1>
+          <h1 className="text-3xl font-semibold mb-0">{monthName && yearParam ? `HDMF Contribution- ${capitalizeFirstLetter(monthName)} ${yearParam}` : "HDMF Contribution"}</h1>
         </div>
       </div>
 
