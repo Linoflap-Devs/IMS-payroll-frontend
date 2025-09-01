@@ -367,9 +367,6 @@ export default function CrewApplication() {
             <AddAllotteeReqDialog
               open={showDetailsDialog}
               onOpenChange={setShowDetailsDialog}
-              selectedApplicationOperation={
-                selectedApplication.ApplicationOperation
-              }
               selectedApplicationStatus={selectedApplication.ApplicationStatus}
               requestData={
                 selectedApplication.RequestData as AllotteeRequestData
