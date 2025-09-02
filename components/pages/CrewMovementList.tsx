@@ -410,9 +410,14 @@ export default function CrewMovementList() {
           <ArrowDownUp size={15} />
         </div>
       ),
-      cell: ({ row }) => (
-        <div className="text-left">{row.getValue("name")}</div>
-      ),
+      cell: ({ row }) => {
+        const name = row.getValue("name") as string;
+        return (
+          <div className="flex">
+           {name.toUpperCase()}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "rank",
@@ -498,6 +503,7 @@ export default function CrewMovementList() {
     {
       accessorKey: "name",
       header: ({ column }) => (
+
         <div
           className="flex items-center justify-center cursor-pointer text-left space-x-2"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -506,9 +512,14 @@ export default function CrewMovementList() {
           <ArrowDownUp size={15} />
         </div>
       ),
-      cell: ({ row }) => (
-        <div className="text-left">{row.getValue("name")}</div>
-      ),
+      cell: ({ row }) => {
+        const name = row.getValue("name") as string;
+        return (
+          <div className="flex">
+           {name.toUpperCase()}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "rank",
@@ -590,10 +601,6 @@ export default function CrewMovementList() {
     },
   ];
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    setSearchTerm("");
-  };
 
   const handleRepatriate = () => {
     if (selectedRows.length === 0) {

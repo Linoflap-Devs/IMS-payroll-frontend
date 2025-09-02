@@ -275,8 +275,7 @@ export default function DeductionEntries() {
   const [HDMFUpgradeAmount, setHDMFUpgradeAmount] = useState<number>(0);
   const [isDollar, setIsDollar] = useState<boolean>(false);
   const [HDMFHistoryAmount, setHDMFHistoryAmount] = useState<HDMFHistoryEntry[]>([]);
-  const [selectedHDMFYear, setSelectedHDMFYear] =
-    useState<string>(new Date().getFullYear().toString());
+  const [selectedHDMFYear, setSelectedHDMFYear] = useState<string>(new Date().getFullYear().toString());
   const [hdmfLoading, setHdmfLoading] = useState(false);
   const [hdmfYears, sethdmfYears] = useState<string[]>([]);
   const [onSuccessHDMF, setOnSuccessHDMF] = useState(false);
@@ -292,9 +291,7 @@ export default function DeductionEntries() {
   const [selectedSSSYear, setSelectedSSSYear] = useState<string>(new Date().getFullYear().toString());
   const [sssYears, setSSSYears] = useState<string[]>([]);
   const [sssLoading, setSSSLoading] = useState<boolean>(false);
-  //console.log("deductionEntries", deductionEntries);
 
-  //const [selectedDeduction, setSelectedDeduction] = useState<number | null>(null);
   const [selectedDeduction, setSelectedDeduction] = useState<DeductionEntriesType | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
@@ -316,8 +313,6 @@ export default function DeductionEntries() {
     []
   );
 
-  console.log('DEDUCTION ENTRIES:   ', deductionEntries);
-
   useEffect(() => {
     if (crewCode) {
       fetchDeductionEntries(crewCode);
@@ -332,9 +327,10 @@ export default function DeductionEntries() {
 
     try {
       const response = await getDeductionEntries(crewCode);
-
+      
       if (response.success) {
         setDeductionEntries(response.data);
+        
 
         // Populate dropdown filters only — don't auto-select
         const years = [
@@ -422,7 +418,6 @@ export default function DeductionEntries() {
 
       try {
         const response = await getCrewSSS(crewCode, year);
-        //console.log("SSS response", response)
 
         if (response.success) {
           const mappedData = response.data.map((item) => ({
@@ -549,6 +544,7 @@ export default function DeductionEntries() {
         header: "Actions",
         cell: ({ row }) => {
           const deductionId = row.original.DeductionDetailID;
+          const Posted = String(row?.original?.Status) === "Completed";
 
           const handleDelete = (crewCode: string, deductionId: number) => {
             const swalWithBootstrapButtons = Swal.mixin({
@@ -614,6 +610,15 @@ export default function DeductionEntries() {
                   <DropdownMenuItem
                     onClick={() => {
                       const deduction = deductionEntries.find(d => d.DeductionDetailID === deductionId);
+                      if (Posted) {
+                        Swal.fire({
+                          title: "Not Editable",
+                          text: "This movement cannot be edited. Payment has already been posted.",
+                          icon: "error",
+                          confirmButtonText: "OK",
+                        });
+                        return;
+                      }
                       if (deduction) {
                         setSelectedDeduction(deduction);
                         setEditDialogOpen(true);
@@ -623,18 +628,18 @@ export default function DeductionEntries() {
                     <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     Edit Deduction Entry
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator/>
-                 <DropdownMenuItem
-                   className="text-destructive text-xs sm:text-sm"
-                   onClick={() => {
-                    if (crewCode) {
-                      handleDelete(crewCode, deductionId)
-                    }
-                   }}
-                 >
-                   <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                   Delete
-                 </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive text-xs sm:text-sm"
+                    onClick={() => {
+                      if (crewCode) {
+                        handleDelete(crewCode, deductionId)
+                      }
+                    }}
+                  >
+                    <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    Delete
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -743,7 +748,6 @@ export default function DeductionEntries() {
           setHDMFUpgradeAmount(Amount.HDMFAmount ?? 0);
           setIsDollar(Amount.DollarCurrency === 1);
           setHDMFHistoryAmount(History ?? []);
-          //console.log("History:", History);
 
           const uniqueYears = Array.from(
             new Set((History ?? []).map((entry) => entry.PayYear.toString()))
@@ -934,7 +938,6 @@ export default function DeductionEntries() {
 
         {/* Main content */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Left sidebar with crew info */}
           <div className="md:col-span-1">
             <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
               <CardContent className="p-4 flex flex-col items-center text-center overflow-y-auto scrollbar-hide flex-1">
@@ -1500,6 +1503,7 @@ export default function DeductionEntries() {
           deduction={selectedDeduction}
           crewCode={crewCode ?? ""}
           setOnSuccess={setOnSuccess}
+
         />
       )}
     </div>

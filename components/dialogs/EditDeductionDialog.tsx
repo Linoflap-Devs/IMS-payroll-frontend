@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Info } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/form";
 import { toast } from "../ui/use-toast";
 import { DeductionEntries, updateCrewDeductionEntry } from "@/src/services/deduction/crewDeduction.api";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 const formSchema = z.object({
   deductionAmount: z
@@ -54,18 +55,20 @@ export function EditDeductionDialog({
 }: EditDeductionDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // const statusMap = {
-  //   0: "Pending",
-  //   1: "Completed",
-  // };
-
-  // const numericStatus =
-  //   typeof deduction.Status === "string" && deduction.Status in statusMap
-  //     ? statusMap[deduction.Status]
-  //     : 0;
-
-  const monthYearDate = new Date(`${deduction.Year}-${deduction.Month}-01`);
- // console.log("Deduction Month-Year:", monthYearDate.toLocaleDateString("en-US", { month: "long", year: "numeric" }));
+  const monthMap: Record<string, number> = {
+    January: 0,
+    February: 1,
+    March: 2,
+    April: 3,
+    May: 4,
+    June: 5,
+    July: 6,
+    August: 7,
+    September: 8,
+    October: 9,
+    November: 10,
+    December: 11,
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,10 +76,12 @@ export function EditDeductionDialog({
       deductionAmount: deduction.Amount || 0,
       deductionRemarks: deduction.Remarks || "",
       deductionDate:
-        deduction.DeductionDate instanceof Date
-          ? deduction.DeductionDate.toISOString().split("T")[0]
-          : (deduction.DeductionDate || ""),
-      //status: 0,
+        deduction.Month && deduction.Year
+          ? new Date(deduction.Year, monthMap[deduction.Month], 2)
+            .toISOString()
+            .split("T")[0]
+          : "",
+
     },
   });
 
@@ -85,10 +90,11 @@ export function EditDeductionDialog({
       deductionAmount: deduction.Amount || 0,
       deductionRemarks: deduction.Remarks || "",
       deductionDate:
-        deduction.DeductionDate instanceof Date
-          ? deduction.DeductionDate.toISOString().split("T")[0]
-          : (deduction.DeductionDate || ""),
-      //status: 0,
+        deduction.Month && deduction.Year
+          ? new Date(deduction.Year, monthMap[deduction.Month], 2)
+            .toISOString()
+            .split("T")[0]
+          : "",
     });
   }, [deduction, form]);
 
@@ -100,7 +106,7 @@ export function EditDeductionDialog({
         ...values,
         deductionAmount: Number(values.deductionAmount),
         deductionDate: new Date(values.deductionDate),
-        status: 0, // force status to 0 (Pending)
+        status: 0,
       };
 
       const response = await updateCrewDeductionEntry(
@@ -156,7 +162,24 @@ export function EditDeductionDialog({
               name="deductionDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm text-gray-600">Deduction Date</FormLabel>
+                  <FormLabel className="text-sm text-gray-600 flex items-center gap-2">
+                    Deduction Date
+                    <HoverCard openDelay={100}>
+                      <HoverCardTrigger asChild>
+                        <Info className="w-4 h-4 cursor-pointer transition-colors text-gray-400 hover:text-blue-500" />
+                      </HoverCardTrigger>
+                      <HoverCardContent
+                        side="right"
+                        align="center"
+                        className="w-72 p-4 bg-white border border-gray-200 rounded-lg shadow-xl text-sm text-gray-700 z-50"
+                      >
+                        Please edit the date if needed.
+                        <br />
+                        Default is the 1st day of the selected month.
+                      </HoverCardContent>
+                    </HoverCard>
+                  </FormLabel>
+
                   <FormControl>
                     <Input
                       type="date"
