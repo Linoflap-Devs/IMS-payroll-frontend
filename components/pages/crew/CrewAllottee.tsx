@@ -47,6 +47,9 @@ import { useAddAllotteeStore } from "@/src/store/useAddAllotteeStore";
 import { useAllotteeTriggerStore } from "@/src/store/usetriggerAdd";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAddAllotteeValidationStore } from "@/src/store/useAddAllotteeValidationStore";
+import { useRelationshipStore } from "@/src/store/useRelationshipStore";
+import { useBankStore } from "@/src/store/useBankStore";
+import { useLocationStore } from "@/src/store/useLocationStore";
 
 interface ICrewAllotteeProps {
   onAdd?: () => void;
@@ -102,6 +105,29 @@ export function CrewAllottee({
   const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd);
   const [newAllotmentType, setNewAllotmentType] = useState("0");
   const [isEditModalStatus, setEditModalStatus] = useState<Record<number, boolean>>({});
+
+  const { allRelationshipData, fetchRelationships } = useRelationshipStore();
+  const {
+    fetchBanks,
+    getUniqueBanks,
+    getBranchesForSelectedBank,
+    selectedBankId,
+    setSelectedBankId,
+  } = useBankStore();
+
+  const { loading, cities, provinces, fetchCities, fetchProvinces } =
+    useLocationStore();
+
+  useEffect(() => {
+    fetchRelationships();
+    fetchBanks();
+    fetchProvinces();
+    fetchCities();
+  }, [fetchRelationships, fetchBanks, fetchProvinces, fetchCities]);
+
+  const uniqueBanks = getUniqueBanks();
+  const branchesForSelectedBank = getBranchesForSelectedBank();
+  const { getBranchesByBankId } = useBankStore();
 
   const {
     allottees: storeAllottees,
@@ -888,8 +914,15 @@ export function CrewAllottee({
               {isAddingAllottee && (
                 <AddCrewAllotteeForm
                   allottees={allottees}
-                  setIsAddingAllottee={setIsAddingAllottee}
                   newAllotmentType={newAllotmentType}
+                  allRelationshipData={allRelationshipData}
+                  cities={cities}
+                  provinces={provinces}
+                  uniqueBanks={uniqueBanks}
+                  fetchBanks={fetchBanks}
+                  getUniqueBanks={getUniqueBanks}
+                  setSelectedBankId={setSelectedBankId}
+                  branchesForSelectedBank={branchesForSelectedBank}
                 />
               )}
             </>
@@ -898,14 +931,22 @@ export function CrewAllottee({
         {selectedAllotteeData && editselectedAllotteeDialogOpen && (
           <EditAllotteeDialog
             open={editselectedAllotteeDialogOpen}
-            onOpenChange={(open) => {
-              setEditselectedAllotteeDialogOpen(open);
-            }}
+            onOpenChange={(open) => { setEditselectedAllotteeDialogOpen(open); }}
             SelectedAllotteeData={selectedAllotteeData}
             isEditingAllottee={isEditingAllottee}
             isAddingAllottee={isAddingAllottee ?? null}
             isEditModalStatus={isEditModalStatus}
             setEditModalStatus={setEditModalStatus}
+            allRelationshipData={allRelationshipData}
+            cities={cities}
+            provinces={provinces}
+            uniqueBanks={uniqueBanks}
+            loading={loading}
+            fetchBanks={fetchBanks}
+            getUniqueBanks={getUniqueBanks}
+            selectedBankId={selectedBankId}
+            getBranchesByBankId={getBranchesByBankId}
+            setSelectedBankId={setSelectedBankId}
           />
         )}
       </div>

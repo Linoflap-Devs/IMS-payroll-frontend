@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {
   Select,
@@ -8,9 +8,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { useRelationshipStore } from "@/src/store/useRelationshipStore";
-import { useBankStore } from "@/src/store/useBankStore";
-import { useLocationStore } from "@/src/store/useLocationStore";
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -28,17 +25,35 @@ import { useAddAllotteeStore } from "@/src/store/useAddAllotteeStore";
 import { useAllotteeTriggerStore } from "@/src/store/usetriggerAdd";
 import { toast } from "@/components/ui/use-toast";
 import { useAddAllotteeValidationStore } from "@/src/store/useAddAllotteeValidationStore";
+import { IRelationship } from "@/src/services/relationship/relationship.api";
+import { CitiesItem, ProvincesItem } from "@/src/services/location/location.api";
 
 interface AddAllotteeFormProps {
   allottees: AllotteeUiModel[];
-  setIsAddingAllottee: Dispatch<SetStateAction<boolean>>;
   newAllotmentType: string;
+  allRelationshipData: IRelationship[];
+  cities: CitiesItem[];
+  provinces: ProvincesItem[];
+  uniqueBanks: any[];
+  fetchBanks: () => Promise<void>;
+  getUniqueBanks: () => void;
+  setSelectedBankId: (bankId: number | null) => void;
+  branchesForSelectedBank: {
+    BankID: number;
+    BankBranchID: number;
+    BankBranchName: string;
+  }[];
 }
 
 export default function AddAllotteeForm({
   allottees,
-  setIsAddingAllottee,
   newAllotmentType,
+  provinces,
+  cities,
+  uniqueBanks,
+  allRelationshipData,
+  setSelectedBankId,
+  branchesForSelectedBank
 }: AddAllotteeFormProps) {
   const defaultValues: IAddAllottee = useMemo(
     () => ({
@@ -66,11 +81,10 @@ export default function AddAllotteeForm({
     shouldFocusError: true,
   });
 
-  const { control, watch, setValue, handleSubmit, formState } = form;
+  const { control, watch, setValue, handleSubmit } = form;
   const province = watch("province");
   const bank = watch("bank");
   const allotmentType = watch("allotmentType");
-  const { allRelationshipData, fetchRelationships } = useRelationshipStore();
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
   const setTriggerAdd = useAllotteeTriggerStore((state) => state.setTriggerAdd);
   const setValidationAdd = useAddAllotteeValidationStore((state) => state.setValidationAdd);
@@ -87,22 +101,6 @@ export default function AddAllotteeForm({
     }
   }, [triggerAdd, handleSubmit]);
 
-  const {
-    fetchBanks,
-    setSelectedBankId,
-    getUniqueBanks,
-    getBranchesForSelectedBank,
-  } = useBankStore();
-
-  const { cities, provinces, fetchCities, fetchProvinces } = useLocationStore();
-
-  useEffect(() => {
-    fetchRelationships();
-    fetchBanks();
-    fetchProvinces();
-    fetchCities();
-  }, [fetchRelationships, fetchBanks, fetchProvinces, fetchCities]);
-
   useEffect(() => {
     if (bank) {
       setSelectedBankId(Number(bank));
@@ -116,9 +114,6 @@ export default function AddAllotteeForm({
     }
   }, [province, setValue]);
 
-  const uniqueBanks = getUniqueBanks();
-  const branchesForSelectedBank = getBranchesForSelectedBank();
-
   const filteredCities = useMemo(() => {
     if (!province) return [];
 
@@ -131,8 +126,6 @@ export default function AddAllotteeForm({
   }, [cities, province]);
 
   const handleSaveAdd = (data: IAddAllottee) => {
-    console.log("handleSaveAdd triggered with form data:", data);
-
     const payload: AllotteeApiModel = {
       name: data.name,
       relation: data.relation,
@@ -150,10 +143,7 @@ export default function AddAllotteeForm({
       isActive: 1,
     };
 
-    //console.log("Payload ready to save:", payload);
-
     useAddAllotteeStore.getState().setNewAllottee(payload);
-    //console.log("New allottee set in store:", useAddAllotteeStore.getState().newAllottee);
 
     // Only check total % if allotmentType === 2
     // if (payload.allotmentType === 2) {
