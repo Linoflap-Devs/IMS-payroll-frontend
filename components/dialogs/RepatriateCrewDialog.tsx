@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Check, ChevronDown, Loader2, Info, CheckCircle, AlertCircle, XCircle, CalendarX } from "lucide-react";
@@ -47,6 +48,7 @@ interface RepatriateCrewDialogProps {
   //   vesselId: number;
   // }[];
   setOnSuccess: Dispatch<SetStateAction<boolean>>;
+  setModalOpenRepatriate: Dispatch<SetStateAction<boolean>>;
 }
 
 function SimpleSearchableSelect({
@@ -187,6 +189,7 @@ export function RepatriateCrewDialog({
   setOnSuccess,
   //crewMember,
   crewMembers,
+  setModalOpenRepatriate,
 }: RepatriateCrewDialogProps) {
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
   const [allPorts, setAllPorts] = useState<IPort[]>([]);
@@ -197,7 +200,6 @@ export function RepatriateCrewDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  //console.log('Crew members in the dialog: ', crewMembers);
 
   useEffect(() => {
     if (open) {
@@ -379,6 +381,7 @@ export function RepatriateCrewDialog({
 
   const handleSubmit = async () => {
     setSubmitted(true);
+    //setModalOpenRepatriate(false);
 
     if (!selectedPort || !signOffDate) {
       console.warn("Validation failed:", {
@@ -481,7 +484,7 @@ export function RepatriateCrewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-2 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
+      <DialogContent className="p-2 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]" overlayClassName="bg-transparent">
         <DialogHeader className="p-7 pb-2">
           <DialogTitle className="text-2xl font-semibold text-[#2F3593] text-center">
             Repatriate Crews

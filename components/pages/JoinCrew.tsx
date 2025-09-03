@@ -454,7 +454,7 @@ export default function JoinCrewPage() {
                     placeholder="Select vessel"
                     value={selectedVessel}
                     onChange={setSelectedVessel}
-                  //disabled={!!selectedVessel}
+                  disabled={!!selectedVessel}
                   />
                 </div>
 
