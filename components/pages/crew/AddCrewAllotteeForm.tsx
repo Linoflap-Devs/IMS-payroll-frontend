@@ -84,16 +84,15 @@ export default function AddAllotteeForm({
   const { control, watch, setValue, handleSubmit } = form;
   const province = watch("province");
   const bank = watch("bank");
-  const allotmentType = watch("allotmentType");
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
   const setTriggerAdd = useAllotteeTriggerStore((state) => state.setTriggerAdd);
   const setValidationAdd = useAddAllotteeValidationStore((state) => state.setValidationAdd);
   const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd);
 
-  const totalAllotment = allottees?.reduce(
-    (sum, allottee) => sum + Number(allottee.allotment || 0),
-    0
-  );
+  // const totalAllotment = allottees?.reduce(
+  //   (sum, allottee) => sum + Number(allottee.allotment || 0),
+  //   0
+  // );
 
   useEffect(() => {
     if (triggerAdd) {

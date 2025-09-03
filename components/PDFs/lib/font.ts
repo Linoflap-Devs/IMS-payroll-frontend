@@ -21,8 +21,6 @@ export function addFont(doc: jsPDF): void {
     doc.addFileToVFS("NotoSans-Italic.ttf", italicFontBase64);
     doc.addFont("NotoSans-Italic.ttf", "NotoSans", "italic");
 
-
-    //console.log("Custom font loaded successfully");
   } catch (error) {
     console.error("Error loading custom font:", error);
   }

@@ -61,11 +61,8 @@ export default function AllotmentRegisterComponent() {
         );
 
         if (response.success && Array.isArray(response.data)) {
-          // When using vesselId, we expect a single vessel in the array
-          // but we keep the array structure for the DataTable
           setAllotmentData(response.data);
 
-          //console.log("Fetched vessel data:", response.data);
         } else {
           console.error("Unexpected API response format:", response);
           setAllotmentData([]);

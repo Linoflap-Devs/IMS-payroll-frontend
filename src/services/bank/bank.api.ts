@@ -15,6 +15,5 @@ export interface BankResponse {
 
 export const getBankList = async (): Promise<BankResponse> => {
     const response = await axiosInstance.get<BankResponse>("/bank");
-    //console.log('BANK ITEM: ', response);
     return response.data;
 }

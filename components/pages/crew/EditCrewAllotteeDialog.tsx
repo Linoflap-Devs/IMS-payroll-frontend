@@ -689,7 +689,6 @@ export function EditAllotteeDialog({
                         setDraft(Number(SelectedAllotteeData.id), {
                           branch: numericValue,
                         });
-                        //console.log(field.value);
                       }}
                       value={
                         field.value !== undefined

@@ -42,9 +42,6 @@ export interface CrewPayrollHsitoryResponse {
 }
 
 export const getCrewPayrollHistory = async (crewCode: number, ): Promise<CrewPayrollHsitoryResponse> => {
-  //console.log("Fetching payroll history for crewCode:", crewCode);
-
   const response = await axiosInstance.get<CrewPayrollHsitoryResponse>(`/crew/${crewCode}/payrolls`);
-  //console.log("API response from /crew/:crewCode/payrolls:", response.data);
   return response.data;
 };

@@ -381,7 +381,6 @@ export function RepatriateCrewDialog({
 
   const handleSubmit = async () => {
     setSubmitted(true);
-    //setModalOpenRepatriate(false);
 
     if (!selectedPort || !signOffDate) {
       console.warn("Validation failed:", {
@@ -397,11 +396,8 @@ export function RepatriateCrewDialog({
       return;
     }
 
-    // Check if all crew members belong to the same vessel
     const uniqueVesselIds = new Set(crewMembers.map((c) => c.vesselId));
     if (uniqueVesselIds.size > 1) {
-      //console.warn("Crew members have mixed vessel IDs:", [...uniqueVesselIds]);
-
       toast({
         title: "Vessel Mismatch",
         description: "All selected crew members must belong to the same vessel.",
@@ -416,11 +412,6 @@ export function RepatriateCrewDialog({
 
     try {
       const promises = crewMembers.map((crew) => {
-        // console.log("Sending repatriation request for:", {
-        //   crewId: crew.id,
-        //   name: crew.name,
-        // });
-
         return batchRepatriateCrew(
           vesselId,
           Number(selectedPort),
@@ -431,16 +422,9 @@ export function RepatriateCrewDialog({
 
       const results = await Promise.allSettled(promises);
 
-      //console.log("Batch repatriation results:", results);
-
-      // Log individual results
       results.forEach((result, idx) => {
         const crew = crewMembers[idx];
         if (result.status === "fulfilled") {
-          // console.log(
-          //   `Success - Crew ${crew.name} (ID: ${crew.id})`,
-          //   result.value
-          // );
         } else {
           console.error(
             `Failed - Crew ${crew.name} (ID: ${crew.id})`,
@@ -462,7 +446,7 @@ export function RepatriateCrewDialog({
       });
 
       if (successCount > 0) {
-        //console.log("Some repatriation requests were successful. Closing dialog.");
+        console.warn("Some repatriation requests were successful. Closing dialog.");
         setOnSuccess(true);
         onOpenChange(false);
       } else {
@@ -476,7 +460,6 @@ export function RepatriateCrewDialog({
         variant: "destructive",
       });
     } finally {
-      //console.log("Repatriation process finished.");
       setIsLoading(false);
       setSubmitted(false);
     }

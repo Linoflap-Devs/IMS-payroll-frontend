@@ -373,7 +373,6 @@ export default function AddCrew() {
           icon: "success",
           confirmButtonColor: "#3085d6",
         }).then(() => {
-          //console.log("Refreshing crew list and redirecting");
           refreshCrewList();
           router.push("/home/crew");
         });
@@ -386,7 +385,6 @@ export default function AddCrew() {
         });
       }
     } catch (error: unknown) {
-      //console.log("Caught error during API call:", error);
 
       interface ApiErrorResponse {
         message: string | unknown[];

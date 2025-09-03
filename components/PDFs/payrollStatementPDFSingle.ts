@@ -144,7 +144,6 @@ function generateCrewPayrollPage(
     year: number,
 ) {
     // Define page dimensions
-    //console.log('MONTH : ', displayMonth);
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     const margin = 10;

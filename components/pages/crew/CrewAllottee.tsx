@@ -26,7 +26,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useAllotteeFormStore } from "@/src/store/useAllotteeFormStore";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Eye, Info, MoreHorizontal, Pencil, Plus, Trash, X } from "lucide-react";
+import { Eye, MoreHorizontal, Pencil, Plus, Trash } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -38,7 +38,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Swal from "sweetalert2";
 import {
-  DraftAllottee,
   useEditAllotteeStore,
 } from "@/src/store/useEditAllotteeStore";
 import { EditAllotteeDialog } from "./EditCrewAllotteeDialog";
@@ -77,7 +76,6 @@ export type SavedAllotmentData = {
 
 export function CrewAllottee({
   isEditingAllottee = false,
-  isAdding = false,
   triggerSave,
   setAllotteeLoading,
   setTriggerSave,
@@ -96,13 +94,11 @@ export function CrewAllottee({
   const [deletingAllottee, setDeletingAllottee] = useState(false);
   const [savedAllotments, setSavedAllotments] = useState<Record<number, SavedAllotmentData>>({});
   const drafts = useEditAllotteeStore((state) => state.drafts);
-  const clearDraft = useEditAllotteeStore((state) => state.clearDraft);
   const [editedAllottees, setEditedAllottees] = useState<Record<number, boolean>>({});
   const newAllottee = useAddAllotteeStore((state) => state.newAllottee);
   const triggerAdd = useAllotteeTriggerStore((state) => state.triggerAdd);
   const triggerEdit = useAllotteeTriggerStore((state) => state.triggerAdd);
   const validationAdd = useAddAllotteeValidationStore((state) => state.validationAdd);
-  const setTriggerEdit = useAllotteeTriggerStore((state) => state.setTriggerAdd);
   const [newAllotmentType, setNewAllotmentType] = useState("0");
   const [isEditModalStatus, setEditModalStatus] = useState<Record<number, boolean>>({});
 
@@ -499,7 +495,6 @@ export function CrewAllottee({
 
   useEffect(() => {
     if ((!triggerSave && !triggerEdit) || !crewId) {
-      //console.log("Nothing to do. Exiting effect.");
       return;
     }
 
@@ -566,7 +561,7 @@ export function CrewAllottee({
         // Add the single new allottee if triggerAdd is true
         if (triggerAdd && newAllottee) {
           const newItem: AllotteeApiModel = {
-            allotmentType: Number(newAllottee.allotmentType ?? newAllotmentType), // adjusted as new Allotment Type
+            allotmentType: Number(newAllottee.allotmentType ?? newAllotmentType),
             allotment: newAllottee.allotment,
             name: newAllottee.name,
             address: newAllottee.address,
@@ -915,6 +910,7 @@ export function CrewAllottee({
                 <AddCrewAllotteeForm
                   allottees={allottees}
                   newAllotmentType={newAllotmentType}
+
                   allRelationshipData={allRelationshipData}
                   cities={cities}
                   provinces={provinces}
@@ -937,6 +933,7 @@ export function CrewAllottee({
             isAddingAllottee={isAddingAllottee ?? null}
             isEditModalStatus={isEditModalStatus}
             setEditModalStatus={setEditModalStatus}
+
             allRelationshipData={allRelationshipData}
             cities={cities}
             provinces={provinces}
