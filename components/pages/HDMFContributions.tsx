@@ -54,14 +54,13 @@ export default function HMDFContribution() {
         if (response.success && Array.isArray(response.data)) {
           const vesselData = response.data[0];
           if (vesselData) {
-            setVesselInfo(vesselData); // vessel-level info
-            setHMDFDeductionData(vesselData.Crew || []); // crew-level info
+            setVesselInfo(vesselData);
+            setHMDFDeductionData(vesselData.Crew || []);
             setHDMFDeductionResponse(response);
           } else {
             setVesselInfo(null);
             setHMDFDeductionData([]);
           }
-          //console.log("Fetched HMDF deduction data:", vesselData);
         } else {
           console.error("Unexpected response format:", response);
           setVesselInfo(null);

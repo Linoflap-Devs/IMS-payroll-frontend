@@ -34,23 +34,16 @@ export default function CrewPayrollHistory() {
   //const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
   const [monthFilter, setMonthFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
-
   const [selectedCrewPayrollItem, setSelectedCrewPayrollItem] = useState<CrewPayrollHistoryItem | null>(null);
   const [isViewSelectedAllotteeDistributionDialogOpen, setViewselectedAllotteeDistributionDialogOpen] = useState(false);
   const [isViewSelectedDeductionDialogOpen, setViewSelectedDeductionDialogOpen] = useState(false);
-
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState<Blob | null>();
   const [fileName, setFileName] = useState("");
-
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
   const crewCode = id ? Number(id) : null;
-
   const { crew, isLoading } = useCrewDetails(id);
-
-  //console.log(crew);
-  //console.log("PAYROLL DATA: ", payrollData);
 
   const monthNames = [
     "January",

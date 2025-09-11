@@ -23,16 +23,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { z } from "zod";
-import { Dispatch, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AllotteeUiModel } from "@/types/crewAllottee";
-import { useBankStore } from "@/src/store/useBankStore";
-import { useLocationStore } from "@/src/store/useLocationStore";
-import { useRelationshipStore } from "@/src/store/useRelationshipStore";
 import { useEditAllotteeStore } from "@/src/store/useEditAllotteeStore";
+import { IRelationship } from "@/src/services/relationship/relationship.api";
+import { CitiesItem, ProvincesItem } from "@/src/services/location/location.api";
 
 const editAllotteeSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -53,53 +52,46 @@ interface EditUserDialogProps {
   onOpenChange: (open: boolean) => void;
   SelectedAllotteeData: AllotteeUiModel;
   onSuccess?: (updatedUser: AllotteeUiModel) => void;
-  isEditingAllottee: boolean
-  isAddingAllottee: boolean | null
+  isEditingAllottee: boolean;
+  isAddingAllottee: boolean | null;
   isEditModalStatus: Record<number, boolean>;
   setEditModalStatus: React.Dispatch<React.SetStateAction<Record<number, boolean>>>;
+  allRelationshipData: IRelationship[];
+  cities: CitiesItem[];
+  provinces: ProvincesItem[];
+  uniqueBanks: any[];
+  loading: boolean;
+  fetchBanks: () => Promise<void>;
+  getUniqueBanks: () => void;
+  selectedBankId: number | string | null;
+  setSelectedBankId: (bankId: number | null) => void;
+  getBranchesByBankId: (
+    bankId: number
+  ) => { BankID: number; BankBranchID: number; BankBranchName: string }[];
 }
 
 export function EditAllotteeDialog({
   open,
   onOpenChange,
   SelectedAllotteeData,
-  onSuccess,
   isEditingAllottee,
   isAddingAllottee,
   setEditModalStatus,
-  isEditModalStatus
+  provinces,
+  cities,
+  loading,
+  selectedBankId,
+  uniqueBanks,
+  getBranchesByBankId,
+  allRelationshipData,
+  setSelectedBankId,
 }: EditUserDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  //console.log(SelectedAllotteeData);
-
-  const { allRelationshipData, fetchRelationships } = useRelationshipStore();
-  const {
-    fetchBanks,
-    getUniqueBanks,
-    getBranchesForSelectedBank,
-    selectedBankId,
-    setSelectedBankId,
-    setSelectedBranchId,
-  } = useBankStore();
-  const { loading, cities, provinces, fetchCities, fetchProvinces } =
-    useLocationStore();
-  const [editingAllottee, setEditingAllottee] =
-    useState<AllotteeUiModel | null>(null);
+  const [editingAllottee, setEditingAllottee] = useState<AllotteeUiModel | null>(null);
   const [searchCity, setSearchCity] = useState("");
   const [searchProvince, setSearchProvince] = useState("");
   const [searchBranch, setSearchBranch] = useState("");
-
-  useEffect(() => {
-    fetchRelationships();
-    fetchBanks();
-    fetchProvinces();
-    fetchCities();
-  }, [fetchRelationships, fetchBanks, fetchProvinces, fetchCities]);
-
-  const uniqueBanks = getUniqueBanks();
-  //const branchesForSelectedBank = getBranchesForSelectedBank();
-  const { getBranchesByBankId } = useBankStore(); // make sure to destructure from store
 
   const setDraft = useEditAllotteeStore((state) => state.setDraft);
   const drafts = useEditAllotteeStore((state) => state.drafts);
@@ -109,7 +101,7 @@ export function EditAllotteeDialog({
     defaultValues: {
       name: "",
       relation: undefined,
-      contactNumber: " ", // space so it stays a string
+      contactNumber: " ",
       address: "",
       province: undefined,
       city: undefined,
@@ -185,7 +177,6 @@ export function EditAllotteeDialog({
   ]);
 
   const { reset } = form;
-  //console.log(drafts);
 
   useEffect(() => {
     if (!SelectedAllotteeData) return;
@@ -698,7 +689,6 @@ export function EditAllotteeDialog({
                         setDraft(Number(SelectedAllotteeData.id), {
                           branch: numericValue,
                         });
-                        //console.log(field.value);
                       }}
                       value={
                         field.value !== undefined

@@ -11,6 +11,7 @@ import {
   ArrowDownUp,
   Filter,
   MoreHorizontal,
+  Loader2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
@@ -34,6 +35,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "../ui/dropd
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { MdOutlineBadge } from "react-icons/md";
 import { PromoteCrewDialog } from "../dialogs/PromoteCrewDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, } from "../ui/dialog";
 
 interface ISelectedCrew {
   id: number;
@@ -79,6 +81,8 @@ export default function CrewMovementList() {
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<Record<string, boolean>>({});
   const [totalCrews, setTotalCrews] = useState<number>(0);
+  const [modalOpenJoin, setModalOpenJoin] = useState(false);
+  const [modalOpenRepatriate, setModalOpenRepatriate] = useState(false);
 
   useEffect(() => {
     const fetchVesselCrew = async () => {
@@ -414,7 +418,7 @@ export default function CrewMovementList() {
         const name = row.getValue("name") as string;
         return (
           <div className="flex">
-           {name.toUpperCase()}
+            {name.toUpperCase()}
           </div>
         );
       },
@@ -516,7 +520,7 @@ export default function CrewMovementList() {
         const name = row.getValue("name") as string;
         return (
           <div className="flex">
-           {name.toUpperCase()}
+            {name.toUpperCase()}
           </div>
         );
       },
@@ -577,8 +581,7 @@ export default function CrewMovementList() {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={() => {
-                    const selected = crew; // row.original
-                    //console.log("Crew selected for promotion:", selected);
+                    const selected = crew;
 
                     setSelectedCrew([
                       {
@@ -601,7 +604,6 @@ export default function CrewMovementList() {
     },
   ];
 
-
   const handleRepatriate = () => {
     if (selectedRows.length === 0) {
       console.warn("No rows selected for repatriation.");
@@ -616,6 +618,14 @@ export default function CrewMovementList() {
 
     setSelectedCrew(enrichedSelectedRows);
     setRepatriateDialogOpen(true);
+  };
+
+  const handleModalOpenJoin = () => {
+    setModalOpenJoin((prev) => !prev);
+  };
+
+  const handleModalOpenRepatriate = () => {
+    setModalOpenRepatriate((prev) => !prev);
   };
 
   const handleJoin = () => {
@@ -640,6 +650,7 @@ export default function CrewMovementList() {
     useJoinCrewStore.getState().setSelectedCrew(mappedSelectedCrew);
     router.push("/home/crew-movement/join-crew");
   };
+
   return (
     <div className="h-full w-full p-3 pt-3 overflow-hidden">
       <style jsx global>{`
@@ -684,7 +695,6 @@ export default function CrewMovementList() {
           <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
             <Tabs value={activeTab} onValueChange={(tabValue) => {
               setActiveTab(tabValue);
-              // Clear filters when switching tabs
               setSearchTerm("");
               setRankFilter("all");
             }}>
@@ -758,7 +768,7 @@ export default function CrewMovementList() {
                           <span className="inline-block">
                             <Button
                               className="gap-2 h-11 px-5"
-                              onClick={handleJoin}
+                              onClick={handleModalOpenJoin}
                               disabled={selectedCrews.length === 0}
                             >
                               <Plus />
@@ -785,7 +795,6 @@ export default function CrewMovementList() {
                         columns={columnJoin}
                         data={filteredJoinCrewData}
                         pageSize={7}
-                        //pagination={false}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                         selectedRowIds={selectedRowIds}
@@ -840,7 +849,7 @@ export default function CrewMovementList() {
                           <span className="inline-block">
                             <Button
                               className="gap-2 h-11 px-5"
-                              onClick={handleRepatriate}
+                              onClick={handleModalOpenRepatriate}
                               disabled={selectedRows.length === 0}
                             >
                               <TbShipOff />
@@ -867,7 +876,6 @@ export default function CrewMovementList() {
                         columns={columRepatriate}
                         data={filteredCrewData}
                         pageSize={7}
-                        //pagination={false}
                         rowSelection={selectedRowIds}
                         onRowSelectionChange={setSelectedRowIds}
                         selectedRowIds={selectedRowIds}
@@ -986,7 +994,110 @@ export default function CrewMovementList() {
           vesselId: number;
           signOnDate?: Date;
         }[]}
+        setModalOpenRepatriate={setModalOpenRepatriate}
       />
+
+      {modalOpenJoin && (
+        <Dialog open={modalOpenJoin} onOpenChange={setModalOpenJoin}>
+          <DialogContent className="sm:max-w-[650px] bg-[#FCFCFC] p-10">
+            <DialogHeader className="mb-2">
+              <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
+                Confirm Join List
+              </DialogTitle>
+            </DialogHeader>
+
+            {selectedCrews?.length > 0 ? (
+              <div className="flex flex-wrap gap-3 justify-center">
+                {selectedCrews.map((crew, index) => (
+                  <div key={index} className="px-4 py-2 bg-[#2E37A4] text-white rounded-full font-medium text-sm">
+                    {index + 1}. {crew.FirstName} {crew.LastName}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500">No crews selected</p>
+            )}
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setModalOpenJoin(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleJoin}
+                className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
+              >
+                {(isLoadingJoin && isLoadingRepatriate) ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    Join Crews
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {modalOpenRepatriate && (
+        <Dialog open={modalOpenRepatriate} onOpenChange={setModalOpenRepatriate}>
+          <DialogContent className="sm:max-w-[650px] bg-[#FCFCFC] p-10">
+            <DialogHeader className="mb-2">
+              <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
+                Confirm Repatriate List
+              </DialogTitle>
+            </DialogHeader>
+
+            {selectedRows?.length > 0 ? (
+              <div className="flex flex-wrap gap-3 justify-center">
+                {selectedRows.map((crew, index) => (
+                  <div key={index} className="px-4 py-2 bg-[#2E37A4] text-white rounded-full font-medium text-sm">
+                    {index + 1}. {crew.name.toUpperCase()}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500">No crews selected</p>
+            )}
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setModalOpenRepatriate(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleRepatriate}
+                className="flex-1 bg-[#2E37A4] hover:bg-[#2E37A4]/90 text-white"
+              >
+                {(isLoadingJoin && isLoadingRepatriate) ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    Repatriate Crews
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

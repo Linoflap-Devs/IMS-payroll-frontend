@@ -112,8 +112,6 @@ export function AddPaymentReference({
       const response = await addPaymentReference(payload);
 
       if (response?.success) {
-        //console.log("Payment reference created successfully:", response.data);
-
         const createdItem = Array.isArray(response.data)
           ? response.data[0]
           : response.data;

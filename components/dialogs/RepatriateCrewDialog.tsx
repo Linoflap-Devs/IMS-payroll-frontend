@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Check, ChevronDown, Loader2, Info, CheckCircle, AlertCircle, XCircle, CalendarX } from "lucide-react";
@@ -47,6 +48,7 @@ interface RepatriateCrewDialogProps {
   //   vesselId: number;
   // }[];
   setOnSuccess: Dispatch<SetStateAction<boolean>>;
+  setModalOpenRepatriate: Dispatch<SetStateAction<boolean>>;
 }
 
 function SimpleSearchableSelect({
@@ -187,6 +189,7 @@ export function RepatriateCrewDialog({
   setOnSuccess,
   //crewMember,
   crewMembers,
+  setModalOpenRepatriate,
 }: RepatriateCrewDialogProps) {
   const [countryList, setCountryList] = useState<CountriesItem[]>([]);
   const [allPorts, setAllPorts] = useState<IPort[]>([]);
@@ -197,7 +200,6 @@ export function RepatriateCrewDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  //console.log('Crew members in the dialog: ', crewMembers);
 
   useEffect(() => {
     if (open) {
@@ -394,11 +396,8 @@ export function RepatriateCrewDialog({
       return;
     }
 
-    // Check if all crew members belong to the same vessel
     const uniqueVesselIds = new Set(crewMembers.map((c) => c.vesselId));
     if (uniqueVesselIds.size > 1) {
-      //console.warn("Crew members have mixed vessel IDs:", [...uniqueVesselIds]);
-
       toast({
         title: "Vessel Mismatch",
         description: "All selected crew members must belong to the same vessel.",
@@ -413,11 +412,6 @@ export function RepatriateCrewDialog({
 
     try {
       const promises = crewMembers.map((crew) => {
-        // console.log("Sending repatriation request for:", {
-        //   crewId: crew.id,
-        //   name: crew.name,
-        // });
-
         return batchRepatriateCrew(
           vesselId,
           Number(selectedPort),
@@ -428,16 +422,9 @@ export function RepatriateCrewDialog({
 
       const results = await Promise.allSettled(promises);
 
-      //console.log("Batch repatriation results:", results);
-
-      // Log individual results
       results.forEach((result, idx) => {
         const crew = crewMembers[idx];
         if (result.status === "fulfilled") {
-          // console.log(
-          //   `Success - Crew ${crew.name} (ID: ${crew.id})`,
-          //   result.value
-          // );
         } else {
           console.error(
             `Failed - Crew ${crew.name} (ID: ${crew.id})`,
@@ -459,7 +446,7 @@ export function RepatriateCrewDialog({
       });
 
       if (successCount > 0) {
-        //console.log("Some repatriation requests were successful. Closing dialog.");
+        console.warn("Some repatriation requests were successful. Closing dialog.");
         setOnSuccess(true);
         onOpenChange(false);
       } else {
@@ -473,7 +460,6 @@ export function RepatriateCrewDialog({
         variant: "destructive",
       });
     } finally {
-      //console.log("Repatriation process finished.");
       setIsLoading(false);
       setSubmitted(false);
     }
@@ -481,7 +467,7 @@ export function RepatriateCrewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-2 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
+      <DialogContent className="p-2 max-w-[800px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]" overlayClassName="bg-transparent">
         <DialogHeader className="p-7 pb-2">
           <DialogTitle className="text-2xl font-semibold text-[#2F3593] text-center">
             Repatriate Crews

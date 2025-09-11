@@ -705,9 +705,6 @@ export default function RemittanceDetails() {
     return age;
   };
 
-  //console.log('CREW DATA:', crewData);
-  //const birthDate = crewData?.birthday ? dayjs(crewData.birthday) : null;
-  //const age = birthDate ? dayjs().diff(birthDate, 'year') : 'N/A';
   return (
     <div className="h-full w-full p-4 pt-3">
       <div className="flex flex-col space-y-6">

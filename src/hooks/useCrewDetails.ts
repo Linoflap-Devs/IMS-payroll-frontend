@@ -98,15 +98,12 @@ export function useCrewDetails(crewId: string | null) {
       return;
     }
 
-    //console.log("Starting saveChanges...");
     setIsEditLoading(true);
 
     const updatedCrew = {
       ...editedCrew,
       name: `${editedCrew.firstName} ${editedCrew.lastName}`,
     };
-
-    //console.log("updatedCrew object:", updatedCrew);
 
     const crewToBeUpdated = {
       status: updatedCrew.status,
@@ -154,21 +151,15 @@ export function useCrewDetails(crewId: string | null) {
           : undefined,
     };
 
-    console.log("Data to be sent to API (crewToBeUpdated):", crewToBeUpdated);
-
     try {
       const response = await updateCrew(editedCrew.id, crewToBeUpdated);
 
-      console.log("Response from updateCrew:", response);
-
       if (response.success) {
-        //console.log("Refetching crew data...");
         await Promise.all([
           fetchCrewBasic(editedCrew.id),
           fetchCrewDetails(editedCrew.id),
         ]);
 
-        //console.log("Crew data updated and refetched.");
         toast({
           title: "Success",
           description: "Crew details updated successfully.",
@@ -192,7 +183,6 @@ export function useCrewDetails(crewId: string | null) {
         variant: "destructive",
       });
     } finally {
-      //console.log("Cleaning up... set loading to false.");
       setIsEditLoading(false);
     }
   };

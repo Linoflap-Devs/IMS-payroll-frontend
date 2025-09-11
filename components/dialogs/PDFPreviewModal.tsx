@@ -51,7 +51,6 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({
   if (!isOpen) return null;
 
   const handleEscape = () => {
-    //console.log('Escaped')
     onClose();
   }
 

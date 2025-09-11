@@ -174,8 +174,6 @@ export function EditMovementDialog({
     }
   }, [selectedMovement, open, reset, rankList]);
 
-  //console.log(selectedMovement);
-
   const onSubmit = async (data: MovementFormValues) => {
     if (!selectedMovement) {
       console.warn("No selectedMovement found!");
@@ -203,15 +201,10 @@ export function EditMovementDialog({
       const movementId = selectedMovement.MovementDetailID;
 
       const response = await updateCrewMovement(crewCode, movementId, payload);
-
-      //console.log('response', response);
-
       if (response?.success) {
         const updatedPayload = Array.isArray(response.data)
           ? response.data[0]
           : response.data;
-
-        //console.log('UPDATED MOVEMENT',updatedPayload);
 
         const updatedMovement: Movement = {
           ...selectedMovement,
@@ -228,8 +221,6 @@ export function EditMovementDialog({
         };
 
         onSuccess(updatedMovement);
-
-        //console.log('THEN MOVEMENT: ', updatedMovement);
 
         toast({
           title: "Crew Movement Updated",

@@ -53,7 +53,6 @@ export const updateBatchAllottee = async (
       allottees
     );
 
-    //console.log("API response:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("Error updating allottees:", error);

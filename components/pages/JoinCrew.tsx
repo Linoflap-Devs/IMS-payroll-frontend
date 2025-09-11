@@ -186,7 +186,6 @@ export default function JoinCrewPage() {
   const [vesselOptions, setVesselOptions] = useState<
     { id: number; value: string; label: string }[]
   >([]);
-    //console.log("Raw Crew Members:", selectedCrew);
 
   useEffect(() => {
     getVesselList().then((response) => {
@@ -401,7 +400,6 @@ export default function JoinCrewPage() {
       })
       .finally(() => {
         setIsLoading(false);
-        //console.log("== JOIN CREW SUBMISSION END ==");
       });
   };
 
@@ -454,7 +452,7 @@ export default function JoinCrewPage() {
                     placeholder="Select vessel"
                     value={selectedVessel}
                     onChange={setSelectedVessel}
-                  //disabled={!!selectedVessel}
+                  disabled={!!selectedVessel}
                   />
                 </div>
 

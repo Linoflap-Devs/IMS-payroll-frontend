@@ -92,9 +92,6 @@ export function generateAllotmentPayrollRegister(
         return false;
     }
 
-    //console.log('IN PDF: ', vesselData);
-    //console.log(netAllotment)
-
     try {
         // Create a single PDF document for all vessels
         const doc = new jsPDF({
@@ -126,7 +123,6 @@ export function generateAllotmentPayrollRegister(
         const margins = { left: 10, right: 10, top: 10, bottom: 20 }; // Reduced bottom margin
 
         const mainTableWidth = pageWidth - margins.left - margins.right;
-        //console.log(mainTableWidth)
 
         // Define table column widths for the main data table
         const colWidths = [

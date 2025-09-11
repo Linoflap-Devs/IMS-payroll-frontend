@@ -291,7 +291,7 @@ export function generateOtherDeductionsReportPDF(
                     let value = 0
                     if(crew.Currency === 2){
                         // multiply by exchange rate
-                        console.log(`Multiyplying ${crew.OriginalAmount} by ${crew.ExchangeRate}`)
+                        //console.log(`Multiyplying ${crew.OriginalAmount} by ${crew.ExchangeRate}`)
                         value = crew.OriginalAmount
                     }
                     else {

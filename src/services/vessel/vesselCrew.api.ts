@@ -41,9 +41,6 @@ export type CrewSignOnPayload = {
 export const batchAddCrewToVessel = async (
   payload: CrewSignOnPayload
 ): Promise<VesselCrewResponse> => {
-  //console.log("Sending batch sign-on request to /vessels/:id/sign-on");
-  //console.log("Payload:", payload);
-
   try {
     const response = await axiosInstance.post<VesselCrewResponse>(
       `/vessels/${payload.vesselId}/sign-on`,
@@ -54,7 +51,6 @@ export const batchAddCrewToVessel = async (
       }
     );
 
-    //console.log("Server response:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("Error during batch crew sign-on:", error?.response || error);

@@ -54,7 +54,6 @@ export default function VesselPayslip() {
             setPayslipPDFData(res.data);
             setPayslipData(res.data);
             setPayslipCrewData(res.data.vessels[0]?.payrolls || []);
-            //console.log('Data loaded.')
           } else {
             console.error("Failed to fetch payslip data:", res.message);
           }
@@ -121,7 +120,6 @@ export default function VesselPayslip() {
   );
 
   const generatePayrollPDFs = () => {
-    //console.log(PayslipPDFData)
     if (!PayslipPDFData) {
       console.error("No payslip data available for PDF generation.");
       toast({
@@ -136,7 +134,6 @@ export default function VesselPayslip() {
   };
 
   const generatePayrollPDFCrew = (crewCode?: string) => {
-    //console.log(PayslipPDFData)
     if (!PayslipPDFData) {
       console.error("No payslip data available for PDF generation.");
       toast({
@@ -159,12 +156,10 @@ export default function VesselPayslip() {
       return;
     }
 
-    //console.log(data)
     generatePayrollPDFSingle(data, PayslipPDFData.period.month, PayslipPDFData.period.year);
   };
 
   const previewPayrollPDFCrew = async (crewCode?: string) => {
-    //console.log(PayslipPDFData);
     if (!PayslipPDFData) {
       console.error("No payslip data available for PDF generation.");
       toast({
@@ -186,7 +181,6 @@ export default function VesselPayslip() {
       return;
     }
     
-    //console.log(data);
     const blob = await generatePayrollPDFSingle(data, PayslipPDFData.period.month, PayslipPDFData.period.year, '', false);
     
     // Set preview data and show the preview
