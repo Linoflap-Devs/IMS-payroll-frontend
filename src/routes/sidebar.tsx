@@ -250,11 +250,11 @@ export function Sidebar({
                         User Profile
                       </Link>
                       <Link
-                        href={`/home/profile`}
+                        href={`/home/settings`}
                         className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
                       >
                         <Settings className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
-                        Edit System
+                        Manage System
                       </Link>
 
                       <div className="border-t my-1 border-gray-200 dark:border-gray-700" />

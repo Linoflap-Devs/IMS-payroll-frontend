@@ -1,27 +1,36 @@
-import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import AppInitializer from "@/src/routes/AppInitializer";
+import { getSettingsConfig } from "@/src/services/settings/settings.api";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
 });
 
-export const metadata: Metadata = {
-  title: "IMS Payroll System",
-  description: "Payroll System for IMS",
-};
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
+  const settingsConfig = await getSettingsConfig();
+
+  const siteTitle = settingsConfig.data.find((s) => s.ConfigurationKey === "CompanyAbbreviation")?.ConfigurationValue ?? "IMS Payroll";
+  const siteDescription = settingsConfig.data.find((s) => s.ConfigurationKey === "AppName")?.ConfigurationValue ?? "Crew Payroll System";
+
+  const metadata = {
+    title: siteTitle,
+    description: siteDescription,
+  };
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${montserrat.variable} antialiased`} suppressHydrationWarning>
+    <html lang="en">
+      <head>
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
+      </head>
+      <body className={`${montserrat.variable} antialiased`}>
         <AppInitializer />
         {children}
         <Toaster />

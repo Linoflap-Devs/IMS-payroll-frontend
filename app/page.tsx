@@ -1,21 +1,44 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Login from "@/components/Login";
 import { useAuth } from "@/src/store/useAuthStore";
 import Image from "next/image";
 import { Loader } from "lucide-react";
+import axiosInstance from "@/src/lib/axios";
+import { SettingsItem } from "@/src/services/settings/settings.api";
 
 export default function Home() {
   const router = useRouter();
   const { user, loading, initialized } = useAuth();
+  const [settingsConfig, setSettingsConfig] = useState<SettingsItem[]>([]);
+  const [loadingSettings, setLoadingSettings] = useState(true);
 
-  // useEffect(() => {
-  //   if (initialized && user) {
-  //     router.replace("/home/dashboard");
-  //   }
-  // }, [initialized, user]);
+  useEffect(() => {
+    axiosInstance.get("/config").then((res) => {
+      if (res.data.success) setSettingsConfig(res.data.data);
+    }).finally(() => setLoadingSettings(false));
+  }, []);
+
+  //if (loadingSettings) return <div>Loading settings...</div>;
+
+  const siteLogoRaw = settingsConfig.find((s) => s.ConfigurationKey === "CompanyLogo")?.ImageDetails?.[0];
+  const siteLogo = siteLogoRaw?.Filename
+      ? `/uploads/${siteLogoRaw.Filename}${siteLogoRaw.FileExtension ?? ""}`
+      : "/ims-logo.png"; 
+  const siteTitle = settingsConfig.find((s) => s.ConfigurationKey === "CompanyName")?.ConfigurationValue ?? "IMS Phil Payroll";
+  const companyAbbreviation = settingsConfig.find((s) => s.ConfigurationKey === "CompanyAbbreviation")?.ConfigurationValue ?? "IMS";
+  const sitePrimaryColor = settingsConfig.find((s) => s.ConfigurationKey === "PrimaryColor")?.ConfigurationValue ?? '1F279C';
+
+  const formatSiteTitle = (title: string) => {
+    if (title.endsWith("Maritime Corp")) {
+      const withoutMaritime = title.replace(/Maritime Corp$/, "").trim();
+      const lines = withoutMaritime.split(" "); // split the rest by space
+      return [...lines, "Maritime Corp"]; // append the last part as one line
+    }
+    return title.split(" "); // fallback: split all words
+  };
 
   if (!initialized || loading || user) {
     return (
@@ -28,7 +51,7 @@ export default function Home() {
 
   return (
     <main className="flex h-screen relative">
-      <div className="hidden lg:block lg:w-3/4 bg-[#1e2f8d] relative pl-5">
+      <div className={`hidden lg:block lg:w-3/4 relative pl-5`} style={{ backgroundColor: sitePrimaryColor }}>
         <Image
           src="/boat-image.jpg"
           alt="Ship Background"
@@ -37,16 +60,19 @@ export default function Home() {
         />
         <div className="relative z-10 p-12 text-white">
           <div className="flex items-center gap-3 mb-20">
-            <Image src="/ims-logo.png" alt="IMS PHIL Logo" width={70} height={70} />
-            <span className="text-2xl font-medium">IMS Phil Payroll</span>
+            <Image
+              src={siteLogo ? siteLogo : "/ims-logo.png"}
+              alt={`Company Logo`}
+              width={70}
+              height={70}
+            />
+            <span className="text-2xl font-medium">{companyAbbreviation}</span>
           </div>
           <div className="flex justify-center flex-col gap-1">
             <h1 className="text-8xl font-bold leading-tight mb-1 mt-16">
-              IMS
-              <br />
-              PHILIPPINES
-              <br />
-              MARITIME CORP
+              {formatSiteTitle(siteTitle).map((line, idx) => (
+                <div key={idx}>{line.toUpperCase()}</div>
+              ))}
             </h1>
             <p className="font-bold text-5xl mt-0">Crew Payroll System</p>
           </div>
