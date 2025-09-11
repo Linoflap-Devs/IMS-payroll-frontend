@@ -6,6 +6,7 @@ import {
   ChevronDown,
   MoreVertical,
   User2,
+  Settings,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -18,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface SidebarProps {
   routes: {
@@ -49,7 +51,7 @@ export function Sidebar({
     [key: string]: boolean;
   }>({
     Deduction: true,
-  });  
+  });
   const toggleDropdown = (label: string) => {
     setOpenDropdowns((prev) => ({
       ...prev,
@@ -107,11 +109,11 @@ export function Sidebar({
                         "py-3 text-base font-medium",
                         route.active
                           ? cn(
-                              "text-primary bg-white shadow-md font-bold",
-                              isCollapsed
-                                ? ""
-                                : "border-l-4 border-primary pl-2"
-                            )
+                            "text-primary bg-white shadow-md font-bold",
+                            isCollapsed
+                              ? ""
+                              : "border-l-4 border-primary pl-2"
+                          )
                           : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                       )}
                       onClick={(e) => {
@@ -170,9 +172,9 @@ export function Sidebar({
                       "py-3 text-base font-medium",
                       route.active
                         ? cn(
-                            "text-primary bg-white shadow-md font-bold",
-                            isCollapsed ? "" : "border-l-4 border-primary pl-2"
-                          )
+                          "text-primary bg-white shadow-md font-bold",
+                          isCollapsed ? "" : "border-l-4 border-primary pl-2"
+                        )
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     )}
                     title={isCollapsed ? route.label : ""}
@@ -223,8 +225,8 @@ export function Sidebar({
                     {userEmail || "Not logged in"}
                   </p>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                <Popover>
+                  <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
                       className="h-7 sm:h-8 w-7 sm:w-8 p-0"
@@ -232,30 +234,42 @@ export function Sidebar({
                       <span className="sr-only">Open menu</span>
                       <MoreVertical className="h-4 sm:h-4 w-3.5 sm:w-4" />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
+                  </PopoverTrigger>
+
+                  <PopoverContent
+                    side="right"
                     align="end"
-                    className="text-xs sm:text-sm"
+                    className="w-48 sm:w-56 p-2 bg-white dark:bg-gray-900 rounded-md shadow-lg"
                   >
-                    <DropdownMenuItem className="text-xs sm:text-sm">
+                    <div className="flex flex-col space-y-1 text-xs sm:text-sm">
                       <Link
                         href={`/home/profile`}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
                       >
                         <User2 className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
                         User Profile
                       </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive cursor-pointer"
-                      onClick={onLogout}
-                    >
-                      <LogOut className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <Link
+                        href={`/home/profile`}
+                        className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                      >
+                        <Settings className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
+                        Edit System
+                      </Link>
+
+                      <div className="border-t my-1 border-gray-200 dark:border-gray-700" />
+
+                      <button
+                        className="flex items-center gap-2 p-2 rounded-md text-destructive hover:bg-gray-100 dark:hover:bg-gray-800"
+                        onClick={onLogout}
+                      >
+                        <LogOut className="h-5 w-5 text-sidebar-foreground hover:text-sidebar-accent-foreground" />
+                        Logout
+                      </button>
+
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </>
             )}
           </div>
