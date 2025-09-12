@@ -16,7 +16,6 @@ export interface SettingsItem {
     ImageDetails?: ImageItem[];
 }
 
-
 interface SettingsConfigResponse {
     success: boolean;
     data: SettingsItem[];
@@ -24,6 +23,11 @@ interface SettingsConfigResponse {
 }
 
 export const getSettingsConfig = async (): Promise<SettingsConfigResponse> => {
+  try {
     const response = await axiosInstance.get<SettingsConfigResponse>("/config");
     return response.data;
-}
+  } catch (error: any) {
+    console.error("Error fetching settings config:", error.response?.data || error.message);
+    throw error;
+  }
+};

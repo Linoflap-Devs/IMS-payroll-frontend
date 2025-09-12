@@ -29,7 +29,8 @@ export default function Home() {
       : "/ims-logo.png"; 
   const siteTitle = settingsConfig.find((s) => s.ConfigurationKey === "CompanyName")?.ConfigurationValue ?? "IMS Phil Payroll";
   const companyAbbreviation = settingsConfig.find((s) => s.ConfigurationKey === "CompanyAbbreviation")?.ConfigurationValue ?? "IMS";
-  const sitePrimaryColor = settingsConfig.find((s) => s.ConfigurationKey === "PrimaryColor")?.ConfigurationValue ?? '1F279C';
+  const sitePrimaryColor = settingsConfig.find((s) => s.ConfigurationKey === "primary")?.ConfigurationValue ?? '1F279C';
+  const siteBackgroundColor = settingsConfig.find((s) => s.ConfigurationKey === "background")?.ConfigurationValue ?? 'E8EDF3';
 
   const formatSiteTitle = (title: string) => {
     if (title.endsWith("Maritime Corp")) {
@@ -78,7 +79,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div className="w-full lg:w-1/4 bg-[#E8EDF3]" />
+      <div className="w-full lg:w-1/4 bg-background" style={{ backgroundColor: siteBackgroundColor }} />
       <div className="absolute inset-y-0 left-[75%] -translate-x-1/2 flex items-center z-20">
         <Login />
       </div>

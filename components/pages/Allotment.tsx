@@ -979,7 +979,7 @@ const fetchPayrollData = async () => {
               placeholder="Search Vessel Name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-10 bg-[#EAEBF9]"
+              className="pl-10 h-10 bg-[var(--searchBackground)]"
             />
           </div>
 

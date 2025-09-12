@@ -367,7 +367,7 @@ export default function ManageUsers() {
                   <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
                   <Input
                     placeholder="Search users..."
-                    className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
+                    className="bg-[var(--searchBackground)] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -441,7 +441,7 @@ export default function ManageUsers() {
                     <Button
                       variant="outline"
                       onClick={clearFilters}
-                      className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+                      className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-primary"
                     >
                       Clear Filters
                     </Button>
@@ -449,7 +449,7 @@ export default function ManageUsers() {
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
                   <Button
-                    className="bg-[#21299D] hover:bg-indigo-700 px-6 w-40"
+                    className="bg-primary px-6 w-40"
                     onClick={() => setAddUser(true)}
                   >
                     <Plus />

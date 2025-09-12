@@ -257,7 +257,7 @@ export default function VesselCrewList() {
               placeholder="Search Crew...."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-11 bg-[#EAEBF9]"
+              className="pl-10 h-11 bg-[var(--searchBackground)]"
             />
           </div>
           <div className="flex gap-4">

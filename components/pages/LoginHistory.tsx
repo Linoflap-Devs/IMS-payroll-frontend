@@ -216,7 +216,7 @@ export default function LoginHistory() {
       <div className="flex flex-wrap gap-4 items-center mb-6">
         <Select value={selectedUser} onValueChange={setSelectedUser}>
           <SelectTrigger className="w-[220px] h-11 bg-white border border-[#E5E7EB] shadow-none rounded-xl">
-            <User className="h-5 w-5 mr-2 text-[#6366F1]" />
+            <User className="h-5 w-5 mr-2 text-primary" />
             <SelectValue placeholder="Filter by users" />
           </SelectTrigger>
           <SelectContent>
@@ -231,7 +231,7 @@ export default function LoginHistory() {
 
         <Select value={selectedAction} onValueChange={setSelectedAction}>
           <SelectTrigger className="w-[220px] h-11 bg-white border border-[#E5E7EB] shadow-none rounded-xl">
-            <Activity className="h-5 w-5 mr-2 text-[#6366F1]" />
+            <Activity className="h-5 w-5 mr-2 text-primary" />
             <SelectValue placeholder="Filter by action" />
           </SelectTrigger>
           <SelectContent>
@@ -254,7 +254,7 @@ export default function LoginHistory() {
                   !dateFrom && "text-muted-foreground"
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4 text-[#6366F1]" />
+                <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                 {dateFrom ? format(dateFrom, "MMM dd, yyyy") : "From date"}
               </Button>
             </PopoverTrigger>
@@ -277,7 +277,7 @@ export default function LoginHistory() {
                   !dateTo && "text-muted-foreground"
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4 text-[#6366F1]" />
+                <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                 {dateTo ? format(dateTo, "MMM dd, yyyy") : "To date"}
               </Button>
             </PopoverTrigger>
@@ -295,7 +295,7 @@ export default function LoginHistory() {
         <Button
           variant="outline"
           onClick={clearFilters}
-          className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1]"
+          className="h-11 px-4 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-primary"
         >
           Clear Filters
         </Button>

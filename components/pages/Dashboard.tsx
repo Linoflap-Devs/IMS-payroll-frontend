@@ -242,7 +242,7 @@ export default function Dashboard() {
       <Card className="my-3">
         <CardContent className="p-3 flex justify-between items-center">
           <div className="pl-6">
-            <h1 className="text-3xl font-semibold text-blue-800 mb-1">
+            <h1 className="text-3xl font-semibold text-primary mb-1">
               Welcome to IMS Philippine Maritime Corp
             </h1>
             <p className="text-xl text-gray-600">
@@ -272,7 +272,7 @@ export default function Dashboard() {
 
       {/* Stats Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-        <Card className="bg-blue-800 text-white py-3">
+        <Card className="bg-primary text-white py-3">
           <CardContent className=" pt-0 h-full flex flex-col justify-between gap-y-5">
             <p className="text-xl pt-0">Total Vessel</p>
             <h3 className="text-3xl font-bold self-end mt-4">
@@ -281,7 +281,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-800 text-white py-3">
+        <Card className="bg-primary text-white py-3">
           <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-10">
             <p className="text-xl pt-0">Total Active Crew</p>
             <h3 className="text-3xl font-bold self-end mt-4">
@@ -290,7 +290,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-800 text-white py-3">
+        <Card className="bg-primary text-white py-3">
           <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
             <p className="text-xl pt-0">Total On Board Crew</p>
             <h3 className="text-3xl font-bold self-end mt-4">
@@ -299,7 +299,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-800 text-white py-3">
+        <Card className="bg-primary text-white py-3">
           <CardContent className="pt-0 h-full flex flex-col justify-between gap-y-5">
             <p className="text-xl pt-0">Total Off Board Crew</p>
             <h3 className="text-3xl font-bold self-end mt-4">
@@ -322,7 +322,7 @@ export default function Dashboard() {
                   1 USD = {dashboardData?.ForexRate ?? 0} PHP
                 </h3>
               </div>
-              <div className="text-blue-600">
+              <div className="text-primary">
                 <GrLineChart className="h-20 w-20 mr-5 mt-5" />
               </div>
             </div>
@@ -350,7 +350,7 @@ export default function Dashboard() {
                   }).format(dashboardData?.NetAllotment ?? 0)}
                 </h3>
               </div>
-              <div className="text-blue-600">
+              <div className="text-primary">
                 <GrLineChart className="h-20 w-20 mr-5 mt-5" />
               </div>
             </div>
@@ -373,7 +373,7 @@ export default function Dashboard() {
                   }).format(dashboardData?.MonthlyAllotmentPHP ?? 0)}
                 </h3>
               </div>
-              <div className="text-blue-600">
+              <div className="text-primary">
                 <GrLineChart className="h-20 w-20 mr-5 mt-5" />
               </div>
             </div>

@@ -104,7 +104,7 @@ export default function Login() {
     <div className="w-[550px] px-6">
       <Card className="w-full p-14 bg-[#FDFDFD] shadow-[2px_2px_25%_#C1BAD840] rounded-xl border-0">
         <div className="mb-4">
-          <h2 className="flex justify-center text-4xl font-semibold text-[#1F279C] mb-2">
+          <h2 className="flex justify-center text-4xl font-semibold text-primary mb-2">
             Log in
           </h2>
         </div>
@@ -194,7 +194,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90"
+                className="w-full h-10 text-sm bg-primary hover:bg-primary/90"
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Log in"}
@@ -204,7 +204,7 @@ export default function Login() {
 
           <div className="flex items-center justify-center mt-4 flex-col gap-20">
             <Dialog>
-              <DialogTrigger className="text-base text-center text-[#1e2f8d] hover:underline">
+              <DialogTrigger className="text-base text-center text-primary hover:underline">
                 Forgot password?
               </DialogTrigger>
               <DialogContent className="p-13">
@@ -217,14 +217,14 @@ export default function Login() {
                     height={100}
                     className="mx-auto"
                   />
-                  <DialogDescription className="text-md text-center text-[#1e2f8d]">
+                  <DialogDescription className="text-md text-center text-primary">
                     To reset your password, please send a request to the
                     administrator at admin@gmail.com.
                   </DialogDescription>
                   <DialogClose asChild className="mt-2">
                     <Button
                       variant="outline"
-                      className="py-5 px-9 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90 text-white hover:text-white"
+                      className="py-5 px-9 text-sm bg-primary hover:bg-primary/90 text-white hover:text-white"
                     >
                       Okay
                     </Button>
@@ -235,7 +235,7 @@ export default function Login() {
 
             <p className="text-base text-center text-gray-600">
               Don&apos;t have an account yet?{" "}
-              <Link href="/register" className="text-[#1e2f8d] hover:underline">
+              <Link href="/register" className="text-primary hover:underline">
                 Register here
               </Link>
             </p>

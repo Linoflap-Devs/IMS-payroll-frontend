@@ -735,7 +735,7 @@ export default function CrewMovementList() {
                         placeholder="Search Crew name or Crew Code....."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 h-11 bg-[#EAEBF9]"
+                        className="pl-10 h-11 bg-[var(--searchBackground)]"
                       />
                     </div>
 
@@ -814,7 +814,7 @@ export default function CrewMovementList() {
                       <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
                       <Input
                         placeholder="Search crew by name, code, or rank..."
-                        className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
+                        className="bg-[var(--searchBackground)] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -895,7 +895,7 @@ export default function CrewMovementList() {
                       <Search className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3 h-4 sm:h-4.5 w-4 sm:w-4.5 text-muted-foreground" />
                       <Input
                         placeholder="Search crew by name, code, or rank..."
-                        className="bg-[#EAEBF9] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
+                        className="bg-[var(--searchBackground)] pl-8 sm:pl-9 py-4 sm:py-5 text-xs sm:text-sm h-9 sm:h-10"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />

@@ -8,13 +8,6 @@ import {
   User2,
   Settings,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import Image from "next/image";
@@ -89,7 +82,7 @@ export function Sidebar({
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <h2 className="text-xl font-bold text-sidebar-primary">IMS</h2>
+              <h2 className="text-xl font-bold text-primary">IMS</h2>
               <p className="text-sm text-sidebar-foreground">Payroll</p>
             </div>
           )}

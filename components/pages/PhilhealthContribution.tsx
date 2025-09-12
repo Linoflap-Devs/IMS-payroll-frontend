@@ -250,7 +250,7 @@ export default function PhilhealthContribution() {
               </h2>
               <Badge
                 variant="secondary"
-                className="mt-2 px-6 py-0 bg-[#DFEFFE] text-[#292F8C]"
+                className="mt-2 px-6 py-0 bg-[var(--searchBackground)] text-[#292F8C]"
               >
                 Active
               </Badge>
@@ -281,7 +281,7 @@ export default function PhilhealthContribution() {
               placeholder="Search Crew...."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-11 bg-[#EAEBF9]"
+              className="pl-10 h-11 bg-[var(--searchBackground)]"
             />
           </div>
           <div className="flex gap-4">

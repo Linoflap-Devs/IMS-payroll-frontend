@@ -373,7 +373,7 @@ export default function CrewPayrollHistory() {
                 <Button
                   variant="outline"
                   onClick={clearFilters}
-                  className="h-11 px-4 ml-2 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-[#6366F1] self-center"
+                  className="h-11 px-4 ml-2 bg-white border border-[#E5E7EB] shadow-none rounded-xl text-primary self-center"
                 >
                   Clear Filters
                 </Button>
