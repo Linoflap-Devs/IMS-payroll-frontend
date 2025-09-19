@@ -448,7 +448,9 @@ export function RepatriateCrewDialog({
       if (successCount > 0) {
         console.warn("Some repatriation requests were successful. Closing dialog.");
         setOnSuccess(true);
+        setModalOpenRepatriate(false);
         onOpenChange(false);
+        
       } else {
         console.warn("All repatriation requests failed.");
       }
