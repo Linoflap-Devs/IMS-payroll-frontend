@@ -189,40 +189,59 @@ export default function GovernmentReports() {
 
   const handlePrintSummary = async (mode: "sss" | "philhealth" | "hdmf") => {
     setPrintLoading(true);
-    // await new Promise((resolve) => setTimeout(resolve, 2000))
-    //   .then(() => {
-    //     toast({
-    //       title: "Print Summary",
-    //       description: "The summary has been sent to the printer.",
-    //       variant: "success",
-    //     });
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error printing summary:", error);
-    //     toast({
-    //       title: "Error Printing Summary",
-    //       description: "An error occurred while printing the summary.",
-    //       variant: "destructive",
-    //     });
-    //   })
-    //   .finally(() => {
-    //     setPrintLoading(false);
-    //   });
 
-    if(mode === "philhealth"){
-      const data = await getAllPhilhealthDeductionList(Number(monthFilter), Number(yearFilter));
-      const result = generatePHRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), 'all')
-    }
-    if(mode === "sss"){
-      const data = await getAllSSSDeductionList(Number(monthFilter), Number(yearFilter));
-      const result = generateSSSRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), 'all')
-    }
-    if(mode === "hdmf"){
-      const data = await getAllHDMFDeductionList(Number(monthFilter), Number(yearFilter));
-      const result = generateHDMFRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), 'all')
-    }
+    try {
+      if (mode === "philhealth") {
+        const data = await getAllPhilhealthDeductionList(Number(monthFilter), Number(yearFilter));
 
-    setPrintLoading(false)
+        if (!data?.data || data.data.length === 0) {
+          toast({
+            title: "No Data",
+            description: "No PhilHealth deductions found for the selected period.",
+            variant: "destructive",
+          });
+        } else {
+          generatePHRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), "all");
+        }
+      }
+
+      if (mode === "sss") {
+        const data = await getAllSSSDeductionList(Number(monthFilter), Number(yearFilter));
+
+        if (!data?.data || data.data.length === 0) {
+          toast({
+            title: "No Data",
+            description: "No SSS deductions found for the selected period.",
+            variant: "destructive",
+          });
+        } else {
+          generateSSSRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), "all");
+        }
+      }
+
+      if (mode === "hdmf") {
+        const data = await getAllHDMFDeductionList(Number(monthFilter), Number(yearFilter));
+
+        if (!data?.data || data.data.length === 0) {
+          toast({
+            title: "No Data",
+            description: "No Pag-IBIG deductions found for the selected period.",
+            variant: "destructive",
+          });
+        } else {
+          generateHDMFRegister(data, format(new Date(), "MMM dd, yyyy hh:mm aa"), "all");
+        }
+      }
+    } catch (error) {
+      console.error("Error generating summary:", error);
+      toast({
+        title: "Error",
+        description: "No data found for the selected period.",
+        variant: "destructive",
+      });
+    } finally {
+      setPrintLoading(false);
+    }
   };
 
   const columns: ColumnDef<Payroll>[] = [
@@ -442,17 +461,22 @@ export default function GovernmentReports() {
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="text-sm w-[200px] min-w-[100%]">
+                <DropdownMenuContent className="text-sm">
                   <DropdownMenuItem asChild onClick={handlePH}>
-                    <label>Philhealth Contributions</label>
+                    <Link href="" className="w-full">
+                      <Printer className="mr-2 h-4 w-4" />
+                      Philhealth Contributions
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild onClick={handleSSS}>
                     <Link href="" className="w-full">
+                    <Printer className="mr-2 h-4 w-4" />
                       SSS Contributions
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild onClick={handleHDMF}>
                     <Link href="" className="w-full">
+                    <Printer className="mr-2 h-4 w-4" />
                       HDMF Contributions
                     </Link>
                   </DropdownMenuItem>

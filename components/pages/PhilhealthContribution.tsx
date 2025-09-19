@@ -85,9 +85,6 @@ export default function PhilhealthContribution() {
     fetchPhilhealthDeductionData();
   }, [vesselId, searchParams]);
 
-  // Format numbers to two decimal places with null checking
-
-
   const columns: ColumnDef<PhilhealthDeductionCrew>[] = [
     {
       accessorKey: "CrewName",
@@ -175,8 +172,12 @@ export default function PhilhealthContribution() {
         console.error("No allotment register data available");
         return;
       }
-
-      const result = generatePHRegister(PHDeductionResponse, format(new Date(), "MMM dd, yyyy hh:mm aa").toString())
+      
+     const result = generatePHRegister(
+       PHDeductionResponse,
+       format(new Date(), "MMM dd, yyyy hh:mm aa").toString(),
+       "vessel", // pass a string literal
+     )  
     }
 
   //     const monthNames = [

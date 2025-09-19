@@ -150,7 +150,11 @@ export default function HMDFContribution() {
       return;
     }
 
-    const result = generateHDMFRegister(HDMFDeductionResponse, format(new Date(), "MMM dd, yyyy hh:mm aa").toString())
+    const result = generateHDMFRegister(
+      HDMFDeductionResponse,
+      format(new Date(), "MMM dd, yyyy hh:mm aa").toString(),
+      "vessel", // pass a string literal
+    )  
   }
 
   return (

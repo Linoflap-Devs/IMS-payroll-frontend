@@ -339,16 +339,6 @@ export default function GovermentDeductions() {
                         <Plus className="mr-1.5 sm:mr-2 h-4 sm:h-4.5 w-4 sm:w-4.5" />
                         Insert New Rate
                       </Button>
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="h-9 sm:h-10 px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[160px] sm:min-w-[170px] w-full sm:w-auto">
-                          <DownloadIcon className="h-4 w-4" />
-                          <span>Export</span>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="csv">Export as Excel</SelectItem>
-                          <SelectItem value="pdf">Export as PDF</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
                   </div>
 

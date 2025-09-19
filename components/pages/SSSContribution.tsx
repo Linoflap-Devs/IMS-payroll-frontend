@@ -191,9 +191,12 @@ export default function SSSContribution() {
       return;
     }
 
-    const result = generateSSSRegister(SSSDeductionResponse, format(new Date(), "MMM dd, yyyy hh:mm aa").toString())
+    const result = generateSSSRegister(
+      SSSDeductionResponse,
+      format(new Date(), "MMM dd, yyyy hh:mm aa").toString(),
+      "vessel", // pass a string literal
+    )  
   }
-  
 
 //     const monthNames = [
 //       "JANUARY",

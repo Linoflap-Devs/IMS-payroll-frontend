@@ -45,14 +45,12 @@ export default function ManageUsers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setroleFilter] = useState("all");
   const [statusFilter, setstatusFilter] = useState("all");
-
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userData, setUserData] = useState<UsersItem[]>([]);
   const [isAddUser, setAddUser] = useState(false);
   const [selectedUserData, setSelectedUserData] = useState<UsersItem | null>(
     null
   );
-
   const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] =
     useState(false);
   const [isLoading, setIsLoading] = useState({
@@ -360,7 +358,7 @@ export default function ManageUsers() {
               <h1 className="text-3xl font-semibold mb-0">Manage Users</h1>
             </div>
 
-            <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
+            <div className="flex flex-col space-y-4 sm:space-y-5 min-h-full">
               {/* Search and Filters */}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
                 <div className="relative w-full md:flex-1">
