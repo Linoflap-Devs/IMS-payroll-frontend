@@ -3,12 +3,10 @@ import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import { addFont } from "./lib/font";
 import { logoBase64Image } from "./lib/base64items";
-import { capitalizeFirstLetter, formatCurrency, getMonthName, truncateText } from "@/lib/utils";
-import { DeductionResponse, HDMFDeductionCrew } from "@/src/services/deduction/governmentReports.api";
-import { OnboardCrewReportResponse } from "@/src/services/vessel/vessel.api";
+import { capitalizeFirstLetter, formatCurrency, getMonthName } from "@/lib/utils";
 import { format } from "date-fns";
 import { toast } from "../ui/use-toast";
-import { otherDeductionsCrew, otherDeductionsData, otherDeductionsResponse } from "@/src/services/deduction/crewDeduction.api";
+import { otherDeductionsCrew, otherDeductionsData } from "@/src/services/deduction/crewDeduction.api";
 
 export interface OtherDeductionsResponse {
     success: boolean;
@@ -33,6 +31,29 @@ function extractPeriod(message: string): { month: string, year: number } {
         year: 2025 // Default for testing
     };
 }
+
+function calculateTotals(crew: otherDeductionsCrew[]): { cashAdvTotal: number, deductionTotal: number } {
+    let cashAdvTotal = 0;
+    let deductionTotal = 0;
+
+    crew.forEach(crewMember => {
+        let amount = 0;
+        if (crewMember.Currency === 2) {
+            amount = crewMember.OriginalAmount;
+        } else {
+            amount = crewMember.DeductionAmount;
+        }
+
+        if (crewMember.DeductionName.toLowerCase().includes("cash advance")) {
+            cashAdvTotal += amount;
+        } else {
+            deductionTotal += amount;
+        }
+    });
+
+    return { cashAdvTotal, deductionTotal };
+}
+
 
 export function generateOtherDeductionsReportPDF(
     data: OtherDeductionsResponse,
@@ -64,7 +85,7 @@ export function generateOtherDeductionsReportPDF(
         const doc = new jsPDF({
             orientation: "landscape",
             unit: "mm",
-            format: "letter"
+            format: "legal"
         });
 
         // Add custom font with peso symbol support
@@ -97,11 +118,13 @@ export function generateOtherDeductionsReportPDF(
 
         // Define columns for the main table
         const colWidths = [
-            mainTableWidth * 0.30, // CrewName
-            mainTableWidth * 0.25, // VesselName
+            mainTableWidth * 0.25, // CrewName
+            mainTableWidth * 0.20, // VesselName
+            mainTableWidth * 0.05, // Cash Adv. Amount
+            mainTableWidth * 0.15, // Cash Adv. Remarks
+            mainTableWidth * 0.15, // Deduction Name
             mainTableWidth * 0.05, // Deduction Amount
-            mainTableWidth * 0.20, // Deduction Name
-            mainTableWidth * 0.20, // Remarks
+            mainTableWidth * 0.25, // Deduction Remarks
         ];
 
         // Calculate column positions
@@ -116,6 +139,52 @@ export function generateOtherDeductionsReportPDF(
         // Define heights
         const rowHeight = 8;
         const tableHeaderHeight = 8;
+
+        const drawTotalsRow = () => {
+            const totals = calculateTotals(data.data.Crew);
+            
+            // Check if we need a new page for the totals row
+            if (currentY + rowHeight * 2 > pageHeight - margins.bottom - 20) {
+                doc.addPage();
+                currentY = margins.top;
+                drawPageHeader();
+                drawTableHeader();
+            }
+
+            // Add some spacing before totals
+            currentY += 2;
+
+            // Set font for totals row
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+
+            // Draw borders for totals row
+            doc.line(margins.left, currentY, margins.left, currentY + rowHeight); // Left border
+            doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight); // Right border
+            doc.line(margins.left, currentY, pageWidth - margins.right, currentY); // Top border
+
+            // Draw "TOTALS" label in the first column
+            doc.text("TOTALS", colPositions[0] + 5, currentY + rowHeight / 2 + 1, { align: 'left' });
+
+            // Draw Cash Advance Total (column index 2)
+            if (totals.cashAdvTotal > 0) {
+                doc.setFont('NotoSans', 'bold');
+                doc.text(`₱${formatCurrency(totals.cashAdvTotal)}`, colPositions[2] + colWidths[2] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                doc.setFont('helvetica', 'bold');
+            }
+
+            // Draw Deduction Total (column index 5)
+            if (totals.deductionTotal > 0) {
+                doc.setFont('NotoSans', 'bold');
+                doc.text(`₱${formatCurrency(totals.deductionTotal)}`, colPositions[5] + colWidths[5] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                doc.setFont('helvetica', 'bold');
+            }
+
+            // Draw bottom border for totals row
+            doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
+
+            currentY += rowHeight;
+        };
 
         // Function to draw the header (company info, vessel info, etc.)
         const drawPageHeader = (vesselName?: string) => {
@@ -211,7 +280,7 @@ export function generateOtherDeductionsReportPDF(
         // Function to draw the table header
         const drawTableHeader = () => {
             // Draw table headers
-            doc.setFontSize(9);
+            doc.setFontSize(8);
             doc.setFont('helvetica', 'bold');
             
             // Draw horizontal borders for header row only
@@ -223,11 +292,11 @@ export function generateOtherDeductionsReportPDF(
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight); // Right border
 
             // Add header text
-            const headers = ["Crew Name", "Vessel Name", "Amount", "Deduction", "Remarks"];
+            const headers = ["Crew Name", "Vessel Name", "Cash Adv. Amount", "Cash Adv. Remarks", "Deduction Name", "Deduction Amount", "Deduction Remarks"];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                if(header === "Amount") {
+                if(header.includes("Amount")) {
                     doc.text(header, colX + colWidth - 5, currentY + tableHeaderHeight / 2 + 1, { align: 'right' })
                 }
                 else {
@@ -263,7 +332,7 @@ export function generateOtherDeductionsReportPDF(
             }
 
             // Set font for crew data
-            doc.setFontSize(9);
+            doc.setFontSize(7);
             doc.setFont('helvetica', 'normal');
 
             // Draw left and right borders only
@@ -282,7 +351,7 @@ export function generateOtherDeductionsReportPDF(
             columnKeys.forEach((key, i) => {
                 if(i === 0) {
                     // Crew Name
-                    const crewName = `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ? crew.MiddleName + ' ' : ''}`;
+                    const crewName = `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ? crew.MiddleName[0] + '.' : ''}`;
                     doc.text(crewName, colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (i === 2) {
@@ -298,10 +367,36 @@ export function generateOtherDeductionsReportPDF(
                         value = crew.DeductionAmount
                     }
 
+                    let positionIdx = 0
+                    if(crew.DeductionName.toLowerCase().includes("cash advance")){
+                        positionIdx = 2
+                    }
+                    else {
+                        positionIdx = 5
+                    }
+
                     doc.setFont('NotoSans', 'normal');
-                    doc.text(`${crew.Currency == 2 ? '$' : '\u20B1' }${formatCurrency(value)}`, colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                    doc.text(`${crew.Currency == 2 ? '$' : '\u20B1' }${formatCurrency(value)}`, colPositions[positionIdx] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
                     doc.setFont('helvetica', 'normal');
-                    
+                }
+                else if(i == 3){
+
+                    // Name
+                    let positionIdx = 0
+                    if(!crew.DeductionName.toLowerCase().includes("cash advance")){
+                        positionIdx = 4
+                        doc.text(crew[key as keyof otherDeductionsCrew]?.toString() || '', colPositions[positionIdx] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    }
+                }
+                else if(i == 4){
+                    let positionIdx = 0
+                    if(crew.DeductionName.toLowerCase().includes("cash advance")){
+                        positionIdx = 3
+                    }
+                    else {
+                        positionIdx = 6
+                    }
+                    doc.text(crew[key as keyof otherDeductionsCrew]?.toString() || '', colPositions[positionIdx] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else {
                     doc.text(crew[key as keyof otherDeductionsCrew]?.toString() || '', colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
@@ -314,6 +409,9 @@ export function generateOtherDeductionsReportPDF(
             // Move to next row
             currentY += rowHeight;
         });
+
+        // Add the totals row after all crew members
+        drawTotalsRow();
 
         // NOW ADD PAGE NUMBERS TO ALL PAGES
         const totalPages = doc.internal.pages.length - 1;
