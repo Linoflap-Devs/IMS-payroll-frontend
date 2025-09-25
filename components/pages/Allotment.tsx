@@ -656,7 +656,7 @@ const fetchPayrollData = async () => {
   const handleOtherDeductionsExcel = async () => {
     setIsDataLoading(true)
     const response = await otherDeductions(Number(year), Number(month), vesselId ? parseInt(vesselId) : undefined)
-
+    
     if(response.success) {
       generateOtherDeductionsExcel(response, new Date(), vesselId ? 'vessel' : 'all')
     }

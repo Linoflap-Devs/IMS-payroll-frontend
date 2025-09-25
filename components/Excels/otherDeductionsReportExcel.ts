@@ -1,7 +1,7 @@
 "use client";
 import * as XLSX from "xlsx";
-import { capitalizeFirstLetter, formatCurrency, getMonthName } from "@/lib/utils";
 import { format } from "date-fns";
+import { capitalizeFirstLetter, formatCurrency, getMonthName } from "@/lib/utils";
 import { toast } from "../ui/use-toast";
 import { otherDeductionsCrew, otherDeductionsData } from "@/src/services/deduction/crewDeduction.api";
 
@@ -11,6 +11,7 @@ export interface OtherDeductionsResponse {
   data: otherDeductionsData;
 }
 
+// Extract month and year from message (e.g., "3/2025")
 function extractPeriod(message: string): { month: string; year: number } {
   const regex = /(\d+)\/(\d+)/;
   const match = message.match(regex);
@@ -19,17 +20,25 @@ function extractPeriod(message: string): { month: string; year: number } {
     const year = parseInt(match[2], 10);
     return { month: getMonthName(monthNum), year };
   }
-  return { month: "FEBRUARY", year: 2025 };
+  return { month: "FEBRUARY", year: 2025 }; // default fallback
 }
 
-function calculateTotals(crew: otherDeductionsCrew[]) {
+// Calculate totals
+function calculateTotals(crew: otherDeductionsCrew[]): {
+  cashAdvTotal: number;
+  deductionTotal: number;
+} {
   let cashAdvTotal = 0;
   let deductionTotal = 0;
 
-  crew.forEach((c) => {
-    const amount = c.Currency === 2 ? c.OriginalAmount : c.DeductionAmount;
-    if (c.DeductionName.toLowerCase().includes("cash advance")) cashAdvTotal += amount;
-    else deductionTotal += amount;
+  crew.forEach((crewMember) => {
+    let amount = crewMember.Currency === 2 ? crewMember.OriginalAmount : crewMember.DeductionAmount;
+
+    if (crewMember.DeductionName.toLowerCase().includes("cash advance")) {
+      cashAdvTotal += amount;
+    } else {
+      deductionTotal += amount;
+    }
   });
 
   return { cashAdvTotal, deductionTotal };
@@ -39,8 +48,13 @@ export function generateOtherDeductionsExcel(
   data: OtherDeductionsResponse,
   dateGenerated: Date,
   mode: "all" | "vessel" = "vessel"
-) {
-  if (!data.success || !data.data || !data.data.Crew || data.data.Crew.length === 0) {
+): boolean {
+  if (typeof window === "undefined") {
+    console.warn("Excel generation attempted during server-side rendering");
+    return false;
+  }
+
+  if (!data.success || !data.data || data.data.Crew.length === 0) {
     toast({
       title: "Error",
       description: "Invalid or empty data for date.",
@@ -51,20 +65,23 @@ export function generateOtherDeductionsExcel(
 
   try {
     const period = extractPeriod(data.message);
-    const totals = calculateTotals(data.data.Crew);
+    const vesselName = data.data.VesselName || "ALL VESSELS";
 
-    // Prepare worksheet rows
-    const wsData: (string | number)[][] = [];
+    // Prepare sheet data
+    const sheetData: any[][] = [];
 
     // Header info
-    wsData.push([`CREW DEDUCTIONS REPORT - ${period.month} ${period.year}`]);
-    wsData.push([`Vessel: ${data.data.VesselName || "ALL VESSELS"}`]);
-    wsData.push([`Exchange Rate: 1 USD = ${formatCurrency(data.data.ExchangeRate)} PHP`]);
-    wsData.push([`Date Generated: ${format(dateGenerated, "yyyy-MM-dd HH:mm aa")}`]);
-    wsData.push([]); // empty row
-
-    // Column headers
-    const headers = [
+    sheetData.push([
+      "IMS Philippines Maritime Corp.",
+      "",
+      "",
+      "",
+      "Crew Deductions Report",
+      `${period.month} ${period.year}`,
+    ]);
+    sheetData.push([]);
+    sheetData.push([`Vessel: ${vesselName}`]);
+    sheetData.push([
       "Crew Name",
       "Vessel Name",
       "Cash Adv. Amount",
@@ -72,107 +89,113 @@ export function generateOtherDeductionsExcel(
       "Deduction Name",
       "Deduction Amount",
       "Deduction Remarks",
-    ];
-    wsData.push(headers);
+    ]);
 
-    // Crew rows
+    const exchangeRate = data.data.ExchangeRate;
+
     data.data.Crew.forEach((crew) => {
-      const crewName = `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ? crew.MiddleName[0] + "." : ""}`;
+      const crewName = `${crew.LastName}, ${crew.FirstName} ${
+        crew.MiddleName ? crew.MiddleName[0] + "." : ""
+      }`;
 
-      // Cash Advance Amount: keep as number
-      const cashAdvanceAmount: number | "" =
-        crew.DeductionName.toLowerCase().includes("cash advance")
-          ? crew.Currency === 2
-            ? crew.OriginalAmount // USD
-            : crew.DeductionAmount // PHP
-          : "";
+      let cashAdvAmount = "";
+      let cashAdvRemarks = "";
+      let deductionName = "";
+      let deductionAmount = "";
+      let deductionRemarks = "";
 
-      // Deduction Amount: keep as number (always PHP)
-      const deductionAmount: number | "" =
-        !crew.DeductionName.toLowerCase().includes("cash advance")
-          ? crew.DeductionAmount
-          : "";
+      // Convert value
+      let value = crew.Currency === 2 
+        ? crew.OriginalAmount 
+        : crew.DeductionAmount;
 
-      const cashAdvRemark = crew.DeductionName.toLowerCase().includes("cash advance") ? crew.DeductionRemarks : "";
-      const deductionRemark = !crew.DeductionName.toLowerCase().includes("cash advance") ? crew.DeductionRemarks : "";
+      if (crew.Currency === 1 && exchangeRate) {
+        value = value / exchangeRate; // Convert PHP → USD
+      }
 
-      wsData.push([
+      const formattedValue = `$${formatCurrency(value)}`;
+
+      if (crew.DeductionName.toLowerCase().includes("cash advance")) {
+        cashAdvAmount = formattedValue;
+        cashAdvRemarks = crew.DeductionRemarks || "";
+      } else {
+        deductionName = crew.DeductionName;
+        deductionAmount = formattedValue;
+        deductionRemarks = crew.DeductionRemarks || "";
+      }
+
+      sheetData.push([
         crewName,
         crew.VesselName,
-        cashAdvanceAmount,
-        cashAdvRemark,
-        !crew.DeductionName.toLowerCase().includes("cash advance") ? crew.DeductionName : "", // hide "Cash Advance"
+        cashAdvAmount,
+        cashAdvRemarks,
+        deductionName,
         deductionAmount,
-        deductionRemark
+        deductionRemarks,
       ]);
     });
 
-    // Totals row (always in peso)
-    wsData.push([]);
-    wsData.push(["TOTALS", "", `₱${formatCurrency(totals.cashAdvTotal)}`, "", "", `₱${formatCurrency(totals.deductionTotal)}`, ""]);
+    // Adjust totals to use converted values
+    function calculateTotals(crewList: any[]) {
+      let cashAdvTotal = 0;
+      let deductionTotal = 0;
 
-    // Create worksheet
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
+      crewList.forEach((crew) => {
+        let value = crew.Currency === 2 
+          ? crew.OriginalAmount 
+          : crew.DeductionAmount;
 
-    // Bold headers (row 6 = header)
-    for (let c = 0; c < headers.length; c++) {
-      const cell = ws[XLSX.utils.encode_cell({ r: 5, c })];
-      if (cell && typeof cell.v === "string") cell.s = { font: { bold: true } };
+        if (crew.Currency === 1 && exchangeRate) {
+          value = value / exchangeRate; // Convert PHP → USD
+        }
+
+        if (crew.DeductionName.toLowerCase().includes("cash advance")) {
+          cashAdvTotal += value;
+        } else {
+          deductionTotal += value;
+        }
+      });
+
+      return { cashAdvTotal, deductionTotal };
     }
 
-    // Right-align numeric columns (Cash Adv Amount = C = 2, Deduction Amount = F = 5)
-    const range = XLSX.utils.decode_range(ws["!ref"]!);
-    for (let R = 6; R <= range.e.r; R++) {
-      // Cash Adv Amount (C = 2)
-      const cashCell = ws[XLSX.utils.encode_cell({ r: R, c: 2 })];
-      if (cashCell && typeof cashCell.v === "number") {
-        cashCell.z = '$#,##0.00'; // USD
-        cashCell.s = { ...cashCell.s, alignment: { horizontal: "right" } };
-      }
+    // Push totals row
+    const totals = calculateTotals(data.data.Crew);
+    sheetData.push([]);
+    sheetData.push([
+      "TOTALS",
+      "",
+      totals.cashAdvTotal > 0 ? `$${formatCurrency(totals.cashAdvTotal)}` : "",
+      "",
+      "",
+      totals.deductionTotal > 0 ? `$${formatCurrency(totals.deductionTotal)}` : "",
+      "",
+    ]);
 
-      // Deduction Amount (F = 5)
-      const dedCell = ws[XLSX.utils.encode_cell({ r: R, c: 5 })];
-      if (dedCell && typeof dedCell.v === "number") {
-        dedCell.z = '₱#,##0.00'; // PHP
-        dedCell.s = { ...dedCell.s, alignment: { horizontal: "right" } };
-      }
-    }
+    // Create worksheet and workbook
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-    // Totals row
-    const totalsRow = range.e.r; // last row
-    const totalCashCell = ws[XLSX.utils.encode_cell({ r: totalsRow, c: 2 })];
-    if (totalCashCell) {
-      totalCashCell.z = '₱#,##0.00'; // totals always PHP
-      totalCashCell.s = { ...totalCashCell.s, alignment: { horizontal: "right", font: { bold: true } } };
-    }
-
-    const totalDedCell = ws[XLSX.utils.encode_cell({ r: totalsRow, c: 5 })];
-    if (totalDedCell) {
-      totalDedCell.z = '₱#,##0.00';
-      totalDedCell.s = { ...totalDedCell.s, alignment: { horizontal: "right", font: { bold: true } } };
-    }
-
-    // Set dynamic column widths
-    const colWidths = wsData[5].map((_, colIndex) => {
-      const maxLength = wsData.reduce((max, row) => {
-        const val = row[colIndex] !== undefined && row[colIndex] !== null ? row[colIndex].toString() : "";
-        return Math.max(max, val.length);
+    // Auto width for columns
+    const colWidths = sheetData[3].map((_, colIndex) => {
+      const maxLength = sheetData.reduce((max, row) => {
+        const cell = row[colIndex] ? row[colIndex].toString() : "";
+        return Math.max(max, cell.length);
       }, 10);
-      return { wch: maxLength + 5 };
+      return { wch: maxLength + 2 };
     });
-
-    // Force wider Vessel Name
-    if (colWidths[1]) colWidths[1].wch = Math.max(colWidths[1].wch, 30);
     ws["!cols"] = colWidths;
 
-    // Create workbook and save
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Crew Deductions");
 
     const fileName =
       mode === "vessel"
-        ? `CrewDeductions_${capitalizeFirstLetter(data.data.VesselName?.replace(" ", "-") || "")}_${capitalizeFirstLetter(period.month)}-${period.year}.xlsx`
-        : `CrewDeductions_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.xlsx`;
+        ? `CrewDeductions_${capitalizeFirstLetter(
+            vesselName.replace(" ", "-")
+          )}_${capitalizeFirstLetter(period.month)}-${period.year}.xlsx`
+        : `CrewDeductions_ALL_${capitalizeFirstLetter(
+            period.month
+          )}-${period.year}.xlsx`;
 
     XLSX.writeFile(wb, fileName);
 
