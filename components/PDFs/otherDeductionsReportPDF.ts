@@ -169,7 +169,7 @@ export function generateOtherDeductionsReportPDF(
             // Draw Cash Advance Total (column index 2)
             if (totals.cashAdvTotal > 0) {
                 doc.setFont('NotoSans', 'bold');
-                doc.text(`₱${formatCurrency(totals.cashAdvTotal)}`, colPositions[2] + colWidths[2] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                doc.text(`$${formatCurrency(totals.cashAdvTotal)}`, colPositions[2] + colWidths[2] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
                 doc.setFont('helvetica', 'bold');
             }
 
