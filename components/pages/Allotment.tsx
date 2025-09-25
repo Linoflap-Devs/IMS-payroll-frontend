@@ -64,7 +64,7 @@ import { otherDeductions } from "@/src/services/deduction/crewDeduction.api";
 import generateOtherDeductionsReport from "../PDFs/otherDeductionsReportPDF";
 import { generateDeductionRegisterV3PDF } from "../PDFs/payrollDeductionRegisterV3PDF";
 import { generateDeductionRegisterV3Excel } from "../Excels/payrollDeductionRegisterV3Excel";
-import { generateOtherDeductionsReportExcel } from "../Excels/otherDeductionsReportExcel";
+import { generateOtherDeductionsExcel } from "../Excels/otherDeductionsReportExcel";
 
 type Payroll = {
   vesselId: number;
@@ -658,7 +658,7 @@ const fetchPayrollData = async () => {
     const response = await otherDeductions(Number(year), Number(month), vesselId ? parseInt(vesselId) : undefined)
 
     if(response.success) {
-      generateOtherDeductionsReportExcel(response, new Date(), vesselId ? 'vessel' : 'all')
+      generateOtherDeductionsExcel(response, new Date(), vesselId ? 'vessel' : 'all')
     }
     else {
       console.log("No other deduction data found")
