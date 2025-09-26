@@ -325,9 +325,10 @@ export default function CrewDetails() {
 
     if (!editedCrew) return false;
 
-    // First Name and Last Name (required, must be >= 2)
+    // First Name, Last Name and address (required, must be >= 1 || 2)
     if (!editedCrew.firstName || editedCrew.firstName.length < 2) return false;
     if (!editedCrew.lastName || editedCrew.lastName.length < 2) return false;
+    if (!editedCrew.address || editedCrew.address.length < 2) return false;
 
     // Sex (optional - no validation if not filled)
     // Marital Status (optional - no validation if not filled)
@@ -871,7 +872,7 @@ export default function CrewDetails() {
                         </div>
 
                         {/* Home address */}
-                        <div className="md:col-span-2">
+                        {/* <div className="md:col-span-2">
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Address (House/Unit No., Lot/Block, Street, Subdivision/Village, Barangay, ZIP Code)
                           </label>
@@ -881,8 +882,36 @@ export default function CrewDetails() {
                             readOnly={!isEditing}
                             className={isEditing ? "border-primary" : ""}
                           />
+                        </div> */}
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            Address (House/Unit No., Lot/Block, Street, Subdivision/Village, Barangay, ZIP Code)
+                          </label>
+                          <Input
+                            placeholder="Enter address"
+                            value={
+                              isEditing ? editedCrew?.address || "" : crew.address || ""
+                            }
+                            onChange={(e) => handleInputChange("address", e.target.value)}
+                            readOnly={!isEditing}
+                            className={
+                              isEditing
+                                ? `${submitted &&
+                                  (!editedCrew?.address || editedCrew.address.length < 1)
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
+                                : ""
+                            }
+                          />
+                          {submitted &&
+                            isEditing &&
+                            (!editedCrew?.address || editedCrew.address.length < 2) && (
+                              <p className="text-red-500 text-sm mt-1">
+                                Address is required.
+                              </p>
+                            )}
                         </div>
-
                       </div>
                     </div>
 
@@ -1071,7 +1100,7 @@ export default function CrewDetails() {
                             (sanitizeAlphanumeric(editedCrew.passportNumber).length < 7 ||
                               sanitizeAlphanumeric(editedCrew.passportNumber).length > 9) && (
                               <p className="text-red-500 text-sm mt-1">
-                                Passport number should be between 7-9 characters (excluding spaces or special characters).
+                                Passport number should be between 7-9 characters.
                               </p>
                             )}
                         </div>
