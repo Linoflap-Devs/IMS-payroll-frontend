@@ -29,6 +29,7 @@ import {
 } from "@/src/services/crew/crewValidation.api";
 import { toast } from "../ui/use-toast";
 import { useCrewStore } from "@/src/store/useCrewStore";
+import { useEditAllotteeStore } from "@/src/store/useEditAllotteeStore";
 
 export default function CrewDetails() {
   const searchParams = useSearchParams();
@@ -90,6 +91,8 @@ export default function CrewDetails() {
   } = useCrewDetails(crewId);
 
   const { fetchCrewValidationDetails } = useCrewStore();
+  const clearDraft = useEditAllotteeStore((state) => state.clearDraft);
+  const drafts = useEditAllotteeStore((state) => state.drafts);
 
   useEffect(() => {
     if (handleVerify) {
@@ -464,6 +467,12 @@ export default function CrewDetails() {
 
   const toggleAllotteeEdit = () => {
     setIsEditingAllottee(!isEditingAllottee);
+
+    const firstDraftId = Number(Object.keys(drafts)[0]);
+  
+    if (firstDraftId) {
+      clearDraft(firstDraftId);
+    };
   };
 
   // working to -> true
