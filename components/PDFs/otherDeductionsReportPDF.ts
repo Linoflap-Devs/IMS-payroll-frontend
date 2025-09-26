@@ -41,7 +41,8 @@ function calculateTotals(crew: otherDeductionsCrew[]): { cashAdvTotal: number, d
         if (crewMember.Currency === 2) {
             amount = crewMember.OriginalAmount;
         } else {
-            amount = crewMember.DeductionAmount;
+            // Convert all to dollar
+            amount = crewMember.DeductionAmount / crewMember.ExchangeRate;
         }
 
         if (crewMember.DeductionName.toLowerCase().includes("cash advance")) {
@@ -176,7 +177,8 @@ export function generateOtherDeductionsReportPDF(
             // Draw Deduction Total (column index 5)
             if (totals.deductionTotal > 0) {
                 doc.setFont('NotoSans', 'bold');
-                doc.text(`₱${formatCurrency(totals.deductionTotal)}`, colPositions[5] + colWidths[5] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                //doc.text(`₱${formatCurrency(totals.deductionTotal)}`, colPositions[5] + colWidths[5] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                doc.text(`$${formatCurrency(totals.deductionTotal)}`, colPositions[5] + colWidths[5] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
                 doc.setFont('helvetica', 'bold');
             }
 
@@ -364,7 +366,8 @@ export function generateOtherDeductionsReportPDF(
                         value = crew.OriginalAmount
                     }
                     else {
-                        value = crew.DeductionAmount
+                        // Convert to Dollar
+                        value = (crew.DeductionAmount / crew.ExchangeRate)
                     }
 
                     let positionIdx = 0
@@ -376,7 +379,9 @@ export function generateOtherDeductionsReportPDF(
                     }
 
                     doc.setFont('NotoSans', 'normal');
-                    doc.text(`${crew.Currency == 2 ? '$' : '\u20B1' }${formatCurrency(value)}`, colPositions[positionIdx] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                    //doc.text(`${crew.Currency == 2 ? '$' : '\u20B1' }${formatCurrency(value)}`, colPositions[positionIdx] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                    // convert all to dollar
+                    doc.text(`$${formatCurrency(value)}`, colPositions[positionIdx] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
                     doc.setFont('helvetica', 'normal');
                 }
                 else if(i == 3){
