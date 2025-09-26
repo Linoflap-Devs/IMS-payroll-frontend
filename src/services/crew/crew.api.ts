@@ -400,6 +400,12 @@ export interface Movement {
   Promotion: number;
   Remarks: string | null;
 }
+
+export interface CrewMovementHistoryVessel {
+  VesselName: string,
+  CrewList: CrewMovementHistory[]
+}
+
 export interface CrewMovementHistory {
   MovementDetailID: number;
   Status: any;
@@ -431,6 +437,29 @@ export const getCrewMovementHistory = async (filters?: {crewCode?: string, start
   }
   else {
     const response = await axiosInstance.get<CrewMovementHistoryResponse>(`/movements/${filters.crewCode}/movement-report`);
+    return response.data;
+  }
+}
+
+interface CrewMovementHistoryByVesselResponse {
+  success: boolean;
+  data: CrewMovementHistoryVessel[];
+  message?: string;
+}
+
+export const getCrewMovementHistoryByVessel = async (filters?: {crewCode?: string, startDate?: Date, endDate?: Date, vesselId?: number}): Promise<CrewMovementHistoryByVesselResponse> => {
+  if (!filters?.crewCode) {
+    const response = await axiosInstance.get<CrewMovementHistoryByVesselResponse>(`/movements/movement-report-by-vessel`, {
+      params: {
+        startDate: filters?.startDate,
+        endDate: filters?.endDate,
+        vesselId: filters?.vesselId
+      }
+    });
+    return response.data;
+  }
+  else {
+    const response = await axiosInstance.get<CrewMovementHistoryByVesselResponse>(`/movements/${filters.crewCode}/movement-report-by-vessel`);
     return response.data;
   }
 }

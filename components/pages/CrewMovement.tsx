@@ -22,7 +22,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useDebounce } from "@/lib/useDebounce";
 import { getVesselList, VesselItem } from "@/src/services/vessel/vessel.api";
-import { CrewMovementHistory, getCrewMovementHistory } from "@/src/services/crew/crew.api";
+import { CrewMovementHistory, CrewMovementHistoryVessel, getCrewMovementHistory, getCrewMovementHistoryByVessel } from "@/src/services/crew/crew.api";
 import { generateMovementHistoryPDF } from "../PDFs/movmentHistoryPDF";
 import { AiOutlinePrinter } from "react-icons/ai";
 import { generateMovementHistoryExcel } from "../Excels/movementHistoryExcel";
@@ -31,6 +31,7 @@ import { lastDayOfMonth, set } from "date-fns";
 import { toast } from "../ui/use-toast";
 import { generateMovementHistoryPDFV2 } from "../PDFs/movmentHistoryPDFV2";
 import { generateMovementHistoryExcelV2 } from "../Excels/movmentHistoryExcelV2";
+import { generateMovementHistoryByVesselPDF } from "../PDFs/movementHistoryByVesselPDF";
 
 interface Vessel {
   vesselId: number;
@@ -50,6 +51,7 @@ export default function CrewMovement() {
   const [vesselData, setVesselData] = useState<Vessel[]>([]);
   const [vesselTypeFilter, setVesselTypeFilter] = useState("all");
   const [crewMovementHistory, setCrewMovementHistory] = useState<CrewMovementHistory[]>([]);
+  const [crewMovementHistoryByVessel, setCrewMovementHistoryByVessel] = useState<CrewMovementHistoryVessel[]>([]);
   const [isExportingVessel, setIsExportingVessel] = useState(false);
   const [openExportModalVessel, setOpenExportModalVessel] = useState(false);
   const [selectedMonthVessel, setSelectedMonthVessel] = useState<number>(new Date().getMonth() + 1);
@@ -106,7 +108,15 @@ export default function CrewMovement() {
       setIsExportingVessel(true);
       setLoadingPDFExportVessel(true);
 
-      const movements = await getCrewMovementHistory(
+      // const movements = await getCrewMovementHistory(
+      //   {
+      //     startDate: selectedMonthVessel ? new Date(selectedYearVessel, selectedMonthVessel - 1, 1) : undefined,
+      //     endDate: selectedYearVessel ? lastDayOfMonth(new Date(selectedYearVessel, selectedMonthVessel - 1, 1)) : undefined,
+      //     vesselId: selectedVessel > 0 ? selectedVessel : undefined
+      //   }
+      // );
+
+      const movements = await getCrewMovementHistoryByVessel(
         {
           startDate: selectedMonthVessel ? new Date(selectedYearVessel, selectedMonthVessel - 1, 1) : undefined,
           endDate: selectedYearVessel ? lastDayOfMonth(new Date(selectedYearVessel, selectedMonthVessel - 1, 1)) : undefined,
@@ -115,15 +125,24 @@ export default function CrewMovement() {
       );
 
       if (movements.success) {
-        setCrewMovementHistory(movements.data);
+        setCrewMovementHistoryByVessel(movements.data);
 
-        await generateMovementHistoryPDFV2(
+        // await generateMovementHistoryPDFV2(
+        //   movements.data,
+        //   selectedMonthVessel,
+        //   selectedYearVessel,
+        //   new Date(),
+        //   selectedVessel > 0 ? "vessel" : "all"
+        // );
+
+        await generateMovementHistoryByVesselPDF(
           movements.data,
           selectedMonthVessel,
           selectedYearVessel,
           new Date(),
           selectedVessel > 0 ? "vessel" : "all"
         );
+
       } else {
         console.error("Failed to fetch crew movements:", movements.message);
         toast({
