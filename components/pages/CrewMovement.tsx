@@ -170,7 +170,7 @@ export default function CrewMovement() {
       setIsExportingVessel(true);
       setLoadingExcelExportVessel(true);
 
-      const movements = await getCrewMovementHistory(
+      const movements = await getCrewMovementHistoryByVessel(
         {
           startDate: selectedMonthVessel ? new Date(selectedYearVessel, selectedMonthVessel - 1, 1) : undefined,
           endDate: selectedYearVessel ? lastDayOfMonth(new Date(selectedYearVessel, selectedMonthVessel - 1, 1)) : undefined,
@@ -179,7 +179,7 @@ export default function CrewMovement() {
       );
 
       if (movements.success) {
-        setCrewMovementHistory(movements.data);
+        setCrewMovementHistoryByVessel(movements.data);
 
         await generateMovementHistoryExcelV2(
           movements.data,
