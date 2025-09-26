@@ -90,7 +90,6 @@ export default function CrewDetails() {
   } = useCrewDetails(crewId);
 
   const { fetchCrewValidationDetails } = useCrewStore();
-  //console.log('CREW IN CREW DETAILS: ', crew);
 
   useEffect(() => {
     if (handleVerify) {
@@ -311,6 +310,13 @@ export default function CrewDetails() {
     );
   }, [filteredCities, citySearch]);
 
+  // Sanitize a string by removing spaces, dashes, and non-alphanumeric characters
+  const sanitizeAlphanumeric = (value: string): string => {
+    return value.replace(/[^a-zA-Z0-9]/g, "").trim();
+  };
+
+  const sanitizeDigits = (value: string) => value.replace(/[-\s]/g, "");
+
   const validateForm = () => {
     setSubmitted(true);
 
@@ -326,34 +332,88 @@ export default function CrewDetails() {
     // Province & City (optional - no validation if not filled)
 
     // Government IDs (optional but must validate if provided)
-    if (editedCrew.sssNumber && editedCrew.sssNumber.length !== 10) return false;
+    // Validation for SSS Number (accepts with dashes/spaces, but checks 10 digits)
+    if (
+      editedCrew.sssNumber &&
+      sanitizeDigits(editedCrew.sssNumber).length !== 10
+    ) {
+      return false;
+    }
+
     if (
       editedCrew.tinNumber &&
-      (editedCrew.tinNumber.length < 9 || editedCrew.tinNumber.length > 12)
-    )
+      (sanitizeDigits(editedCrew.tinNumber).length < 9 ||
+        sanitizeDigits(editedCrew.tinNumber).length > 12)
+    ) {
       return false;
-    if (editedCrew.philhealthNumber && editedCrew.philhealthNumber.length !== 12)
+    }
+
+    if (
+      editedCrew.philhealthNumber &&
+      sanitizeDigits(editedCrew.philhealthNumber).length !== 12
+    ) {
       return false;
-    if (editedCrew.hdmfNumber && editedCrew.hdmfNumber.length !== 12)
+    }
+
+    if (
+      editedCrew.hdmfNumber &&
+      sanitizeDigits(editedCrew.hdmfNumber).length !== 12
+    ) {
       return false;
+    }
 
     // Passport (optional, validate if filled)
-    if (editedCrew.passportNumber && editedCrew.passportNumber.length < 6)
-      return false;
-    if (
-      (editedCrew.passportIssueDate && !editedCrew.passportExpiryDate) ||
-      (!editedCrew.passportIssueDate && editedCrew.passportExpiryDate)
-    )
-      return false;
+    if (editedCrew.passportNumber) {
+      const sanitizedPassport = editedCrew.passportNumber.replace(/[^a-zA-Z0-9]/g, "").trim();
+
+      // Require at least 7 and at most 9 characters
+      if (sanitizedPassport.length < 7 || sanitizedPassport.length > 9) {
+        return false;
+      }
+    }
+
+    // Validate passport dates
+    if (editedCrew.passportIssueDate || editedCrew.passportExpiryDate) {
+      if (!editedCrew.passportIssueDate || !editedCrew.passportExpiryDate) {
+        // One is missing
+        return false;
+      }
+
+      const issueDate = new Date(editedCrew.passportIssueDate);
+      const expiryDate = new Date(editedCrew.passportExpiryDate);
+
+      if (isNaN(issueDate.getTime()) || isNaN(expiryDate.getTime())) {
+        // Invalid date format
+        return false;
+      }
+
+      if (expiryDate <= issueDate) {
+        // Expiry must be strictly after issue date
+        return false;
+      }
+    }
 
     // Seaman’s Book (optional, validate if filled)
-    if (editedCrew.seamansBookNumber && editedCrew.seamansBookNumber.length < 6)
+    if (editedCrew.seamansBookNumber && editedCrew.seamansBookNumber.length < 6) {
       return false;
+    }
+
+    // Validate dates if either is filled
     if (
       (editedCrew.seamansBookIssueDate && !editedCrew.seamansBookExpiryDate) ||
       (!editedCrew.seamansBookIssueDate && editedCrew.seamansBookExpiryDate)
-    )
+    ) {
       return false;
+    }
+
+    // Ensure expiry is after issue
+    if (
+      editedCrew.seamansBookIssueDate &&
+      editedCrew.seamansBookExpiryDate &&
+      new Date(editedCrew.seamansBookExpiryDate) <= new Date(editedCrew.seamansBookIssueDate)
+    ) {
+      return false;
+    }
 
     return true;
   };
@@ -567,67 +627,65 @@ export default function CrewDetails() {
                         Personal Information
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div>
-  <label className="text-sm font-semibold text-gray-500 mb-1 block">
-    Last Name
-  </label>
-  <Input
-    placeholder="Enter last name"
-    value={
-      isEditing ? editedCrew?.lastName || "" : crew.lastName || ""
-    }
-    onChange={(e) => handleInputChange("lastName", e.target.value)}
-    readOnly={!isEditing}
-    className={
-      isEditing
-        ? `${
-            submitted &&
-            (!editedCrew?.lastName || editedCrew.lastName.length < 2)
-              ? "border-red-500 focus:!ring-red-500/50"
-              : "border-primary"
-          }`
-        : ""
-    }
-  />
-  {submitted &&
-    isEditing &&
-    (!editedCrew?.lastName || editedCrew.lastName.length < 2) && (
-      <p className="text-red-500 text-sm mt-1">
-        Last name is required and must be at least 2 characters.
-      </p>
-    )}
-</div>
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            Last Name
+                          </label>
+                          <Input
+                            placeholder="Enter last name"
+                            value={
+                              isEditing ? editedCrew?.lastName || "" : crew.lastName || ""
+                            }
+                            onChange={(e) => handleInputChange("lastName", e.target.value)}
+                            readOnly={!isEditing}
+                            className={
+                              isEditing
+                                ? `${submitted &&
+                                  (!editedCrew?.lastName || editedCrew.lastName.length < 2)
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
+                                : ""
+                            }
+                          />
+                          {submitted &&
+                            isEditing &&
+                            (!editedCrew?.lastName || editedCrew.lastName.length < 2) && (
+                              <p className="text-red-500 text-sm mt-1">
+                                Last name is required and must be at least 2 characters.
+                              </p>
+                            )}
+                        </div>
 
-<div>
-  <label className="text-sm font-semibold text-gray-500 mb-1 block">
-    First Name
-  </label>
-  <Input
-    placeholder="Enter first name"
-    value={
-      isEditing ? editedCrew?.firstName || "" : crew.firstName || ""
-    }
-    onChange={(e) => handleInputChange("firstName", e.target.value)}
-    readOnly={!isEditing}
-    className={
-      isEditing
-        ? `${
-            submitted &&
-            (!editedCrew?.firstName || editedCrew.firstName.length < 2)
-              ? "border-red-500 focus:!ring-red-500/50"
-              : "border-primary"
-          }`
-        : ""
-    }
-  />
-  {submitted &&
-    isEditing &&
-    (!editedCrew?.firstName || editedCrew.firstName.length < 2) && (
-      <p className="text-red-500 text-sm mt-1">
-        First name is required and must be at least 2 characters.
-      </p>
-    )}
-</div>
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            First Name
+                          </label>
+                          <Input
+                            placeholder="Enter first name"
+                            value={
+                              isEditing ? editedCrew?.firstName || "" : crew.firstName || ""
+                            }
+                            onChange={(e) => handleInputChange("firstName", e.target.value)}
+                            readOnly={!isEditing}
+                            className={
+                              isEditing
+                                ? `${submitted &&
+                                  (!editedCrew?.firstName || editedCrew.firstName.length < 2)
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
+                                : ""
+                            }
+                          />
+                          {submitted &&
+                            isEditing &&
+                            (!editedCrew?.firstName || editedCrew.firstName.length < 2) && (
+                              <p className="text-red-500 text-sm mt-1">
+                                First name is required and must be at least 2 characters.
+                              </p>
+                            )}
+                        </div>
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Middle Name
@@ -645,323 +703,321 @@ export default function CrewDetails() {
                             className={isEditing ? "border-primary" : ""}
                           />
                         </div>
-<div>
-  <label className="text-sm font-semibold text-gray-500 mb-1 block">
-    Marital Status
-  </label>
-  <Select
-    value={
-      isEditing
-        ? editedCrew?.maritalStatus || ""
-        : crew.maritalStatus || ""
-    }
-    onValueChange={(value) =>
-      handleInputChange("maritalStatus", value)
-    }
-    disabled={!isEditing}
-  >
-    <SelectTrigger
-      className={isEditing ? "w-full border-primary" : "w-full"}
-    >
-      <SelectValue placeholder="Select an option" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="single">Single</SelectItem>
-      <SelectItem value="married">Married</SelectItem>
-      <SelectItem value="divorced">Divorced</SelectItem>
-      <SelectItem value="widowed">Widowed</SelectItem>
-    </SelectContent>
-  </Select>
-</div>
-<div>
-  <label className="text-sm font-semibold text-gray-500 mb-1 block">
-    Sex
-  </label>
-  <Select
-    value={isEditing ? editedCrew?.sex || "" : crew.sex || ""}
-    onValueChange={(value) => handleInputChange("sex", value)}
-    disabled={!isEditing}
-  >
-    <SelectTrigger
-      className={isEditing ? "w-full border-primary" : "w-full"}
-    >
-      <SelectValue placeholder="Select an option" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="male">Male</SelectItem>
-      <SelectItem value="female">Female</SelectItem>
-      <SelectItem value="other">Other</SelectItem>
-    </SelectContent>
-  </Select>
-</div>
-<div>
-  <label className="text-sm font-semibold text-gray-500 mb-1 block">
-    Birthdate
-  </label>
-  <Input
-    type="date"
-    placeholder="Date of Birth"
-    value={
-      isEditing
-        ? editedCrew?.dateOfBirth
-          ? new Date(editedCrew.dateOfBirth).toISOString().split("T")[0]
-          : ""
-        : crew.dateOfBirth
-          ? new Date(crew.dateOfBirth).toISOString().split("T")[0]
-          : ""
-    }
-    onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
-    readOnly={!isEditing}
-    className={isEditing ? "border-primary" : ""}
-  />
-</div>
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            Marital Status
+                          </label>
+                          <Select
+                            value={
+                              isEditing
+                                ? editedCrew?.maritalStatus || ""
+                                : crew.maritalStatus || ""
+                            }
+                            onValueChange={(value) =>
+                              handleInputChange("maritalStatus", value)
+                            }
+                            disabled={!isEditing}
+                          >
+                            <SelectTrigger
+                              className={isEditing ? "w-full border-primary" : "w-full"}
+                            >
+                              <SelectValue placeholder="Select an option" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="single">Single</SelectItem>
+                              <SelectItem value="married">Married</SelectItem>
+                              <SelectItem value="divorced">Divorced</SelectItem>
+                              <SelectItem value="widowed">Widowed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            Sex
+                          </label>
+                          <Select
+                            value={isEditing ? editedCrew?.sex || "" : crew.sex || ""}
+                            onValueChange={(value) => handleInputChange("sex", value)}
+                            disabled={!isEditing}
+                          >
+                            <SelectTrigger
+                              className={isEditing ? "w-full border-primary" : "w-full"}
+                            >
+                              <SelectValue placeholder="Select an option" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            Birthdate
+                          </label>
+                          <Input
+                            type="date"
+                            placeholder="Date of Birth"
+                            value={
+                              isEditing
+                                ? editedCrew?.dateOfBirth
+                                  ? new Date(editedCrew.dateOfBirth).toISOString().split("T")[0]
+                                  : ""
+                                : crew.dateOfBirth
+                                  ? new Date(crew.dateOfBirth).toISOString().split("T")[0]
+                                  : ""
+                            }
+                            onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
+                            readOnly={!isEditing}
+                            className={isEditing ? "border-primary" : ""}
+                          />
+                        </div>
 
-{/* Province Select Component */}
-<div className="md:col-span-2">
-  <label className="text-sm font-semibold text-gray-500 mb-1 block">
-    Province
-  </label>
-  {isEditing ? (
-    <Select
-      value={editedCrew?.province || ""}
-      onValueChange={(value) => handleInputChange("province", value)}
-      disabled={!isEditing}
-    >
-      <SelectTrigger className="border-primary w-full">
-        <SelectValue placeholder="Select a province" />
-      </SelectTrigger>
-      <SelectContent className="max-h-80">
-        <div className="px-2 py-2 sticky top-0 bg-white z-10">
-          <Input
-            placeholder="Search provinces..."
-            value={provinceSearch}
-            onChange={(e) => setProvinceSearch(e.target.value)}
-            className="h-8"
-          />
-        </div>
-        {filteredProvinces.length > 0 ? (
-          filteredProvinces.map((province) => (
-            <SelectItem
-              key={province.ProvinceID}
-              value={province.ProvinceID.toString()}
-            >
-              {province.ProvinceName}
-            </SelectItem>
-          ))
-        ) : (
-          <div className="px-2 py-2 text-sm text-gray-500">
-            No provinces found
-          </div>
-        )}
-      </SelectContent>
-    </Select>
-  ) : (
-    <Input value={displayProvinceCity.provinceName || ""} readOnly />
-  )}
-</div>
+                        {/* Province Select Component */}
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            Province
+                          </label>
+                          {isEditing ? (
+                            <Select
+                              value={editedCrew?.province || ""}
+                              onValueChange={(value) => handleInputChange("province", value)}
+                              disabled={!isEditing}
+                            >
+                              <SelectTrigger className="border-primary w-full">
+                                <SelectValue placeholder="Select a province" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-80">
+                                <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                                  <Input
+                                    placeholder="Search provinces..."
+                                    value={provinceSearch}
+                                    onChange={(e) => setProvinceSearch(e.target.value)}
+                                    className="h-8"
+                                  />
+                                </div>
+                                {filteredProvinces.length > 0 ? (
+                                  filteredProvinces.map((province) => (
+                                    <SelectItem
+                                      key={province.ProvinceID}
+                                      value={province.ProvinceID.toString()}
+                                    >
+                                      {province.ProvinceName}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <div className="px-2 py-2 text-sm text-gray-500">
+                                    No provinces found
+                                  </div>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input value={displayProvinceCity.provinceName || ""} readOnly />
+                          )}
+                        </div>
 
-{/* City Select Component */}
-<div className="md:col-span-2">
-  <label className="text-sm font-semibold text-gray-500 mb-1 block">
-    City
-  </label>
-  {isEditing ? (
-    <Select
-      value={editedCrew?.city || ""}
-      onValueChange={(value) => handleInputChange("city", value)}
-      disabled={!isEditing || !editedCrew?.province}
-    >
-      <SelectTrigger className="border-primary w-full">
-        <SelectValue placeholder="Select a city" />
-      </SelectTrigger>
-      <SelectContent className="max-h-80">
-        <div className="px-2 py-2 sticky top-0 bg-white z-10">
-          <Input
-            placeholder="Search cities..."
-            value={citySearch}
-            onChange={(e) => setCitySearch(e.target.value)}
-            className="h-8"
-          />
-        </div>
-        {filteredSearchCities.length > 0 ? (
-          filteredSearchCities.map((city) => (
-            <SelectItem key={city.CityID} value={city.CityID.toString()}>
-              {city.CityName}
-            </SelectItem>
-          ))
-        ) : (
-          <div className="px-2 py-2 text-sm text-gray-500">
-            {!editedCrew?.province
-              ? "Please select a province first"
-              : "No cities found"}
-          </div>
-        )}
-      </SelectContent>
-    </Select>
-  ) : (
-    <Input value={displayProvinceCity.cityName || ""} readOnly />
-  )}
-</div>
+                        {/* City Select Component */}
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            City
+                          </label>
+                          {isEditing ? (
+                            <Select
+                              value={editedCrew?.city || ""}
+                              onValueChange={(value) => handleInputChange("city", value)}
+                              disabled={!isEditing || !editedCrew?.province}
+                            >
+                              <SelectTrigger className="border-primary w-full">
+                                <SelectValue placeholder="Select a city" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-80">
+                                <div className="px-2 py-2 sticky top-0 bg-white z-10">
+                                  <Input
+                                    placeholder="Search cities..."
+                                    value={citySearch}
+                                    onChange={(e) => setCitySearch(e.target.value)}
+                                    className="h-8"
+                                  />
+                                </div>
+                                {filteredSearchCities.length > 0 ? (
+                                  filteredSearchCities.map((city) => (
+                                    <SelectItem key={city.CityID} value={city.CityID.toString()}>
+                                      {city.CityName}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <div className="px-2 py-2 text-sm text-gray-500">
+                                    {!editedCrew?.province
+                                      ? "Please select a province first"
+                                      : "No cities found"}
+                                  </div>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input value={displayProvinceCity.cityName || ""} readOnly />
+                          )}
+                        </div>
 
-{/* Home address */}
-<div className="md:col-span-2">
-  <label className="text-sm font-semibold text-gray-500 mb-1 block">
-    Address (House/Unit No., Lot/Block, Street, Subdivision/Village, Barangay, ZIP Code)
-  </label>
-  <Input
-    value={isEditing ? editedCrew?.address || "" : crew.address || ""}
-    onChange={(e) => handleInputChange("address", e.target.value)}
-    readOnly={!isEditing}
-    className={isEditing ? "border-primary" : ""}
-  />
-</div>
+                        {/* Home address */}
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            Address (House/Unit No., Lot/Block, Street, Subdivision/Village, Barangay, ZIP Code)
+                          </label>
+                          <Input
+                            value={isEditing ? editedCrew?.address || "" : crew.address || ""}
+                            onChange={(e) => handleInputChange("address", e.target.value)}
+                            readOnly={!isEditing}
+                            className={isEditing ? "border-primary" : ""}
+                          />
+                        </div>
 
                       </div>
                     </div>
 
                     {/* Government IDs Section */}
-<div>
-  <h3 className="text-lg font-bold mb-4 text-primary">Government IDs</h3>
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {/* SSS Number */}
-    <div>
-      <label className="text-sm font-semibold text-gray-500 mb-1 block">
-        SSS Number
-      </label>
-      <Input
-        placeholder="Enter SSS number"
-        value={isEditing ? editedCrew?.sssNumber || "" : crew.sssNumber || ""}
-        onChange={(e) => handleInputChange("sssNumber", e.target.value)}
-        readOnly={!isEditing}
-        className={
-          isEditing
-            ? `${
-                submitted &&
-                editedCrew?.sssNumber &&
-                editedCrew.sssNumber.length !== 10
-                  ? "border-red-500 focus:!ring-red-500/50"
-                  : "border-primary"
-              }`
-            : ""
-        }
-      />
-      {submitted &&
-        isEditing &&
-        editedCrew?.sssNumber &&
-        editedCrew.sssNumber.length !== 10 && (
-          <p className="text-red-500 text-sm mt-1">
-            SSS number should be 10 characters.
-          </p>
-        )}
-    </div>
+                    <div>
+                      <h3 className="text-lg font-bold mb-4 text-primary">Government IDs</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* SSS Number */}
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            SSS Number
+                          </label>
+                          <Input
+                            placeholder="Enter SSS number"
+                            value={isEditing ? editedCrew?.sssNumber || "" : crew.sssNumber || ""}
+                            onChange={(e) => handleInputChange("sssNumber", e.target.value)} // keep dashes/spaces
+                            readOnly={!isEditing}
+                            className={
+                              isEditing
+                                ? `${submitted &&
+                                  editedCrew?.sssNumber &&
+                                  sanitizeDigits(editedCrew.sssNumber).length !== 10
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
+                                : ""
+                            }
+                          />
+                          {submitted &&
+                            isEditing &&
+                            editedCrew?.sssNumber &&
+                            sanitizeDigits(editedCrew.sssNumber).length !== 10 && (
+                              <p className="text-red-500 text-sm mt-1">
+                                SSS number should be 10 digits.
+                              </p>
+                            )}
+                        </div>
+                        {/* Tax ID Number */}
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            Tax ID Number
+                          </label>
+                          <Input
+                            placeholder="Enter Tax ID number"
+                            value={isEditing ? editedCrew?.tinNumber || "" : crew.TaxIDNumber || ""}
+                            onChange={(e) => handleInputChange("tinNumber", e.target.value)} // keep raw input
+                            readOnly={!isEditing}
+                            className={
+                              isEditing
+                                ? `${submitted &&
+                                  editedCrew?.tinNumber &&
+                                  (sanitizeDigits(editedCrew.tinNumber).length < 9 ||
+                                    sanitizeDigits(editedCrew.tinNumber).length > 12)
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
+                                : ""
+                            }
+                          />
+                          {submitted &&
+                            isEditing &&
+                            editedCrew?.tinNumber &&
+                            (sanitizeDigits(editedCrew.tinNumber).length < 9 ||
+                              sanitizeDigits(editedCrew.tinNumber).length > 12) && (
+                              <p className="text-red-500 text-sm mt-1">
+                                Tax ID should be between 9–12 digits.
+                              </p>
+                            )}
+                        </div>
+                        {/* Philhealth Number */}
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            Philhealth Number
+                          </label>
+                          <Input
+                            placeholder="Enter Philhealth number"
+                            value={
+                              isEditing
+                                ? editedCrew?.philhealthNumber || ""
+                                : crew.philhealthNumber || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("philhealthNumber", sanitizeDigits(e.target.value))
+                            }
+                            readOnly={!isEditing}
+                            className={
+                              isEditing
+                                ? `${submitted &&
+                                  editedCrew?.philhealthNumber &&
+                                  sanitizeDigits(editedCrew.philhealthNumber).length !== 12
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
+                                : ""
+                            }
+                          />
+                          {submitted &&
+                            isEditing &&
+                            editedCrew?.philhealthNumber &&
+                            sanitizeDigits(editedCrew.philhealthNumber).length !== 12 && (
+                              <p className="text-red-500 text-sm mt-1">
+                                Philhealth number should be 12 characters.
+                              </p>
+                            )}
+                        </div>
 
-    {/* Tax ID Number */}
-    <div>
-      <label className="text-sm font-semibold text-gray-500 mb-1 block">
-        Tax ID Number
-      </label>
-      <Input
-        placeholder="Enter Tax ID number"
-        value={isEditing ? editedCrew?.tinNumber || "" : crew.TaxIDNumber || ""}
-        onChange={(e) => handleInputChange("tinNumber", e.target.value)}
-        readOnly={!isEditing}
-        className={
-          isEditing
-            ? `${
-                submitted &&
-                editedCrew?.tinNumber &&
-                (editedCrew.tinNumber.length < 9 ||
-                  editedCrew.tinNumber.length > 12)
-                  ? "border-red-500 focus:!ring-red-500/50"
-                  : "border-primary"
-              }`
-            : ""
-        }
-      />
-      {submitted &&
-        isEditing &&
-        editedCrew?.tinNumber &&
-        (editedCrew.tinNumber.length < 9 ||
-          editedCrew.tinNumber.length > 12) && (
-          <p className="text-red-500 text-sm mt-1">
-            Tax ID should be between 9-12 characters.
-          </p>
-        )}
-    </div>
-
-    {/* Philhealth Number */}
-    <div>
-      <label className="text-sm font-semibold text-gray-500 mb-1 block">
-        Philhealth Number
-      </label>
-      <Input
-        placeholder="Enter Philhealth number"
-        value={
-          isEditing
-            ? editedCrew?.philhealthNumber || ""
-            : crew.philhealthNumber || ""
-        }
-        onChange={(e) =>
-          handleInputChange("philhealthNumber", e.target.value)
-        }
-        readOnly={!isEditing}
-        className={
-          isEditing
-            ? `${
-                submitted &&
-                editedCrew?.philhealthNumber &&
-                editedCrew.philhealthNumber.length !== 12
-                  ? "border-red-500 focus:!ring-red-500/50"
-                  : "border-primary"
-              }`
-            : ""
-        }
-      />
-      {submitted &&
-        isEditing &&
-        editedCrew?.philhealthNumber &&
-        editedCrew.philhealthNumber.length !== 12 && (
-          <p className="text-red-500 text-sm mt-1">
-            Philhealth number should be 12 characters.
-          </p>
-        )}
-    </div>
-
-    {/* HDMF Number */}
-    <div>
-      <label className="text-sm font-semibold text-gray-500 mb-1 block">
-        HDMF Number
-      </label>
-      <Input
-        placeholder="Enter HDMF number"
-        value={
-          isEditing ? editedCrew?.hdmfNumber || "" : crew.hdmfNumber || ""
-        }
-        onChange={(e) => handleInputChange("hdmfNumber", e.target.value)}
-        readOnly={!isEditing}
-        className={
-          isEditing
-            ? `${
-                submitted &&
-                editedCrew?.hdmfNumber &&
-                editedCrew.hdmfNumber.length !== 12
-                  ? "border-red-500 focus:!ring-red-500/50"
-                  : "border-primary"
-              }`
-            : ""
-        }
-      />
-      {submitted &&
-        isEditing &&
-        editedCrew?.hdmfNumber &&
-        editedCrew.hdmfNumber.length !== 12 && (
-          <p className="text-red-500 text-sm mt-1">
-            HDMF number should be 12 characters.
-          </p>
-        )}
-    </div>
-  </div>
-</div>
+                        {/* HDMF Number */}
+                        <div>
+                          <label className="text-sm font-semibold text-gray-500 mb-1 block">
+                            HDMF Number
+                          </label>
+                          <Input
+                            placeholder="Enter HDMF number"
+                            value={
+                              isEditing
+                                ? editedCrew?.hdmfNumber || ""
+                                : crew.hdmfNumber || ""
+                            }
+                            onChange={(e) =>
+                              handleInputChange("hdmfNumber", sanitizeDigits(e.target.value))
+                            }
+                            readOnly={!isEditing}
+                            className={
+                              isEditing
+                                ? `${submitted &&
+                                  editedCrew?.hdmfNumber &&
+                                  sanitizeDigits(editedCrew.hdmfNumber).length !== 12
+                                  ? "border-red-500 focus:!ring-red-500/50"
+                                  : "border-primary"
+                                }`
+                                : ""
+                            }
+                          />
+                          {submitted &&
+                            isEditing &&
+                            editedCrew?.hdmfNumber &&
+                            sanitizeDigits(editedCrew.hdmfNumber).length !== 12 && (
+                              <p className="text-red-500 text-sm mt-1">
+                                HDMF number should be 12 characters.
+                              </p>
+                            )}
+                        </div>
+                      </div>
+                    </div>
                     {/* Travel Documents Section */}
                     <div>
                       <h3 className="text-lg font-bold mb-4 text-primary">
@@ -980,44 +1036,37 @@ export default function CrewDetails() {
                                 : crew.passportNumber || ""
                             }
                             onChange={(e) =>
-                              handleInputChange(
-                                "passportNumber",
-                                e.target.value
-                              )
+                              handleInputChange("passportNumber", sanitizeAlphanumeric(e.target.value))
                             }
                             readOnly={!isEditing}
                             className={
                               isEditing
                                 ? `${submitted &&
                                   (!editedCrew?.passportNumber ||
-                                    (editedCrew.passportNumber &&
-                                      (editedCrew.passportNumber.length < 7 ||
-                                        editedCrew.passportNumber.length >
-                                        9)))
+                                    (sanitizeAlphanumeric(editedCrew.passportNumber).length < 7 ||
+                                      sanitizeAlphanumeric(editedCrew.passportNumber).length > 9))
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : "border-primary"
                                 }`
                                 : ""
                             }
                           />
-                          {submitted &&
-                            isEditing &&
-                            !editedCrew?.passportNumber && (
-                              <p className="text-red-500 text-sm mt-1">
-                                Passport number is required.
-                              </p>
-                            )}
+                          {submitted && isEditing && (!editedCrew?.passportNumber || sanitizeAlphanumeric(editedCrew.passportNumber).length === 0) && (
+                            <p className="text-red-500 text-sm mt-1">
+                              Passport number is required.
+                            </p>
+                          )}
                           {submitted &&
                             isEditing &&
                             editedCrew?.passportNumber &&
-                            (editedCrew.passportNumber.length < 7 ||
-                              editedCrew.passportNumber.length > 9) && (
+                            (sanitizeAlphanumeric(editedCrew.passportNumber).length < 7 ||
+                              sanitizeAlphanumeric(editedCrew.passportNumber).length > 9) && (
                               <p className="text-red-500 text-sm mt-1">
-                                Passport number should be between 7-9
-                                characters.
+                                Passport number should be between 7-9 characters (excluding spaces or special characters).
                               </p>
                             )}
                         </div>
+
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Passport Issue Date
@@ -1035,15 +1084,14 @@ export default function CrewDetails() {
                                   : ""
                             }
                             onChange={(e) =>
-                              handleInputChange(
-                                "passportIssueDate",
-                                e.target.value
-                              )
+                              handleInputChange("passportIssueDate", e.target.value)
                             }
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${submitted && !editedCrew?.passportIssueDate
+                                ? `${submitted &&
+                                  (!editedCrew?.passportIssueDate ||
+                                    new Date(editedCrew.passportIssueDate) > new Date())
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : "border-primary"
                                 }`
@@ -1052,12 +1100,14 @@ export default function CrewDetails() {
                           />
                           {submitted &&
                             isEditing &&
-                            !editedCrew?.passportIssueDate && (
+                            (!editedCrew?.passportIssueDate ||
+                              new Date(editedCrew.passportIssueDate) > new Date()) && (
                               <p className="text-red-500 text-sm mt-1">
-                                Passport issue date is required.
+                                Passport issue date is required and cannot be in the future.
                               </p>
                             )}
                         </div>
+
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Passport Expiration Date
@@ -1075,15 +1125,16 @@ export default function CrewDetails() {
                                   : ""
                             }
                             onChange={(e) =>
-                              handleInputChange(
-                                "passportExpiryDate",
-                                e.target.value
-                              )
+                              handleInputChange("passportExpiryDate", e.target.value)
                             }
                             readOnly={!isEditing}
                             className={
                               isEditing
-                                ? `${submitted && !editedCrew?.passportExpiryDate
+                                ? `${submitted &&
+                                  (!editedCrew?.passportExpiryDate ||
+                                    (editedCrew?.passportIssueDate &&
+                                      new Date(editedCrew.passportExpiryDate) <=
+                                      new Date(editedCrew.passportIssueDate)))
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : "border-primary"
                                 }`
@@ -1092,12 +1143,16 @@ export default function CrewDetails() {
                           />
                           {submitted &&
                             isEditing &&
-                            !editedCrew?.passportExpiryDate && (
+                            (!editedCrew?.passportExpiryDate ||
+                              (editedCrew?.passportIssueDate &&
+                                new Date(editedCrew.passportExpiryDate) <=
+                                new Date(editedCrew.passportIssueDate))) && (
                               <p className="text-red-500 text-sm mt-1">
-                                Passport expiration date is required.
+                                Passport expiration date is required and must be after the issue date.
                               </p>
                             )}
                         </div>
+
                         <div className="md:col-span-2">
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
                             Seaman Book Number
@@ -1143,11 +1198,11 @@ export default function CrewDetails() {
                         </div>
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
-                            Seamans Book Issue Date
+                            Seaman's Book Issue Date
                           </label>
                           <Input
                             type="date"
-                            placeholder="Seamans Book Issue Date"
+                            placeholder="Seaman's Book Issue Date"
                             value={
                               isEditing
                                 ? editedCrew?.seamansBookIssueDate
@@ -1158,16 +1213,16 @@ export default function CrewDetails() {
                                   : ""
                             }
                             onChange={(e) =>
-                              handleInputChange(
-                                "seamansBookIssueDate",
-                                e.target.value
-                              )
+                              handleInputChange("seamansBookIssueDate", e.target.value)
                             }
                             readOnly={!isEditing}
                             className={
                               isEditing
                                 ? `${submitted &&
-                                  !editedCrew?.seamansBookIssueDate
+                                  (!editedCrew?.seamansBookIssueDate ||
+                                    (editedCrew.seamansBookIssueDate &&
+                                      editedCrew.seamansBookExpiryDate &&
+                                      new Date(editedCrew.seamansBookExpiryDate) <= new Date(editedCrew.seamansBookIssueDate)))
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : "border-primary"
                                 }`
@@ -1176,19 +1231,23 @@ export default function CrewDetails() {
                           />
                           {submitted &&
                             isEditing &&
-                            !editedCrew?.seamansBookIssueDate && (
+                            (!editedCrew?.seamansBookIssueDate ||
+                              (editedCrew.seamansBookIssueDate &&
+                                editedCrew.seamansBookExpiryDate &&
+                                new Date(editedCrew.seamansBookExpiryDate) <= new Date(editedCrew.seamansBookIssueDate))) && (
                               <p className="text-red-500 text-sm mt-1">
-                                Seamans book issue date is required.
+                                Issue date is required and must be before the expiration date.
                               </p>
                             )}
                         </div>
+
                         <div>
                           <label className="text-sm font-semibold text-gray-500 mb-1 block">
-                            Seamans Book Expiration Date
+                            Seaman's Book Expiration Date
                           </label>
                           <Input
                             type="date"
-                            placeholder="Seamans Book Expiry Date"
+                            placeholder="Seaman's Book Expiry Date"
                             value={
                               isEditing
                                 ? editedCrew?.seamansBookExpiryDate
@@ -1199,16 +1258,16 @@ export default function CrewDetails() {
                                   : ""
                             }
                             onChange={(e) =>
-                              handleInputChange(
-                                "seamansBookExpiryDate",
-                                e.target.value
-                              )
+                              handleInputChange("seamansBookExpiryDate", e.target.value)
                             }
                             readOnly={!isEditing}
                             className={
                               isEditing
                                 ? `${submitted &&
-                                  !editedCrew?.seamansBookExpiryDate
+                                  (!editedCrew?.seamansBookExpiryDate ||
+                                    (editedCrew.seamansBookIssueDate &&
+                                      editedCrew.seamansBookExpiryDate &&
+                                      new Date(editedCrew.seamansBookExpiryDate) <= new Date(editedCrew.seamansBookIssueDate)))
                                   ? "border-red-500 focus:!ring-red-500/50"
                                   : "border-primary"
                                 }`
@@ -1217,12 +1276,16 @@ export default function CrewDetails() {
                           />
                           {submitted &&
                             isEditing &&
-                            !editedCrew?.seamansBookExpiryDate && (
+                            (!editedCrew?.seamansBookExpiryDate ||
+                              (editedCrew.seamansBookIssueDate &&
+                                editedCrew.seamansBookExpiryDate &&
+                                new Date(editedCrew.seamansBookExpiryDate) <= new Date(editedCrew.seamansBookIssueDate))) && (
                               <p className="text-red-500 text-sm mt-1">
-                                Seamans book expiration date is required.
+                                Expiration date is required and must be after the issue date.
                               </p>
                             )}
                         </div>
+
                       </div>
                     </div>
                   </div>

@@ -203,7 +203,7 @@ export default function AddAllotteeForm({
                 Add Allottee
               </h3>
 
-              {(Number(newAllotmentType) === 1 || allottees.length === 0 || allottees[0]?.allotmentType === 1) && (
+              {(Number(newAllotmentType) === 1 || (allottees.length === 0 && allottees[0]?.allotmentType === 1)) && (
                 <div className="flex justify-end gap-6 w-1/2">
                   <FormField
                     control={control}
