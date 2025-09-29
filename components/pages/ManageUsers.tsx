@@ -40,6 +40,7 @@ import { EditUserDialog } from "../dialogs/EditUserDialog";
 import { Badge } from "../ui/badge";
 import Swal from "sweetalert2";
 import { toast } from "../ui/use-toast";
+import ManagePasswordDialog from "../dialogs/ManagePasswordDialog";
 
 export default function ManageUsers() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,15 +49,15 @@ export default function ManageUsers() {
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userData, setUserData] = useState<UsersItem[]>([]);
   const [isAddUser, setAddUser] = useState(false);
-  const [selectedUserData, setSelectedUserData] = useState<UsersItem | null>(
-    null
-  );
-  const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] =
-    useState(false);
+  const [selectedUserData, setSelectedUserData] = useState<UsersItem | null>(null);
+  const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] = useState(false);
+  const [managePasswordDialogOpen, setManagePasswordDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState({
     users: true,
     vessels: true,
   });
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
 
   const handleUserUpdated = (updatedUser: UsersItem) => {
     setUserData((prev) =>
@@ -163,7 +164,7 @@ export default function ManageUsers() {
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const userId = row.original.UserID;
-        const isVerified = Number(row.original.IsVerified) === 0;
+        //const isVerified = Number(row.original.IsVerified) === 0;
 
         return (
           <div className="text-center">
@@ -185,18 +186,28 @@ export default function ManageUsers() {
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit User
                 </DropdownMenuItem>
-
-                {!isVerified && (
+                {/* {!isVerified && (
                   <DropdownMenuItem
                     className="text-xs sm:text-sm"
                     onClick={() => {
                       handleResetPassword(userId);
                     }}
                   >
-                    <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    Reset Password
+                    <Mail className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    Reset Password via Email
                   </DropdownMenuItem>
-                )}
+                )} */}
+                <DropdownMenuItem
+                  className="text-xs sm:text-sm"
+                  onClick={() => {
+                    setSelectedUserId(userId);
+                    setSelectedUserName(row.original.Name);
+                    setManagePasswordDialogOpen(true);
+                  }}
+                >
+                  <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Update Password
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
@@ -261,7 +272,6 @@ export default function ManageUsers() {
           duration: 3000,
         });
       } else {
-        // Deletion failed from API/backend
         Swal.fire("Error", `Failed to delete ${userName}.`, "error");
       }
     } catch (error) {
@@ -270,57 +280,57 @@ export default function ManageUsers() {
     }
   };
 
-  const handleResetPassword = async (userId: number) => {
-    const user = userData.find((u) => u.UserID === userId);
-    const userName = user ? user.Name : "this user";
+  // const handleResetPassword = async (userId: number) => {
+  //   const user = userData.find((u) => u.UserID === userId);
+  //   const userName = user ? user.Name : "this user";
 
-    const result = await Swal.fire({
-      title: `Reset password for ${userName}?`,
-      text: "This action cannot be undone.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#6c757d",
-      confirmButtonText: "Yes, reset it",
-      reverseButtons: true,
-    });
+  //   const result = await Swal.fire({
+  //     title: `Reset password for ${userName}?`,
+  //     text: "This action cannot be undone.",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonColor: "#d33",
+  //     cancelButtonColor: "#6c757d",
+  //     confirmButtonText: "Yes, reset it",
+  //     reverseButtons: true,
+  //   });
 
-    if (!result.isConfirmed) {
-      // User clicked "Cancel"
-      Swal.fire({
-        title: "Cancelled",
-        text: "Process cancelled.",
-        icon: "info",
-      });
-      return;
-    }
+  //   if (!result.isConfirmed) {
+  //     // User clicked "Cancel"
+  //     Swal.fire({
+  //       title: "Cancelled",
+  //       text: "Process cancelled.",
+  //       icon: "info",
+  //     });
+  //     return;
+  //   }
 
-    try {
-      const response = await resetPassword(userId);
+  //   try {
+  //     const response = await resetPassword(userId);
 
-      if (response.success) {
-        toast({
-          title: "Password Reset",
-          description: `Password for ${userName} has been reset successfully.`,
-          variant: "success",
-          duration: 3000,
-        });
-      } else {
-        Swal.fire(
-          "Error",
-          response.message || "Failed to reset the password.",
-          "error"
-        );
-      }
-    } catch (error) {
-      Swal.fire(
-        "Error",
-        "An error occurred while resetting the password.",
-        "error"
-      );
-      console.error(error);
-    }
-  };
+  //     if (response.success) {
+  //       toast({
+  //         title: "Password Reset",
+  //         description: `Password for ${userName} has been reset successfully.`,
+  //         variant: "success",
+  //         duration: 3000,
+  //       });
+  //     } else {
+  //       Swal.fire(
+  //         "Error",
+  //         response.message || "Failed to reset the password.",
+  //         "error"
+  //       );
+  //     }
+  //   } catch (error) {
+  //     Swal.fire(
+  //       "Error",
+  //       "An error occurred while resetting the password.",
+  //       "error"
+  //     );
+  //     console.error(error);
+  //   }
+  // };
 
   return (
     <>
@@ -486,6 +496,18 @@ export default function ManageUsers() {
             onOpenChange={setEditselectedUserDialogOpen}
             SelectedUserData={selectedUserData}
             onSuccess={handleUserUpdated}
+          />
+        )}
+
+        {selectedUserId != null && (
+          <ManagePasswordDialog
+            open={managePasswordDialogOpen}
+            onOpenChange={setManagePasswordDialogOpen}
+            userId={selectedUserId ?? 0}
+            userName={selectedUserName ?? ""}
+            onSuccess={() => {
+              getUsersList();
+            }}
           />
         )}
       </div>
