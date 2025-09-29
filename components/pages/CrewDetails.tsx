@@ -1338,7 +1338,7 @@ export default function CrewDetails() {
 
                 <TabsContent
                   value="allottee"
-                  className="p-5 mt-0 overflow-y-auto scrollbar-hide flex-1"
+                  className="p-5 mt-0 overflow-y-auto flex-1"
                 >
                   <>
                     <CrewAllottee
@@ -1688,7 +1688,6 @@ export default function CrewDetails() {
                         </div>
 
                         {/* selfiewithID */}
-
                         <div>
                           <label className="text-sm text-gray-500 mb-1 block">
                             Selfie with ID Attachment

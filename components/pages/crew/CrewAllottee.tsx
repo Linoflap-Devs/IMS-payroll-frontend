@@ -744,7 +744,6 @@ export function CrewAllottee({
             display: none;
           }
 
-          .overflow-y-auto,
           .overflow-auto,
           .overflow-scroll {
             -ms-overflow-style: none;
