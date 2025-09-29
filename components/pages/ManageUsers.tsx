@@ -26,6 +26,7 @@ import {
   Pencil,
   Lock,
   Trash,
+  Mail,
 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -40,6 +41,7 @@ import { EditUserDialog } from "../dialogs/EditUserDialog";
 import { Badge } from "../ui/badge";
 import Swal from "sweetalert2";
 import { toast } from "../ui/use-toast";
+import ManagePasswordDialog from "../dialogs/ManagePasswordDialog";
 
 export default function ManageUsers() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,10 +55,14 @@ export default function ManageUsers() {
   );
   const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] =
     useState(false);
+  const [managePasswordSelectedUserDialogOpen, setManagePasswordselectedUserDialogOpen] = useState(false);
+  const [managePasswordDialogOpen, setManagePasswordDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState({
     users: true,
     vessels: true,
   });
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
 
   const handleUserUpdated = (updatedUser: UsersItem) => {
     setUserData((prev) =>
@@ -193,10 +199,21 @@ export default function ManageUsers() {
                       handleResetPassword(userId);
                     }}
                   >
-                    <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    Reset Password
+                    <Mail className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    Reset Password via Email
                   </DropdownMenuItem>
                 )}
+                 <DropdownMenuItem
+                    className="text-xs sm:text-sm"
+                    onClick={() => {
+                      setSelectedUserId(userId);
+                      setSelectedUserName(row.original.Name);
+                      setManagePasswordDialogOpen(true);
+                    }}
+                  >
+                    <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    Update Password
+                  </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
@@ -486,6 +503,18 @@ export default function ManageUsers() {
             onOpenChange={setEditselectedUserDialogOpen}
             SelectedUserData={selectedUserData}
             onSuccess={handleUserUpdated}
+          />
+        )}
+
+        {selectedUserId != null && (
+          <ManagePasswordDialog
+            open={managePasswordDialogOpen}
+            onOpenChange={setManagePasswordDialogOpen}
+            userId={selectedUserId ?? 0}
+            userName={selectedUserName ?? ""}
+            onSuccess={() => {
+              getUsersList();
+            }}
           />
         )}
       </div>

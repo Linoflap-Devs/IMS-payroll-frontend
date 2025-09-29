@@ -138,3 +138,25 @@ export const updatePassword = async (passwordData: UpdatePasswordItem ): Promise
   }
 };
 
+export interface UpdatePasswordPayload {
+  userId: number;
+  newPassword: string;
+}
+
+export interface UserPasswordResponse {
+  success: boolean;
+  dataManagePassword?: UpdateUserPayload;
+  message?: string;
+}
+
+export const updatePasswordAdmin = async (adminPayload: UpdatePasswordPayload): Promise<UserPasswordResponse> => {
+  const response = await axiosInstance.patch<UserPasswordResponse>("/auth/admin-update-password", {
+    userId: adminPayload.userId,
+    newPassword: adminPayload.newPassword
+  });
+  return response.data;
+};
+
+
+
+
