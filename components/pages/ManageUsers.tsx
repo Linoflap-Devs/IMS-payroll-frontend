@@ -26,7 +26,6 @@ import {
   Pencil,
   Lock,
   Trash,
-  Mail,
 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -50,12 +49,8 @@ export default function ManageUsers() {
   const [userTypeFilter, setUserTypeFilter] = useState("all");
   const [userData, setUserData] = useState<UsersItem[]>([]);
   const [isAddUser, setAddUser] = useState(false);
-  const [selectedUserData, setSelectedUserData] = useState<UsersItem | null>(
-    null
-  );
-  const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] =
-    useState(false);
-  const [managePasswordSelectedUserDialogOpen, setManagePasswordselectedUserDialogOpen] = useState(false);
+  const [selectedUserData, setSelectedUserData] = useState<UsersItem | null>(null);
+  const [editselectedUserDialogOpen, setEditselectedUserDialogOpen] = useState(false);
   const [managePasswordDialogOpen, setManagePasswordDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState({
     users: true,
@@ -169,7 +164,7 @@ export default function ManageUsers() {
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const userId = row.original.UserID;
-        const isVerified = Number(row.original.IsVerified) === 0;
+        //const isVerified = Number(row.original.IsVerified) === 0;
 
         return (
           <div className="text-center">
@@ -191,8 +186,7 @@ export default function ManageUsers() {
                   <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                   Edit User
                 </DropdownMenuItem>
-
-                {!isVerified && (
+                {/* {!isVerified && (
                   <DropdownMenuItem
                     className="text-xs sm:text-sm"
                     onClick={() => {
@@ -202,18 +196,18 @@ export default function ManageUsers() {
                     <Mail className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
                     Reset Password via Email
                   </DropdownMenuItem>
-                )}
-                 <DropdownMenuItem
-                    className="text-xs sm:text-sm"
-                    onClick={() => {
-                      setSelectedUserId(userId);
-                      setSelectedUserName(row.original.Name);
-                      setManagePasswordDialogOpen(true);
-                    }}
-                  >
-                    <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    Update Password
-                  </DropdownMenuItem>
+                )} */}
+                <DropdownMenuItem
+                  className="text-xs sm:text-sm"
+                  onClick={() => {
+                    setSelectedUserId(userId);
+                    setSelectedUserName(row.original.Name);
+                    setManagePasswordDialogOpen(true);
+                  }}
+                >
+                  <Lock className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Update Password
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
@@ -278,7 +272,6 @@ export default function ManageUsers() {
           duration: 3000,
         });
       } else {
-        // Deletion failed from API/backend
         Swal.fire("Error", `Failed to delete ${userName}.`, "error");
       }
     } catch (error) {
@@ -287,57 +280,57 @@ export default function ManageUsers() {
     }
   };
 
-  const handleResetPassword = async (userId: number) => {
-    const user = userData.find((u) => u.UserID === userId);
-    const userName = user ? user.Name : "this user";
+  // const handleResetPassword = async (userId: number) => {
+  //   const user = userData.find((u) => u.UserID === userId);
+  //   const userName = user ? user.Name : "this user";
 
-    const result = await Swal.fire({
-      title: `Reset password for ${userName}?`,
-      text: "This action cannot be undone.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#6c757d",
-      confirmButtonText: "Yes, reset it",
-      reverseButtons: true,
-    });
+  //   const result = await Swal.fire({
+  //     title: `Reset password for ${userName}?`,
+  //     text: "This action cannot be undone.",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonColor: "#d33",
+  //     cancelButtonColor: "#6c757d",
+  //     confirmButtonText: "Yes, reset it",
+  //     reverseButtons: true,
+  //   });
 
-    if (!result.isConfirmed) {
-      // User clicked "Cancel"
-      Swal.fire({
-        title: "Cancelled",
-        text: "Process cancelled.",
-        icon: "info",
-      });
-      return;
-    }
+  //   if (!result.isConfirmed) {
+  //     // User clicked "Cancel"
+  //     Swal.fire({
+  //       title: "Cancelled",
+  //       text: "Process cancelled.",
+  //       icon: "info",
+  //     });
+  //     return;
+  //   }
 
-    try {
-      const response = await resetPassword(userId);
+  //   try {
+  //     const response = await resetPassword(userId);
 
-      if (response.success) {
-        toast({
-          title: "Password Reset",
-          description: `Password for ${userName} has been reset successfully.`,
-          variant: "success",
-          duration: 3000,
-        });
-      } else {
-        Swal.fire(
-          "Error",
-          response.message || "Failed to reset the password.",
-          "error"
-        );
-      }
-    } catch (error) {
-      Swal.fire(
-        "Error",
-        "An error occurred while resetting the password.",
-        "error"
-      );
-      console.error(error);
-    }
-  };
+  //     if (response.success) {
+  //       toast({
+  //         title: "Password Reset",
+  //         description: `Password for ${userName} has been reset successfully.`,
+  //         variant: "success",
+  //         duration: 3000,
+  //       });
+  //     } else {
+  //       Swal.fire(
+  //         "Error",
+  //         response.message || "Failed to reset the password.",
+  //         "error"
+  //       );
+  //     }
+  //   } catch (error) {
+  //     Swal.fire(
+  //       "Error",
+  //       "An error occurred while resetting the password.",
+  //       "error"
+  //     );
+  //     console.error(error);
+  //   }
+  // };
 
   return (
     <>
