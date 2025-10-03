@@ -378,7 +378,7 @@ export function generateOtherDeductionsReportPDF(
             doc.setFont('helvetica', 'normal');
 
             // Draw top border for this row
-            doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
+            //doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
             // Draw left and right borders
             doc.line(margins.left, currentY, margins.left, currentY + rowHeight);
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight);
@@ -439,7 +439,7 @@ export function generateOtherDeductionsReportPDF(
                 }
             });
 
-            doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
+            //doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
 
             currentY += rowHeight;
 
