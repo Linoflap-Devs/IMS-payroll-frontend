@@ -20,8 +20,11 @@ import {
 import { Search, MoreHorizontal, Filter, IdCard } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { getCrewRemittanceList } from "@/src/services/remittance/crewRemittance.api";
+import { getCrewRemittanceList, getCrewRemittanceRegister } from "@/src/services/remittance/crewRemittance.api";
 import { useDebounce } from "@/lib/useDebounce";
+import { AiOutlinePrinter } from "react-icons/ai";
+import { PiReceiptFill, PiUserListFill } from "react-icons/pi";
+import generateCrewRemittanceReport from "../PDFs/remittancePDF";
 
 type Crew = {
   id: number;
@@ -44,6 +47,23 @@ export default function Remittance() {
   const [isLoadingRemittance, setLoadingRemittance] = useState(false);
   const [rankFilter, setRankFilter] = useState("all");
   const [ranks, setRanks] = useState<string[]>([]);
+
+  const [isDataLoading, setIsDataLoading] = useState(false);
+
+  const handleRemittanceRegisterPDF = async () => {
+      setIsDataLoading(true)
+      const today = new Date();
+      const response = await getCrewRemittanceRegister(today.getMonth() + 1, today.getFullYear(), 1)
+  
+      if(response.success) {
+        generateCrewRemittanceReport(response, today)
+        console.log(response)
+      }
+      else {
+        console.log("No other deduction data found")
+      }
+      setIsDataLoading(false)
+    }
 
   useEffect(() => {
     const fetchCrewRemittance = async () => {
@@ -202,6 +222,34 @@ export default function Remittance() {
         <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-semibold mb-0">Remittance</h1>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="h-10 px-4 text-sm"
+                      // disabled={printLoading || isDataLoading}
+                    >
+                      <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                      {/* {printLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Printing...
+                        </>
+                      ) : (
+                        "PDF Summary"
+                      )} */}
+
+                      Export
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="text-sm w-48">
+                    <DropdownMenuItem
+                      onClick={handleRemittanceRegisterPDF}
+                    >
+                    <PiUserListFill className="mr-2 h-4 w-4" />
+                      Allotment Register
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
             <div className="relative w-full md:flex-1">
