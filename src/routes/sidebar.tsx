@@ -6,20 +6,12 @@ import {
   ChevronDown,
   MoreVertical,
   User2,
-  Settings,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface SidebarProps {
   routes: {
@@ -35,7 +27,6 @@ interface SidebarProps {
   }[];
   isCollapsed: boolean;
   onToggleCollapse: () => void;
-  userEmail?: string;
   user: {
     Email: string
     FirstName: string
@@ -52,7 +43,6 @@ export function Sidebar({
   routes,
   isCollapsed,
   // onToggleCollapse,
-  userEmail,
   onLogout,
 }: SidebarProps) {
   const [openDropdowns, setOpenDropdowns] = useState<{
@@ -227,7 +217,7 @@ export function Sidebar({
               <>
                 <div className="flex flex-col min-w-0 overflow-hidden">
                   <p className="text-base font-medium truncate">
-                    {user?.FirstName || ""} {user?.LastName || "Guest"}
+                    {user?.Email || ""}
                   </p>
                   <p className="text-sm text-sidebar-foreground truncate">
                     {user?.Email || "Not logged in"}

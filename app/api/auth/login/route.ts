@@ -37,26 +37,33 @@ export async function POST(req: Request) {
     if (res.ok) {
       console.log("[LOGIN] Backend login successful.");
 
-      // Create a new HTTP-only cookie manually if needed
       const response = NextResponse.json({
         success: true,
         message: "Login successful",
-        user: data?.user || data?.username || null,
+        user: data?.user || data?.username || data.null,
       });
-      
-      response.cookies.set("session", "authenticated", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60, // 1 hour
-      });
+
+      response.cookies.set(
+        "session",
+        JSON.stringify({
+          isAuthenticated: true,
+          userType: data?.data?.userType,
+          email: data?.data?.email,
+          token: data?.data?.token, // optional
+        }),
+        {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 60, // 1 hour
+        }
+      );
 
       console.log("[LOGIN] HTTP-only cookie set. Returning success response...");
       return response;
     }
 
-    // ❌ If backend returned unauthorized or other error
     console.warn("[LOGIN] Backend login failed:", data?.message || "Unauthorized");
     return NextResponse.json(
       { success: false, message: data?.message || "Invalid credentials" },

@@ -19,7 +19,6 @@ import { Input } from "./ui/input";
 import {
   loginUser,
   LoginResponse,
-  getCurrentUser,
 } from "../src/services/auth/auth.api";
 import { PiEye, PiEyeSlash } from "react-icons/pi";
 import {
@@ -31,7 +30,6 @@ import {
 } from "@/components/ui/dialog";
 import { DialogClose, DialogTitle } from "@radix-ui/react-dialog";
 import Image from "next/image";
-import { AxiosError } from "axios";
 import { useAuth } from "@/src/store/useAuthStore";
 import { toast } from "./ui/use-toast";
 
@@ -49,6 +47,7 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { setUser } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,21 +62,15 @@ export default function Login() {
     setIsLoading(true);
     setErrorMessage("");
 
-    console.log("[onSubmit] Form submitted with values:", values);
-
     try {
-      console.log("Sending login request to /api/auth/login...");
-      
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
-        credentials: "include", // important for cookies
+        credentials: "include",
       });
 
-      console.log("[Response Status]:", res.status);
       const cookieResponse = await res.json();
-      console.log("[Cookie Response JSON]:", cookieResponse);
 
       if (!res.ok) {
         if (res.status === 401) {
@@ -92,10 +85,14 @@ export default function Login() {
         }
       }
 
-      console.log("Login successful, calling loginUser()...");
       const response: LoginResponse = await loginUser(values);
-      
-      console.log("[loginUser response]:", response);
+
+      setUser({
+        email: response.data.email,
+        userType: response.data.userType,
+      });
+
+      console.log()
 
       toast({
         title: "Login Successful",
@@ -103,7 +100,6 @@ export default function Login() {
         description: `Welcome back, ${response.data.email || "User"}!`,
       });
 
-      console.log("Redirecting to /dashboard...");
       router.push("/home/dashboard");
 
     } catch (error: unknown) {
@@ -112,7 +108,6 @@ export default function Login() {
           ? error.message
           : "An unexpected error occurred. Please try again later.";
 
-      console.error("[onSubmit error]:", error);
       setErrorMessage(message);
 
       toast({
@@ -120,8 +115,8 @@ export default function Login() {
         variant: "destructive",
         description: message,
       });
+
     } finally {
-      console.log("[onSubmit finally] Cleaning up...");
       setIsLoading(false);
     }
   }
@@ -144,21 +139,19 @@ export default function Login() {
                   render={({ field, fieldState }) => (
                     <FormItem>
                       <FormLabel
-                        className={`text-sm ${
-                          fieldState.error ? "text-red-600" : ""
-                        }`}
+                        className={`text-sm ${fieldState.error ? "text-red-600" : ""
+                          }`}
                       >
                         Email Address
                       </FormLabel>
                       <FormControl>
                         <Input
-                            type="text" 
-                            placeholder="Enter email address"
-                            {...field}
-                            className={`h-10 text-sm pr-12 ${
-                              fieldState.error
-                                ? "border-red-500 ring-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
-                                : ""
+                          type="text"
+                          placeholder="Enter email address"
+                          {...field}
+                          className={`h-10 text-sm pr-12 ${fieldState.error
+                              ? "border-red-500 ring-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
+                              : ""
                             }`}
                         />
                       </FormControl>
@@ -174,9 +167,8 @@ export default function Login() {
                   render={({ field, fieldState }) => (
                     <FormItem>
                       <FormLabel
-                        className={`text-sm ${
-                          fieldState.error ? "text-red-600" : ""
-                        }`}
+                        className={`text-sm ${fieldState.error ? "text-red-600" : ""
+                          }`}
                       >
                         Password
                       </FormLabel>
@@ -186,11 +178,10 @@ export default function Login() {
                             type={showPassword ? "text" : "password"}
                             placeholder="Enter password"
                             {...field}
-                            className={`h-10 text-sm pr-12 ${
-                              fieldState.error
+                            className={`h-10 text-sm pr-12 ${fieldState.error
                                 ? "border-red-500 ring-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
                                 : ""
-                            }`}
+                              }`}
                           />
                           <button
                             type="button"

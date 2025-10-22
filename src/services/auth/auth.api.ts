@@ -11,6 +11,7 @@ export interface LoginResponse {
   data: {
     token: string;
     email: string;
+    userType: number;
   };
   message: string;
 }
@@ -25,7 +26,8 @@ export const logoutUser = async (): Promise<void> => {
 };
 
 export const getCurrentUser = async (): Promise<
-  { 
+  {
+    isAuthenticated: any; 
     Email: string
     FirstName: string
     LastName: string

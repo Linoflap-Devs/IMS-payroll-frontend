@@ -1,5 +1,3 @@
-"use client";
-
 import AccessGuard from "@/components/pages/AccessGuard";
 import DeductionRegister from "@/components/pages/allotment_payroll/DeductionRegister";
 import { Suspense } from "react";
