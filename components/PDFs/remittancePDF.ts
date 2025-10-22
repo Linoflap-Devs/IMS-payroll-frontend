@@ -6,12 +6,12 @@ import { logoBase64Image } from "./lib/base64items";
 import { capitalizeFirstLetter, formatCurrency, getMonthName } from "@/lib/utils";
 import { format } from "date-fns";
 import { toast } from "../ui/use-toast";
-import { otherDeductionsCrew, otherDeductionsData } from "@/src/services/deduction/crewDeduction.api";
+import { crewRemittanceRegisterCrew, crewRemittanceRegisterData } from "@/src/services/remittance/crewRemittance.api";
 
-export interface OtherDeductionsResponse {
+export interface CrewRemittanceRegisterResponse {
     success: boolean;
     message: string;
-    data: otherDeductionsData;
+    data: crewRemittanceRegisterData;
 }
 
 // Get month and year from message (e.g., "3/2025")
@@ -32,30 +32,33 @@ function extractPeriod(message: string): { month: string, year: number } {
     };
 }
 
-function calculateTotals(crew: otherDeductionsCrew[]): { cashAdvTotal: number, deductionTotal: number } {
+function calculateTotals(crew: crewRemittanceRegisterCrew[]): { cashAdvTotal: number, deductionTotal: number } {
     let cashAdvTotal = 0;
     let deductionTotal = 0;
 
     crew.forEach(crewMember => {
         let amount = 0;
-        if (crewMember.Currency === 2) {
-            amount = crewMember.OriginalAmount;
-        } else {
-            amount = crewMember.DeductionAmount / crewMember.ExchangeRate;
-        }
+        // if (crewMember.Currency === 2) {
+        //     amount = crewMember.OriginalAmount;
+        // } else {
+        //     amount = crewMember.DeductionAmount / crewMember.ExchangeRate;
+        // }
+        amount = crewMember.Amount
+        cashAdvTotal += amount;
+        deductionTotal += amount;
 
-        if (crewMember.DeductionName.toLowerCase().includes("cash advance")) {
-            cashAdvTotal += amount;
-        } else {
-            deductionTotal += amount;
-        }
+        // if (crewMember.DeductionName.toLowerCase().includes("cash advance")) {
+        //     cashAdvTotal += amount;
+        // } else {
+        //     deductionTotal += amount;
+        // }
     });
 
     return { cashAdvTotal, deductionTotal };
 }
 
 // NEW FUNCTION: Calculate sub-totals for a specific vessel
-function calculateVesselSubtotals(crew: otherDeductionsCrew[], vesselName: string): { cashAdvTotal: number, deductionTotal: number } {
+function calculateVesselSubtotals(crew: crewRemittanceRegisterCrew[], vesselName: string): { cashAdvTotal: number, deductionTotal: number } {
     let cashAdvTotal = 0;
     let deductionTotal = 0;
 
@@ -63,25 +66,28 @@ function calculateVesselSubtotals(crew: otherDeductionsCrew[], vesselName: strin
         .filter(crewMember => crewMember.VesselName === vesselName)
         .forEach(crewMember => {
             let amount = 0;
-            if (crewMember.Currency === 2) {
-                amount = crewMember.OriginalAmount;
-            } else {
-                amount = crewMember.DeductionAmount / crewMember.ExchangeRate;
-            }
+            // if (crewMember.Currency === 2) {
+            //     amount = crewMember.OriginalAmount;
+            // } else {
+            //     amount = crewMember.DeductionAmount / crewMember.ExchangeRate;
+            // }
+            amount = crewMember.Amount
+            cashAdvTotal += amount;
+            deductionTotal += amount;
 
-            if (crewMember.DeductionName.toLowerCase().includes("cash advance")) {
-                cashAdvTotal += amount;
-            } else {
-                deductionTotal += amount;
-            }
+            // if (crewMember.DeductionName.toLowerCase().includes("cash advance")) {
+            //     cashAdvTotal += amount;
+            // } else {
+            //     deductionTotal += amount;
+            // }
         });
 
     return { cashAdvTotal, deductionTotal };
 }
 
 
-export function generateOtherDeductionsReportPDF(
-    data: OtherDeductionsResponse,
+export function generateCrewRemittanceReportPDF(
+    data: CrewRemittanceRegisterResponse,
     dateGenerated: Date,
     mode: 'all' | 'vessel' = 'vessel'
 ): boolean {
@@ -125,8 +131,8 @@ export function generateOtherDeductionsReportPDF(
         }
 
         doc.setProperties({
-            title: `Crew Deductions Report - ${period.month}/${period.year}`,
-            subject: `Crew Deductions Report - ${period.month}/${period.year}`,
+            title: `Crew Remittances Report - ${period.month}/${period.year}`,
+            subject: `Crew Remittances Report - ${period.month}/${period.year}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
@@ -140,13 +146,10 @@ export function generateOtherDeductionsReportPDF(
         const mainTableWidth = pageWidth - margins.left - margins.right;
 
         const colWidths = [
-            mainTableWidth * 0.20,
-            mainTableWidth * 0.25,
-            mainTableWidth * 0.05,
-            mainTableWidth * 0.15,
-            mainTableWidth * 0.15,
-            mainTableWidth * 0.05,
-            mainTableWidth * 0.25,
+            mainTableWidth * 0.25, // Vessel Name
+            mainTableWidth * 0.25, // Crew Name
+            mainTableWidth * 0.25,  // Remittance Amount
+            mainTableWidth * 0.25,  // Remarks
         ];
 
         const colPositions: number[] = [];
@@ -161,7 +164,8 @@ export function generateOtherDeductionsReportPDF(
         const tableHeaderHeight = 8;
 
         // NEW FUNCTION: Draw vessel sub-total row
-        const drawVesselSubtotalRow = (vesselName: string) => {
+        const drawVesselSubtotalRow = (vesselName?: string) => {
+            if(!vesselName) return;
             const subtotals = calculateVesselSubtotals(data.data.Crew, vesselName);
             
             if (currentY + rowHeight * 2 > pageHeight - margins.bottom - 20) {
@@ -185,21 +189,24 @@ export function generateOtherDeductionsReportPDF(
             doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
 
             // Draw "SUB-TOTAL" label
+            console.log('drawing subtotal for', vesselName, subtotals)
             doc.text(`SUB-TOTAL (${vesselName})`, colPositions[0] + 5, currentY + rowHeight / 2 + 1, { align: 'left' });
 
             // Draw Cash Advance Sub-total
             if (subtotals.cashAdvTotal > 0) {
+                console.log("drawing cash advance subtotal", subtotals.cashAdvTotal)
                 doc.setFont('NotoSans', 'bold');
                 doc.text(`$${formatCurrency(subtotals.cashAdvTotal)}`, colPositions[2] + colWidths[2] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
                 doc.setFont('helvetica', 'bold');
             }
 
-            // Draw Deduction Sub-total
-            if (subtotals.deductionTotal > 0) {
-                doc.setFont('NotoSans', 'bold');
-                doc.text(`$${formatCurrency(subtotals.deductionTotal)}`, colPositions[5] + colWidths[5] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-                doc.setFont('helvetica', 'bold');
-            }
+            // // Draw Deduction Sub-total
+            // if (subtotals.deductionTotal > 0) {
+            //     console.log("drawing deduction subtotal", formatCurrency(subtotals.deductionTotal))
+            //     doc.setFont('NotoSans', 'bold');
+            //     doc.text(`$${formatCurrency(subtotals.deductionTotal)}`, colPositions[5] + colWidths[5] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+            //     doc.setFont('helvetica', 'bold');
+            // }
 
             doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
 
@@ -208,6 +215,7 @@ export function generateOtherDeductionsReportPDF(
         };
 
         const drawTotalsRow = () => {
+            console.log("drawing totals")
             const totals = calculateTotals(data.data.Crew);
             
             if (currentY + rowHeight * 2 > pageHeight - margins.bottom - 20) {
@@ -225,20 +233,22 @@ export function generateOtherDeductionsReportPDF(
             doc.line(margins.left, currentY, margins.left, currentY + rowHeight);
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight);
             doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
-
+            
             doc.text("TOTALS", colPositions[0] + 5, currentY + rowHeight / 2 + 1, { align: 'left' });
 
             if (totals.cashAdvTotal > 0) {
                 doc.setFont('NotoSans', 'bold');
+                console.log("drawing cash advance total", totals.cashAdvTotal)
                 doc.text(`$${formatCurrency(totals.cashAdvTotal)}`, colPositions[2] + colWidths[2] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
                 doc.setFont('helvetica', 'bold');
             }
 
-            if (totals.deductionTotal > 0) {
-                doc.setFont('NotoSans', 'bold');
-                doc.text(`$${formatCurrency(totals.deductionTotal)}`, colPositions[5] + colWidths[5] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
-                doc.setFont('helvetica', 'bold');
-            }
+            // if (totals.deductionTotal > 0) {
+            //     doc.setFont('NotoSans', 'bold');                
+            //     console.log("drawing deduction total", totals.deductionTotal)
+            //     doc.text(`$${formatCurrency(totals.deductionTotal)}`, colPositions[5] + colWidths[5] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+            //     doc.setFont('helvetica', 'bold');
+            // }
 
             doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
 
@@ -274,7 +284,7 @@ export function generateOtherDeductionsReportPDF(
                 { align: 'right' }
             );
             doc.text(
-                "CREW DEDUCTIONS REPORT",
+                "CREW REMITTANCES REPORT",
                 margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
                 currentY + 16,
                 { align: 'right' }
@@ -335,7 +345,7 @@ export function generateOtherDeductionsReportPDF(
             doc.line(margins.left, currentY, margins.left, currentY + tableHeaderHeight);
             doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + tableHeaderHeight);
 
-            const headers = ["Vessel Name", "Crew Name", "Cash Adv. Amount", "Cash Adv. Remarks", "Deduction Name", "Deduction Amount", "Deduction Remarks"];
+            const headers = ["Vessel Name", "Crew Name", "Remittance Amount", "Remarks"];
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
@@ -351,15 +361,17 @@ export function generateOtherDeductionsReportPDF(
         };
 
         currentY = margins.top;
-        drawPageHeader(data.data.VesselName);
+        drawPageHeader(data.data.VesselName || undefined);
         drawTableHeader();
 
         // Track current vessel for sub-totals
         let currentVessel = sortedCrew[0]?.VesselName || '';
 
         sortedCrew.forEach((crew, crewIndex) => {
+            console.log("current", crew)
             // Check if vessel changed - if so, draw sub-total for previous vessel
             if (crew.VesselName !== currentVessel && currentVessel) {
+                console.log("previous vessel", crew)
                 drawVesselSubtotalRow(currentVessel);
                 currentVessel = crew.VesselName;
             }
@@ -370,6 +382,7 @@ export function generateOtherDeductionsReportPDF(
             if (currentY + totalEntryHeight > pageHeight - margins.bottom - 20) {
                 doc.addPage();
                 currentY = margins.top;
+                console.log("new page", crew)
                 drawPageHeader();
                 drawTableHeader();
             }
@@ -386,56 +399,33 @@ export function generateOtherDeductionsReportPDF(
             const columnKeys: string[] = [
                 "VesselName",
                 "CrewName",
-                "DeductionAmount",
-                "DeductionName",
-                "DeductionRemarks",
+                "Amount",
+                "Remarks",
             ];
+
+            console.log("rendering row", crew)
 
             columnKeys.forEach((key, i) => {
                 if(i === 1) {
+                    console.log(" Crew Name")
+
                     const crewName = `${crew.LastName}, ${crew.FirstName} ${crew.MiddleName ? crew.MiddleName[0] + '.' : ''}`;
+                    console.log(crewName)
                     doc.text(crewName, colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
                 else if (i === 2) {
-                    let value = 0
-                    if(crew.Currency === 2){
-                        value = crew.OriginalAmount
-                    }
-                    else {
-                        value = (crew.DeductionAmount / crew.ExchangeRate)
-                    }
-
-                    let positionIdx = 0
-                    if(crew.DeductionName.toLowerCase().includes("cash advance")){
-                        positionIdx = 2
-                    }
-                    else {
-                        positionIdx = 5
-                    }
+                    console.log(" Amount ")
+                    let value = crew.Amount
 
                     doc.setFont('NotoSans', 'normal');
-                    doc.text(`$${formatCurrency(value)}`, colPositions[positionIdx] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                    console.log(`$${formatCurrency(value)}`)
+                    doc.text(`$${formatCurrency(value)}`, colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
                     doc.setFont('helvetica', 'normal');
                 }
-                else if(i == 3){
-                    let positionIdx = 0
-                    if(!crew.DeductionName.toLowerCase().includes("cash advance")){
-                        positionIdx = 4
-                        doc.text(crew[key as keyof otherDeductionsCrew]?.toString() || '', colPositions[positionIdx] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
-                    }
-                }
-                else if(i == 4){
-                    let positionIdx = 0
-                    if(crew.DeductionName.toLowerCase().includes("cash advance")){
-                        positionIdx = 3
-                    }
-                    else {
-                        positionIdx = 6
-                    }
-                    doc.text(crew[key as keyof otherDeductionsCrew]?.toString() || '', colPositions[positionIdx] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
-                }
                 else {
-                    doc.text(crew[key as keyof otherDeductionsCrew]?.toString() || '', colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                    console.log(" others ")
+                    console.log(crew[key as keyof crewRemittanceRegisterCrew])
+                    doc.text(crew[key as keyof crewRemittanceRegisterCrew]?.toString() || '', colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
                 }
             });
 
@@ -445,10 +435,13 @@ export function generateOtherDeductionsReportPDF(
 
             // If this is the last crew member, draw sub-total for their vessel
             if (crewIndex === sortedCrew.length - 1) {
+                console.log("last vessel", crew)
                 drawVesselSubtotalRow(crew.VesselName);
+                console.log("drew last vessel subtotal success")
             }
         });
 
+        console.log("drawing totals")
         drawTotalsRow();
 
         const totalPages = doc.internal.pages.length - 1;
@@ -458,6 +451,8 @@ export function generateOtherDeductionsReportPDF(
             doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
             doc.setFont('helvetica', 'italic');
             doc.setFontSize(9);
+            console.log(`Page ${i} out of ${totalPages}`)
+            console.log('drawing page number')
             doc.text(
                 `Page ${i} out of ${totalPages}`, 
                 pageWidth - margins.right - 5, 
@@ -473,17 +468,17 @@ export function generateOtherDeductionsReportPDF(
 
         return true;
     } catch (error) {
-        console.error("Error generating Crew Deductions List:", error);
+        console.error("Error generating Crew Remittances List:", error);
         return false;
     }
 }
 
-export function generateOtherDeductionsReport(data: OtherDeductionsResponse, dateGenerated: Date, mode: 'all' | 'vessel' = 'vessel'): boolean {
-    return generateOtherDeductionsReportPDF(
+export function generateCrewRemittanceReport(data: CrewRemittanceRegisterResponse, dateGenerated: Date, mode: 'all' | 'vessel' = 'vessel'): boolean {
+    return generateCrewRemittanceReportPDF(
         data,
         dateGenerated,
         mode
     );
 }
-
-export default generateOtherDeductionsReport;
+ 
+export default generateCrewRemittanceReport;

@@ -235,3 +235,38 @@ export const deleteCrewRemittance = async (
     throw error;
   }
 }
+
+export interface crewRemittanceRegisterCrew {
+  CrewID: number,
+  CrewCode: string,
+  FirstName: string,
+  MiddleName: string | null,
+  LastName: string,
+  Amount: number,
+  Remarks: string,
+  ExchangeRate: number,
+  VesselName: string          
+}
+
+export interface crewRemittanceRegisterData {
+  ExchangeRate: number,
+  VesselName?: string,
+  Crew: crewRemittanceRegisterCrew[],
+}
+
+export interface crewRemittanceRegisterResponse {
+  success: boolean;
+  data: crewRemittanceRegisterData;
+  message: string;
+}
+
+export const getCrewRemittanceRegister = async (month: number, year: number, vesselId?: number) : Promise<crewRemittanceRegisterResponse> => {
+  if(vesselId){
+    const response = await axiosInstance.get<crewRemittanceRegisterResponse>(`/remittance/register/${vesselId}/${year}/${month}`);
+    return response.data;
+  }
+  else {
+    const response = await axiosInstance.get<crewRemittanceRegisterResponse>(`/remittance/register/${year}/${month}`);
+    return response.data;
+  }
+}
