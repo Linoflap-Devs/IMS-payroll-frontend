@@ -21,7 +21,6 @@ import {
   LoginResponse,
   getCurrentUser,
 } from "../src/services/auth/auth.api";
-import Link from "next/link";
 import { PiEye, PiEyeSlash } from "react-icons/pi";
 import {
   Dialog,
@@ -233,12 +232,12 @@ export default function Login() {
               </DialogContent>
             </Dialog>
 
-            <p className="text-base text-center text-gray-600">
+            {/* <p className="text-base text-center text-gray-600">
               Don&apos;t have an account yet?{" "}
               <Link href="/register" className="text-[#1e2f8d] hover:underline">
                 Register here
               </Link>
-            </p>
+            </p> */}
           </div>
         </div>
       </Card>
