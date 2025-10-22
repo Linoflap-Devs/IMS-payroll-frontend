@@ -2,22 +2,29 @@
 
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Menu,
   ChevronRight as ChevronRightIcon,
   PanelLeft,
   PanelLeftClose,
-  Loader,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { logoutUser } from "@/src/services/auth/auth.api";
+import { getCurrentUser, logoutUser } from "@/src/services/auth/auth.api";
 import { useRouter } from "next/navigation";
 import { getHomeRoutes } from "@/src/routes/homeRoutes";
 import { getHomeBreadcrumb } from "@/src/routes/getHomeBreadcrumb";
 import { Sidebar } from "@/src/routes/sidebar";
-import { useAuth } from "@/src/store/useAuthStore";
+import { toast } from "@/components/ui/use-toast";
+
+interface User {
+  Email: string
+  FirstName: string
+  LastName: string
+  UserType: number
+  UserTypeName: string
+}
 
 export default function HomeLayout({
   children,
@@ -27,44 +34,67 @@ export default function HomeLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  const { user, logout } = useAuth();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null)
   const userType = user?.UserType;
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-
   useEffect(() => {
-    setUserEmail(localStorage.getItem("userEmail"));
-  }, []);
+    let isMounted = true
 
-  // useEffect(() => {
-  //   if (userType === undefined) {
-  //     router.push("/");
-  //   }
-  // }, [userType, router]);
-  
-  const handleLogout = async () => {
-    try {
-      await logoutUser(); // server-side logout
-    } catch (error) {
-      console.error("Logout failed:", error);
+    const fetchCurrentUser = async () => {
+      try {
+        setLoading(true)
+        const res = await getCurrentUser()
+        if (isMounted) setUser(res)
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          console.error("Failed to fetch current user:", err)
+        }
+      } finally {
+        if (isMounted) setLoading(false)
+      }
     }
 
-    logout(); // Zustand
-    localStorage.removeItem("userEmail");
-    router.push("/"); // Clean redirect
-  };
+    fetchCurrentUser()
 
-  if (userType === undefined) {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen gap-2 text-gray-700">
-        <Loader className="animate-spin w-6 h-6" />
-        <span>Loading...</span>
-      </div>
-    );
+    return () => {
+      isMounted = false
+    }
+  }, [])
+  
+  const displayUser = useMemo(() => {
+    if (!user) {
+      return { FirstName: "Guest", LastName: "N/A", Email: "Guest", UserType: 0, UserTypeName: "Unknown" }
+    }
+    return user
+  }, [user])
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser()
+      await fetch("/api/auth/logout", 
+        { 
+          method: "POST", 
+          credentials: "include" 
+        })
+      toast({
+        title: "Logout Successful",
+        description: "Successfully logged out.",
+      })
+      setTimeout(() => router.push("/"), 100)
+      
+    } catch (error) {
+      console.error("Logout failed:", error)
+      toast({
+        title: "Logout Failed",
+        description: "Something went wrong while logging out.",
+        variant: "destructive",
+      })
+    }
   }
-
-  const routes = getHomeRoutes(pathname, userType);
+  
+  const routes = getHomeRoutes(pathname, userType ?? 1);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -84,7 +114,13 @@ export default function HomeLayout({
             routes={routes}
             isCollapsed={false}
             onToggleCollapse={() => {}}
-            userEmail={userEmail || undefined}
+            user={{
+              FirstName: displayUser.FirstName?.toLowerCase() ?? "No First Name",
+              LastName: displayUser.LastName?.toLowerCase() ?? "No Last Name",
+              UserTypeName: displayUser.UserTypeName?.toLowerCase() ?? "No Position",
+              UserType: displayUser.UserType,
+              Email: displayUser.Email?.toLowerCase() ?? "No Email",
+            }}
             onLogout={handleLogout}
           />
         </SheetContent>
@@ -102,7 +138,13 @@ export default function HomeLayout({
           routes={routes}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          userEmail={userEmail || undefined}
+          user={{
+            FirstName: displayUser.FirstName?.toLowerCase() ?? "No First Name",
+            LastName: displayUser.LastName?.toLowerCase() ?? "No Last Name",
+            UserTypeName: displayUser.UserTypeName?.toLowerCase() ?? "No Position",
+            UserType: displayUser.UserType,
+            Email: displayUser.Email?.toLowerCase() ?? "No Email",
+          }}
           onLogout={handleLogout}
         />
       </div>
@@ -128,7 +170,7 @@ export default function HomeLayout({
             </span>
             <div className="flex items-center text-base text-muted-foreground">
               <div className="font-medium text-foreground text-sm">
-                {getHomeBreadcrumb(pathname, userType)}
+                {getHomeBreadcrumb(pathname, userType ?? 1)}
               </div>
             </div>
           </div>

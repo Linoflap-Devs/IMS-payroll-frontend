@@ -24,7 +24,14 @@ export const logoutUser = async (): Promise<void> => {
   await axiosInstance.delete("/auth/logout");
 };
 
-export const getCurrentUser = async (): Promise<{ Email: string; UserType: number }> => {
-  const response = await axiosInstance.get("/auth/current-user");
-  return response.data.data;
+export const getCurrentUser = async (): Promise<
+  { 
+    Email: string
+    FirstName: string
+    LastName: string
+    UserType: number
+    UserTypeName: string 
+  }> => {
+    const response = await axiosInstance.get("/auth/current-user");
+    return response.data.data;
 };

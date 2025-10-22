@@ -34,11 +34,19 @@ interface SidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   userEmail?: string;
+  user: {
+    Email: string
+    FirstName: string
+    LastName: string
+    UserType: number
+    UserTypeName: string
+  }
   onLogout: () => void;
 }
 
 // Sidebar component
 export function Sidebar({
+  user,
   routes,
   isCollapsed,
   // onToggleCollapse,
@@ -210,17 +218,17 @@ export function Sidebar({
             >
               <AvatarImage src="" />
               <AvatarFallback className="bg-primary text-primary-foreground text-base">
-                {userEmail ? userEmail.substring(0, 2).toUpperCase() : ""}
+                {user?.Email ? user?.Email.substring(0, 2).toUpperCase() : ""}
               </AvatarFallback>
             </Avatar>
             {!isCollapsed && (
               <>
                 <div className="flex flex-col min-w-0 overflow-hidden">
                   <p className="text-base font-medium truncate">
-                    {userEmail || "Guest"}
+                    {user?.FirstName || ""} {user?.LastName || "Guest"}
                   </p>
                   <p className="text-sm text-sidebar-foreground truncate">
-                    {userEmail || "Not logged in"}
+                    {user?.Email || "Not logged in"}
                   </p>
                 </div>
                 <DropdownMenu>

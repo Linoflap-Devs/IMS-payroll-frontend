@@ -33,6 +33,7 @@ import { DialogClose, DialogTitle } from "@radix-ui/react-dialog";
 import Image from "next/image";
 import { AxiosError } from "axios";
 import { useAuth } from "@/src/store/useAuthStore";
+import { toast } from "./ui/use-toast";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -57,44 +58,70 @@ export default function Login() {
     },
   });
 
+  // Handle submit
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     setErrorMessage("");
 
+    console.log("[onSubmit] Form submitted with values:", values);
+
     try {
-      const response: LoginResponse = await loginUser(values);
+      console.log("Sending login request to /api/auth/login...");
+      
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+        credentials: "include", // important for cookies
+      });
 
-      if (response.success) {
-        localStorage.setItem("userEmail", response.data.email); // session ONLY.
+      console.log("[Response Status]:", res.status);
+      const cookieResponse = await res.json();
+      console.log("[Cookie Response JSON]:", cookieResponse);
 
-        const currentUser = await getCurrentUser();
-        if (currentUser) {
-          useAuth.getState().setUser(currentUser);
+      if (!res.ok) {
+        if (res.status === 401) {
+          console.warn("Invalid credentials");
+          throw new Error("Invalid credentials, please check your email and password.");
+        } else if (res.status === 500) {
+          console.error("Server error during login");
+          throw new Error("Internal server error. Please try again later or contact support.");
+        } else {
+          console.error("Unexpected error:", cookieResponse?.message);
+          throw new Error(cookieResponse?.message || "An unexpected error occurred.");
         }
-
-        router.push("/home/dashboard");
-      } else {
-        setErrorMessage(
-          response.message || "Invalid credentials, please try again."
-        );
       }
+
+      console.log("Login successful, calling loginUser()...");
+      const response: LoginResponse = await loginUser(values);
+      
+      console.log("[loginUser response]:", response);
+
+      toast({
+        title: "Login Successful",
+        variant: "success",
+        description: `Welcome back, ${response.data.email || "User"}!`,
+      });
+
+      console.log("Redirecting to /dashboard...");
+      router.push("/home/dashboard");
+
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred. Please try again later.";
 
-      if (axiosError?.response?.status === 401) {
-        setErrorMessage(
-          "Invalid credentials, please check your email and password."
-        );
-      } else if (axiosError?.response?.status === 500) {
-        setErrorMessage(
-          "Internal server error. Please try again later or contact support."
-        );
-      } else {
-        setErrorMessage(
-          "An unexpected error occurred. Please try again later."
-        );
-      }
+      console.error("[onSubmit error]:", error);
+      setErrorMessage(message);
+
+      toast({
+        title: "Error",
+        variant: "destructive",
+        description: message,
+      });
     } finally {
+      console.log("[onSubmit finally] Cleaning up...");
       setIsLoading(false);
     }
   }
@@ -184,12 +211,12 @@ export default function Login() {
                 />
               </div>
 
-              {/* Display error message if any */}
+              {/* Display error message if any
               {errorMessage && (
                 <div className="text-sm text-red-500 text-center">
                   {errorMessage}
                 </div>
-              )}
+              )} */}
 
               <Button
                 type="submit"
