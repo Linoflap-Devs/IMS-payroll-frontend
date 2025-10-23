@@ -1,10 +1,10 @@
-import AccessGuard from "@/components/pages/AccessGuard";
 import CrewApplication from "@/components/pages/CrewApplication";
+import { Suspense } from "react";
 
 export default function Page() {
   return (
-    <AccessGuard allowedTypes={[3]}>
+    <Suspense fallback={<div> Loading... </div>}>
       <CrewApplication />
-    </AccessGuard>
+    </Suspense>
   );
 }

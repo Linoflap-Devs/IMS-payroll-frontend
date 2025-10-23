@@ -1,11 +1,10 @@
-import AccessGuard from "@/components/pages/AccessGuard";
 import Dashboard from "@/components/pages/Dashboard";
+import { Suspense } from "react";
 
 export default function page() {
-
   return (
-    <AccessGuard allowedTypes={[1, 3, 4, 5]}>
+   <Suspense fallback={<div> Loading... </div>}>
       <Dashboard />
-    </AccessGuard>
+   </Suspense> 
   );
 }

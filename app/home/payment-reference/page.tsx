@@ -1,10 +1,10 @@
-import AccessGuard from "@/components/pages/AccessGuard";
 import PaymentReference from "@/components/pages/PaymentReference";
+import { Suspense } from "react";
 
 export default function page() {
   return (
-    <AccessGuard allowedTypes={[5]}>
+    <Suspense fallback={<div>Loading...</div>}>
       <PaymentReference />
-    </AccessGuard>
+    </Suspense>
   );
 }
