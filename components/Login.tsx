@@ -76,6 +76,9 @@ export default function Login() {
         if (res.status === 401) {
           console.warn("Invalid credentials");
           throw new Error("Invalid credentials, please check your email and password.");
+        } else if (res.status === 400) {
+          console.error("Server error during login");
+          throw new Error("Invalid credentials, please check your email and password.");
         } else if (res.status === 500) {
           console.error("Server error during login");
           throw new Error("Internal server error. Please try again later or contact support.");
