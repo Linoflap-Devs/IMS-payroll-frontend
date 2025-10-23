@@ -20,9 +20,10 @@ export function middleware(req: NextRequest) {
 
     // Role-based route access map
     const roleMap: Record<number, string[]> = {
-      1: ["/home/dashboard", "/home/manage-users", "/home/login-history", "/home/audit-log"],
+      1: ["/home/dashboard", "/home/profile", "/home/manage-users", "/home/login-history", "/home/audit-log"],
       3: [
         "/home/dashboard",
+        "/home/profile",
         "/home/crew",
         "/home/vessel",
         "/home/wages",
@@ -33,8 +34,8 @@ export function middleware(req: NextRequest) {
         "/home/crew-movement",
         "/home/application_crew",
       ],
-      4: ["/home/dashboard", "/home/crew-payroll", "/home/allotment"],
-      5: ["/home/dashboard", "/home/crew-govt-records", "/home/payment-reference", "/home/deduction"],
+      4: ["/home/dashboard", "/home/profile", "/home/crew-payroll", "/home/allotment"],
+      5: ["/home/dashboard", "/home/profile", "/home/crew-govt-records", "/home/payment-reference", "/home/deduction"],
     };
 
     const currentPath = req.nextUrl.pathname;

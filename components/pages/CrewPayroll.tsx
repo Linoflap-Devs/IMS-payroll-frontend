@@ -214,6 +214,7 @@ export default function CrewPayroll() {
   if (error) {
     return <div className="text-center text-red-500">Error: {error}</div>;
   }
+  
   return (
     <div className="h-full w-full p-4 pt-2">
       <style jsx global>{`

@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/dialog";
 import { DialogClose, DialogTitle } from "@radix-ui/react-dialog";
 import Image from "next/image";
-import { useAuth } from "@/src/store/useAuthStore";
 import { toast } from "./ui/use-toast";
 
 const formSchema = z.object({
@@ -47,7 +46,6 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const { setUser } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,13 +84,6 @@ export default function Login() {
       }
 
       const response: LoginResponse = await loginUser(values);
-
-      setUser({
-        email: response.data.email,
-        userType: response.data.userType,
-      });
-
-      console.log()
 
       toast({
         title: "Login Successful",

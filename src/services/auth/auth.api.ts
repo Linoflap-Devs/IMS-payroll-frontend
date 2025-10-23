@@ -25,15 +25,20 @@ export const logoutUser = async (): Promise<void> => {
   await axiosInstance.delete("/auth/logout");
 };
 
-export const getCurrentUser = async (): Promise<
-  {
-    isAuthenticated: any; 
+export interface UserItem {
     Email: string
     FirstName: string
     LastName: string
     UserType: number
     UserTypeName: string 
-  }> => {
-    const response = await axiosInstance.get("/auth/current-user");
-    return response.data.data;
+}
+
+
+export const getCurrentUser = async (): Promise<{
+  success: boolean;
+  data: UserItem | null;
+  message?: string;
+}> => {
+  const response = await axiosInstance.get("/auth/current-user");
+  return response.data;
 };

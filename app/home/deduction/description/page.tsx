@@ -1,10 +1,10 @@
-import AccessGuard from "@/components/pages/AccessGuard";
 import DeductionDescription from "@/components/pages/DeductionDescription";
+import { Suspense } from "react";
 
 export default function page() {
   return (
-    <AccessGuard allowedTypes={[3]}>
+    <Suspense fallback={<div>Loading...</div>}>
       <DeductionDescription />
-    </AccessGuard>
+    </Suspense>
   );
 }

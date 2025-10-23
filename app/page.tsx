@@ -2,15 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import Login from "@/components/Login";
-import { useAuth } from "@/src/store/useAuthStore";
 import Image from "next/image";
 import { Loader } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
-  const { user, loading, initialized } = useAuth();
-
   return (
+
     <main className="flex h-screen relative">
       <div className="hidden lg:block lg:w-3/4 bg-[#1e2f8d] relative pl-5">
         <Image
