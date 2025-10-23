@@ -1,9 +1,9 @@
-import CrewEntries from "@/components/pages/CrewEntries";
 import { Suspense } from "react";
+import CrewEntries from "@/components/pages/CrewEntries";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <CrewEntries />
     </Suspense>
   );

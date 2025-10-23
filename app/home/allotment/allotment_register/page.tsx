@@ -1,9 +1,9 @@
-import AllotmentRegister from "@/components/pages/allotment_payroll/AllotmentRegister";
 import { Suspense } from "react";
+import AllotmentRegister from "@/components/pages/allotment_payroll/AllotmentRegister";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div> Loading... </div>}>
+    <Suspense fallback={<></>}>
       <AllotmentRegister />
     </Suspense>
   );

@@ -1,10 +1,10 @@
-import DeductionEntries from "@/components/pages/DeductionEntries";
 import { Suspense } from "react";
+import DeductionEntries from "@/components/pages/DeductionEntries";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <DeductionEntries />;
+    <Suspense fallback={<></>}>
+      <DeductionEntries />
     </Suspense>
   );
 }

@@ -1,9 +1,9 @@
-import DeductionRegister from "@/components/pages/allotment_payroll/DeductionRegister";
 import { Suspense } from "react";
+import DeductionRegister from "@/components/pages/allotment_payroll/DeductionRegister";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <DeductionRegister />
     </Suspense>
   );

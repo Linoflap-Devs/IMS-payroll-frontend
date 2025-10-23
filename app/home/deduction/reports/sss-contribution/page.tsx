@@ -1,9 +1,9 @@
-import SSSContribution from "@/components/pages/SSSContribution";
 import { Suspense } from "react";
+import SSSContribution from "@/components/pages/SSSContribution";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <SSSContribution />
     </Suspense>
   );

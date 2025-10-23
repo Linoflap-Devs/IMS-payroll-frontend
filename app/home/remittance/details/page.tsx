@@ -1,9 +1,9 @@
-import RemittanceDetails from "@/components/pages/RemittanceDetails";
 import { Suspense } from "react";
+import RemittanceDetails from "@/components/pages/RemittanceDetails";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <RemittanceDetails />
     </Suspense>
   );

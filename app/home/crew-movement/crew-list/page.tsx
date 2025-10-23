@@ -1,9 +1,9 @@
-import CrewMovementCrew from "@/components/pages/CrewMovementList";
 import { Suspense } from "react";
+import CrewMovementCrew from "@/components/pages/CrewMovementList";
 
-export default function VesselCrewListPage() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <CrewMovementCrew />
     </Suspense>
   );
