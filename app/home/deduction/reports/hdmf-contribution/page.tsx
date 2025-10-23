@@ -1,9 +1,9 @@
-import HMDFContribution from "@/components/pages/HDMFContributions";
 import { Suspense } from "react";
+import HMDFContribution from "@/components/pages/HDMFContributions";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <HMDFContribution />
     </Suspense>
   );

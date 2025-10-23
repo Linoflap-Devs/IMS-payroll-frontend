@@ -1,9 +1,9 @@
-import VesselProfile from "@/components/pages/VesselProfile";
 import { Suspense } from "react";
+import VesselProfile from "@/components/pages/VesselProfile";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <VesselProfile />
     </Suspense>
   );

@@ -1,10 +1,10 @@
-import AllotmentPayslip from "@/components/pages/allotment_payroll/AllotmentPayslip";
 import { Suspense } from "react";
+import AllotmentPayslip from "@/components/pages/allotment_payroll/AllotmentPayslip";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <AllotmentPayslip />;
+    <Suspense fallback={<></>}>
+      <AllotmentPayslip />
     </Suspense>
   );
 }

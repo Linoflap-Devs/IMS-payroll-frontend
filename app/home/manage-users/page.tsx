@@ -1,9 +1,9 @@
-import ManageUsers from "@/components/pages/ManageUsers";
 import { Suspense } from "react";
+import ManageUsers from "@/components/pages/ManageUsers";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <ManageUsers />
     </Suspense>
   );

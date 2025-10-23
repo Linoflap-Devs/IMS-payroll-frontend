@@ -1,9 +1,9 @@
-import CrewPayroll from "@/components/pages/CrewPayroll";
 import { Suspense } from "react";
+import CrewPayroll from "@/components/pages/CrewPayroll";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div> Loading... </div>}>
+    <Suspense fallback={<></>}>
       <CrewPayroll />
     </Suspense>
   );

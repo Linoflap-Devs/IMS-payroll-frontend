@@ -1,9 +1,9 @@
-import UserProfile from "@/components/pages/Profile";
 import { Suspense } from "react";
+import UserProfile from "@/components/pages/Profile";
 
 export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
         <UserProfile />
     </Suspense>
   );

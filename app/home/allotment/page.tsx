@@ -1,9 +1,9 @@
-import Allotment from "@/components/pages/Allotment";
 import { Suspense } from "react";
+import Allotment from "@/components/pages/Allotment";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div> Loading... </div>}>
+    <Suspense fallback={<></>}>
       <Allotment />
     </Suspense>
   );

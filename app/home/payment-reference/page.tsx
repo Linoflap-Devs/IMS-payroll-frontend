@@ -1,9 +1,9 @@
-import PaymentReference from "@/components/pages/PaymentReference";
 import { Suspense } from "react";
+import PaymentReference from "@/components/pages/PaymentReference";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <PaymentReference />
     </Suspense>
   );

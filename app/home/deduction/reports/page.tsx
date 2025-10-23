@@ -1,9 +1,9 @@
-import GovernmentReports from "@/components/pages/GovernmentReports";
 import { Suspense } from "react";
+import GovernmentReports from "@/components/pages/GovernmentReports";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <GovernmentReports />
     </Suspense>
   );

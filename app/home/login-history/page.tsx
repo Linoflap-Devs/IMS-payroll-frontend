@@ -1,9 +1,9 @@
-import LoginHistory from "@/components/pages/LoginHistory";
 import { Suspense } from "react";
+import LoginHistory from "@/components/pages/LoginHistory";
 
-export default function page() {
+export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <LoginHistory />
     </Suspense>
   );
