@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  console.log("[LOGIN] Incoming POST request...");
+  //console.log("[LOGIN] Incoming POST request...");
 
   try {
     const body = await req.json();
-    console.log("[LOGIN] Request body received:", body);
+    //console.log("[LOGIN] Request body received:", body);
 
     const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/login`;
-    console.log("[LOGIN] Backend URL:", backendUrl);
+    //console.log("[LOGIN] Backend URL:", backendUrl);
 
     const res = await fetch(backendUrl, {
       method: "POST",
@@ -17,15 +17,15 @@ export async function POST(req: Request) {
       credentials: "include",
     });
 
-    console.log("[LOGIN] Backend response status:", res.status);
+    //console.log("[LOGIN] Backend response status:", res.status);
 
     const text = await res.text();
-    console.log("[LOGIN] Raw backend response text:", text);
+    //console.log("[LOGIN] Raw backend response text:", text);
 
     let data;
     try {
       data = JSON.parse(text);
-      console.log("[LOGIN] Parsed backend JSON:", data);
+      //console.log("[LOGIN] Parsed backend JSON:", data);
     } catch (err) {
       console.error("[LOGIN] Failed to parse backend JSON:", err);
       return NextResponse.json(
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     if (res.ok) {
-      console.log("[LOGIN] Backend login successful.");
+      //console.log("[LOGIN] Backend login successful.");
 
       const response = NextResponse.json({
         success: true,
@@ -60,11 +60,11 @@ export async function POST(req: Request) {
         }
       );
 
-      console.log("[LOGIN] HTTP-only cookie set. Returning success response...");
+      //console.log("[LOGIN] HTTP-only cookie set. Returning success response...");
       return response;
     }
 
-    console.warn("[LOGIN] Backend login failed:", data?.message || "Unauthorized");
+    //console.warn("[LOGIN] Backend login failed:", data?.message || "Unauthorized");
     return NextResponse.json(
       { success: false, message: data?.message || "Invalid credentials" },
       { status: res.status }

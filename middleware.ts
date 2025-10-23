@@ -5,7 +5,7 @@ export function middleware(req: NextRequest) {
   const sessionCookie = req.cookies.get("session")?.value;
 
   if (!sessionCookie) {
-    console.log("[MIDDLEWARE] No session cookie found");
+    //console.log("[MIDDLEWARE] No session cookie found");
     return NextResponse.redirect(new URL("/not-found", req.url));
   }
 
@@ -14,7 +14,7 @@ export function middleware(req: NextRequest) {
     const { isAuthenticated, userType } = session;
 
     if (!isAuthenticated) {
-      console.log("[MIDDLEWARE] Not authenticated");
+      //console.log("[MIDDLEWARE] Not authenticated");
       return NextResponse.redirect(new URL("/not-found", req.url));
     }
 

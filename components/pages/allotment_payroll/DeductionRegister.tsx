@@ -178,8 +178,6 @@ export default function DeductionRegisterComponent() {
     item.CrewName?.toLowerCase().includes(debouncedSearch.toLowerCase())
   ); 
 
-  console.log(allotmentData);
-
   const handlePrint = () => {
     generateDeductionAllotmentV2PDF(
       allotmentData,
