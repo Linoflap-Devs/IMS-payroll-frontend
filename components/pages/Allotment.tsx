@@ -483,7 +483,8 @@ const fetchPayrollData = async () => {
     const response = await getVesselAllotmentRegister(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
-      year ? parseInt(year) : null
+      year ? parseInt(year) : null,
+      1
     );
 
     const monthNames = [
@@ -515,7 +516,8 @@ const fetchPayrollData = async () => {
     const response = await getVesselDeductionRegister(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
-      year ? parseInt(year) : null
+      year ? parseInt(year) : null,
+      1
     );
 
     generateDeductionAllotmentV2PDF(
@@ -532,7 +534,8 @@ const fetchPayrollData = async () => {
     const response = await getVesselPayslipV2(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
-      year ? parseInt(year) : null
+      year ? parseInt(year) : null,
+      1
     );
 
     generatePayrollPDF(
@@ -626,7 +629,8 @@ const fetchPayrollData = async () => {
     const response = await getVesselDeductionRegister(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
-      year ? parseInt(year) : null
+      year ? parseInt(year) : null,
+      1
     );
 
     generateDeductionRegisterV3PDF(
