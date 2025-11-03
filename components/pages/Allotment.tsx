@@ -587,10 +587,9 @@ const fetchPayrollData = async () => {
     );
 
     generateDeductionAllotmentExcel(
-      response.data,
+      response.data, 
       Number(month),
-      Number(year),
-      Number(forexRate)
+      Number(year)
     );
     setIsDataLoading(false);
   };
@@ -601,7 +600,7 @@ const fetchPayrollData = async () => {
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null
-    );
+    ); 
 
     generatePayrollExcel(
       response.data,
