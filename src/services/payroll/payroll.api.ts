@@ -88,7 +88,7 @@ export interface DeductionRegisterCrew {
   Deductions: Deductions[];
 }
 
-export interface DeductionRegisterData {
+export interface DeductionRegisterVessel {
   VesselID: number;
   VesselName: string;
   VesselCode: string;
@@ -98,10 +98,15 @@ export interface DeductionRegisterData {
   Crew: DeductionRegisterCrew[];
 }
 
+export interface DeductionRegisterData {
+  ExchangeRate: number,
+  Vessels: DeductionRegisterVessel[]
+}
+
 export interface DeductionRegisterResponse {
   success: boolean;
   message: string;
-  data: DeductionRegisterData[];
+  data: DeductionRegisterData;
 }
 
 export const getVesselDeductionRegister = async (vesselId: string | number | null, month: number | null, year: number | null, posted?: number): Promise<DeductionRegisterResponse> => {
