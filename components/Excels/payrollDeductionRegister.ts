@@ -14,7 +14,7 @@ export interface DeductionRegisterCrew {
   Deductions: Deductions[];
 }
 
-export interface DeductionRegisterData {
+export interface DeductionRegisterVessel {
   VesselID: number;
   VesselName: string;
   VesselCode: string;
@@ -24,19 +24,17 @@ export interface DeductionRegisterData {
   Crew: DeductionRegisterCrew[];
 }
 
+export interface DeductionRegisterData {
+  ExchangeRate: number;
+  Vessels: DeductionRegisterVessel[];
+}
+
 function getMonthName(monthNum: number): string {
   const months = [
     "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
     "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
   ];
   return months[monthNum - 1];
-}
-
-function formatCurrency(amount: number): string {
-  return amount.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 }
 
 function formatNumber(amount: number | string): string {
@@ -50,15 +48,16 @@ function formatNumber(amount: number | string): string {
 }
 
 export function generateDeductionAllotmentExcel(
-  vesselData: DeductionRegisterData[],
+  deductionData: DeductionRegisterData,
   month: number,
-  year: number,
-  exchangeRate: number = 56.1
+  year: number
 ): void {
   const workbook = XLSX.utils.book_new();
   const monthName = getMonthName(month);
+  const exchangeRate = deductionData.ExchangeRate;
 
-  vesselData.forEach((vessel, vesselIndex) => {
+  // FIX: iterate over deductionData.Vessels instead of vesselData directly
+  deductionData.Vessels.forEach((vessel, vesselIndex) => {
     const wsData: (string | number)[][] = [];
 
     // Header
@@ -120,7 +119,7 @@ export function generateDeductionAllotmentExcel(
     });
 
     wsData.push([]);
-    wsData.push([`Page ${vesselIndex + 1} out of ${vesselData.length}`]);
+    wsData.push([`Page ${vesselIndex + 1} out of ${deductionData.Vessels.length}`]);
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
@@ -140,16 +139,20 @@ export function generateDeductionAllotmentExcel(
 
     ws["!cols"] = colWidths;
 
-    const sheetName = vessel.VesselName.length > 31
-      ? vessel.VesselName.slice(0, 28) + "..."
-      : vessel.VesselName;
+    const sheetName =
+      vessel.VesselName.length > 31
+        ? vessel.VesselName.slice(0, 28) + "..."
+        : vessel.VesselName;
 
     XLSX.utils.book_append_sheet(workbook, ws, sheetName);
   });
 
-  const fileName = vesselData.length > 1
-    ? `Deduction_ALL_${capitalizeFirstLetter(monthName)}-${year}.xlsx`
-    : `Deduction_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(monthName)}-${year}.xlsx`;
+  const fileName =
+    deductionData.Vessels.length > 1
+      ? `Deduction_ALL_${capitalizeFirstLetter(monthName)}-${year}.xlsx`
+      : `Deduction_${capitalizeFirstLetter(
+          deductionData.Vessels[0].VesselName.replace(" ", "-")
+        )}_${capitalizeFirstLetter(monthName)}-${year}.xlsx`;
 
   XLSX.writeFile(workbook, fileName);
 }
