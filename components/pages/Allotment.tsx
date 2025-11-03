@@ -585,10 +585,9 @@ const fetchPayrollData = async () => {
       month ? parseInt(month) : null,
       year ? parseInt(year) : null
     );
-    console.log(response);
 
     generateDeductionAllotmentExcel(
-      response.data, // 
+      response.data, 
       Number(month),
       Number(year)
     );
