@@ -3,6 +3,7 @@
 import * as XLSX from "xlsx";
 import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
 import { DeductionRegisterResponse } from "@/src/services/payroll/payroll.api";
+import { toast } from "../ui/use-toast";
 
 // --- Helper functions ---
 function extractPeriod(message: string): { month: string; year: number } {
@@ -28,8 +29,8 @@ function formatNumber(amount: number | string): string {
 
 // --- MAIN FUNCTION ---
 export function generateDeductionRegisterV3Excel(
-  data: DeductionRegisterResponse,  
-  dateGenerated: Date,  
+  data: DeductionRegisterResponse,
+  dateGenerated: Date,
   mode: "all" | "vessel" = "vessel"
 ): boolean {
   if (
@@ -37,7 +38,12 @@ export function generateDeductionRegisterV3Excel(
     !data?.data?.Vessels ||
     data.data.Vessels.length === 0
   ) {
-    console.error("Invalid or empty data for deduction register");
+    toast({
+      title: "No Data Found",
+      description:
+        "No vessels or crew data available for the selected period.",
+      variant: "destructive",
+    });
     return false;
   }
 
@@ -46,6 +52,23 @@ export function generateDeductionRegisterV3Excel(
     const vesselData = register.Vessels;
     const exchangeRate = register.ExchangeRate;
     const period = extractPeriod(data.message);
+
+    // Skip Excel generation if all amounts are zero
+    const hasNonZeroData = vesselData.some(vessel =>
+      vessel.Crew.some(crew =>
+        crew.Deductions.some(d => Number(d.Amount) > 0)
+      )
+    );
+
+    if (!hasNonZeroData) {
+      toast({
+        title: "No Deductions Found",
+        description:
+          "All deduction amounts are zero.",
+        variant: "destructive",
+      });
+      return false;
+    }
 
     const wb = XLSX.utils.book_new();
 
@@ -150,8 +173,8 @@ export function generateDeductionRegisterV3Excel(
     const fileName =
       mode === "vessel"
         ? `GovDeductionRegister_${capitalizeFirstLetter(
-            vesselData[0].VesselName.replace(" ", "-")
-          )}_${capitalizeFirstLetter(period.month)}-${period.year}.xlsx`
+          vesselData[0].VesselName.replace(" ", "-")
+        )}_${capitalizeFirstLetter(period.month)}-${period.year}.xlsx`
         : `GovDeductionRegister_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.xlsx`;
 
     XLSX.writeFile(wb, fileName);
