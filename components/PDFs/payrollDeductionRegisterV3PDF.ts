@@ -29,7 +29,7 @@ export interface DeductionRegisterCrew {
     Deduction: number;
     Deductions: Deductions[];
 }
-export interface DeductionRegisterData {
+export interface DeductionRegisterVesselData {
     VesselID: number;
     VesselName: string;
     VesselCode: string;
@@ -39,10 +39,15 @@ export interface DeductionRegisterData {
     Crew: DeductionRegisterCrew[];
 }
 
+export interface DeductionRegisterData {
+    ExchangeRate: number,
+    Vessels: DeductionRegisterVesselData[]
+}
+
 export interface AllotmentRegisterResponse {
     success: boolean;
     message: string;
-    data: DeductionRegisterData[];
+    data: DeductionRegisterData;
 }
 
 
@@ -74,7 +79,7 @@ export function generateDeductionRegisterV3PDF(
         return false;
     }
 
-    if (!data.success || !data.data || data.data.length === 0 || !data.data.some(v => v.Crew && v.Crew.length > 0)) {
+    if (!data.success || !data.data || data.data.Vessels.length === 0 || !data.data.Vessels.some(v => v.Crew && v.Crew.length > 0)) {
         toast({
           title: "Error",
           description: 'Invalid or empty data for date.',
@@ -89,7 +94,7 @@ export function generateDeductionRegisterV3PDF(
         const vesselData = data.data;
         // Extract period information from message
         const period = extractPeriod(data.message);
-        const exchangeRate = vesselData[0].Crew[0].Deductions[0].ExchangeRate;
+        const exchangeRate = vesselData.ExchangeRate
 
         // Create a new PDF document in landscape orientation with LEGAL size
         const doc = new jsPDF({
@@ -109,8 +114,8 @@ export function generateDeductionRegisterV3PDF(
 
         // Set document properties
         doc.setProperties({
-            title: `Government Deduction Register - ${mode === 'vessel' ? vesselData[0].VesselName: 'All Vessels'} - ${period.month} ${period.year}`,
-            subject: `Government Deduction Register for ${mode === 'vessel' ? vesselData[0].VesselName: 'all vessels'} - ${period.month} ${period.year}`,
+            title: `Government Deduction Register - ${mode === 'vessel' ? vesselData.Vessels[0].VesselName: 'All Vessels'} - ${period.month} ${period.year}`,
+            subject: `Government Deduction Register for ${mode === 'vessel' ? vesselData.Vessels[0].VesselName: 'all vessels'} - ${period.month} ${period.year}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
@@ -155,12 +160,12 @@ export function generateDeductionRegisterV3PDF(
         const rowsPerPage = Math.floor((usableBottom - (margins.top + headerHeight + tableHeaderHeight)) / rowHeight) || 1;
 
         // Precompute how many pages each vessel will need and the number of summary pages
-        const vesselPages = vesselData.map(v => {
+        const vesselPages = vesselData.Vessels.map(v => {
             const crewCount = v.Crew?.length || 0;
             return Math.max(1, Math.ceil(crewCount / rowsPerPage)); // at least 1 page per vessel
         });
 
-        const summaryPages = Math.max(1, Math.ceil(vesselData.length / rowsPerPage));
+        const summaryPages = Math.max(1, Math.ceil(vesselData.Vessels.length / rowsPerPage));
 
         // Compute starting page number for each vessel (1-based page numbering)
         const vesselStartPage: number[] = [];
@@ -309,7 +314,7 @@ export function generateDeductionRegisterV3PDF(
 
         if(mode === 'all'){
             // Compute totals per vessel
-            const vesselTotals = vesselData.map(vessel => {
+            const vesselTotals = vesselData.Vessels.map(vessel => {
                 let totalSSS = 0;
                 let totalHDMF = 0;
                 let totalPhilhealth = 0;
@@ -345,7 +350,7 @@ export function generateDeductionRegisterV3PDF(
             let grandTotalProvident = 0;
 
             // Calculate total crews across all vessels
-            const totalCrews = vesselData.reduce((acc, v) => acc + v.Crew.length, 0);
+            const totalCrews = vesselData.Vessels.reduce((acc, v) => acc + v.Crew.length, 0);
 
             // Draw header for summary page
             currentY = margins.top;
@@ -461,7 +466,7 @@ export function generateDeductionRegisterV3PDF(
 
 
         // Process each vessel, starting each on a new page with full header
-        vesselData.forEach((vessel, vesselIndex) => {
+        vesselData.Vessels.forEach((vessel, vesselIndex) => {
             // For the first vessel, no addPage; for subsequent, add a new page
             if (vesselIndex > 0) {
                 doc.addPage();
@@ -476,7 +481,7 @@ export function generateDeductionRegisterV3PDF(
             vesselStartPages.push(vesselStartPageNumber);
 
             currentY = margins.top;
-            drawPageHeader(mode === 'vessel' ? vesselData[0].VesselName : vessel.VesselName, vessel.Crew.length);
+            drawPageHeader(mode === 'vessel' ? vesselData.Vessels[0].VesselName : vessel.VesselName, vessel.Crew.length);
             drawTableHeader();
 
             let totalSSS = 0;
@@ -493,7 +498,7 @@ export function generateDeductionRegisterV3PDF(
                 if (currentY + totalEntryHeight > pageHeight - margins.bottom - 20) { // Leave space for page number
                     doc.addPage();
                     currentY = margins.top;
-                    drawPageHeader(mode === 'vessel' ? vesselData[0].VesselName : vessel.VesselName, vessel.Crew.length);
+                    drawPageHeader(mode === 'vessel' ? vesselData.Vessels[0].VesselName : vessel.VesselName, vessel.Crew.length);
                     drawTableHeader();
                 }
     
@@ -560,7 +565,7 @@ export function generateDeductionRegisterV3PDF(
             if (currentY + totalHeight > pageHeight - margins.bottom - 20) {
                 doc.addPage();
                 currentY = margins.top;
-                drawPageHeader(mode === 'vessel' ? vesselData[0].VesselName : vessel.VesselName, vessel.Crew.length);
+                drawPageHeader(mode === 'vessel' ? vesselData.Vessels[0].VesselName : vessel.VesselName, vessel.Crew.length);
                 drawTableHeader();
             }
 
@@ -615,7 +620,7 @@ export function generateDeductionRegisterV3PDF(
 
         // Save the PDF
         const fileName = mode === 'vessel' ?
-        `GovDeductionRegister_${capitalizeFirstLetter(vesselData[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
+        `GovDeductionRegister_${capitalizeFirstLetter(vesselData.Vessels[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
         `GovDeductionRegister_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.pdf`;
         doc.save(fileName);
 
