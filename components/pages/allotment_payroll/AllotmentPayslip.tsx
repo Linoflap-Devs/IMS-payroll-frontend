@@ -28,17 +28,13 @@ export default function VesselPayslip() {
   const [searchTerm, setSearchTerm] = useState("");
   const [payslipData, setPayslipData] = useState<PayslipData>();
   const searchParams = useSearchParams();
-
   const postedParam = searchParams.get("posted");
   const postedValue = postedParam ? parseInt(postedParam) : undefined;
-
   const [PayslipPDFData, setPayslipPDFData] = useState<PayslipData>();
   const [payslipCrewData, setPayslipCrewData] = useState<CrewPayroll[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState<Blob | null>();
-
   const [fileName, setFileName] = useState("");
   const vesselId = searchParams.get("vesselId");
   const month = searchParams.get("month");

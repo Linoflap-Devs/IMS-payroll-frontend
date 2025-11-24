@@ -35,13 +35,11 @@ export default function AllotmentRegisterComponent() {
   const vesselId = searchParams.get("vesselId");
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
-
-  const [allotmentData, setAllotmentData] = useState<AllotmentRegisterData[]>(
-    []
-  );
+  const postedParam = searchParams.get("posted");
+  const postedValue = postedParam ? parseInt(postedParam) : undefined;
+  const [allotmentData, setAllotmentData] = useState<AllotmentRegisterData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCrew, setSelectedCrew] =
-    useState<AllotmentRegisterCrew | null>(null);
+  const [selectedCrew, setSelectedCrew] = useState<AllotmentRegisterCrew | null>(null);
   const [isAllotteeDialogOpen, setIsAllotteeDialogOpen] = useState(false);
 
   const month = searchParams.get("month");
@@ -57,12 +55,12 @@ export default function AllotmentRegisterComponent() {
         const response = await getVesselAllotmentRegister(
           vesselId,
           Number(searchParams.get("month")),
-          Number(searchParams.get("year"))
+          Number(searchParams.get("year")),
+          postedValue // <-- pass posted here
         );
 
         if (response.success && Array.isArray(response.data)) {
           setAllotmentData(response.data);
-
         } else {
           console.error("Unexpected API response format:", response);
           setAllotmentData([]);
@@ -76,7 +74,7 @@ export default function AllotmentRegisterComponent() {
     };
 
     fetchAllotmentData();
-  }, [vesselId, searchParams]);
+  }, [vesselId, searchParams, postedValue]); // also add postedValue to dependency array
 
   // Format numbers to two decimal places with null checking
   const formatNumber = (value: string | number | null | undefined) => {
