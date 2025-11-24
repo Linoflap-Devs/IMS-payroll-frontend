@@ -28,6 +28,10 @@ export default function VesselPayslip() {
   const [searchTerm, setSearchTerm] = useState("");
   const [payslipData, setPayslipData] = useState<PayslipData>();
   const searchParams = useSearchParams();
+
+  const postedParam = searchParams.get("posted");
+  const postedValue = postedParam ? parseInt(postedParam) : undefined;
+
   const [PayslipPDFData, setPayslipPDFData] = useState<PayslipData>();
   const [payslipCrewData, setPayslipCrewData] = useState<CrewPayroll[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +53,12 @@ export default function VesselPayslip() {
       if (vesselId && month && year) {
         setIsLoading(true);
         try {
-          const res = await getVesselPayslipV2(vesselId, parseInt(month), parseInt(year));
+          const res = await getVesselPayslipV2(
+            vesselId,
+            parseInt(month),
+            parseInt(year),
+            postedValue // <-- pass posted here
+          );
           if (res.success) {
             setPayslipPDFData(res.data);
             setPayslipData(res.data);
@@ -66,7 +75,7 @@ export default function VesselPayslip() {
     };
 
     fetchPayslipData();
-  }, [searchParams]);
+  }, [searchParams, postedValue]);
 
   const columns: ColumnDef<CrewPayroll>[] = [
     {

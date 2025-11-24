@@ -181,9 +181,9 @@ export default function Allotment() {
 
   useEffect(() => { }, [vesselId, month, year]);
 
-  useEffect(() => { }, [vesselId, month, year]);
+  // useEffect(() => { }, [vesselId, month, year]);
 
-  useEffect(() => { }, [vesselId, month, year]);
+  // useEffect(() => { }, [vesselId, month, year]);
 
   // Fetch data when filters change
   useEffect(() => {
@@ -381,7 +381,7 @@ export default function Allotment() {
                   href={`/home/allotment/allotment_register?vesselId=${row.original.vesselId
                     }&month=${parseInt(monthFilter)}&year=${parseInt(
                       yearFilter
-                    )}&posted=${postedValue}&forex=${forexRate || 0}`}
+                    )}&forex=${forexRate || 0}&posted=${postedValue}`}
                 >
                   <PiUserListFill className="mr-2 h-4 w-4" />
                   Allotment Register
@@ -393,7 +393,7 @@ export default function Allotment() {
                   href={`/home/allotment/deduction_register?vesselId=${row.original.vesselId
                     }&month=${parseInt(monthFilter)}&year=${parseInt(
                       yearFilter
-                    )}&posted=${postedValue}&forex=${forexRate || 0}`}
+                    )}&forex=${forexRate || 0}&posted=${postedValue}`}
                 >
                   <PiReceiptFill className="mr-2 h-4 w-4" />
                   Deduction Register
@@ -405,7 +405,7 @@ export default function Allotment() {
                   href={`/home/allotment/payslip?vesselId=${row.original.vesselId
                     }&month=${parseInt(monthFilter)}&year=${parseInt(
                       yearFilter
-                    )}&posted=${postedValue}&forex=${forexRate || 0}`}
+                    )}&forex=${forexRate || 0}&posted=${postedValue}`}
                 >
                   <PiFileTextFill className="mr-2 h-4 w-4" />
                   Pay Slip
