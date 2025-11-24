@@ -19,9 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   CircleAlert,
-  Download,
   Info,
-  Loader,
   Loader2,
   MoreHorizontal,
   Search,
@@ -97,59 +95,17 @@ const CardsSkeleton = () => {
   );
 };
 
-// Table skeleton component
-const TableSkeleton = () => {
-  return (
-    <div className="w-full">
-      {/* Header skeleton */}
-      <div className="flex py-3 bg-gray-50 border-b">
-        {Array.from({ length: 6 }).map((_, idx) => (
-          <div key={idx} className="flex-1 px-3 text-center">
-            <Skeleton className="h-6 w-[80%] mx-auto" />
-          </div>
-        ))}
-      </div>
-
-      {/* Row skeletons */}
-      {Array.from({ length: 7 }).map((_, rowIdx) => (
-        <div key={rowIdx} className="flex py-4 border-b">
-          {Array.from({ length: 6 }).map((_, colIdx) => (
-            <div
-              key={`${rowIdx}-${colIdx}`}
-              className="flex-1 px-3 text-center"
-            >
-              <Skeleton className="h-5 w-[80%] mx-auto" />
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-};
-
 export default function Allotment() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [payrollData, setPayrollData] = useState<Payroll[]>([]);
   const [forexRate, setForexRate] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<string>("unposted");
-
-  const postedValue = activeTab === "posted" ? 1 : 0;
-  console.log(postedValue);
-  
   const searchParams = useSearchParams();
   const month = searchParams.get("month");
   const year = searchParams.get("year");
-
-  const [monthFilter, setMonthFilter] = useState(
-    month || (new Date().getMonth() + 1).toString()
-  );
-
-  const [yearFilter, setYearFilter] = useState(
-    year || new Date().getFullYear().toString()
-  );
-
-  //loading states
+  const [monthFilter, setMonthFilter] = useState(month || (new Date().getMonth() + 1).toString());
+  const [yearFilter, setYearFilter] = useState(year || new Date().getFullYear().toString());
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [printLoading, setPrintLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
@@ -159,9 +115,7 @@ export default function Allotment() {
   const [showPostDialog, setShowPostDialog] = useState(false);
   const [selectedVessel, setSelectedVessel] = useState<Payroll | null>(null);
   const currentMonth = new Date().getMonth() + 1;
-
   const formatNumber = (value: number) => value?.toFixed(2);
-
   const monthNames = [
     "January",
     "February",
@@ -407,66 +361,72 @@ export default function Allotment() {
     {
       id: "actions",
       header: "Actions",
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
-            </Button>
-          </DropdownMenuTrigger>
+      cell: ({ row }) => {
+        // Determine if the tab is posted or unposted
+        const postedValue = activeTab === "posted" ? 1 : 0;
 
-          <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-            <DropdownMenuItem asChild>
-              <Link
-                href={`/home/allotment/allotment_register?vesselId=${row.original.vesselId
-                  }&month=${parseInt(monthFilter)}&year=${parseInt(
-                    yearFilter
-                  )}&forex=${forexRate || 0}`}
+        return (
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/home/allotment/allotment_register?vesselId=${row.original.vesselId
+                    }&month=${parseInt(monthFilter)}&year=${parseInt(
+                      yearFilter
+                    )}&posted=${postedValue}&forex=${forexRate || 0}`}
+                >
+                  <PiUserListFill className="mr-2 h-4 w-4" />
+                  Allotment Register
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/home/allotment/deduction_register?vesselId=${row.original.vesselId
+                    }&month=${parseInt(monthFilter)}&year=${parseInt(
+                      yearFilter
+                    )}&posted=${postedValue}&forex=${forexRate || 0}`}
+                >
+                  <PiReceiptFill className="mr-2 h-4 w-4" />
+                  Deduction Register
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/home/allotment/payslip?vesselId=${row.original.vesselId
+                    }&month=${parseInt(monthFilter)}&year=${parseInt(
+                      yearFilter
+                    )}&posted=${postedValue}&forex=${forexRate || 0}`}
+                >
+                  <PiFileTextFill className="mr-2 h-4 w-4" />
+                  Pay Slip
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setSelectedVessel(row.original);
+                  setShowPostDialog(true);
+                }}
+                className="flex items-center gap-2"
               >
-                <PiUserListFill className="mr-2 h-4 w-4" />
-                Allotment Register
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem asChild>
-              <Link
-                href={`/home/allotment/deduction_register?vesselId=${row.original.vesselId
-                  }&month=${parseInt(monthFilter)}&year=${parseInt(
-                    yearFilter
-                  )}&forex=${forexRate || 0}`}
-              >
-                <PiReceiptFill className="mr-2 h-4 w-4" />
-                Deduction Register
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem asChild>
-              <Link
-                href={`/home/allotment/payslip?vesselId=${row.original.vesselId
-                  }&month=${parseInt(monthFilter)}&year=${parseInt(
-                    yearFilter
-                  )}&forex=${forexRate || 0}`}
-              >
-                <PiFileTextFill className="mr-2 h-4 w-4" />
-                Pay Slip
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onSelect={(e) => {
-                e.preventDefault();
-                setSelectedVessel(row.original);
-                setShowPostDialog(true);
-              }}
-              className="flex items-center gap-2"
-            >
-              <MdFileUpload className="text-[#62748e] mr-2 h-4 w-4" />
-              Post Payroll
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+                <MdFileUpload className="text-[#62748e] mr-2 h-4 w-4" />
+                Post Payroll
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
   ];
 
@@ -681,7 +641,7 @@ export default function Allotment() {
           <div className="flex items-center">
             <h1 className="text-3xl font-semibold mb-0 mr-4">Allotment Payroll</h1>
             <Badge variant="outline">{activeTab === "unposted" ? "Unposted" : "Posted"}</Badge>
-          </div>  
+          </div>
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
             <div className="grid grid-cols-6 items-center gap-3 sm:gap-4 w-full">
