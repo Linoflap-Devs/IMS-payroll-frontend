@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   CircleAlert,
+  Download,
   Info,
   Loader,
   Loader2,
@@ -65,6 +66,8 @@ import generateOtherDeductionsReport from "../PDFs/otherDeductionsReportPDF";
 import { generateDeductionRegisterV3PDF } from "../PDFs/payrollDeductionRegisterV3PDF";
 import { generateDeductionRegisterV3Excel } from "../Excels/payrollDeductionRegisterV3Excel";
 import { generateOtherDeductionsExcel } from "../Excels/otherDeductionsReportExcel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Badge } from "../ui/badge";
 
 type Payroll = {
   vesselId: number;
@@ -129,7 +132,7 @@ export default function Allotment() {
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [payrollData, setPayrollData] = useState<Payroll[]>([]);
   const [forexRate, setForexRate] = useState<number>(0);
-
+  const [activeTab, setActiveTab] = useState<string>("unposted");
   const searchParams = useSearchParams();
   const month = searchParams.get("month");
   const year = searchParams.get("year");
@@ -138,7 +141,7 @@ export default function Allotment() {
     month || (new Date().getMonth() + 1).toString()
   );
   const [yearFilter, setYearFilter] = useState(
-   year || new Date().getFullYear().toString()
+    year || new Date().getFullYear().toString()
   );
 
   //loading states
@@ -146,7 +149,6 @@ export default function Allotment() {
   const [printLoading, setPrintLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
   const pathname = usePathname();
   const router = useRouter();
   const [showPostDialog, setShowPostDialog] = useState(false);
@@ -170,7 +172,7 @@ export default function Allotment() {
     "December",
   ];
 
-const fetchDashboardData = async () => {
+  const fetchDashboardData = async () => {
     try {
       const forexRate = await getForex(monthFilter, yearFilter);
 
@@ -187,7 +189,7 @@ const fetchDashboardData = async () => {
     }
   };
 
-const fetchPayrollData = async () => {
+  const fetchPayrollData = async () => {
     try {
       const res = await getPayrollList(
         Number(monthFilter),
@@ -210,23 +212,12 @@ const fetchPayrollData = async () => {
       console.error("Error fetching payroll list:", err);
     }
   };
+
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 20 }, (_, i) =>
     (currentYear - 15 + i).toString()
   );
 
-  // const [allotmentRegisterData, setAllotmentRegisterData] = useState<
-  //   AllotmentRegisterData[]
-  // >([]);
-
-  // const [allotmentDeductionData, setAllotmentDeductionData] = useState<
-  //   DeductionRegisterData[]
-  // >([]);
-
-  // const [allotmentPayslipData, setAllotmentPayslipData] =
-  //   useState<PayslipData>();
-
-  
   const vesselId = searchParams.get("vesselId");
 
   useEffect(() => { }, [vesselId, month, year]);
@@ -298,7 +289,7 @@ const fetchPayrollData = async () => {
       });
     } finally {
       setPayrollLoading(false);
-      
+
     }
   };
 
@@ -587,7 +578,7 @@ const fetchPayrollData = async () => {
     );
 
     generateDeductionAllotmentExcel(
-      response.data, 
+      response.data,
       Number(month),
       Number(year)
     );
@@ -600,7 +591,7 @@ const fetchPayrollData = async () => {
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null
-    ); 
+    );
 
     generatePayrollExcel(
       response.data,
@@ -614,7 +605,7 @@ const fetchPayrollData = async () => {
     setIsDataLoading(true)
     const response = await otherDeductions(Number(year), Number(month), vesselId ? parseInt(vesselId) : undefined)
 
-    if(response.success) {
+    if (response.success) {
       generateOtherDeductionsReport(response, new Date(), vesselId ? 'vessel' : 'all')
     }
     else {
@@ -659,8 +650,8 @@ const fetchPayrollData = async () => {
   const handleOtherDeductionsExcel = async () => {
     setIsDataLoading(true)
     const response = await otherDeductions(Number(year), Number(month), vesselId ? parseInt(vesselId) : undefined)
-    
-    if(response.success) {
+
+    if (response.success) {
       generateOtherDeductionsExcel(response, new Date(), vesselId ? 'vessel' : 'all')
     }
     else {
@@ -670,7 +661,7 @@ const fetchPayrollData = async () => {
   }
 
   return (
-    <div className="h-full w-full p-4 pt-2">
+    <div className="h-full w-full p-4 pt-3">
       <style jsx global>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
@@ -680,11 +671,12 @@ const fetchPayrollData = async () => {
           scrollbar-width: none;
         }
       `}</style>
-      <div className="h-full overflow-y-auto scrollbar-hide">
-        <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5 min-h-full">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-semibold mb-0">Allotment Payroll</h1>
-          </div>
+      <div className="overflow-y-auto scrollbar-hide">
+        <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5">
+          <div className="flex items-center">
+            <h1 className="text-3xl font-semibold mb-0 mr-4">Allotment Payroll</h1>
+            <Badge variant="outline">{activeTab === "unposted" ? "Unposted" : "Posted"}</Badge>
+          </div>  
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
             <div className="grid grid-cols-6 items-center gap-3 sm:gap-4 w-full">
@@ -737,52 +729,52 @@ const fetchPayrollData = async () => {
               {/* Process Payroll Button */}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    {
-                      (forexRate > 0) ? (
-                          <Button
-                            className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-10 px-6 text-sm"
-                            disabled={payrollLoading || isDataLoading}
-                          >
-                            {payrollLoading ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Processing...
-                              </>
-                            ) : (
-                              <>
-                                <MdOutlineFileUpload className="w-4 h-4" />
-                                Post Process Payrolls
-                              </>
-                            )}
-                          </Button>
-                      ) : (
-                          <Tooltip>
-                              <TooltipTrigger asChild>
-                                  <span className="w-full">
-                                      <Button
-                                        className="w-full bg-blue-200 hover:bg-blue-300 text-blue-900 h-10 px-6 text-sm cursor-not-allowed opacity-70"
-                                        onClick={(e) => e.preventDefault()} // prevent click actions
-                                      >
-                                          <MdOutlineFileUpload className="w-4 h-4" />
-                                          Post Processed Payrolls
-                                      </Button>
-                                  </span>
-                              </TooltipTrigger>
-                              <TooltipContent className="flex flex-row align-center items-center gap-2 bg-white text-black text-sm rounded-md p-3 shadow-md leading-snug">
-                                  <Info className="w-4 h-4" />
-                                  <p>
-                                      {
-                                        (forexRate === 0) &&
-                                          "Set the forex rate for this month to enable posting payrolls." 
-                                          // :
-                                          // Number(monthFilter) !== currentMonth && "Past months cannot be posted."
-                                      }
+                  {
+                    (forexRate > 0) ? (
+                      <Button
+                        className="bg-blue-200 hover:bg-blue-300 text-blue-900 h-10 px-6 text-sm"
+                        disabled={payrollLoading || isDataLoading}
+                      >
+                        {payrollLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <MdOutlineFileUpload className="w-4 h-4" />
+                            Post Process Payrolls
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="w-full">
+                            <Button
+                              className="w-full bg-blue-200 hover:bg-blue-300 text-blue-900 h-10 px-6 text-sm cursor-not-allowed opacity-70"
+                              onClick={(e) => e.preventDefault()} // prevent click actions
+                            >
+                              <MdOutlineFileUpload className="w-4 h-4" />
+                              Post Processed Payrolls
+                            </Button>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent className="flex flex-row align-center items-center gap-2 bg-white text-black text-sm rounded-md p-3 shadow-md leading-snug">
+                          <Info className="w-4 h-4" />
+                          <p>
+                            {
+                              (forexRate === 0) &&
+                              "Set the forex rate for this month to enable posting payrolls."
+                              // :
+                              // Number(monthFilter) !== currentMonth && "Past months cannot be posted."
+                            }
 
-                                  </p>
-                              </TooltipContent>
-                          </Tooltip>
-                      )
-                    }
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )
+                  }
                 </AlertDialogTrigger>
                 <AlertDialogContent className="bg-white p-10">
                   <AlertDialogHeader className="flex items-center">
@@ -838,7 +830,7 @@ const fetchPayrollData = async () => {
                   <DropdownMenuItem
                     onClick={handleGenerateAllotmentRegisterPDF}
                   >
-                  <PiUserListFill className="mr-2 h-4 w-4" />
+                    <PiUserListFill className="mr-2 h-4 w-4" />
                     Allotment Register
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -976,7 +968,7 @@ const fetchPayrollData = async () => {
             </div>
           )}
 
-          <div className="relative">
+          {/* <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
             <Input
               placeholder="Search Vessel Name..."
@@ -984,75 +976,117 @@ const fetchPayrollData = async () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 h-10 bg-[#EAEBF9]"
             />
-          </div>
+          </div> */}
 
-          <div className="bg-white rounded-md border pb-3">
-            {isLoading || isDataLoading ? (
-              <div className="flex flex-col items-center justify-center py-10 text-gray-500 text-sm space-y-4">
-                {isDataLoading ? (
-                  <>
-                    <Loader className="w-6 h-4 animate-spin text-primary" />
-                    <p className="animate-pulse pb-2">
-                      Please wait, processing report...
-                    </p>
-                  </>
-                ) : (
-                  <p className="animate-pulse m-0 p-0"></p>
-                )}
-                <TableSkeleton />
-              </div>
-            ) : filteredAllotment.length > 0 ? (
-              <DataTable
-                columns={columns}
-                data={filteredAllotment}
-                pageSize={7}
-              />
-            ) : (
-              <div className="flex items-center justify-center py-10 text-gray-500 text-sm">
-                No results found.
-              </div>
-            )}
-
-            {selectedVessel && (
-              <AlertDialog
-                open={showPostDialog}
-                onOpenChange={setShowPostDialog}
-              >
-                <AlertDialogContent className="bg-white p-10">
-                  <AlertDialogHeader className="flex flex-col items-center space-y-2">
-                    <CircleAlert size={60} strokeWidth={1} color="orange" />
-                    <AlertDialogTitle className="text-xl text-center">
-                      Post Payroll for {selectedVessel.vesselName}?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="text-center text-base text-gray-600">
-                      This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <div className="flex items-center justify-center space-x-4 px-4 mt-1">
-                    <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white hover:text-white">
-                      No, Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
-                      onClick={() => handlePostVesselPayroll(selectedVessel)}
-                      disabled={payrollLoading}
+          <Card className="flex flex-col overflow-hidden pb-0">
+            <Tabs
+              //defaultValue={activeTab}
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full flex flex-col"
+            >
+              <div className="border-b">
+                <div className="px-4 pt-1">
+                  <TabsList className="bg-transparent p-0 h-8 w-full flex justify-start space-x-8">
+                    <TabsTrigger
+                      value="unposted"
+                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
                     >
-                      {payrollLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        "Yes, Process Payroll"
-                      )}
-                    </AlertDialogAction>
-                  </div>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-          </div>
+                      Unposted
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="posted"
+                      className="px-10 pb-8 h-full text-lg data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none cursor-pointer"
+                    >
+                      Posted
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+              </div>
+
+              <TabsContent
+                value="unposted"
+                className="p-2 mt-0 overflow-y-auto flex-1"
+              >
+                <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5">
+                  {isLoading ? (
+                    <div className="flex justify-center items-center h-40">
+                      <p className="text-muted-foreground">Loading unposted allotment data...</p>
+                    </div>
+                  ) : (
+                    <div className="bg-[#F9F9F9] rounded-md border pb-2">
+                      <DataTable
+                        columns={columns}
+                        data={filteredAllotment}
+                        pageSize={6}
+                      />
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent
+                value="posted"
+                className="p-2 mt-0 overflow-y-auto flex-1"
+              >
+                <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5">
+                  {isLoading ? (
+                    <div className="flex justify-center items-center h-40">
+                      <p className="text-muted-foreground">Loading unposted allotment data...</p>
+                    </div>
+                  ) : (
+                    <div className="bg-[#F9F9F9] rounded-md border pb-2">
+                      <DataTable
+                        columns={columns}
+                        data={filteredAllotment}
+                        pageSize={6}
+                      />
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </Card>
+
         </div>
       </div>
+      {selectedVessel && (
+        <AlertDialog
+          open={showPostDialog}
+          onOpenChange={setShowPostDialog}
+        >
+          <AlertDialogContent className="bg-white p-10">
+            <AlertDialogHeader className="flex flex-col items-center space-y-2">
+              <CircleAlert size={60} strokeWidth={1} color="orange" />
+              <AlertDialogTitle className="text-xl text-center">
+                Post Payroll for {selectedVessel.vesselName}?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-center text-base text-gray-600">
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex items-center justify-center space-x-4 px-4 mt-1">
+              <AlertDialogCancel className="w-1/2 bg-gray-400 hover:bg-gray-500 text-white hover:text-white">
+                No, Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="w-1/2 bg-red-500 hover:bg-red-600 text-white"
+                onClick={() => handlePostVesselPayroll(selectedVessel)}
+                disabled={payrollLoading}
+              >
+                {payrollLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Yes, Process Payroll"
+                )}
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }
