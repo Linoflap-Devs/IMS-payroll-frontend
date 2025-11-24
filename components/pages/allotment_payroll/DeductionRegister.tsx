@@ -38,10 +38,10 @@ export default function DeductionRegisterComponent() {
   const month = searchParams.get("month");
   const year = searchParams.get("year");
   const forex = searchParams.get("forex");
-
+  const postedParam = searchParams.get("posted");
+  const postedValue = postedParam ? parseInt(postedParam) : undefined;
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
-
   const [vessels, setVessels] = useState<DeductionRegisterVessel[]>([]);
   const [otherDeductionData, setOtherDeductionData] = useState<otherDeductionsResponse>({} as otherDeductionsResponse);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,18 +53,23 @@ export default function DeductionRegisterComponent() {
       if (!vesselId || !month || !year) return;
       setIsLoading(true);
       try {
-        const response = await getVesselDeductionRegister(vesselId, parseInt(month), parseInt(year));
+        const response = await getVesselDeductionRegister(
+          vesselId,
+          parseInt(month),
+          parseInt(year),
+          postedValue // <-- pass posted here
+        );
 
         if (response.success && response.data?.Vessels) {
           const cleaned = response.data.Vessels.map((vessel) => ({
             ...vessel,
             Crew: Array.isArray(vessel.Crew)
               ? vessel.Crew.map((crew) => ({
-                  ...crew,
-                  CrewName: crew.CrewName
-                    ? crew.CrewName.replace(/\bnull\b/g, "").replace(/\s+/g, " ").trim()
-                    : "",
-                }))
+                ...crew,
+                CrewName: crew.CrewName
+                  ? crew.CrewName.replace(/\bnull\b/g, "").replace(/\s+/g, " ").trim()
+                  : "",
+              }))
               : [],
           }));
           setVessels(cleaned);
@@ -88,7 +93,7 @@ export default function DeductionRegisterComponent() {
     };
 
     fetchAllotmentData();
-  }, [vesselId, month, year]);
+  }, [vesselId, month, year, postedValue]);
 
   const formatNumber = (value: string | number | null | undefined) => {
     if (value === null || value === undefined) return "0.00";
