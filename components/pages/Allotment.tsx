@@ -133,6 +133,10 @@ export default function Allotment() {
   const [payrollData, setPayrollData] = useState<Payroll[]>([]);
   const [forexRate, setForexRate] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<string>("unposted");
+
+  const postedValue = activeTab === "posted" ? 1 : 0;
+  console.log(postedValue);
+  
   const searchParams = useSearchParams();
   const month = searchParams.get("month");
   const year = searchParams.get("year");
@@ -140,6 +144,7 @@ export default function Allotment() {
   const [monthFilter, setMonthFilter] = useState(
     month || (new Date().getMonth() + 1).toString()
   );
+
   const [yearFilter, setYearFilter] = useState(
     year || new Date().getFullYear().toString()
   );
@@ -968,16 +973,6 @@ export default function Allotment() {
             </div>
           )}
 
-          {/* <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-            <Input
-              placeholder="Search Vessel Name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-10 bg-[#EAEBF9]"
-            />
-          </div> */}
-
           <Card className="flex flex-col overflow-hidden pb-0">
             <Tabs
               //defaultValue={activeTab}
@@ -1014,13 +1009,24 @@ export default function Allotment() {
                       <p className="text-muted-foreground">Loading unposted allotment data...</p>
                     </div>
                   ) : (
-                    <div className="bg-[#F9F9F9] rounded-md border pb-2">
-                      <DataTable
-                        columns={columns}
-                        data={filteredAllotment}
-                        pageSize={6}
-                      />
-                    </div>
+                    <>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                        <Input
+                          placeholder="Search Vessel Name..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 h-10 bg-[#EAEBF9]"
+                        />
+                      </div>
+                      <div className="bg-[#F9F9F9] rounded-md border pb-2">
+                        <DataTable
+                          columns={columns}
+                          data={filteredAllotment}
+                          pageSize={6}
+                        />
+                      </div>
+                    </>
                   )}
                 </div>
               </TabsContent>
@@ -1035,13 +1041,24 @@ export default function Allotment() {
                       <p className="text-muted-foreground">Loading unposted allotment data...</p>
                     </div>
                   ) : (
-                    <div className="bg-[#F9F9F9] rounded-md border pb-2">
-                      <DataTable
-                        columns={columns}
-                        data={filteredAllotment}
-                        pageSize={6}
-                      />
-                    </div>
+                    <>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                        <Input
+                          placeholder="Search Vessel Name..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 h-10 bg-[#EAEBF9]"
+                        />
+                      </div>
+                      <div className="bg-[#F9F9F9] rounded-md border pb-2">
+                        <DataTable
+                          columns={columns}
+                          data={filteredAllotment}
+                          pageSize={6}
+                        />
+                      </div>
+                    </>
                   )}
                 </div>
               </TabsContent>
