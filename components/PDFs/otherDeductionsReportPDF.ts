@@ -83,8 +83,11 @@ function calculateVesselSubtotals(crew: otherDeductionsCrew[], vesselName: strin
 export function generateOtherDeductionsReportPDF(
     data: OtherDeductionsResponse,
     dateGenerated: Date,
-    mode: 'all' | 'vessel' = 'vessel'
+    mode: 'all' | 'vessel' = 'vessel',
+    postedValue: number
 ): boolean {
+    const postedStatus = postedValue === 1 ? "Posted" : "Unposted";
+
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
         return false;
@@ -125,7 +128,7 @@ export function generateOtherDeductionsReportPDF(
         }
 
         doc.setProperties({
-            title: `Crew Deductions Report - ${period.month}/${period.year}`,
+            title: `Crew Deductions Report - ${period.month}/${period.year} - ${postedStatus}`,
             subject: `Crew Deductions Report - ${period.month}/${period.year}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
@@ -306,11 +309,24 @@ export function generateOtherDeductionsReportPDF(
                 { align: 'right' }
             );
 
+            // --- NEW: Posted/Unposted and Date justified ---
+            const leftPadding = 3; // space from left margin
+            const rightPadding = 5; // space from right margin
+
+            doc.setFont('NotoSans', 'normal');
+            doc.setFontSize(8);
+            doc.text(
+                postedStatus, // your posted/unposted value
+                margins.left + leftPadding,
+                vesselInfoY + 16.5
+            );
+
             doc.setFont('helvetica', 'italic');
+            doc.setFontSize(8);
             doc.text(
                 format(dateGenerated, 'yyyy-MM-dd HH:mm aa'),
-                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-                vesselInfoY + 16,
+                pageWidth - margins.right - rightPadding,
+                vesselInfoY + 16.5,
                 { align: 'right' }
             );
 
@@ -467,8 +483,8 @@ export function generateOtherDeductionsReportPDF(
         }
 
         const fileName = mode === 'vessel' ?
-        `CrewDeductions_${capitalizeFirstLetter(data.data.VesselName?.replace(' ', '-') || "")}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
-        `CrewDeductions_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.pdf`;
+        `CrewDeductions_${capitalizeFirstLetter(data.data.VesselName?.replace(' ', '-') || "")}_${capitalizeFirstLetter(period.month)}-${period.year} - ${postedStatus}.pdf` : 
+        `CrewDeductions_ALL_${capitalizeFirstLetter(period.month)}-${period.year} - ${postedStatus}.pdf`;
         doc.save(fileName);
 
         return true;
@@ -478,11 +494,12 @@ export function generateOtherDeductionsReportPDF(
     }
 }
 
-export function generateOtherDeductionsReport(data: OtherDeductionsResponse, dateGenerated: Date, mode: 'all' | 'vessel' = 'vessel'): boolean {
+export function generateOtherDeductionsReport(data: OtherDeductionsResponse, dateGenerated: Date, mode: 'all' | 'vessel' = 'vessel', postedValue: number): boolean {
     return generateOtherDeductionsReportPDF(
         data,
         dateGenerated,
-        mode
+        mode,
+        postedValue
     );
 }
 

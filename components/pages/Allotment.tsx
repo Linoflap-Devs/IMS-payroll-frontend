@@ -517,7 +517,8 @@ export default function Allotment() {
       generateOtherDeductionsReport(
         response,
         new Date(),
-        vesselId ? "vessel" : "all"
+        vesselId ? "vessel" : "all",
+        postedValue
       );
     } else {
       console.log("No other deduction data found");
