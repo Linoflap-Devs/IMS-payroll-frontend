@@ -129,7 +129,10 @@ export function generateDeductionAllotmentV2Register(
     month: number,
     year: number,
     exchangeRate: number,
+    postedValue: number
 ): boolean {
+    const postedStatus = postedValue === 1? "Posted" : "Unposted";
+
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
         return false;
@@ -163,7 +166,7 @@ export function generateDeductionAllotmentV2Register(
 
         // Set document properties
         doc.setProperties({
-            title: `Allotment Deduction Register - ${month} ${year}`,
+            title: `Allotment Deduction Register - ${month} ${year} - ${postedStatus}`,
             subject: `Alltoment Deduction Register`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
@@ -380,6 +383,8 @@ export function generateDeductionAllotmentV2Register(
             // Vertical line for right column
             doc.setDrawColor(0);
             doc.setLineWidth(0.1);
+            doc.setFont('NotoSans', 'normal');
+            doc.text(`${postedStatus}`, margins.left + 2, vesselInfoY + 13.5);
             doc.line(margins.left + companyColWidth + middleColWidth, vesselInfoY, margins.left + companyColWidth + middleColWidth, vesselInfoY + vesselInfoHeight);
 
             // IMPORTANT: Add horizontal line between exchange rate and date
@@ -590,7 +595,7 @@ export function generateDeductionAllotmentV2Register(
         }
         // Save the final PDF
         const fileName = vesselData.Vessels.length > 1
-                    ? `Deduction_ALL_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`
+                    ? `Deduction_ALL_${capitalizeFirstLetter(getMonthName(month))}-${year} - ${postedStatus}.pdf`
                     : `Deduction_${capitalizeFirstLetter(vesselData.Vessels[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(getMonthName(month))}-${year}.pdf`;
         doc.save(fileName)
         return true;
@@ -600,26 +605,13 @@ export function generateDeductionAllotmentV2Register(
     }
 }
 
-// Helper function to convert data URI to Blob
-function dataURItoBlob(dataURI: string): Blob {
-    const byteString = atob(dataURI.split(',')[1]);
-    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-
-    for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-    }
-
-    return new Blob([ab], { type: mimeString });
-}
-
 // Example usage function
 export function generateDeductionAllotmentV2PDF(
     vesselData: DeductionRegisterData,
     month: number,
     year: number,
     exchangeRate: number = 57.53,
+    postedValue: number
 ): void {
-    generateDeductionAllotmentV2Register(vesselData, month, year, exchangeRate);
+    generateDeductionAllotmentV2Register(vesselData, month, year, exchangeRate, postedValue);
 }

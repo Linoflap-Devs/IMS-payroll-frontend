@@ -480,7 +480,8 @@ export default function Allotment() {
       response.data,
       Number(month),
       Number(year),
-      Number(forexRate)
+      Number(forexRate),
+      postedValue
     );
     setIsDataLoading(false);
   };
