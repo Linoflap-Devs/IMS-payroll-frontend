@@ -498,7 +498,8 @@ export default function Allotment() {
     generatePayrollPDF(
       response.data,
       undefined,
-      vesselId ? parseInt(vesselId) : undefined
+      postedValue,
+      vesselId ? parseInt(vesselId) : undefined,
     );
     setIsDataLoading(false);
   };
