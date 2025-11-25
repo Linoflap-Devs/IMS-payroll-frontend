@@ -72,8 +72,11 @@ function extractPeriod(message: string): { month: string, year: number } {
 export function generateDeductionRegisterV3PDF(
     data: AllotmentRegisterResponse,
     dateGenerated: Date,
-    mode: 'all' | 'vessel' = 'vessel'
+    mode: 'all' | 'vessel' = 'vessel',
+    postedValue: number
 ): boolean {
+    const postedStatus = postedValue === 1 ? "Posted" : "Unposted";
+
     if (typeof window === 'undefined') {
         console.warn('PDF generation attempted during server-side rendering');
         return false;
@@ -81,9 +84,9 @@ export function generateDeductionRegisterV3PDF(
 
     if (!data.success || !data.data || data.data.Vessels.length === 0 || !data.data.Vessels.some(v => v.Crew && v.Crew.length > 0)) {
         toast({
-          title: "Error",
-          description: 'Invalid or empty data for date.',
-          variant: "destructive",
+            title: "Error",
+            description: 'Invalid or empty data for date.',
+            variant: "destructive",
         });
         //console.error('Invalid or empty data for deduction register');
         return false;
@@ -114,8 +117,8 @@ export function generateDeductionRegisterV3PDF(
 
         // Set document properties
         doc.setProperties({
-            title: `Government Deduction Register - ${mode === 'vessel' ? vesselData.Vessels[0].VesselName: 'All Vessels'} - ${period.month} ${period.year}`,
-            subject: `Government Deduction Register for ${mode === 'vessel' ? vesselData.Vessels[0].VesselName: 'all vessels'} - ${period.month} ${period.year}`,
+            title: `Government Deduction Register - ${mode === 'vessel' ? vesselData.Vessels[0].VesselName : 'All Vessels'} - ${period.month} ${period.year} - ${postedStatus}`,
+            subject: `Government Deduction Register for ${mode === 'vessel' ? vesselData.Vessels[0].VesselName : 'all vessels'} - ${period.month} ${period.year}`,
             author: 'IMS Philippines Maritime Corp.',
             creator: 'jsPDF'
         });
@@ -181,8 +184,6 @@ export function generateDeductionRegisterV3PDF(
         let currentSummaryPage = 1;
         let isDrawingSummary = false;
 
-
-
         // Function to draw the header (company info, vessel info, etc.)
         const drawPageHeader = (vesselName: string, crewNumber?: number) => {
             // Draw header table (3-column structure)
@@ -197,7 +198,7 @@ export function generateDeductionRegisterV3PDF(
 
             // Header container
             doc.rect(margins.left, currentY, pageWidth - margins.right - 10, 40);
-            
+
             // Logo
             doc.addImage(logoBase64Image, 'PNG', margins.left, currentY, 20, 20);
 
@@ -231,7 +232,7 @@ export function generateDeductionRegisterV3PDF(
             const vesselInfoY = currentY;
             doc.line(margins.left, vesselInfoY, pageWidth - margins.right, vesselInfoY);
             doc.setFontSize(8);
-            
+
             // Text Gray
             doc.setTextColor(150, 150, 150);
             doc.setFont('helvetica', 'italic');
@@ -245,7 +246,7 @@ export function generateDeductionRegisterV3PDF(
             doc.line(margins.left + companyColWidth + middleColWidth, 30, margins.left + companyColWidth + middleColWidth, 40);
 
             // Add exchange rate and date
-            if(crewNumber){
+            if (crewNumber) {
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
                 doc.text(
@@ -257,11 +258,25 @@ export function generateDeductionRegisterV3PDF(
 
             }
 
-            doc.setFont('helvetica', 'italic');
+            const leftPadding = 3; // adjust as needed
+            const rightPadding = 5; // adjust as needed
+
+            // Draw the posted/unposted status on the left
+            doc.setFont('NotoSans', 'normal');
+            doc.setFontSize(8);
             doc.text(
-                format(dateGenerated, 'yyyy-MM-dd hh:mm aa'),
-                margins.left + companyColWidth + middleColWidth + rightColWidth - 5,
-                vesselInfoY + 16,
+                postedStatus,
+                margins.left + leftPadding, // left side
+                vesselInfoY + 16.5 // row under vessel
+            );
+
+            // Draw the formatted date on the right
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(8);
+            doc.text(
+                format(dateGenerated, 'yyyy-MM-dd HH:mm aa'),
+                pageWidth - margins.right - rightPadding, // move left from right margin
+                vesselInfoY + 16.5, // same row
                 { align: 'right' }
             );
 
@@ -282,7 +297,7 @@ export function generateDeductionRegisterV3PDF(
             // Draw table headers
             doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
-            
+
             // Draw horizontal borders for header row only
             doc.line(margins.left, currentY, pageWidth - margins.right, currentY); // Top border
             doc.line(margins.left, currentY + tableHeaderHeight, pageWidth - margins.right, currentY + tableHeaderHeight); // Bottom border
@@ -301,7 +316,7 @@ export function generateDeductionRegisterV3PDF(
             headers.forEach((header, index) => {
                 const colX = colPositions[index];
                 const colWidth = colWidths[index];
-                if(index === 0){
+                if (index === 0) {
                     doc.text(header, colX + 5, currentY + tableHeaderHeight / 2 + 1, { align: 'left' })
                 }
                 else {
@@ -312,7 +327,7 @@ export function generateDeductionRegisterV3PDF(
             currentY += tableHeaderHeight;
         };
 
-        if(mode === 'all'){
+        if (mode === 'all') {
             // Compute totals per vessel
             const vesselTotals = vesselData.Vessels.map(vessel => {
                 let totalSSS = 0;
@@ -388,7 +403,7 @@ export function generateDeductionRegisterV3PDF(
                 doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight); // Right border
 
                 // Draw vessel data
-                doc.text(vt.VesselName, colPositions[0] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                doc.text(vt.VesselName, colPositions[0] + 5, currentY + rowHeight / 2 + 1, { align: 'left' });
 
 
                 // record link rectangle for this vessel pointing to the precomputed vessel page
@@ -409,10 +424,10 @@ export function generateDeductionRegisterV3PDF(
                     targetVesselIndex: index
                 });
 
-                doc.text(vt.totalSSS.toFixed(2), colPositions[1] + colWidths[1] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
-                doc.text(vt.totalHDMF.toFixed(2), colPositions[2] + colWidths[2] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
-                doc.text(vt.totalPhilhealth.toFixed(2), colPositions[3] + colWidths[3] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
-                doc.text(vt.totalProvident.toFixed(2), colPositions[4] + colWidths[4] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                doc.text(vt.totalSSS.toFixed(2), colPositions[1] + colWidths[1] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                doc.text(vt.totalHDMF.toFixed(2), colPositions[2] + colWidths[2] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                doc.text(vt.totalPhilhealth.toFixed(2), colPositions[3] + colWidths[3] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
+                doc.text(vt.totalProvident.toFixed(2), colPositions[4] + colWidths[4] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
 
                 // Accumulate grand totals
                 grandTotalSSS += vt.totalSSS;
@@ -493,7 +508,7 @@ export function generateDeductionRegisterV3PDF(
                 // Calculate height needed for this crew entry
                 const crewHeight = rowHeight;
                 const totalEntryHeight = crewHeight;
-    
+
                 // Check if we need a new page
                 if (currentY + totalEntryHeight > pageHeight - margins.bottom - 20) { // Leave space for page number
                     doc.addPage();
@@ -501,20 +516,20 @@ export function generateDeductionRegisterV3PDF(
                     drawPageHeader(mode === 'vessel' ? vesselData.Vessels[0].VesselName : vessel.VesselName, vessel.Crew.length);
                     drawTableHeader();
                 }
-    
+
                 // Set font for crew data
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'normal');
-    
+
                 // Draw horizontal line at the top of crew row
                 if (crewIndex > 0 || vesselIndex > 0) {
                     doc.line(margins.left, currentY, pageWidth - margins.right, currentY);
                 }
-    
+
                 // Draw left and right borders only
                 doc.line(margins.left, currentY, margins.left, currentY + rowHeight); // Left border
                 doc.line(pageWidth - margins.right, currentY, pageWidth - margins.right, currentY + rowHeight); // Right border
-    
+
                 // Draw crew data
                 const columnKeys: string[] = [
                     "CrewName",
@@ -523,40 +538,40 @@ export function generateDeductionRegisterV3PDF(
                     "Philhealth",
                     "Provident"
                 ];
-    
+
                 columnKeys.forEach((key, i) => {
-                    if(i === 0) {
+                    if (i === 0) {
                         // Crew Name
                         const crewName = `${crew.CrewName}`;
-                        doc.text(crewName, colPositions[i] + 5, currentY + rowHeight / 2 + 1, {align: 'left'});
+                        doc.text(crewName, colPositions[i] + 5, currentY + rowHeight / 2 + 1, { align: 'left' });
                     }
                     else {
-                        if(key === "SSS") {
+                        if (key === "SSS") {
                             const deduction = crew.Deductions.find(d => d.Name.toLowerCase() === 'sss premium');
                             totalSSS += deduction?.Amount || 0;
-                            doc.text((deduction?.Amount.toString() || "0"), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                            doc.text((deduction?.Amount.toString() || "0"), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
                         }
-                        else if(key === "HDMF") {
+                        else if (key === "HDMF") {
                             const deduction = crew.Deductions.find(d => d.Name.toLowerCase().includes('pag-ibig'));
                             totalHDMF += deduction?.Amount || 0;
-                            doc.text((deduction?.Amount.toString() || "0"), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                            doc.text((deduction?.Amount.toString() || "0"), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
                         }
-                        else if(key === "Philhealth") {
+                        else if (key === "Philhealth") {
                             const deduction = crew.Deductions.find(d => d.Name.toLowerCase().includes('philhealth'));
                             totalPhilhealth += deduction?.Amount || 0;
-                            doc.text((deduction?.Amount.toString() || "0"), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                            doc.text((deduction?.Amount.toString() || "0"), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
                         }
-                        else if(key === "Provident") {
+                        else if (key === "Provident") {
                             const deduction = crew.Deductions.find(d => d.Name.toLowerCase().includes('provident'));
                             totalProvident += deduction?.Amount || 0;
-                            doc.text((deduction?.Amount.toString() || "0"), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, {align: 'right'});
+                            doc.text((deduction?.Amount.toString() || "0"), colPositions[i] + colWidths[i] - 5, currentY + rowHeight / 2 + 1, { align: 'right' });
                         }
                     }
                 });
 
                 // Draw bottom horizontal line for total row
                 doc.line(margins.left, currentY + rowHeight, pageWidth - margins.right, currentY + rowHeight);
-    
+
                 // Move to next row
                 currentY += rowHeight;
             });
@@ -595,15 +610,15 @@ export function generateDeductionRegisterV3PDF(
         // Loop through all pages and add page numbers
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
-            
+
             // Draw page number box at bottom
             doc.rect(margins.left, pageHeight - margins.bottom - 10, mainTableWidth, 10);
             doc.setFont('helvetica', 'italic');
             doc.setFontSize(9);
             doc.text(
-                `Page ${i} out of ${totalPages}`, 
-                pageWidth - margins.right - 5, 
-                pageHeight - margins.bottom - 4, 
+                `Page ${i} out of ${totalPages}`,
+                pageWidth - margins.right - 5,
+                pageHeight - margins.bottom - 4,
                 { align: 'right' }
             );
         }
@@ -620,8 +635,8 @@ export function generateDeductionRegisterV3PDF(
 
         // Save the PDF
         const fileName = mode === 'vessel' ?
-        `GovDeductionRegister_${capitalizeFirstLetter(vesselData.Vessels[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(period.month)}-${period.year}.pdf` : 
-        `GovDeductionRegister_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.pdf`;
+            `GovDeductionRegister_${capitalizeFirstLetter(vesselData.Vessels[0].VesselName.replace(' ', '-'))}_${capitalizeFirstLetter(period.month)}-${period.year} - ${postedStatus}.pdf` :
+            `GovDeductionRegister_ALL_${capitalizeFirstLetter(period.month)}-${period.year} - ${postedStatus}.pdf`;
         doc.save(fileName);
 
         return true;
@@ -632,11 +647,12 @@ export function generateDeductionRegisterV3PDF(
 }
 
 // Function to generate the PDF with real data
-export function generateDeductionRegisterV3(data: AllotmentRegisterResponse, dateGenerated: Date, mode: 'all' | 'vessel' = 'vessel'): boolean {
+export function generateDeductionRegisterV3(data: AllotmentRegisterResponse, dateGenerated: Date, mode: 'all' | 'vessel' = 'vessel', postedValue: number): boolean {
     return generateDeductionRegisterV3PDF(
         data,
         dateGenerated,
-        mode
+        mode,
+        postedValue
     );
 }
 

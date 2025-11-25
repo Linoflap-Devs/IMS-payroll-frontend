@@ -538,7 +538,8 @@ export default function Allotment() {
     generateDeductionRegisterV3PDF(
       response,
       new Date(),
-      vesselId ? 'vessel' : 'all'
+      vesselId ? 'vessel' : 'all',
+      postedValue
     );
     setIsDataLoading(false);
   };
