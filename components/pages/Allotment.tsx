@@ -130,6 +130,8 @@ export default function Allotment() {
     "November",
     "December",
   ];
+  // Determine if the tab is posted or unposted
+  const postedValue = activeTab === "posted" ? 1 : 0;
 
   const fetchDashboardData = async () => {
     try {
@@ -362,11 +364,8 @@ export default function Allotment() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {
-        // Determine if the tab is posted or unposted
-        const postedValue = activeTab === "posted" ? 1 : 0;
 
         return (
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-7 sm:h-8 w-7 sm:w-8 p-0">
@@ -440,7 +439,7 @@ export default function Allotment() {
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null,
-      1
+      postedValue
     );
 
     const monthNames = [
@@ -473,7 +472,7 @@ export default function Allotment() {
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null,
-      1
+      postedValue
     );
 
     generateDeductionAllotmentV2PDF(
@@ -491,13 +490,53 @@ export default function Allotment() {
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
       year ? parseInt(year) : null,
-      1
+      postedValue
     );
 
     generatePayrollPDF(
       response.data,
       undefined,
       vesselId ? parseInt(vesselId) : undefined
+    );
+    setIsDataLoading(false);
+  };
+  
+  const handleOtherDeductionsPDF = async () => {
+    setIsDataLoading(true);
+
+    const response = await otherDeductions(
+      Number(year),
+      Number(month),
+      vesselId ? parseInt(vesselId) : undefined,
+      postedValue
+    );
+
+    if (response.success) {
+      generateOtherDeductionsReport(
+        response,
+        new Date(),
+        vesselId ? "vessel" : "all"
+      );
+    } else {
+      console.log("No other deduction data found");
+    }
+
+    setIsDataLoading(false);
+  };
+
+  const handleGenerateDeductionRegisterV3PDF = async () => {
+    setIsDataLoading(true);
+    const response = await getVesselDeductionRegister(
+      vesselId ? vesselId : null,
+      month ? parseInt(month) : null,
+      year ? parseInt(year) : null,
+      postedValue
+    );
+
+    generateDeductionRegisterV3PDF(
+      response,
+      new Date(),
+      vesselId ? 'vessel' : 'all'
     );
     setIsDataLoading(false);
   };
@@ -508,8 +547,10 @@ export default function Allotment() {
     const response = await getVesselAllotmentRegister(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
-      year ? parseInt(year) : null
+      year ? parseInt(year) : null,
+      postedValue
     );
+
     const monthNames = [
       "JANUARY",
       "FEBRUARY",
@@ -539,7 +580,8 @@ export default function Allotment() {
     const response = await getVesselDeductionRegister(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
-      year ? parseInt(year) : null
+      year ? parseInt(year) : null,
+      postedValue
     );
 
     generateDeductionAllotmentExcel(
@@ -555,7 +597,8 @@ export default function Allotment() {
     const response = await getVesselPayslipV2(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
-      year ? parseInt(year) : null
+      year ? parseInt(year) : null,
+      postedValue
     );
 
     generatePayrollExcel(
@@ -566,42 +609,13 @@ export default function Allotment() {
     setIsDataLoading(false);
   };
 
-  const handleOtherDeductionsPDF = async () => {
-    setIsDataLoading(true)
-    const response = await otherDeductions(Number(year), Number(month), vesselId ? parseInt(vesselId) : undefined)
-
-    if (response.success) {
-      generateOtherDeductionsReport(response, new Date(), vesselId ? 'vessel' : 'all')
-    }
-    else {
-      console.log("No other deduction data found")
-    }
-    setIsDataLoading(false)
-  }
-
-  const handleGenerateDeductionRegisterV3PDF = async () => {
-    setIsDataLoading(true);
-    const response = await getVesselDeductionRegister(
-      vesselId ? vesselId : null,
-      month ? parseInt(month) : null,
-      year ? parseInt(year) : null,
-      1
-    );
-
-    generateDeductionRegisterV3PDF(
-      response,
-      new Date(),
-      vesselId ? 'vessel' : 'all'
-    );
-    setIsDataLoading(false);
-  };
-
   const handleGenerateDeductionRegisterV3Excel = async () => {
     setIsDataLoading(true);
     const response = await getVesselDeductionRegister(
       vesselId ? vesselId : null,
       month ? parseInt(month) : null,
-      year ? parseInt(year) : null
+      year ? parseInt(year) : null,
+      postedValue
     );
 
     generateDeductionRegisterV3Excel(
@@ -613,17 +627,27 @@ export default function Allotment() {
   };
 
   const handleOtherDeductionsExcel = async () => {
-    setIsDataLoading(true)
-    const response = await otherDeductions(Number(year), Number(month), vesselId ? parseInt(vesselId) : undefined)
+    setIsDataLoading(true);
+
+    const response = await otherDeductions(
+      Number(year),
+      Number(month),
+      vesselId ? parseInt(vesselId) : undefined,
+      postedValue
+    );
 
     if (response.success) {
-      generateOtherDeductionsExcel(response, new Date(), vesselId ? 'vessel' : 'all')
+      generateOtherDeductionsExcel(
+        response,
+        new Date(),
+        vesselId ? "vessel" : "all"
+      );
+    } else {
+      console.log("No other deduction data found");
     }
-    else {
-      console.log("No other deduction data found")
-    }
-    setIsDataLoading(false)
-  }
+
+    setIsDataLoading(false);
+  };
 
   return (
     <div className="h-full w-full p-4 pt-3">

@@ -187,13 +187,21 @@ export interface otherDeductionsResponse {
   message: string;
 }
 
-export const otherDeductions = async (year: number, month: number, vesselId?: number): Promise<otherDeductionsResponse> => {
-  if(vesselId){
-    const response = await axiosInstance.get<otherDeductionsResponse>(`/deductions/other-deductions/${vesselId}/${year}/${month}`);
-    return response.data;
+export const otherDeductions = async (
+  year: number,
+  month: number,
+  vesselId?: number,
+  posted?: number
+): Promise<otherDeductionsResponse> => {
+  let url = vesselId
+    ? `/deductions/other-deductions/${vesselId}/${year}/${month}`
+    : `/deductions/other-deductions/${year}/${month}`;
+
+  if (posted !== undefined) {
+    // Add posted as a query parameter
+    url += `?posted=${posted}`;
   }
-  else {
-    const response = await axiosInstance.get<otherDeductionsResponse>(`/deductions/other-deductions/${year}/${month}`);
-    return response.data;
-  }
-}
+
+  const response = await axiosInstance.get<otherDeductionsResponse>(url);
+  return response.data;
+};

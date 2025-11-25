@@ -57,7 +57,7 @@ export default function DeductionRegisterComponent() {
           vesselId,
           parseInt(month),
           parseInt(year),
-          postedValue // <-- pass posted here
+          postedValue // <-- passed posted here
         );
 
         if (response.success && response.data?.Vessels) {
@@ -78,7 +78,8 @@ export default function DeductionRegisterComponent() {
         const otherDeductionResponse = await otherDeductions(
           parseInt(year),
           parseInt(month),
-          parseInt(vesselId)
+          parseInt(vesselId),
+          postedValue
         );
         if (otherDeductionResponse.success) {
           setOtherDeductionData(otherDeductionResponse);
@@ -176,7 +177,7 @@ export default function DeductionRegisterComponent() {
   };
 
   const handlePrintV3 = async () => {
-    const response = await getVesselDeductionRegister(vesselId, Number(month), Number(year));
+    const response = await getVesselDeductionRegister(vesselId, Number(month), Number(year), postedValue);
     generateDeductionRegisterV3PDF(response, new Date(), vesselId ? "vessel" : "all");
   };
 
@@ -187,7 +188,7 @@ export default function DeductionRegisterComponent() {
         Vessels: vessels,
       },
       Number(month),
-      Number(year)
+      Number(year),
     );
   };
 
@@ -282,7 +283,7 @@ export default function DeductionRegisterComponent() {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleExcelPrint}>
                 <AiOutlinePrinter className="mr-2 h-4 w-4" />
-                Export Excel
+                Export Excel (All)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
