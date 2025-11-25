@@ -31,6 +31,8 @@ import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
 import { otherDeductions, otherDeductionsResponse } from "@/src/services/deduction/crewDeduction.api";
 import generateOtherDeductionsReport from "@/components/PDFs/otherDeductionsReportPDF";
 import { generateDeductionRegisterV3PDF } from "@/components/PDFs/payrollDeductionRegisterV3PDF";
+import generateOtherDeductionsExcel from "@/components/Excels/otherDeductionsReportExcel";
+import { generateDeductionRegisterV3Excel } from "@/components/Excels/payrollDeductionRegisterV3Excel";
 
 export default function DeductionRegisterComponent() {
   const searchParams = useSearchParams();
@@ -192,6 +194,17 @@ export default function DeductionRegisterComponent() {
     );
   };
 
+  const handlePrintOtherDeductionsExcel = () => {
+    if (otherDeductionData && otherDeductionData.data) {
+      generateOtherDeductionsExcel(otherDeductionData, new Date(), vesselId ? "vessel" : "all");
+    }
+  };  
+
+  const handlePrintV3Excel = async () => {
+    const response = await getVesselDeductionRegister(vesselId, Number(month), Number(year), postedValue);
+    generateDeductionRegisterV3Excel(response, new Date(), vesselId ? "vessel" : "all");
+  };
+
   const monthName = getMonthName(Number(month));
 
   return (
@@ -254,6 +267,7 @@ export default function DeductionRegisterComponent() {
           />
         </div>
         <div className="flex gap-4">
+          {/* PDF */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="h-10 px-4 text-sm" disabled={isLoading}>
@@ -264,7 +278,7 @@ export default function DeductionRegisterComponent() {
                     Loading...
                   </>
                 ) : (
-                  "Print Summary"
+                  "PDF Print Summary"
                 )}
               </Button>
             </DropdownMenuTrigger>
@@ -281,9 +295,38 @@ export default function DeductionRegisterComponent() {
                 <AiOutlinePrinter className="mr-2 h-4 w-4" />
                 Export PDF (Gov. Deductions)
               </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* EXCEL */}
+        <div className="flex gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="h-10 px-4 text-sm" disabled={isLoading}>
+                <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Excel Print Summary"
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="text-sm w-72" align="end">
               <DropdownMenuItem onClick={handleExcelPrint}>
                 <AiOutlinePrinter className="mr-2 h-4 w-4" />
                 Export Excel (All)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handlePrintOtherDeductionsExcel}>
+                <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                Export Excel (Crew Deductions)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handlePrintV3Excel}>
+                <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                Export Excel (Gov. Deductions)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
