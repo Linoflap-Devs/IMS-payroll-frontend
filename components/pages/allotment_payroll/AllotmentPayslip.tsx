@@ -29,7 +29,7 @@ export default function VesselPayslip() {
   const [payslipData, setPayslipData] = useState<PayslipData>();
   const searchParams = useSearchParams();
   const postedParam = searchParams.get("posted");
-  const postedValue = postedParam ? parseInt(postedParam) : undefined;
+  const postedValue = postedParam ? parseInt(postedParam) : 0;
   const [PayslipPDFData, setPayslipPDFData] = useState<PayslipData>();
   const [payslipCrewData, setPayslipCrewData] = useState<CrewPayroll[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -135,7 +135,7 @@ export default function VesselPayslip() {
       return;
     }
 
-    generatePayrollPDF(PayslipPDFData);
+    generatePayrollPDF(PayslipPDFData, postedValue);
   };
 
   const generatePayrollPDFCrew = (crewCode?: string) => {
@@ -161,7 +161,7 @@ export default function VesselPayslip() {
       return;
     }
 
-    generatePayrollPDFSingle(data, PayslipPDFData.period.month, PayslipPDFData.period.year);
+    generatePayrollPDFSingle(data, PayslipPDFData.period.month, PayslipPDFData.period.year, postedValue);
   };
 
   const previewPayrollPDFCrew = async (crewCode?: string) => {
@@ -186,7 +186,7 @@ export default function VesselPayslip() {
       return;
     }
     
-    const blob = await generatePayrollPDFSingle(data, PayslipPDFData.period.month, PayslipPDFData.period.year, '', false);
+    const blob = await generatePayrollPDFSingle(data, PayslipPDFData.period.month, PayslipPDFData.period.year, postedValue, '', false );
     
     // Set preview data and show the preview
     setPreviewData((blob as {blob: Blob, filename: string}).blob);

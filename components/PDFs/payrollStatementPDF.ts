@@ -40,8 +40,8 @@ function formatDate(date: Date): string {
 
 export function generatePayrollPDF(
     payslipData: PayslipData,
+    postedValue: number = 0,
     currentUser: string = 'admin',
-    postedValue: number,
     vesselFilter?: number,
 ): boolean {
     const postedStatus = postedValue === 1 ? "Posted" : "Unposted";
