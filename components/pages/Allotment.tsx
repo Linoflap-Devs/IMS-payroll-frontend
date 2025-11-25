@@ -461,7 +461,8 @@ export default function Allotment() {
       response.data,
       monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
       year ? parseInt(year) : new Date().getFullYear(),
-      Number(forexRate)
+      Number(forexRate),
+      postedValue
     );
     setIsDataLoading(false);
   };
