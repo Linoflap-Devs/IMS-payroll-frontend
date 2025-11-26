@@ -31,6 +31,8 @@ import { capitalizeFirstLetter, getMonthName } from "@/lib/utils";
 import { otherDeductions, otherDeductionsResponse } from "@/src/services/deduction/crewDeduction.api";
 import generateOtherDeductionsReport from "@/components/PDFs/otherDeductionsReportPDF";
 import { generateDeductionRegisterV3PDF } from "@/components/PDFs/payrollDeductionRegisterV3PDF";
+import generateOtherDeductionsExcel from "@/components/Excels/otherDeductionsReportExcel";
+import { generateDeductionRegisterV3Excel } from "@/components/Excels/payrollDeductionRegisterV3Excel";
 
 export default function DeductionRegisterComponent() {
   const searchParams = useSearchParams();
@@ -38,42 +40,55 @@ export default function DeductionRegisterComponent() {
   const month = searchParams.get("month");
   const year = searchParams.get("year");
   const forex = searchParams.get("forex");
-
+  const postedParam = searchParams.get("posted");
+  const postedValue = postedParam ? parseInt(postedParam) : 0;
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
-
   const [vessels, setVessels] = useState<DeductionRegisterVessel[]>([]);
   const [otherDeductionData, setOtherDeductionData] = useState<otherDeductionsResponse>({} as otherDeductionsResponse);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCrew, setSelectedCrew] = useState<DeductionRegisterCrew | null>(null);
   const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
 
+
   useEffect(() => {
     const fetchAllotmentData = async () => {
       if (!vesselId || !month || !year) return;
       setIsLoading(true);
       try {
-        const response = await getVesselDeductionRegister(vesselId, parseInt(month), parseInt(year));
+        const response = await getVesselDeductionRegister(
+          vesselId,
+          parseInt(month),
+          parseInt(year),
+          postedValue // <-- passed posted here
+        );
 
-        if (response.success && response.data?.Vessels) {
-          const cleaned = response.data.Vessels.map((vessel) => ({
-            ...vessel,
-            Crew: Array.isArray(vessel.Crew)
-              ? vessel.Crew.map((crew) => ({
-                  ...crew,
-                  CrewName: crew.CrewName
-                    ? crew.CrewName.replace(/\bnull\b/g, "").replace(/\s+/g, " ").trim()
-                    : "",
-                }))
-              : [],
-          }));
-          setVessels(cleaned);
+        // if (response.success && response.data?.Vessels) {
+        //   const cleaned = response.data.Vessels.map((vessel) => ({
+        //     ...vessel,
+        //     Crew: Array.isArray(vessel.Crew)
+        //       ? vessel.Crew.map((crew) => ({
+        //         ...crew,
+        //         CrewName: crew.CrewName
+        //           ? crew.CrewName.replace(/\bnull\b/g, "").replace(/\s+/g, " ").trim()
+        //           : "",
+        //       }))
+        //       : [],
+        //   }));
+        //     setVessels(cleaned);
+        //     console.log('RESPONSE DATA VESSELS:', response.data.Vessels);
+        // }
+
+        if (response.success && Array.isArray(response.data)) {
+          setVessels(response.data);
+          console.log('RESPONSE DATA VESSELS:', response.data);
         }
 
         const otherDeductionResponse = await otherDeductions(
           parseInt(year),
           parseInt(month),
-          parseInt(vesselId)
+          parseInt(vesselId),
+          postedValue
         );
         if (otherDeductionResponse.success) {
           setOtherDeductionData(otherDeductionResponse);
@@ -88,7 +103,7 @@ export default function DeductionRegisterComponent() {
     };
 
     fetchAllotmentData();
-  }, [vesselId, month, year]);
+  }, [vesselId, month, year, postedValue]);
 
   const formatNumber = (value: string | number | null | undefined) => {
     if (value === null || value === undefined) return "0.00";
@@ -160,19 +175,22 @@ export default function DeductionRegisterComponent() {
       { ExchangeRate: 0, Vessels: vessels }, // temp fix for signature match
       Number(month),
       Number(year),
-      Number(forex)
+      Number(forex),
+      postedValue
     );
   };
 
+  console.log(otherDeductionData);
+
   const handlePrintOtherDeductions = () => {
     if (otherDeductionData && otherDeductionData.data) {
-      generateOtherDeductionsReport(otherDeductionData, new Date(), vesselId ? "vessel" : "all");
+      generateOtherDeductionsReport(otherDeductionData, new Date(), vesselId ? "vessel" : "all", postedValue);
     }
   };
 
   const handlePrintV3 = async () => {
-    const response = await getVesselDeductionRegister(vesselId, Number(month), Number(year));
-    generateDeductionRegisterV3PDF(response, new Date(), vesselId ? "vessel" : "all");
+    const response = await getVesselDeductionRegister(vesselId, Number(month), Number(year), postedValue);
+    generateDeductionRegisterV3PDF(response, new Date(), vesselId ? "vessel" : "all", postedValue);
   };
 
   const handleExcelPrint = () => {
@@ -182,11 +200,25 @@ export default function DeductionRegisterComponent() {
         Vessels: vessels,
       },
       Number(month),
-      Number(year)
+      Number(year),
+      postedValue
     );
   };
 
+  const handlePrintOtherDeductionsExcel = () => {
+    if (otherDeductionData && otherDeductionData.data) {
+      generateOtherDeductionsExcel(otherDeductionData, new Date(), vesselId ? "vessel" : "all", postedValue);
+    }
+  };  
+
+  const handlePrintV3Excel = async () => {
+    const response = await getVesselDeductionRegister(vesselId, Number(month), Number(year), postedValue);
+    generateDeductionRegisterV3Excel(response, new Date(), vesselId ? "vessel" : "all", postedValue);
+  };
+
   const monthName = getMonthName(Number(month));
+
+  console.log(selectedCrew);
 
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">
@@ -248,6 +280,7 @@ export default function DeductionRegisterComponent() {
           />
         </div>
         <div className="flex gap-4">
+          {/* PDF */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="h-10 px-4 text-sm" disabled={isLoading}>
@@ -258,7 +291,7 @@ export default function DeductionRegisterComponent() {
                     Loading...
                   </>
                 ) : (
-                  "Print Summary"
+                  "PDF Print Summary"
                 )}
               </Button>
             </DropdownMenuTrigger>
@@ -275,9 +308,38 @@ export default function DeductionRegisterComponent() {
                 <AiOutlinePrinter className="mr-2 h-4 w-4" />
                 Export PDF (Gov. Deductions)
               </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* EXCEL */}
+        <div className="flex gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="h-10 px-4 text-sm" disabled={isLoading}>
+                <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Excel Print Summary"
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="text-sm w-72" align="end">
               <DropdownMenuItem onClick={handleExcelPrint}>
                 <AiOutlinePrinter className="mr-2 h-4 w-4" />
-                Export Excel
+                Export Excel (All)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handlePrintOtherDeductionsExcel}>
+                <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                Export Excel (Crew Deductions)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handlePrintV3Excel}>
+                <AiOutlinePrinter className="mr-2 h-4 w-4" />
+                Export Excel (Gov. Deductions)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

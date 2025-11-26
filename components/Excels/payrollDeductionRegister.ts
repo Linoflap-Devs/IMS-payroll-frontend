@@ -53,8 +53,10 @@ function formatNumber(amount: number | string): string {
 export function generateDeductionAllotmentExcel(
   deductionData: DeductionRegisterData,
   month: number,
-  year: number
+  year: number,
+  postedValue: number
 ): void {
+  const postedStatus = postedValue === 1 ? "Posted" : "Unposted";
   // Basic validation
   if (
     !deductionData ||
@@ -98,7 +100,7 @@ export function generateDeductionAllotmentExcel(
       wsData.push(["IMS PHILIPPINES"]);
       wsData.push(["MARITIME CORP."]);
       wsData.push([`${monthName} ${year}`]);
-      wsData.push(["ALLOTMENT DEDUCTION REGISTER"]);
+      wsData.push([`ALLOTMENT DEDUCTION REGISTER - ${postedStatus}`]);
       wsData.push(["VESSEL"]);
       wsData.push([
         `${vessel.VesselName} EXCHANGE RATE: USD 1.00 = PHP ${formatNumber(
@@ -190,10 +192,10 @@ export function generateDeductionAllotmentExcel(
     // --- SAVE FILE ---
     const fileName =
       deductionData.Vessels.length > 1
-        ? `Deduction_ALL_${capitalizeFirstLetter(monthName)}-${year}.xlsx`
+        ? `Deduction_ALL_${capitalizeFirstLetter(monthName)}-${year} - ${postedStatus}.xlsx`
         : `Deduction_${capitalizeFirstLetter(
             deductionData.Vessels[0].VesselName.replace(" ", "-")
-          )}_${capitalizeFirstLetter(monthName)}-${year}.xlsx`;
+          )}_${capitalizeFirstLetter(monthName)}-${year} - ${postedStatus}.xlsx`;
 
     XLSX.writeFile(workbook, fileName);
 

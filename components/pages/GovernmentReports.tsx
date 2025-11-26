@@ -30,7 +30,7 @@ import { useDebounce } from "@/lib/useDebounce";
 import { toast } from "../ui/use-toast";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateAllotmentPDF } from "../PDFs/payrollAllotmentRegisterPDF";
-import { DeductionResponse, getAllHDMFDeductionList, getAllPhilhealthDeductionList, getAllSSSDeductionList, HDMFDeductionCrew, PhilhealthDeductionCrew, SSSDeductionCrew } from "@/src/services/deduction/governmentReports.api";
+import { getAllHDMFDeductionList, getAllPhilhealthDeductionList, getAllSSSDeductionList, HDMFDeductionCrew, PhilhealthDeductionCrew, SSSDeductionCrew } from "@/src/services/deduction/governmentReports.api";
 import generateSSSRegister from "../PDFs/deductionsSSSRegister";
 import generatePHRegister from "../PDFs/deductionsPHRegister";
 import { format } from "date-fns";
@@ -371,7 +371,8 @@ export default function GovernmentReports() {
         allotmentRegisterData,
         monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
         year ? parseInt(year) : new Date().getFullYear(),
-        Number(forexRate)
+        Number(forexRate),
+        1 // posted
       );
     } else {
       console.error("No allotment register data available");
