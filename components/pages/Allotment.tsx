@@ -660,7 +660,7 @@ export default function Allotment() {
   };
 
   return (
-    <div className="h-full w-full p-4 pt-3">
+    <div className="h-full w-full p-4 pt-3 overflow-y-auto scrollbar-hide">
       <style jsx global>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
@@ -967,7 +967,7 @@ export default function Allotment() {
             </div>
           )}
 
-          <Card className="flex flex-col overflow-hidden pb-0">
+          <Card className="flex flex-col pb-0">
             <Tabs
               //defaultValue={activeTab}
               value={activeTab}
