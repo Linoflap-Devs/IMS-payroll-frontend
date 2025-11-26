@@ -158,6 +158,29 @@ export const getCrewSSS = async (crewCode: string, year: number): Promise<sssDed
   return response.data;
 }
 
+// export interface otherDeductionsCrew {
+//   CrewID: number;
+//   CrewName: string;
+//   Rank: string;
+//   Salary: number;
+//   Allotment: number;
+//   Gross: number;
+//   Deduction: number;
+//   Deductions: DeductionItem[];
+// }
+
+// export interface otherDeductionsData {
+//   ExchangeRate: number,
+//   VesselName: string | undefined,
+//   Crew: otherDeductionsCrew[],
+// }
+
+// export interface otherDeductionsResponse {
+//   success: boolean;
+//   data: otherDeductionsData;
+//   message: string;
+// }
+
 export interface otherDeductionsCrew {
   CrewID: number,
   CrewCode: string,

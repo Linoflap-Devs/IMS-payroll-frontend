@@ -41,7 +41,7 @@ export default function DeductionRegisterComponent() {
   const year = searchParams.get("year");
   const forex = searchParams.get("forex");
   const postedParam = searchParams.get("posted");
-  const postedValue = postedParam ? parseInt(postedParam) : undefined;
+  const postedValue = postedParam ? parseInt(postedParam) : 0;
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [vessels, setVessels] = useState<DeductionRegisterVessel[]>([]);
@@ -49,6 +49,7 @@ export default function DeductionRegisterComponent() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCrew, setSelectedCrew] = useState<DeductionRegisterCrew | null>(null);
   const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
+
 
   useEffect(() => {
     const fetchAllotmentData = async () => {
@@ -62,19 +63,25 @@ export default function DeductionRegisterComponent() {
           postedValue // <-- passed posted here
         );
 
-        if (response.success && response.data?.Vessels) {
-          const cleaned = response.data.Vessels.map((vessel) => ({
-            ...vessel,
-            Crew: Array.isArray(vessel.Crew)
-              ? vessel.Crew.map((crew) => ({
-                ...crew,
-                CrewName: crew.CrewName
-                  ? crew.CrewName.replace(/\bnull\b/g, "").replace(/\s+/g, " ").trim()
-                  : "",
-              }))
-              : [],
-          }));
-          setVessels(cleaned);
+        // if (response.success && response.data?.Vessels) {
+        //   const cleaned = response.data.Vessels.map((vessel) => ({
+        //     ...vessel,
+        //     Crew: Array.isArray(vessel.Crew)
+        //       ? vessel.Crew.map((crew) => ({
+        //         ...crew,
+        //         CrewName: crew.CrewName
+        //           ? crew.CrewName.replace(/\bnull\b/g, "").replace(/\s+/g, " ").trim()
+        //           : "",
+        //       }))
+        //       : [],
+        //   }));
+        //     setVessels(cleaned);
+        //     console.log('RESPONSE DATA VESSELS:', response.data.Vessels);
+        // }
+
+        if (response.success && Array.isArray(response.data)) {
+          setVessels(response.data);
+          console.log('RESPONSE DATA VESSELS:', response.data);
         }
 
         const otherDeductionResponse = await otherDeductions(
@@ -168,19 +175,22 @@ export default function DeductionRegisterComponent() {
       { ExchangeRate: 0, Vessels: vessels }, // temp fix for signature match
       Number(month),
       Number(year),
-      Number(forex)
+      Number(forex),
+      postedValue
     );
   };
 
+  console.log(otherDeductionData);
+
   const handlePrintOtherDeductions = () => {
     if (otherDeductionData && otherDeductionData.data) {
-      generateOtherDeductionsReport(otherDeductionData, new Date(), vesselId ? "vessel" : "all");
+      generateOtherDeductionsReport(otherDeductionData, new Date(), vesselId ? "vessel" : "all", postedValue);
     }
   };
 
   const handlePrintV3 = async () => {
     const response = await getVesselDeductionRegister(vesselId, Number(month), Number(year), postedValue);
-    generateDeductionRegisterV3PDF(response, new Date(), vesselId ? "vessel" : "all");
+    generateDeductionRegisterV3PDF(response, new Date(), vesselId ? "vessel" : "all", postedValue);
   };
 
   const handleExcelPrint = () => {
@@ -191,21 +201,24 @@ export default function DeductionRegisterComponent() {
       },
       Number(month),
       Number(year),
+      postedValue
     );
   };
 
   const handlePrintOtherDeductionsExcel = () => {
     if (otherDeductionData && otherDeductionData.data) {
-      generateOtherDeductionsExcel(otherDeductionData, new Date(), vesselId ? "vessel" : "all");
+      generateOtherDeductionsExcel(otherDeductionData, new Date(), vesselId ? "vessel" : "all", postedValue);
     }
   };  
 
   const handlePrintV3Excel = async () => {
     const response = await getVesselDeductionRegister(vesselId, Number(month), Number(year), postedValue);
-    generateDeductionRegisterV3Excel(response, new Date(), vesselId ? "vessel" : "all");
+    generateDeductionRegisterV3Excel(response, new Date(), vesselId ? "vessel" : "all", postedValue);
   };
 
   const monthName = getMonthName(Number(month));
+
+  console.log(selectedCrew);
 
   return (
     <div className="h-full w-full p-6 pt-5 overflow-hidden">

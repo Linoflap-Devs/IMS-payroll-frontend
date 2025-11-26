@@ -497,8 +497,8 @@ export default function Allotment() {
 
     generatePayrollPDF(
       response.data,
-      undefined,
       postedValue,
+      undefined,
       vesselId ? parseInt(vesselId) : undefined,
     );
     setIsDataLoading(false);
@@ -575,7 +575,8 @@ export default function Allotment() {
       response.data,
       monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
       year ? parseInt(year) : new Date().getFullYear(),
-      Number(forexRate)
+      Number(forexRate),
+      postedValue
     );
     setIsDataLoading(false);
   };
@@ -592,7 +593,8 @@ export default function Allotment() {
     generateDeductionAllotmentExcel(
       response.data,
       Number(month),
-      Number(year)
+      Number(year),
+      postedValue
     );
     setIsDataLoading(false);
   };
@@ -608,8 +610,9 @@ export default function Allotment() {
 
     generatePayrollExcel(
       response.data,
+      postedValue,
       undefined,
-      vesselId ? parseInt(vesselId) : undefined
+      vesselId ? parseInt(vesselId) : undefined,
     );
     setIsDataLoading(false);
   };
@@ -626,7 +629,8 @@ export default function Allotment() {
     generateDeductionRegisterV3Excel(
       response,
       new Date(),
-      vesselId ? 'vessel' : 'all'
+      vesselId ? 'vessel' : 'all',
+      postedValue
     );
     setIsDataLoading(false);
   };
@@ -645,7 +649,8 @@ export default function Allotment() {
       generateOtherDeductionsExcel(
         response,
         new Date(),
-        vesselId ? "vessel" : "all"
+        vesselId ? "vessel" : "all",
+        postedValue
       );
     } else {
       console.log("No other deduction data found");

@@ -75,7 +75,6 @@ export interface Deductions {
   Amount: number;
   ExchangeRate: number;
   Currency: number;
-
 }
 
 export interface DeductionRegisterCrew {

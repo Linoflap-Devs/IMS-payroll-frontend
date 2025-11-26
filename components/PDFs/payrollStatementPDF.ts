@@ -40,7 +40,7 @@ function formatDate(date: Date): string {
 
 export function generatePayrollPDF(
     payslipData: PayslipData,
-    postedValue: number = 0,
+    postedValue: number,
     currentUser: string = 'admin',
     vesselFilter?: number,
 ): boolean {

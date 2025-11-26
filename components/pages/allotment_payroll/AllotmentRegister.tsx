@@ -36,7 +36,7 @@ export default function AllotmentRegisterComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
   const postedParam = searchParams.get("posted");
-  const postedValue = postedParam ? parseInt(postedParam) : undefined;
+  const postedValue = postedParam ? parseInt(postedParam) : 0;
   const [allotmentData, setAllotmentData] = useState<AllotmentRegisterData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCrew, setSelectedCrew] = useState<AllotmentRegisterCrew | null>(null);
@@ -219,7 +219,8 @@ export default function AllotmentRegisterComponent() {
         allotmentData,
         monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
         year ? parseInt(year) : new Date().getFullYear(),
-        Number(forexRate)
+        Number(forexRate),
+        postedValue
       );
     } else {
       console.error("No allotment register data available");
@@ -251,7 +252,8 @@ export default function AllotmentRegisterComponent() {
         allotmentData,
         monthNames[Number(month)] ? monthNames[Number(month) - 1] : "ALL",
         year ? parseInt(year) : new Date().getFullYear(),
-        Number(forexRate)
+        Number(forexRate),
+        postedValue
       );
     } else {
       console.error("No allotment register data available");

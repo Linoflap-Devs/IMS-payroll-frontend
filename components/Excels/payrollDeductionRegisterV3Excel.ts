@@ -31,8 +31,11 @@ function formatNumber(amount: number | string): string {
 export function generateDeductionRegisterV3Excel(
   data: DeductionRegisterResponse,
   dateGenerated: Date,
-  mode: "all" | "vessel" = "vessel"
+  mode: "all" | "vessel" = "vessel",
+  postedValue: number
 ): boolean {
+  const postedStatus = postedValue === 1 ? "Posted" : "Unposted";
+
   if (
     !data?.success ||
     !data?.data?.Vessels ||
@@ -77,7 +80,7 @@ export function generateDeductionRegisterV3Excel(
       ["IMS PHILIPPINES"],
       ["MARITIME CORP."],
       [`${capitalizeFirstLetter(period.month)} ${period.year}`],
-      ["GOVERNMENT DEDUCTION REGISTER"],
+      [`GOVERNMENT DEDUCTION REGISTER - ${postedStatus}`],
       [mode === "vessel" ? "VESSEL" : "ALL VESSELS"],
       [`ALL VESSELS EXCHANGE RATE: 1 USD = PHP ${formatNumber(exchangeRate)}`],
       [dateGenerated.toLocaleString("en-PH", { dateStyle: "short", timeStyle: "short" })],
@@ -174,8 +177,8 @@ export function generateDeductionRegisterV3Excel(
       mode === "vessel"
         ? `GovDeductionRegister_${capitalizeFirstLetter(
           vesselData[0].VesselName.replace(" ", "-")
-        )}_${capitalizeFirstLetter(period.month)}-${period.year}.xlsx`
-        : `GovDeductionRegister_ALL_${capitalizeFirstLetter(period.month)}-${period.year}.xlsx`;
+        )}_${capitalizeFirstLetter(period.month)}-${period.year} - ${postedStatus}.xlsx`
+        : `GovDeductionRegister_ALL_${capitalizeFirstLetter(period.month)}-${period.year} - ${postedStatus}.xlsx`;
 
     XLSX.writeFile(wb, fileName);
     return true;

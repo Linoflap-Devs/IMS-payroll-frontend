@@ -235,6 +235,7 @@ export default function VesselPayslip() {
     }
     generatePayrollExcel(
       PayslipPDFData,
+      postedValue,
       undefined,
     );
   };
