@@ -98,7 +98,10 @@ const CardsSkeleton = () => {
 export default function Allotment() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
-  const [payrollData, setPayrollData] = useState<Payroll[]>([]);
+  //const [payrollData, setPayrollData] = useState<Payroll[]>([]);
+  const [unpostedPayrollData, setUnpostedPayrollData] = useState<Payroll[]>([]);
+  const [postedPayrollData, setPostedPayrollData] = useState<Payroll[]>([]);
+
   const [forexRate, setForexRate] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<string>("unposted");
   const searchParams = useSearchParams();
@@ -150,11 +153,13 @@ export default function Allotment() {
     }
   };
 
-  const fetchPayrollData = async () => {
+  const fetchPayrollData = async (posted?: number) => {
     try {
+      setIsLoading(true);
       const res = await getPayrollList(
         Number(monthFilter),
-        Number(yearFilter)
+        Number(yearFilter),
+        posted
       );
       if (res.success) {
         const mapped: Payroll[] = res.data.map((item) => ({
@@ -165,12 +170,15 @@ export default function Allotment() {
           totalDeductions: item.TotalDeduction,
           netAllotment: item.NetAllotment,
         }));
-        setPayrollData(mapped);
+        if (posted === 1) setPostedPayrollData(mapped);
+        else setUnpostedPayrollData(mapped);
       } else {
         console.error("Failed to fetch payroll list:", res.message);
       }
     } catch (err) {
       console.error("Error fetching payroll list:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -183,16 +191,15 @@ export default function Allotment() {
 
   useEffect(() => { }, [vesselId, month, year]);
 
-  // useEffect(() => { }, [vesselId, month, year]);
-
-  // useEffect(() => { }, [vesselId, month, year]);
-
   // Fetch data when filters change
   useEffect(() => {
     setIsLoading(true);
-    Promise.all([fetchDashboardData(), fetchPayrollData()]).finally(() => {
-      setIsLoading(false);
-    });
+
+    // Fetch both posted and unposted separately
+    Promise.all([fetchDashboardData(), fetchPayrollData(), fetchPayrollData(1)])
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [monthFilter, yearFilter]);
 
   useEffect(() => {
@@ -203,12 +210,17 @@ export default function Allotment() {
     router.push(`${pathname}?${params.toString()}`);
   }, [monthFilter, yearFilter, pathname, searchParams, router]);
 
-  const totalGross = payrollData.reduce((sum, p) => sum + p.grossAllotment, 0);
-  const totalDeduction = payrollData.reduce(
-    (sum, p) => sum + p.totalDeductions,
-    0
-  );
-  const totalNet = payrollData.reduce((sum, p) => sum + p.netAllotment, 0);
+  const totalGross = activeTab === "posted"
+    ? postedPayrollData.reduce((sum, p) => sum + p.grossAllotment, 0)
+    : unpostedPayrollData.reduce((sum, p) => sum + p.grossAllotment, 0);
+
+  const totalDeduction = activeTab === "posted"
+    ? postedPayrollData.reduce((sum, p) => sum + p.totalDeductions, 0)
+    : unpostedPayrollData.reduce((sum, p) => sum + p.totalDeductions, 0);
+
+  const totalNet = activeTab === "posted"
+    ? postedPayrollData.reduce((sum, p) => sum + p.netAllotment, 0)
+    : unpostedPayrollData.reduce((sum, p) => sum + p.netAllotment, 0);
 
   const handleProcessPayroll = async () => {
     setPayrollLoading(true);
@@ -429,7 +441,11 @@ export default function Allotment() {
     },
   ];
 
-  const filteredAllotment = payrollData.filter((p) =>
+  const filteredUnposted = unpostedPayrollData.filter((p) =>
+    p.vesselName.toLowerCase().includes(debouncedSearch.toLowerCase())
+  );
+
+  const filteredPosted = postedPayrollData.filter((p) =>
     p.vesselName.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
@@ -503,7 +519,7 @@ export default function Allotment() {
     );
     setIsDataLoading(false);
   };
-  
+
   const handleOtherDeductionsPDF = async () => {
     setIsDataLoading(true);
 
@@ -993,10 +1009,7 @@ export default function Allotment() {
                 </div>
               </div>
 
-              <TabsContent
-                value="unposted"
-                className="p-2 mt-0 overflow-y-auto flex-1"
-              >
+              <TabsContent value="unposted" className="p-2 mt-0 overflow-y-auto flex-1">
                 <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5">
                   {isLoading ? (
                     <div className="flex justify-center items-center h-40">
@@ -1014,25 +1027,18 @@ export default function Allotment() {
                         />
                       </div>
                       <div className="bg-[#F9F9F9] rounded-md border pb-2">
-                        <DataTable
-                          columns={columns}
-                          data={filteredAllotment}
-                          pageSize={6}
-                        />
+                        <DataTable columns={columns} data={filteredUnposted} pageSize={6} />
                       </div>
                     </>
                   )}
                 </div>
               </TabsContent>
 
-              <TabsContent
-                value="posted"
-                className="p-2 mt-0 overflow-y-auto flex-1"
-              >
+              <TabsContent value="posted" className="p-2 mt-0 overflow-y-auto flex-1">
                 <div className="p-3 sm:p-4 flex flex-col space-y-4 sm:space-y-5">
                   {isLoading ? (
                     <div className="flex justify-center items-center h-40">
-                      <p className="text-muted-foreground">Loading unposted allotment data...</p>
+                      <p className="text-muted-foreground">Loading posted allotment data...</p>
                     </div>
                   ) : (
                     <>
@@ -1046,11 +1052,7 @@ export default function Allotment() {
                         />
                       </div>
                       <div className="bg-[#F9F9F9] rounded-md border pb-2">
-                        <DataTable
-                          columns={columns}
-                          data={filteredAllotment}
-                          pageSize={6}
-                        />
+                        <DataTable columns={columns} data={filteredPosted} pageSize={6} />
                       </div>
                     </>
                   )}
@@ -1058,7 +1060,6 @@ export default function Allotment() {
               </TabsContent>
             </Tabs>
           </Card>
-
         </div>
       </div>
       {selectedVessel && (

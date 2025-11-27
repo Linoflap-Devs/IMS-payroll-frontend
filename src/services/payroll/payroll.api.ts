@@ -14,9 +14,20 @@ export interface PayrollResponse {
   message?: string;
 }
 
-export const getPayrollList = async (month: number, year: number): Promise<PayrollResponse> => {
-  const response = await axiosInstance.get<PayrollResponse>(`/payroll?month=${month}&year=${year}`);
-  return response.data;
+// export const getPayrollList = async (month: number, year: number): Promise<PayrollResponse> => {
+//   const response = await axiosInstance.get<PayrollResponse>(`/payroll?month=${month}&year=${year}`);
+//   return response.data;
+// }
+
+export const getPayrollList = async (month: number, year: number, posted?: number): Promise<PayrollResponse> => {
+  if (posted) {
+    const response = await axiosInstance.get<PayrollResponse>(`/payroll?month=${month}&year=${year}&posted=${posted}`);
+    return response.data;
+  }
+  else {
+    const response = await axiosInstance.get<PayrollResponse>(`/payroll?month=${month}&year=${year}`);
+    return response.data;
+  }
 }
 
 export interface Allottee {
