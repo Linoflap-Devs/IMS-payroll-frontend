@@ -45,56 +45,75 @@ export default function DeductionRegisterComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [vessels, setVessels] = useState<DeductionRegisterVessel[]>([]);
-  const [otherDeductionData, setOtherDeductionData] = useState<otherDeductionsResponse>({} as otherDeductionsResponse);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [otherDeductionData, setOtherDeductionData] = useState<otherDeductionsResponse | null>(null);
   const [selectedCrew, setSelectedCrew] = useState<DeductionRegisterCrew | null>(null);
   const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
-
 
   useEffect(() => {
     const fetchAllotmentData = async () => {
       if (!vesselId || !month || !year) return;
+
       setIsLoading(true);
       try {
+        // Fetch vessel deduction register
         const response = await getVesselDeductionRegister(
           vesselId,
           parseInt(month),
           parseInt(year),
-          postedValue // <-- passed posted here
-        );
-
-        // if (response.success && response.data?.Vessels) {
-        //   const cleaned = response.data.Vessels.map((vessel) => ({
-        //     ...vessel,
-        //     Crew: Array.isArray(vessel.Crew)
-        //       ? vessel.Crew.map((crew) => ({
-        //         ...crew,
-        //         CrewName: crew.CrewName
-        //           ? crew.CrewName.replace(/\bnull\b/g, "").replace(/\s+/g, " ").trim()
-        //           : "",
-        //       }))
-        //       : [],
-        //   }));
-        //     setVessels(cleaned);
-        //     console.log('RESPONSE DATA VESSELS:', response.data.Vessels);
-        // }
-
-        if (response.success && Array.isArray(response.data)) {
-          setVessels(response.data);
-          console.log('RESPONSE DATA VESSELS:', response.data);
-        }
-
-        const otherDeductionResponse = await otherDeductions(
-          parseInt(year),
-          parseInt(month),
-          parseInt(vesselId),
           postedValue
         );
+
+        if (response.success && response.data?.Vessels) {
+          // Clean CrewName and map vessels
+          const cleaned = response.data.Vessels.map((vessel) => ({
+            ...vessel,
+            Crew: Array.isArray(vessel.Crew)
+              ? vessel.Crew.map((crew) => ({
+                ...crew,
+                CrewName: crew.CrewName
+                  ? crew.CrewName.replace(/\bnull\b/g, "").replace(/\s+/g, " ").trim()
+                  : "",
+              }))
+              : [],
+          }));
+
+          // Filter only the vessel matching vesselId from search params
+          const filteredVessel = cleaned.filter(
+            (v) => v.VesselID === parseInt(vesselId)
+          );
+
+          setVessels(filteredVessel);
+          console.log("Filtered & Cleaned Vessels Data:", filteredVessel);
+        } else {
+          setVessels([]);
+          console.warn("No vessels found in response");
+        }
+
+        // Fetch other deductions
+        let otherDeductionResponse;
+        if (postedValue && postedValue !== 0) {
+          otherDeductionResponse = await otherDeductions(
+            parseInt(year),
+            parseInt(month),
+            parseInt(vesselId),
+            postedValue
+          );
+        } else {
+          otherDeductionResponse = await otherDeductions(
+            parseInt(year),
+            parseInt(month),
+            parseInt(vesselId)
+          );
+        }
+
         if (otherDeductionResponse.success) {
-          setOtherDeductionData(otherDeductionResponse);
+          setOtherDeductionData(otherDeductionResponse); // store full response
         } else {
           console.error("No other deduction data found");
+          setOtherDeductionData(null);
         }
+
       } catch (error) {
         console.error("Error fetching allotment data:", error);
       } finally {
@@ -104,6 +123,8 @@ export default function DeductionRegisterComponent() {
 
     fetchAllotmentData();
   }, [vesselId, month, year, postedValue]);
+
+  console.log('VESSELLL::', vessels);
 
   const formatNumber = (value: string | number | null | undefined) => {
     if (value === null || value === undefined) return "0.00";
@@ -180,8 +201,6 @@ export default function DeductionRegisterComponent() {
     );
   };
 
-  console.log(otherDeductionData);
-
   const handlePrintOtherDeductions = () => {
     if (otherDeductionData && otherDeductionData.data) {
       generateOtherDeductionsReport(otherDeductionData, new Date(), vesselId ? "vessel" : "all", postedValue);
@@ -209,7 +228,7 @@ export default function DeductionRegisterComponent() {
     if (otherDeductionData && otherDeductionData.data) {
       generateOtherDeductionsExcel(otherDeductionData, new Date(), vesselId ? "vessel" : "all", postedValue);
     }
-  };  
+  };
 
   const handlePrintV3Excel = async () => {
     const response = await getVesselDeductionRegister(vesselId, Number(month), Number(year), postedValue);
@@ -300,7 +319,7 @@ export default function DeductionRegisterComponent() {
                 <AiOutlinePrinter className="mr-2 h-4 w-4" />
                 Export PDF (All)
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handlePrintOtherDeductions}>
+              <DropdownMenuItem onClick={handlePrintOtherDeductions} >
                 <AiOutlinePrinter className="mr-2 h-4 w-4" />
                 Export PDF (Crew Deductions)
               </DropdownMenuItem>
@@ -333,7 +352,7 @@ export default function DeductionRegisterComponent() {
                 <AiOutlinePrinter className="mr-2 h-4 w-4" />
                 Export Excel (All)
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handlePrintOtherDeductionsExcel}>
+              <DropdownMenuItem onClick={handlePrintOtherDeductionsExcel} >
                 <AiOutlinePrinter className="mr-2 h-4 w-4" />
                 Export Excel (Crew Deductions)
               </DropdownMenuItem>
