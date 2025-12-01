@@ -250,3 +250,32 @@ export const getForex = async(month: string, year: string): Promise<Forex[]> => 
 
   return response.data.data;
 }
+
+export const unpostPayrolls = async (
+  month: string,
+  year: string,
+): Promise<PayslipResponse> => {
+  const response = await axiosInstance.delete<PayslipResponse>(
+    "/payroll/remove",
+    {
+      data: { month, year },
+    }
+  );
+
+  return response.data;
+};
+
+export const unpostVesselPayrolls = async (
+  month: string,
+  year: string,
+  vesselId: number
+): Promise<PayslipResponse> => {
+  const response = await axiosInstance.delete<PayslipResponse>(
+    "/payroll/remove",
+    {
+      data: { month, year, vesselId },
+    }
+  );
+
+  return response.data;
+};

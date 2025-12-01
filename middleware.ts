@@ -20,7 +20,7 @@ export function middleware(req: NextRequest) {
 
     // Role-based route access map
     const roleMap: Record<number, string[]> = {
-      1: ["/home/dashboard", "/home/profile", "/home/manage-users", "/home/login-history", "/home/audit-log"],
+      1: ["/home/dashboard", "/home/profile", "/home/manage-users", "/home/login-history", "/home/audit-log", "/home/payroll-unposting"],
       3: [
         "/home/dashboard",
         "/home/profile",
