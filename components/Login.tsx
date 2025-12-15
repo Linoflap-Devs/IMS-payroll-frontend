@@ -211,6 +211,7 @@ export default function Login() {
               )} */}
 
               <Button
+                suppressHydrationWarning
                 type="submit"
                 className="w-full h-10 text-sm bg-[#1e2f8d] hover:bg-[#1e2f8d]/90"
                 disabled={isLoading}
