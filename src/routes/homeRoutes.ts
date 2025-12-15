@@ -148,7 +148,7 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       allowedUserTypes: [1],
     },
     {
-      label: "Payroll Unposting",
+      label: "Unpost Payroll",
       icon: Undo2,
       href: "/home/payroll-unposting",
       active: pathname.startsWith("/home/payroll-unposting"),
