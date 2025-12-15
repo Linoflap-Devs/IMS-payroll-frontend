@@ -156,25 +156,39 @@ export default function PayrollUnposting() {
 
   const vesselId = searchParams.get("vesselId");
 
-  useEffect(() => {}, [vesselId, month, year]);
+  useEffect(() => { }, [vesselId, month, year]);
 
   // Fetch data when filters change
   useEffect(() => {
-    setIsLoading(true);
+    let isMounted = true;
 
-    // Fetch both posted and unposted separately
-    Promise.all([fetchDashboardData(), fetchPayrollData()]).finally(() => {
-      setIsLoading(false);
-    });
+    const fetchAll = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchDashboardData(),
+          fetchPayrollData(),
+          fetchPayrollData(1),
+        ]);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchAll();
+
+    return () => {
+      isMounted = false;
+    };
   }, [monthFilter, yearFilter]);
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams();
     params.set("month", monthFilter);
     params.set("year", yearFilter);
 
     router.push(`${pathname}?${params.toString()}`);
-  }, [monthFilter, yearFilter, pathname, searchParams, router]);
+  }, [monthFilter, yearFilter, pathname]);
 
   const totalGross = payrollData.reduce((sum, p) => sum + p.grossAllotment, 0);
   const totalDeduction = payrollData.reduce(
@@ -450,7 +464,7 @@ export default function PayrollUnposting() {
                         <p>
                           {
                             forexRate === 0 &&
-                              "Set the forex rate for this month to enable posting payrolls."
+                            "Set the forex rate for this month to enable posting payrolls."
                             // :
                             // Number(monthFilter) !== currentMonth && "Past months cannot be posted."
                           }

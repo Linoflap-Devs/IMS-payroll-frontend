@@ -115,7 +115,6 @@ export default function Allotment() {
   const router = useRouter();
   const [showPostDialog, setShowPostDialog] = useState(false);
   const [selectedVessel, setSelectedVessel] = useState<Payroll | null>(null);
-  const currentMonth = new Date().getMonth() + 1;
   const formatNumber = (value: number) => value?.toFixed(2);
   const monthNames = [
     "January",
@@ -131,6 +130,7 @@ export default function Allotment() {
     "November",
     "December",
   ];
+
   // Determine if the tab is posted or unposted
   const postedValue = activeTab === "posted" ? 1 : 0;
 
@@ -153,22 +153,16 @@ export default function Allotment() {
 
   const fetchPayrollData = async (posted?: number) => {
     try {
-      setIsLoading(true);
-
       const res = await getPayrollList(
         Number(monthFilter),
         Number(yearFilter),
         posted
       );
 
-      if (!res.success) {
-        console.error("Failed to fetch payroll list:", res.message);
-        return;
-      }
+      if (!res.success) return;
 
       let data = res.data;
 
-      // If fetching UNPOSTED, remove vessels that already have isPosted = 1
       if (posted !== 1) {
         data = data.filter((item) => item.IsPosted !== true);
       }
@@ -182,15 +176,11 @@ export default function Allotment() {
         netAllotment: item.NetAllotment,
       }));
 
-      if (posted === 1) {
-        setPostedPayrollData(mapped);
-      } else {
-        setUnpostedPayrollData(mapped);
-      }
+      posted === 1
+        ? setPostedPayrollData(mapped)
+        : setUnpostedPayrollData(mapped);
     } catch (err) {
-      console.error("Error fetching payroll list:", err);
-    } finally {
-      setIsLoading(false);
+      console.error(err);
     }
   };
 
@@ -205,22 +195,40 @@ export default function Allotment() {
 
   // Fetch data when filters change
   useEffect(() => {
-    setIsLoading(true);
+    let isMounted = true;
 
-    // Fetch both posted and unposted separately
-    Promise.all([fetchDashboardData(), fetchPayrollData(), fetchPayrollData(1)])
-      .finally(() => {
-        setIsLoading(false);
-      });
+    const fetchAll = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchDashboardData(),
+          fetchPayrollData(),
+          fetchPayrollData(1),
+        ]);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchAll();
+
+    return () => {
+      isMounted = false;
+    };
   }, [monthFilter, yearFilter]);
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    const currentMonth = searchParams.get("month");
+    const currentYear = searchParams.get("year");
+
+    if (currentMonth === monthFilter && currentYear === yearFilter) return;
+
+    const params = new URLSearchParams();
     params.set("month", monthFilter);
     params.set("year", yearFilter);
 
     router.push(`${pathname}?${params.toString()}`);
-  }, [monthFilter, yearFilter, pathname, searchParams, router]);
+  }, [monthFilter, yearFilter, pathname]);
 
   const totalGross = activeTab === "posted"
     ? postedPayrollData.reduce((sum, p) => sum + p.grossAllotment, 0)
