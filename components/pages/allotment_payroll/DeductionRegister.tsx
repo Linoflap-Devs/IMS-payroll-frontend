@@ -124,8 +124,6 @@ export default function DeductionRegisterComponent() {
     fetchAllotmentData();
   }, [vesselId, month, year, postedValue]);
 
-  console.log('VESSELLL::', vessels);
-
   const formatNumber = (value: string | number | null | undefined) => {
     if (value === null || value === undefined) return "0.00";
     const num = typeof value === "string" ? parseFloat(value) : value;

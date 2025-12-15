@@ -53,7 +53,7 @@ export default function VesselPayslip() {
             vesselId,
             parseInt(month),
             parseInt(year),
-            postedValue // <-- pass posted here
+            postedValue
           );
           if (res.success) {
             setPayslipPDFData(res.data);

@@ -56,7 +56,7 @@ export default function AllotmentRegisterComponent() {
           vesselId,
           Number(searchParams.get("month")),
           Number(searchParams.get("year")),
-          postedValue // <-- pass posted here
+          postedValue
         );
 
         if (response.success && Array.isArray(response.data)) {
