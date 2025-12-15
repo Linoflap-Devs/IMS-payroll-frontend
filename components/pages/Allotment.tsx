@@ -98,10 +98,8 @@ const CardsSkeleton = () => {
 export default function Allotment() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
-  //const [payrollData, setPayrollData] = useState<Payroll[]>([]);
   const [unpostedPayrollData, setUnpostedPayrollData] = useState<Payroll[]>([]);
   const [postedPayrollData, setPostedPayrollData] = useState<Payroll[]>([]);
-
   const [forexRate, setForexRate] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<string>("unposted");
   const searchParams = useSearchParams();
@@ -156,24 +154,38 @@ export default function Allotment() {
   const fetchPayrollData = async (posted?: number) => {
     try {
       setIsLoading(true);
+
       const res = await getPayrollList(
         Number(monthFilter),
         Number(yearFilter),
         posted
       );
-      if (res.success) {
-        const mapped: Payroll[] = res.data.map((item) => ({
-          vesselId: item.VesselId,
-          vesselName: item.VesselName,
-          onBoardCrew: item.OnBoardCrew,
-          grossAllotment: item.GrossAllotment,
-          totalDeductions: item.TotalDeduction,
-          netAllotment: item.NetAllotment,
-        }));
-        if (posted === 1) setPostedPayrollData(mapped);
-        else setUnpostedPayrollData(mapped);
-      } else {
+
+      if (!res.success) {
         console.error("Failed to fetch payroll list:", res.message);
+        return;
+      }
+
+      let data = res.data;
+
+      // If fetching UNPOSTED, remove vessels that already have isPosted = 1
+      if (posted !== 1) {
+        data = data.filter((item) => item.IsPosted !== true);
+      }
+
+      const mapped: Payroll[] = data.map((item) => ({
+        vesselId: item.VesselId,
+        vesselName: item.VesselName,
+        onBoardCrew: item.OnBoardCrew,
+        grossAllotment: item.GrossAllotment,
+        totalDeductions: item.TotalDeduction,
+        netAllotment: item.NetAllotment,
+      }));
+
+      if (posted === 1) {
+        setPostedPayrollData(mapped);
+      } else {
+        setUnpostedPayrollData(mapped);
       }
     } catch (err) {
       console.error("Error fetching payroll list:", err);
@@ -275,9 +287,7 @@ export default function Allotment() {
       });
       return;
     }
-
     setPayrollLoading(true);
-
     try {
       const response = await postVesselPayrolls(
         monthFilter,
@@ -296,6 +306,12 @@ export default function Allotment() {
             response.message || "Payroll has been processed successfully.",
           variant: wasAllAlreadyPosted ? "default" : "success",
         });
+
+        await Promise.all([
+          fetchPayrollData(1),  // posted
+          fetchPayrollData(0),  // unposted
+        ]);
+
       } else {
         toast({
           title: "Payroll Not Processed",

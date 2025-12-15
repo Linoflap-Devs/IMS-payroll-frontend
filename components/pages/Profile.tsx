@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Pencil, Save } from "lucide-react";
+import { Eye, EyeOff, Save } from "lucide-react";
 import { updatePassword } from "@/src/services/users/users.api";
 import { toast } from "../ui/use-toast";
 import { z } from "zod";

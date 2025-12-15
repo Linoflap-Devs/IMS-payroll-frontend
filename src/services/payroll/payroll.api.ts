@@ -7,17 +7,13 @@ export interface PayrollItem {
   GrossAllotment: number;
   NetAllotment: number;
   TotalDeduction: number;
+  IsPosted?: boolean;
 }
 export interface PayrollResponse {
   success: boolean;
   data: PayrollItem[];
   message?: string;
 }
-
-// export const getPayrollList = async (month: number, year: number): Promise<PayrollResponse> => {
-//   const response = await axiosInstance.get<PayrollResponse>(`/payroll?month=${month}&year=${year}`);
-//   return response.data;
-// }
 
 export const getPayrollList = async (month: number, year: number, posted?: number): Promise<PayrollResponse> => {
   if (posted) {
@@ -247,7 +243,6 @@ export const postVesselPayrolls = async (month: string, year: string, vesselId: 
 
 export const getForex = async(month: string, year: string): Promise<Forex[]> => {
   const response = await axiosInstance.get(`/wages/forex?month=${month}&year=${year}`);
-
   return response.data.data;
 }
 

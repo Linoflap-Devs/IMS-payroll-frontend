@@ -82,23 +82,18 @@ export default function GovernmentReports() {
   const [forexRate, setForexRate] = useState<number>(0);
   const [printLoading, setPrintLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
-
   const searchParams = useSearchParams();
   const month = searchParams.get("month");
   const year = searchParams.get("year");
-
   const [monthFilter, setMonthFilter] = useState(
     month || (new Date().getMonth() + 1).toString()
   );
   const [yearFilter, setYearFilter] = useState(
    year || new Date().getFullYear().toString()
   );
-
   const pathname = usePathname();
   const router = useRouter();
-
   const formatNumber = (value: number) => value?.toFixed(2);
-
   const monthNames = [
     "January",
     "February",
