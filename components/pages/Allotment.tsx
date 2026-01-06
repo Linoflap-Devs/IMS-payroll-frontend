@@ -163,8 +163,13 @@ export default function Allotment() {
 
       let data = res.data;
 
-      if (posted !== 1) {
-        data = data.filter((item) => item.IsPosted !== true);
+      // Filter based on posted flag
+      if (posted === 1) {
+        // Only posted
+        data = data.filter((item) => Boolean(item.IsPosted) === true);
+      } else if (posted === 0 || posted === undefined) {
+        // Only unposted
+        data = data.filter((item) => Boolean(item.IsPosted) === false);
       }
 
       const mapped: Payroll[] = data.map((item) => ({
