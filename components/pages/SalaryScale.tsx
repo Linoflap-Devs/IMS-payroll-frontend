@@ -30,12 +30,16 @@ export default function SalaryScale() {
   const [salaryScaleItems, setSalaryScaleItems] = useState<SalaryScaleItem[]>([]);
   const [selectedSalaryScale, setSelectedSalaryScale] = useState<SalaryScaleItem | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedVesselTypeId, setSelectedVesselTypeId] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filteredSalaryScale, setFilteredSalaryScale] = useState<SalaryScaleItem[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [availableYears, setAvailableYears] = useState<number[]>([]);
+
+  const [selectedWageTypeId, setSelectedWageTypeId] = useState<string>("all");
+  const [selectedVesselTypeId, setSelectedVesselTypeId] = useState<string>("all");
+  const [uniqueWageTypes, setUniqueWageTypes] = useState<DialogSelectOption[]>([]);
+  const [uniqueVesselTypes, setUniqueVesselTypes] = useState<{ id: number; name: string }[]>([]);
 
   const fetchSalaryScaleData = async () => {
     setIsLoading(true);
@@ -67,26 +71,49 @@ export default function SalaryScale() {
   useEffect(() => {
     if (salaryScaleItems.length === 0) return;
 
-    // Extract unique years from EffectivedateFrom
+    // Populate unique vessel types
+    const vesselTypeMap = new Map<number, string>();
+    salaryScaleItems.forEach(item => {
+      if (item.VesselTypeId != null && item.VesselTypeName) {
+        vesselTypeMap.set(item.VesselTypeId, item.VesselTypeName);
+      }
+    });
+    setUniqueVesselTypes(
+      Array.from(vesselTypeMap, ([id, name]) => ({ id, name })).sort((a, b) =>
+        a.name.localeCompare(b.name)
+      )
+    );
+
+    // Populate unique wage types
+    const wageTypeMap = new Map<number, string>();
+    salaryScaleItems.forEach(item => {
+      if (item.WageID != null && item.Wage) {
+        wageTypeMap.set(item.WageID, item.Wage);
+      }
+    });
+    setUniqueWageTypes(
+      Array.from(wageTypeMap, ([id, name]) => ({ id, name })).sort((a, b) =>
+        a.name.localeCompare(b.name)
+      )
+    );
+
     const years = Array.from(
       new Set(
         salaryScaleItems
-          .map(item =>
-            item.EffectivedateFrom
-              ? dayjs(item.EffectivedateFrom).year()
-              : null
-          )
+          .map(item => item.EffectivedateFrom ? dayjs(item.EffectivedateFrom).year() : null)
           .filter((y): y is number => y !== null)
       )
     ).sort((a, b) => b - a); // latest first
 
     setAvailableYears(years);
 
-    // Default to latest year
-    if (years.length > 0 && selectedYear === "all") {
+    // Only set selectedYear if it's "all" or not in the list
+    if (years.length > 0 && (!selectedYear || selectedYear === "all")) {
       setSelectedYear(years[0].toString());
     }
+
   }, [salaryScaleItems]);
+
 
   const salaryScaleColumns: ColumnDef<SalaryScaleItem>[] = [
     {
@@ -217,28 +244,24 @@ export default function SalaryScale() {
   ];
 
   useEffect(() => {
-    const filtered = salaryScaleItems.filter((item) => {
+    const filtered = salaryScaleItems.filter(item => {
       const search = searchTerm.toLowerCase();
-
       const matchesSearch =
         !search ||
         item.Rank.toLowerCase().includes(search) ||
         item.Wage.toLowerCase().includes(search);
 
-      // Year filter logic
-      const itemYear = item.EffectivedateFrom
-        ? dayjs(item.EffectivedateFrom).year().toString()
-        : null;
+      const itemYear = item.EffectivedateFrom ? dayjs(item.EffectivedateFrom).year().toString() : null;
+      const matchesYear = selectedYear === "all" || itemYear === selectedYear;
 
-      const matchesYear =
-        selectedYear === "all" || itemYear === selectedYear;
+      const matchesVessel = selectedVesselTypeId === "all" || item.VesselTypeId?.toString() === selectedVesselTypeId;
+      const matchesWage = selectedWageTypeId === "all" || item.WageID?.toString() === selectedWageTypeId;
 
-      return matchesSearch && matchesYear;
+      return matchesSearch && matchesYear && matchesVessel && matchesWage;
     });
 
     setFilteredSalaryScale(filtered);
-  }, [searchTerm, selectedYear, salaryScaleItems]);
-
+  }, [searchTerm, selectedYear, selectedVesselTypeId, selectedWageTypeId, salaryScaleItems]);
 
   // Callback for successful salary scale update
   const handleSalaryScaleUpdateSuccess = (updatedItem: SalaryScaleItem) => {
@@ -291,50 +314,48 @@ export default function SalaryScale() {
                 />
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-                {/* <Select
-                  value={selectedVesselTypeId}
-                  onValueChange={setSelectedVesselTypeId}
-                >
-                  <SelectTrigger className="bg-white h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 min-w-[200px] sm:min-w-[280px] w-full sm:w-auto">
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center h-full bg-[#F6F6F6] py-2.5 px-4 border rounded-l-md -ml-3 sm:-ml-4">
-                        <span className="text-gray-700 font-medium whitespace-nowrap">
-                          Select Vessel Type
-                        </span>
-                      </div>
-                      <div className="flex-grow text-left px-2 truncate">
-                        <SelectValue
-                          placeholder="All Types"
-                          className="text-foreground text-sm sm:text-base"
-                        />
-                      </div>
-                    </div>
+                {/* Vessel Type */}
+                <Select value={selectedVesselTypeId} onValueChange={setSelectedVesselTypeId}>
+                  <SelectTrigger className="h-10 min-w-[160px] flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Vessel Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Vessel Types</SelectItem>
-                    {uniqueVesselTypes.map((vType) => (
-                      <SelectItem key={vType.id} value={vType.id.toString()}>
-                        {vType.name}
-                      </SelectItem>
+                    {uniqueVesselTypes.map(v => (
+                      <SelectItem key={v.id} value={v.id.toString()}>{v.name}</SelectItem>
                     ))}
                   </SelectContent>
-                </Select> */}
+                </Select>
 
+                {/* Wage Type */}
+                <Select value={selectedWageTypeId} onValueChange={setSelectedWageTypeId}>
+                  <SelectTrigger className="h-10 min-w-[160px] flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Wage Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Wage Types</SelectItem>
+                    {uniqueWageTypes.map(w => (
+                      <SelectItem key={w.id} value={w.id.toString()}>{w.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Year */}
                 <Select value={selectedYear} onValueChange={setSelectedYear}>
                   <SelectTrigger className="h-10 min-w-[160px] flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <SelectValue placeholder="Select Year" />
+                    <SelectValue placeholder="Year" />
                   </SelectTrigger>
-
                   <SelectContent>
-                    {availableYears.map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
+                    {availableYears.map(year => (
+                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+
             </div>
             {isLoading && (
               <div className="flex justify-center items-center h-40">
