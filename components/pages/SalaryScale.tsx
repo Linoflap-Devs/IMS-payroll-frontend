@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Pencil, Search, Trash } from "lucide-react";
+import { Calendar, MoreHorizontal, Pencil, Search, Trash } from "lucide-react";
 import { Input } from "../ui/input";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -20,15 +20,10 @@ import {
 import { Button } from "../ui/button";
 import Swal from "sweetalert2";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  getSalaryScaleList,
-  SalaryScaleItem,
-} from "@/src/services/wages/salaryScale.api";
+import { getWageScale, SalaryScaleItem } from "@/src/services/wages/salaryScale.api";
 import { DataTable } from "../ui/data-table";
-import {
-  DialogSelectOption,
-  EditSalaryScaleDialog,
-} from "../dialogs/EditSalaryScaleDialog";
+import { DialogSelectOption, EditSalaryScaleDialog } from "../dialogs/EditSalaryScaleDialog";
+import dayjs from "dayjs";
 
 export default function SalaryScale() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,24 +33,15 @@ export default function SalaryScale() {
   const [selectedVesselTypeId, setSelectedVesselTypeId] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filteredSalaryScale, setFilteredSalaryScale] = useState<
-    SalaryScaleItem[]
-  >([]);
-  const [uniqueWageTypesForDialog, setUniqueWageTypesForDialog] = useState<
-    DialogSelectOption[]
-  >([]);
-  const [uniqueRanksForDialog, setUniqueRanksForDialog] = useState<
-    DialogSelectOption[]
-  >([]);
-  const [uniqueVesselTypes, setUniqueVesselTypes] = useState<
-    { id: number; name: string }[]
-  >([]);
+  const [filteredSalaryScale, setFilteredSalaryScale] = useState<SalaryScaleItem[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
 
   const fetchSalaryScaleData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getSalaryScaleList();
+      const response = await getWageScale();
       if (response.success) {
         setSalaryScaleItems(response.data);
       } else {
@@ -79,42 +65,26 @@ export default function SalaryScale() {
   }, []);
 
   useEffect(() => {
-    if (salaryScaleItems.length > 0) {
-      const vesselTypeMap = new Map<number, string>();
-      salaryScaleItems.forEach((item) => {
-        if (
-          item.VesselTypeId !== null &&
-          item.VesselTypeId !== undefined &&
-          item.VesselTypeName
-        ) {
-          vesselTypeMap.set(item.VesselTypeId, item.VesselTypeName);
-        }
-      });
-      setUniqueVesselTypes(
-        Array.from(vesselTypeMap, ([id, name]) => ({ id, name })).sort((a, b) =>
-          a.name.localeCompare(b.name)
-        )
-      );
+    if (salaryScaleItems.length === 0) return;
 
-      // Populate unique ranks for dialog
-      const rankMap = new Map<number, string>();
-      salaryScaleItems.forEach((item) => rankMap.set(item.RankID, item.Rank));
-      setUniqueRanksForDialog(
-        Array.from(rankMap, ([id, name]) => ({ id, name })).sort((a, b) =>
-          a.name.localeCompare(b.name)
-        )
-      );
+    // Extract unique years from EffectivedateFrom
+    const years = Array.from(
+      new Set(
+        salaryScaleItems
+          .map(item =>
+            item.EffectivedateFrom
+              ? dayjs(item.EffectivedateFrom).year()
+              : null
+          )
+          .filter((y): y is number => y !== null)
+      )
+    ).sort((a, b) => b - a); // latest first
 
-      // Populate unique wage types for dialog
-      const wageTypeMap = new Map<number, string>();
-      salaryScaleItems.forEach((item) =>
-        wageTypeMap.set(item.WageID, item.Wage)
-      );
-      setUniqueWageTypesForDialog(
-        Array.from(wageTypeMap, ([id, name]) => ({ id, name })).sort((a, b) =>
-          a.name.localeCompare(b.name)
-        )
-      );
+    setAvailableYears(years);
+
+    // Default to latest year
+    if (years.length > 0 && selectedYear === "all") {
+      setSelectedYear(years[0].toString());
     }
   }, [salaryScaleItems]);
 
@@ -154,6 +124,18 @@ export default function SalaryScale() {
           {row.getValue("VesselTypeName") || "N/A"}
         </div>
       ),
+    },
+    {
+      id: "EffectiveYear",
+      header: () => <div className="text-center">Effective</div>,
+      cell: ({ row }) => {
+        const value = row.original.EffectivedateFrom;
+        return (
+          <div className="text-center font-medium">
+            {value ? dayjs(value).year() : "N/A"}
+          </div>
+        );
+      },
     },
     {
       id: "action",
@@ -236,25 +218,27 @@ export default function SalaryScale() {
 
   useEffect(() => {
     const filtered = salaryScaleItems.filter((item) => {
-      const searchTermLower = searchTerm.toLowerCase();
-      const matchesSearchTerm =
-        !searchTermLower ||
-        item.Rank.toLowerCase().includes(searchTermLower) ||
-        item.Wage.toLowerCase().includes(searchTermLower) ||
-        item.WageAmount.toString().includes(searchTermLower) || // Amount search might not need toLowerCase
-        (item.VesselTypeName &&
-          item.VesselTypeName.toLowerCase().includes(searchTermLower));
+      const search = searchTerm.toLowerCase();
 
-      const matchesVesselType =
-        selectedVesselTypeId === "all" ||
-        (item.VesselTypeId !== null &&
-          item.VesselTypeId !== undefined &&
-          item.VesselTypeId.toString() === selectedVesselTypeId);
+      const matchesSearch =
+        !search ||
+        item.Rank.toLowerCase().includes(search) ||
+        item.Wage.toLowerCase().includes(search);
 
-      return matchesSearchTerm && matchesVesselType;
+      // Year filter logic
+      const itemYear = item.EffectivedateFrom
+        ? dayjs(item.EffectivedateFrom).year().toString()
+        : null;
+
+      const matchesYear =
+        selectedYear === "all" || itemYear === selectedYear;
+
+      return matchesSearch && matchesYear;
     });
+
     setFilteredSalaryScale(filtered);
-  }, [searchTerm, salaryScaleItems, selectedVesselTypeId]);
+  }, [searchTerm, selectedYear, salaryScaleItems]);
+
 
   // Callback for successful salary scale update
   const handleSalaryScaleUpdateSuccess = (updatedItem: SalaryScaleItem) => {
@@ -307,7 +291,7 @@ export default function SalaryScale() {
                 />
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
-                <Select
+                {/* <Select
                   value={selectedVesselTypeId}
                   onValueChange={setSelectedVesselTypeId}
                 >
@@ -331,6 +315,21 @@ export default function SalaryScale() {
                     {uniqueVesselTypes.map((vType) => (
                       <SelectItem key={vType.id} value={vType.id.toString()}>
                         {vType.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select> */}
+
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="h-10 min-w-[160px] flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Select Year" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {availableYears.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -360,7 +359,7 @@ export default function SalaryScale() {
             )}
           </div>
 
-          {selectedSalaryScale && editDialogOpen && (
+          {/* {selectedSalaryScale && editDialogOpen && (
             <EditSalaryScaleDialog
               open={editDialogOpen}
               onOpenChange={setEditDialogOpen}
@@ -369,7 +368,7 @@ export default function SalaryScale() {
               wageTypes={uniqueWageTypesForDialog}
               onUpdateSuccess={handleSalaryScaleUpdateSuccess}
             />
-          )}
+          )} */}
         </div>
       </div>
     </div>

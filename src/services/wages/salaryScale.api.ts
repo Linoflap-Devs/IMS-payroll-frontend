@@ -10,6 +10,8 @@ export interface SalaryScaleItem {
   Wage: string;
   VesselTypeId: number;
   VesselTypeName: string;
+  EffectivedateFrom: string;
+  EffectivedateTo: string;
 }
 
 export interface SalaryScaleListResponse {
@@ -30,8 +32,25 @@ export interface UpdateSalaryScaleResponse {
   message?: string;
 }
 
-export const getSalaryScaleList = async (): Promise<SalaryScaleListResponse> => {
-  const response = await axiosInstance.get<SalaryScaleListResponse>("/wages/scale");
+// export const getSalaryScaleList = async (): Promise<SalaryScaleListResponse> => {
+//   const response = await axiosInstance.get<SalaryScaleListResponse>("/wages/scale");
+//   return response.data;
+// };
+
+// NEW ENDPOINT WITH YEAR
+export const getWageScale = async (
+  params?: {
+    vesselTypeId?: number;
+    rankId?: number;
+    wageId?: number;
+    year?: number;
+  }
+): Promise<SalaryScaleListResponse> => {
+  const response = await axiosInstance.get<SalaryScaleListResponse>(
+    "/wages/scale-v2",
+    { params }
+  );
+
   return response.data;
 };
 
