@@ -36,13 +36,6 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       allowedUserTypes: [3],
     },
     {
-      label: "Wages",
-      icon: RiCoinsFill,
-      href: "/home/wages",
-      active: pathname.startsWith("/home/wages"),
-      allowedUserTypes: [3],
-    },
-    {
       label: "Crew Records",
       icon: Users,
       href: "/home/crew-govt-records",
@@ -55,6 +48,35 @@ export const getHomeRoutes = (pathname: string, userType: number) => {
       href: "/home/payment-reference",
       active: pathname.startsWith("/home/payment-reference"),
       allowedUserTypes: [5],
+    },
+    {
+      label: "Wages",
+      icon: RiCoinsFill,
+      href: "/home/wages",
+      active: pathname.startsWith("/home/wages"),
+      allowedUserTypes: [3],
+      subItems: [
+        {
+          label: "Salary Scale",
+          href: "/home/wages/salary-scale",
+          active:
+            pathname === "/home/wages" ||
+            pathname === "/home/wages/salary-scale",
+          allowedUserTypes: [3],
+        },
+        {
+          label: "Wage Description",
+          href: "/home/wages/wages-description",
+          active: pathname === "/home/wages/wages-description",
+          allowedUserTypes: [3],
+        },
+        {
+          label: "Forex",
+          href: "/home/wages/forex",
+          active: pathname === "/home/wages/forex",
+          allowedUserTypes: [3],
+        },
+      ],
     },
     {
       label: "Deduction",
