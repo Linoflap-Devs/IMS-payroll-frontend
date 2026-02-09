@@ -232,6 +232,7 @@ export default function WagesForex() {
                 >
                   <Pencil className="mr-2 h-4 w-4" /> Edit Forex
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleDelete(forex.id)}
                   className="text-destructive"
@@ -356,7 +357,7 @@ export default function WagesForex() {
           </div>
         </div>
       </div>
-      
+
       <AddForexDialog
         open={addForexDialogOpen}
         onOpenChange={setAddForexDialogOpen}

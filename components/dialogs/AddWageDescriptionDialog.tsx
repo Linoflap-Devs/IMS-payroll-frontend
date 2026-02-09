@@ -54,7 +54,6 @@ export function AddWageDescriptionDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uniqueError, setUniqueError] = useState<boolean>(false);
 
-  // Initialize form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {

@@ -17,6 +17,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EditWageDescriptionDialog } from "../dialogs/EditWageDescriptionDialog";
@@ -174,7 +175,7 @@ export default function WagesDescription() {
                   <MoreHorizontal className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="text-xs sm:text-sm">
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedWageDescription({
@@ -186,13 +187,16 @@ export default function WagesDescription() {
                     setEditWageDescriptionDialogOpen(true);
                   }}
                 >
-                  <Pencil className="mr-2 h-4 w-4" /> Edit Wage
+                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Edit Salary Scale
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleDelete(wageDescription.WageCode)}
                   className="text-destructive"
                 >
-                  <Trash className="mr-2 h-4 w-4" /> Delete Wage
+                  <Trash className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
