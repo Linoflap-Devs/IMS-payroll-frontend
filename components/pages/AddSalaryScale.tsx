@@ -44,14 +44,19 @@ export default function AddSalaryScale() {
   const [allItems, setAllItems] = useState<SalaryScaleItem[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedVesselType, setSelectedVesselType] = useState<number | "">("");
-  const [pendingChanges, setPendingChanges] = useState<Record<string, SalaryScaleItem[]>>({});
+  const [pendingChanges, setPendingChanges] = useState<
+    Record<string, SalaryScaleItem[]>
+  >({});
   const [deletedIds, setDeletedIds] = useState<Set<number>>(new Set());
   const [activeWageType, setActiveWageType] = useState<string | null>(null);
   const [showResetWarning, setShowResetWarning] = useState(false);
   const [pendingVesselId, setPendingVesselId] = useState<number | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<SalaryScaleItem | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<SalaryScaleItem | null>(
+    null
+  );
   const [resetRequested, setResetRequested] = useState(false);
-  const { vesselTypes, wageDescriptions, fetchAllReferences } = useReferenceStore();
+  const { vesselTypes, wageDescriptions, fetchAllReferences } =
+    useReferenceStore();
   const hasFetchedRef = useRef(false);
 
   // ─── Derived data ────────────────────────────────────────────────────────
@@ -398,7 +403,7 @@ export default function AddSalaryScale() {
 
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
-    <div className="p-8">
+    <div className="py-8 px-4">
       <CardHeader>
         <CardTitle className="text-2xl mb-4">Add Salary Scale</CardTitle>
       </CardHeader>
@@ -522,14 +527,33 @@ export default function AddSalaryScale() {
             onValueChange={setActiveWageType}
             className="w-full"
           >
-            <TabsList className="mb-6 flex flex-wrap justify-center gap-4">
+            <TabsList
+              className="
+                mb-6
+                flex
+                w-full
+                justify-start
+                gap-3
+                overflow-x-auto
+                whitespace-nowrap
+                scrollbar-hide
+            "
+            >
               {wageDescriptionsSorted.map((w) => {
                 const wageIdStr = w.WageID.toString();
+
                 return (
-                  <TabsTrigger key={w.WageID} value={wageIdStr}>
-                    {w.WageName.trim()}
+                  <TabsTrigger
+                    key={w.WageID}
+                    value={wageIdStr}
+                    className="flex items-center gap-1 px-4"
+                  >
+                    <span className="truncate max-w-[160px] sm:max-w-none">
+                      {w.WageName.trim()}
+                    </span>
+
                     {pendingChanges[wageIdStr]?.length > 0 && (
-                      <Pencil className="ml-1.5 h-3.5 w-3.5" />
+                      <Pencil className="h-3.5 w-3.5 shrink-0" />
                     )}
                   </TabsTrigger>
                 );
