@@ -32,10 +32,10 @@ export interface UpdateSalaryScaleResponse {
   message?: string;
 }
 
-// export const getSalaryScaleList = async (): Promise<SalaryScaleListResponse> => {
-//   const response = await axiosInstance.get<SalaryScaleListResponse>("/wages/scale");
-//   return response.data;
-// };
+export const getSalaryScaleList = async (): Promise<SalaryScaleListResponse> => {
+  const response = await axiosInstance.get<SalaryScaleListResponse>("/wages/scale");
+  return response.data;
+};
 
 // NEW ENDPOINT WITH YEAR
 export const getWageScale = async (

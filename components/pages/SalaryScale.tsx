@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, MoreHorizontal, Pencil, Search, Trash } from "lucide-react";
+import { Calendar, MoreHorizontal, Pencil, Plus, Search, Trash } from "lucide-react";
 import { Input } from "../ui/input";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -24,6 +24,8 @@ import { getWageScale, SalaryScaleItem } from "@/src/services/wages/salaryScale.
 import { DataTable } from "../ui/data-table";
 import { DialogSelectOption, EditSalaryScaleDialog } from "../dialogs/EditSalaryScaleDialog";
 import dayjs from "dayjs";
+import Link from "next/link";
+import { useReferenceStore } from "@/src/store/useAddSalaryScale";
 
 export default function SalaryScale() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,7 +37,6 @@ export default function SalaryScale() {
   const [filteredSalaryScale, setFilteredSalaryScale] = useState<SalaryScaleItem[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [availableYears, setAvailableYears] = useState<number[]>([]);
-
   const [selectedWageTypeId, setSelectedWageTypeId] = useState<string>("all");
   const [selectedVesselTypeId, setSelectedVesselTypeId] = useState<string>("all");
   const [uniqueWageTypes, setUniqueWageTypes] = useState<DialogSelectOption[]>([]);
@@ -113,7 +114,6 @@ export default function SalaryScale() {
     }
 
   }, [salaryScaleItems]);
-
 
   const salaryScaleColumns: ColumnDef<SalaryScaleItem>[] = [
     {
@@ -354,8 +354,15 @@ export default function SalaryScale() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Link href="/home/wages/salary-scale/add-salary-scale">
+                  <Button
+                    className="bg-primary text-white hover:bg-primary/90 h-9 sm:h-10 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2"
+                  >
+                    <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                    Add Salary Scale
+                  </Button>
+                </Link>
               </div>
-
             </div>
             {isLoading && (
               <div className="flex justify-center items-center h-40">

@@ -9,7 +9,7 @@ export interface VesselTypeItem {
 
 export interface VesselTypeResponse {
   success: boolean;
-  data: VesselTypeItem[] | VesselTypeItem;
+  data: VesselTypeItem[];
   message?: string;
 }
 
