@@ -4,22 +4,26 @@ import {
 } from "@/src/services/wages/wageDescription.api";
 import type { WageDescriptionResponse } from "@/src/services/wages/wageDescription.api";
 import { getVesselTypeList, VesselTypeResponse } from "../services/vessel/vesselType.api";
+import { getCrewRankList, CrewRankResponse } from "@/src/services/crew/crew.api";
 
 type ReferenceState = {
   vesselTypes: VesselTypeResponse["data"];
   wageDescriptions: WageDescriptionResponse["data"];
+  crewRanks: CrewRankResponse["data"];
 
   isLoading: boolean;
   error: string | null;
 
   fetchVesselTypes: () => Promise<void>;
   fetchWageDescriptions: () => Promise<void>;
+  fetchCrewRanks: () => Promise<void>;
   fetchAllReferences: () => Promise<void>;
 };
 
 export const useReferenceStore = create<ReferenceState>((set, get) => ({
   vesselTypes: [],
   wageDescriptions: [],
+  crewRanks: [],
 
   isLoading: false,
   error: null,
@@ -45,7 +49,7 @@ export const useReferenceStore = create<ReferenceState>((set, get) => ({
 
   fetchWageDescriptions: async () => {
     const { wageDescriptions } = get();
-    if (wageDescriptions.length > 0) return; // ✅ cache guard
+    if (wageDescriptions.length > 0) return;
 
     try {
       set({ isLoading: true, error: null });
@@ -62,10 +66,30 @@ export const useReferenceStore = create<ReferenceState>((set, get) => ({
     }
   },
 
+  fetchCrewRanks: async () => {
+    const { crewRanks } = get();
+    if (crewRanks.length > 0) return;
+
+    try {
+      set({ isLoading: true, error: null });
+      const res = await getCrewRankList();
+      if (res.success) {
+        set({ crewRanks: res.data });
+      } else {
+        set({ error: res.message || "Failed to load crew ranks" });
+      }
+    } catch (err) {
+      set({ error: "Error fetching crew ranks" });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
   fetchAllReferences: async () => {
     await Promise.all([
       get().fetchVesselTypes(),
       get().fetchWageDescriptions(),
+      get().fetchCrewRanks(),
     ]);
   },
 }));

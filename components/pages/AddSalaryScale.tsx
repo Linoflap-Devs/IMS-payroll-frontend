@@ -40,8 +40,19 @@ import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useReferenceStore } from "@/src/store/useAddSalaryScale";
 import { toast } from "../ui/use-toast";
 import { useRouter } from "next/navigation";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const NO_AVAILABLE_YEAR_OPTION = "__NO_AVAILABLE_YEAR__";
+const toScratchAmountKey = (wageId: number, rankId: number) =>
+  `${wageId}-${rankId}`;
 
 export default function AddSalaryScale() {
   const router = useRouter();
@@ -57,7 +68,14 @@ export default function AddSalaryScale() {
   const [pendingVesselId, setPendingVesselId] = useState<number | null>(null);
   const [itemToDelete, setItemToDelete] = useState<SalaryScaleItem | null>(null);
   const [resetRequested, setResetRequested] = useState(false);
-  const { vesselTypes, wageDescriptions, fetchAllReferences } = useReferenceStore();
+  const [showRankChecklistDialog, setShowRankChecklistDialog] = useState(false);
+  const [showWageChecklistDialog, setShowWageChecklistDialog] = useState(false);
+  const [scratchSelectedRankIds, setScratchSelectedRankIds] = useState<number[]>([]);
+  const [scratchDraftRankIds, setScratchDraftRankIds] = useState<number[]>([]);
+  const [scratchSelectedWageIds, setScratchSelectedWageIds] = useState<number[]>([]);
+  const [scratchDraftWageIds, setScratchDraftWageIds] = useState<number[]>([]);
+  const [scratchAmounts, setScratchAmounts] = useState<Record<string, number>>({});
+  const { vesselTypes, wageDescriptions, crewRanks, fetchAllReferences } = useReferenceStore();
   const [newScaleYear, setNewScaleYear] = useState<string>("");
   const isScratchMode = selectedYear === NO_AVAILABLE_YEAR_OPTION;
 
@@ -105,6 +123,25 @@ export default function AddSalaryScale() {
 
     return vesselTypes.filter((vt) => vesselIdSet.has(vt.VesselTypeID));
   }, [allItems, isScratchMode, selectedYear, vesselTypes]);
+
+  const crewRanksSorted = useMemo(() => {
+    return [...crewRanks].sort((a, b) => {
+      if (a.Rsequence !== b.Rsequence) return a.Rsequence - b.Rsequence;
+      return a.RankName.localeCompare(b.RankName);
+    });
+  }, [crewRanks]);
+
+  const selectedScratchRanks = useMemo(() => {
+    if (!scratchSelectedRankIds.length) return [];
+    const selectedSet = new Set(scratchSelectedRankIds);
+    return crewRanksSorted.filter((rank) => selectedSet.has(rank.RankID));
+  }, [crewRanksSorted, scratchSelectedRankIds]);
+
+  const selectedScratchWageDescriptions = useMemo(() => {
+    if (!scratchSelectedWageIds.length) return [];
+    const selectedSet = new Set(scratchSelectedWageIds);
+    return wageDescriptionsSorted.filter((wage) => selectedSet.has(wage.WageID));
+  }, [wageDescriptionsSorted, scratchSelectedWageIds]);
 
   const currentDisplayItems = useMemo(() => {
     // console.log("Recomputing currentDisplayItems");
@@ -170,6 +207,39 @@ export default function AddSalaryScale() {
       deletedIds.size > 0
     );
   }, [pendingChanges, deletedIds]);
+
+  useEffect(() => {
+    if (!isScratchMode) return;
+
+    setScratchAmounts((prev) => {
+      const next: Record<string, number> = {};
+
+      selectedScratchWageDescriptions.forEach((wage) => {
+        scratchSelectedRankIds.forEach((rankId) => {
+          const key = toScratchAmountKey(wage.WageID, rankId);
+          next[key] = prev[key] ?? 0;
+        });
+      });
+
+      return next;
+    });
+  }, [isScratchMode, scratchSelectedRankIds, selectedScratchWageDescriptions]);
+
+  useEffect(() => {
+    if (!isScratchMode) return;
+    if (selectedScratchWageDescriptions.length === 0) {
+      setActiveWageType(null);
+      return;
+    }
+
+    const hasActiveSelected = selectedScratchWageDescriptions.some(
+      (wage) => wage.WageID.toString() === activeWageType
+    );
+
+    if (!hasActiveSelected) {
+      setActiveWageType(selectedScratchWageDescriptions[0].WageID.toString());
+    }
+  }, [isScratchMode, selectedScratchWageDescriptions, activeWageType]);
 
   // ─── Fetch ───────────────────────────────────────────────────────────────
 
@@ -291,6 +361,8 @@ export default function AddSalaryScale() {
     setPendingVesselId(null);
   };
 
+  console.log(currentDisplayItems);
+
   const handleReset = () => {
     setSelectedYear("");
     setSelectedVesselType("");
@@ -300,6 +372,13 @@ export default function AddSalaryScale() {
     setError(null);
     setAllItems([]); // clear data
     setNewScaleYear("");
+    setShowRankChecklistDialog(false);
+    setShowWageChecklistDialog(false);
+    setScratchSelectedRankIds([]);
+    setScratchDraftRankIds([]);
+    setScratchSelectedWageIds([]);
+    setScratchDraftWageIds([]);
+    setScratchAmounts({});
 
     // Optional: re-trigger initial fetch to repopulate years
     // But only if you want the years to appear immediately after reset
@@ -329,6 +408,20 @@ export default function AddSalaryScale() {
   };
 
   const buildPayload = () => {
+    if (isScratchMode) {
+      return {
+        vesselTypeId: Number(selectedVesselType),
+        year: Number(newScaleYear),
+        salaryData: scratchSelectedRankIds.map((rankId) => ({
+          rankId,
+          wages: selectedScratchWageDescriptions.map((wage) => ({
+            wageId: wage.WageID,
+            amount: scratchAmounts[toScratchAmountKey(wage.WageID, rankId)] ?? 0,
+          })),
+        })),
+      };
+    }
+
     let allCurrent = allItems.filter((item) => {
       const fromYear = new Date(item.EffectivedateFrom).getFullYear();
       const toYear = new Date(item.EffectivedateTo).getFullYear();
@@ -380,15 +473,15 @@ export default function AddSalaryScale() {
   };
 
   const handleSave = async () => {
-    if (isScratchMode) {
-      toast({
-        title: "Scratch Mode Enabled",
-        description:
-          "Table display for manual input is not implemented yet.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // if (isScratchMode) {
+    //   toast({
+    //     title: "Scratch Mode Enabled",
+    //     description:
+    //       "Table display for manual input is not implemented yet.",
+    //     variant: "destructive",
+    //   });
+    //   return;
+    // }
 
     if (!selectedYear || selectedVesselType === "") {
       toast({
@@ -449,6 +542,50 @@ export default function AddSalaryScale() {
     }
   };
 
+  const toggleDraftRank = (rankId: number, checked: boolean) => {
+    setScratchDraftRankIds((prev) => {
+      if (checked) {
+        if (prev.includes(rankId)) return prev;
+        return [...prev, rankId];
+      }
+      return prev.filter((id) => id !== rankId);
+    });
+  };
+
+  const applyScratchRankSelection = () => {
+    setScratchSelectedRankIds(scratchDraftRankIds);
+    setShowRankChecklistDialog(false);
+  };
+
+  const toggleDraftWage = (wageId: number, checked: boolean) => {
+    setScratchDraftWageIds((prev) => {
+      if (checked) {
+        if (prev.includes(wageId)) return prev;
+        return [...prev, wageId];
+      }
+      return prev.filter((id) => id !== wageId);
+    });
+  };
+
+  const applyScratchWageSelection = () => {
+    setScratchSelectedWageIds(scratchDraftWageIds);
+    setShowWageChecklistDialog(false);
+  };
+
+  const handleScratchAmountChange = (
+    wageId: number,
+    rankId: number,
+    rawValue: string
+  ) => {
+    const parsed = Number(rawValue);
+    const nextAmount = Number.isNaN(parsed) ? 0 : parsed;
+    const key = toScratchAmountKey(wageId, rankId);
+    setScratchAmounts((prev) => ({
+      ...prev,
+      [key]: nextAmount,
+    }));
+  };
+
   return (
     <div className="py-8 px-4">
       <CardHeader>
@@ -473,6 +610,24 @@ export default function AddSalaryScale() {
                 setSelectedVesselType("");
                 setPendingChanges({});
                 setDeletedIds(new Set());
+                if (v === NO_AVAILABLE_YEAR_OPTION) {
+                  const wageIds =
+                    scratchSelectedWageIds.length > 0
+                      ? scratchSelectedWageIds
+                      : wageDescriptionsSorted.map((w) => w.WageID);
+                  setScratchSelectedWageIds(wageIds);
+                  setScratchDraftWageIds(wageIds);
+                  setScratchDraftRankIds(scratchSelectedRankIds);
+                  setShowWageChecklistDialog(true);
+                } else {
+                  setShowRankChecklistDialog(false);
+                  setShowWageChecklistDialog(false);
+                  setScratchSelectedRankIds([]);
+                  setScratchDraftRankIds([]);
+                  setScratchSelectedWageIds([]);
+                  setScratchDraftWageIds([]);
+                  setScratchAmounts({});
+                }
                 if (wageDescriptionsSorted.length > 0) {
                   setActiveWageType(
                     wageDescriptionsSorted[0].WageID.toString()
@@ -575,7 +730,7 @@ export default function AddSalaryScale() {
 
             <Button
               onClick={handleSave}
-              disabled={isLoading || !hasUnsavedChanges || isScratchMode}
+              disabled={isLoading}
             >
               {hasUnsavedChanges ? "Save Changes *" : "Save Changes"}
             </Button>
@@ -587,53 +742,162 @@ export default function AddSalaryScale() {
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : isScratchMode ? (
-          wageDescriptionsSorted.length === 0 ? (
+          selectedScratchWageDescriptions.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              No wage types found
+              <p className="mb-3">No wage types selected for scratch mode.</p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setScratchDraftWageIds(scratchSelectedWageIds);
+                  setShowWageChecklistDialog(true);
+                }}
+              >
+                Select Wage Types
+              </Button>
+            </div>
+          ) : selectedScratchRanks.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground border rounded-lg bg-muted/30 space-y-3">
+              <p>Select at least one rank to start manual encoding.</p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setScratchDraftRankIds(scratchSelectedRankIds);
+                  setShowRankChecklistDialog(true);
+                }}
+              >
+                Select Ranks
+              </Button>
             </div>
           ) : (
-            <Tabs
-              value={activeWageType ?? undefined}
-              onValueChange={setActiveWageType}
-              className="w-full"
-            >
-              <TabsList
-                className="
-                  mb-6
-                  flex
-                  w-full
-                  justify-start
-                  gap-3
-                  overflow-x-auto
-                  whitespace-nowrap
-                  scrollbar-hide
-              "
-              >
-                {wageDescriptionsSorted.map((w) => (
-                  <TabsTrigger
-                    key={w.WageID}
-                    value={w.WageID.toString()}
-                    className="flex items-center gap-1 px-4"
-                  >
-                    <span className="truncate max-w-[160px] sm:max-w-none">
-                      {w.WageName.trim()}
-                    </span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {wageDescriptionsSorted.map((wageDesc) => (
-                <TabsContent
-                  key={wageDesc.WageID}
-                  value={wageDesc.WageID.toString()}
-                  className="mt-0"
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border rounded-lg px-4 py-3 bg-muted/20">
+                <p className="text-sm text-muted-foreground">
+                  Selected ranks: <strong>{selectedScratchRanks.length}</strong>
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setScratchDraftRankIds(scratchSelectedRankIds);
+                    setShowRankChecklistDialog(true);
+                  }}
                 >
-                  <div className="text-center py-12 text-muted-foreground border rounded-lg bg-muted/30">
-                    Manual input mode selected for <strong>{wageDesc.WageName.trim()}</strong>.
-                  </div>
-                </TabsContent>
-              ))}
-            </Tabs>
+                  Edit Rank Checklist
+                </Button>
+              </div>
+
+              <div className="border rounded-lg px-4 py-3 bg-muted/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Selected wage types: <strong>{selectedScratchWageDescriptions.length}</strong>
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setScratchDraftWageIds(scratchSelectedWageIds);
+                      setShowWageChecklistDialog(true);
+                    }}
+                  >
+                    Edit Wage Checklist
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedScratchWageDescriptions.map((wage) => (
+                    <span
+                      key={wage.WageID}
+                      className="text-xs px-2 py-1 rounded bg-background border"
+                    >
+                      {wage.WageName.trim()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <Tabs
+                value={activeWageType ?? undefined}
+                onValueChange={setActiveWageType}
+                className="w-full"
+              >
+                <TabsList
+                  className="
+                    mb-6
+                    flex
+                    w-full
+                    justify-start
+                    gap-3
+                    overflow-x-auto
+                    whitespace-nowrap
+                    scrollbar-hide
+                "
+                >
+                  {selectedScratchWageDescriptions.map((w) => (
+                    <TabsTrigger
+                      key={w.WageID}
+                      value={w.WageID.toString()}
+                      className="flex items-center gap-1 px-4"
+                    >
+                      <span className="truncate max-w-[160px] sm:max-w-none">
+                        {w.WageName.trim()}
+                      </span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                {selectedScratchWageDescriptions.map((wageDesc) => (
+                  <TabsContent
+                    key={wageDesc.WageID}
+                    value={wageDesc.WageID.toString()}
+                    className="mt-0"
+                  >
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Rank</TableHead>
+                            <TableHead className="text-center">
+                              Amount (USD)
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {selectedScratchRanks.map((rank) => {
+                            const amountKey = toScratchAmountKey(
+                              wageDesc.WageID,
+                              rank.RankID
+                            );
+                            return (
+                              <TableRow key={`${wageDesc.WageID}-${rank.RankID}`}>
+                                <TableCell className="font-medium">
+                                  {rank.RankName.trim()}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={scratchAmounts[amountKey] ?? 0}
+                                    onChange={(e) =>
+                                      handleScratchAmountChange(
+                                        wageDesc.WageID,
+                                        rank.RankID,
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-32 mx-auto text-right"
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Default amount is 0. You can encode values manually.
+                    </p>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </div>
           )
         ) : !selectedYear || selectedVesselType === "" ? (
           <div className="text-center py-12 text-muted-foreground border rounded-lg bg-muted/30">
@@ -850,6 +1114,110 @@ export default function AddSalaryScale() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog
+        open={showRankChecklistDialog}
+        onOpenChange={setShowRankChecklistDialog}
+      >
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Select Ranks</DialogTitle>
+            <DialogDescription>
+              Pick the ranks to include in scratch mode.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[360px] overflow-y-auto rounded-md border p-3 space-y-2">
+            {crewRanksSorted.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No ranks found.
+              </p>
+            ) : (
+              crewRanksSorted.map((rank) => (
+                <label
+                  key={rank.RankID}
+                  className="flex items-center gap-3 rounded px-2 py-2 hover:bg-muted/50"
+                >
+                  <Checkbox
+                    checked={scratchDraftRankIds.includes(rank.RankID)}
+                    onCheckedChange={(checked) =>
+                      toggleDraftRank(rank.RankID, checked === true)
+                    }
+                  />
+                  <span className="text-sm">{rank.RankName.trim()}</span>
+                </label>
+              ))
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setScratchDraftRankIds(scratchSelectedRankIds);
+                setShowRankChecklistDialog(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={applyScratchRankSelection}>
+              Apply Ranks
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showWageChecklistDialog}
+        onOpenChange={setShowWageChecklistDialog}
+      >
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Select Wage Types</DialogTitle>
+            <DialogDescription>
+              Pick wage types to include in scratch mode.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[360px] overflow-y-auto rounded-md border p-3 space-y-2">
+            {wageDescriptionsSorted.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No wage types found.
+              </p>
+            ) : (
+              wageDescriptionsSorted.map((wage) => (
+                <label
+                  key={wage.WageID}
+                  className="flex items-center gap-3 rounded px-2 py-2 hover:bg-muted/50"
+                >
+                  <Checkbox
+                    checked={scratchDraftWageIds.includes(wage.WageID)}
+                    onCheckedChange={(checked) =>
+                      toggleDraftWage(wage.WageID, checked === true)
+                    }
+                  />
+                  <span className="text-sm">{wage.WageName.trim()}</span>
+                </label>
+              ))
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setScratchDraftWageIds(scratchSelectedWageIds);
+                setShowWageChecklistDialog(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={applyScratchWageSelection}>
+              Apply Wage Types
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
