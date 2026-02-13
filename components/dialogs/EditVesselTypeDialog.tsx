@@ -79,7 +79,7 @@ export function EditVesselTypeDialog({
           variant: "success",
         });
         if (onSuccess && response.data) {
-          onSuccess(response.data as VesselTypeItem);
+          onSuccess(response.data as unknown as VesselTypeItem);
         }
         onOpenChange(false);
       }
