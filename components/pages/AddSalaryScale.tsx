@@ -41,6 +41,8 @@ import { useReferenceStore } from "@/src/store/useAddSalaryScale";
 import { toast } from "../ui/use-toast";
 import { useRouter } from "next/navigation";
 
+const NO_AVAILABLE_YEAR_OPTION = "__NO_AVAILABLE_YEAR__";
+
 export default function AddSalaryScale() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -57,6 +59,7 @@ export default function AddSalaryScale() {
   const [resetRequested, setResetRequested] = useState(false);
   const { vesselTypes, wageDescriptions, fetchAllReferences } = useReferenceStore();
   const [newScaleYear, setNewScaleYear] = useState<string>("");
+  const isScratchMode = selectedYear === NO_AVAILABLE_YEAR_OPTION;
 
   const hasFetchedRef = useRef(false);
 
@@ -81,7 +84,7 @@ export default function AddSalaryScale() {
   }, [allItems]);
 
   const availableVesselTypes = useMemo(() => {
-    if (!selectedYear || !allItems.length) return vesselTypes;
+    if (isScratchMode || !selectedYear || !allItems.length) return vesselTypes;
 
     const yearNum = Number(selectedYear);
     const vesselIdSet = new Set<number>();
@@ -101,7 +104,7 @@ export default function AddSalaryScale() {
     });
 
     return vesselTypes.filter((vt) => vesselIdSet.has(vt.VesselTypeID));
-  }, [allItems, selectedYear, vesselTypes]);
+  }, [allItems, isScratchMode, selectedYear, vesselTypes]);
 
   const currentDisplayItems = useMemo(() => {
     // console.log("Recomputing currentDisplayItems");
@@ -113,7 +116,7 @@ export default function AddSalaryScale() {
     //   pendingChanges
     // });
 
-    if (!selectedYear || selectedVesselType === "" || !activeWageType)
+    if (isScratchMode || !selectedYear || selectedVesselType === "" || !activeWageType)
       return [];
 
     const selectedWageID = Number(activeWageType);
@@ -158,6 +161,7 @@ export default function AddSalaryScale() {
     activeWageType,
     pendingChanges,
     deletedIds,
+    isScratchMode,
   ]);
 
   const hasUnsavedChanges = useMemo(() => {
@@ -376,6 +380,16 @@ export default function AddSalaryScale() {
   };
 
   const handleSave = async () => {
+    if (isScratchMode) {
+      toast({
+        title: "Scratch Mode Enabled",
+        description:
+          "Table display for manual input is not implemented yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!selectedYear || selectedVesselType === "") {
       toast({
         title: "Missing Selection",
@@ -467,9 +481,12 @@ export default function AddSalaryScale() {
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select year" />
+                <SelectValue placeholder="Select year or skip" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={NO_AVAILABLE_YEAR_OPTION}>
+                  Not selecting available year
+                </SelectItem>
                 {availableYears.map((y) => (
                   <SelectItem key={y} value={y.toString()}>
                     {y}
@@ -491,7 +508,9 @@ export default function AddSalaryScale() {
                   placeholder={
                     isLoading
                       ? "Loading vessels..."
-                      : !selectedYear
+                      : isScratchMode
+                        ? "Select vessel type"
+                        : !selectedYear
                         ? "Select a year first"
                         : availableVesselTypes.length === 0
                           ? `No vessels for year ${selectedYear}`
@@ -556,7 +575,7 @@ export default function AddSalaryScale() {
 
             <Button
               onClick={handleSave}
-              disabled={isLoading || !hasUnsavedChanges}
+              disabled={isLoading || !hasUnsavedChanges || isScratchMode}
             >
               {hasUnsavedChanges ? "Save Changes *" : "Save Changes"}
             </Button>
@@ -567,6 +586,55 @@ export default function AddSalaryScale() {
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
+        ) : isScratchMode ? (
+          wageDescriptionsSorted.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              No wage types found
+            </div>
+          ) : (
+            <Tabs
+              value={activeWageType ?? undefined}
+              onValueChange={setActiveWageType}
+              className="w-full"
+            >
+              <TabsList
+                className="
+                  mb-6
+                  flex
+                  w-full
+                  justify-start
+                  gap-3
+                  overflow-x-auto
+                  whitespace-nowrap
+                  scrollbar-hide
+              "
+              >
+                {wageDescriptionsSorted.map((w) => (
+                  <TabsTrigger
+                    key={w.WageID}
+                    value={w.WageID.toString()}
+                    className="flex items-center gap-1 px-4"
+                  >
+                    <span className="truncate max-w-[160px] sm:max-w-none">
+                      {w.WageName.trim()}
+                    </span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {wageDescriptionsSorted.map((wageDesc) => (
+                <TabsContent
+                  key={wageDesc.WageID}
+                  value={wageDesc.WageID.toString()}
+                  className="mt-0"
+                >
+                  <div className="text-center py-12 text-muted-foreground border rounded-lg bg-muted/30">
+                    Manual input mode selected for <strong>{wageDesc.WageName.trim()}</strong>.
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
+          )
         ) : !selectedYear || selectedVesselType === "" ? (
           <div className="text-center py-12 text-muted-foreground border rounded-lg bg-muted/30">
             Please select <strong>year</strong> and <strong>vessel type</strong>
