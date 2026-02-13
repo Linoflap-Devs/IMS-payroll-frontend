@@ -38,8 +38,11 @@ import {
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useReferenceStore } from "@/src/store/useAddSalaryScale";
+import { toast } from "../ui/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function AddSalaryScale() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [allItems, setAllItems] = useState<SalaryScaleItem[]>([]);
@@ -54,7 +57,7 @@ export default function AddSalaryScale() {
   const [resetRequested, setResetRequested] = useState(false);
   const { vesselTypes, wageDescriptions, fetchAllReferences } = useReferenceStore();
   const [newScaleYear, setNewScaleYear] = useState<string>("");
-  
+
   const hasFetchedRef = useRef(false);
 
   // ─── Derived data ────────────────────────────────────────────────────────
@@ -292,6 +295,7 @@ export default function AddSalaryScale() {
     setDeletedIds(new Set());
     setError(null);
     setAllItems([]); // clear data
+    setNewScaleYear("");
 
     // Optional: re-trigger initial fetch to repopulate years
     // But only if you want the years to appear immediately after reset
@@ -372,45 +376,65 @@ export default function AddSalaryScale() {
   };
 
   const handleSave = async () => {
+    if (!selectedYear || selectedVesselType === "") {
+      toast({
+        title: "Missing Selection",
+        description: "Please select a Year and Vessel Type first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const payload = buildPayload();
+
+    if (!payload.salaryData.length) {
+      toast({
+        title: "Nothing to Save",
+        description: "No changes detected in the salary scale.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log("FULL PAYLOAD (all rows):", payload);
+
+    setIsLoading(true);
+
     try {
-      if (!selectedYear || selectedVesselType === "") {
-        alert("Please select Year and Vessel Type first.");
-        return;
-      }
-
-      const payload = buildPayload();
-
-      if (!payload.salaryData.length) {
-        alert("No changes to save.");
-        return;
-      }
-
-      console.log("FULL PAYLOAD (all rows):", payload);
-
-      // Optional: set loading state here
-      // setLoading(true);
-
       const response = await addSalaryScale(payload);
 
-      if (response?.success === false) {
+      if (!response?.success) {
         throw new Error(response?.message || "Failed to save salary scale.");
       }
 
-      alert("Salary scale saved successfully!");
+      toast({
+        title: "Success",
+        description: "Salary scale saved successfully.",
+        variant: "success",
+      });
 
-      // Clear local change trackers ONLY after success
+      // Reset local state after successful save
       setPendingChanges({});
       setDeletedIds(new Set());
 
-    } catch (error: any) {
-      console.error("Save error:", error);
-      alert(error?.message || "Something went wrong while saving.");
+      // Navigate after a short delay to show toast
+      setTimeout(() => {
+        router.push("/home/wages/salary-scale");
+      }, 800);
+    } catch (err: any) {
+      console.error("Save error:", err);
+      toast({
+        title: "Error",
+        description:
+          err?.message ||
+          "An error occurred while saving the salary scale.",
+        variant: "destructive",
+      });
     } finally {
-      // Optional: setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="py-8 px-4">
       <CardHeader>
@@ -698,23 +722,43 @@ export default function AddSalaryScale() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Rank: <strong>{itemToDelete?.Rank.trim()}</strong>
-              <br />
-              Wage: <strong>{itemToDelete?.Wage.trim()}</strong>
-              <br />
-              Amount: <strong>${itemToDelete?.WageAmount}</strong>
+            <AlertDialogTitle className="text-primary">
+              Delete Salary Entry?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="mt-4 rounded-lg border p-4 bg-muted/40 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Rank</span>
+                  <span className="font-medium">
+                    {itemToDelete?.Rank.trim()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Wage Type</span>
+                  <span className="font-medium">
+                    {itemToDelete?.Wage.trim()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Amount</span>
+                  <span className="font-semibold text-primary">
+                    PHP {itemToDelete?.WageAmount.toLocaleString()}
+                  </span>
+                </div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-4">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>
-              Delete
+            <AlertDialogAction
+              onClick={confirmDelete}
+            >
+              Delete Permanently
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
 
       {/* Reset / Vessel change warning */}
       <AlertDialog open={showResetWarning} onOpenChange={setShowResetWarning}>
