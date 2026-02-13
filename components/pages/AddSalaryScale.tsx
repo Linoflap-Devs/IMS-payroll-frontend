@@ -45,21 +45,16 @@ export default function AddSalaryScale() {
   const [allItems, setAllItems] = useState<SalaryScaleItem[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedVesselType, setSelectedVesselType] = useState<number | "">("");
-  const [pendingChanges, setPendingChanges] = useState<
-    Record<string, SalaryScaleItem[]>
-  >({});
+  const [pendingChanges, setPendingChanges] = useState<Record<string, SalaryScaleItem[]>>({});
   const [deletedIds, setDeletedIds] = useState<Set<number>>(new Set());
   const [activeWageType, setActiveWageType] = useState<string | null>(null);
   const [showResetWarning, setShowResetWarning] = useState(false);
   const [pendingVesselId, setPendingVesselId] = useState<number | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<SalaryScaleItem | null>(
-    null
-  );
+  const [itemToDelete, setItemToDelete] = useState<SalaryScaleItem | null>(null);
   const [resetRequested, setResetRequested] = useState(false);
-  const { vesselTypes, wageDescriptions, fetchAllReferences } =
-    useReferenceStore();
+  const { vesselTypes, wageDescriptions, fetchAllReferences } = useReferenceStore();
   const [newScaleYear, setNewScaleYear] = useState<string>("");
-
+  
   const hasFetchedRef = useRef(false);
 
   // ─── Derived data ────────────────────────────────────────────────────────
@@ -106,14 +101,14 @@ export default function AddSalaryScale() {
   }, [allItems, selectedYear, vesselTypes]);
 
   const currentDisplayItems = useMemo(() => {
-    console.log("Recomputing currentDisplayItems");
-    console.log({
-      selectedYear,
-      selectedVesselType,
-      activeWageType,
-      deletedIds,
-      pendingChanges
-    });
+    // console.log("Recomputing currentDisplayItems");
+    // console.log({
+    //   selectedYear,
+    //   selectedVesselType,
+    //   activeWageType,
+    //   deletedIds,
+    //   pendingChanges
+    // });
 
     if (!selectedYear || selectedVesselType === "" || !activeWageType)
       return [];
@@ -139,7 +134,7 @@ export default function AddSalaryScale() {
       );
     });
 
-    console.log("Filtered Items:", filtered);
+    // console.log("Filtered Items:", filtered);
 
     const pendingForThisWage = pendingChanges[activeWageType] || [];
     const pendingMap = new Map(
@@ -150,7 +145,7 @@ export default function AddSalaryScale() {
       (item) => pendingMap.get(item.SalaryScaleDetailID) || item
     );
 
-    console.log("Final Display Items:", finalItems);
+    // console.log("Final Display Items:", finalItems);
 
     return finalItems;
   }, [
@@ -219,6 +214,15 @@ export default function AddSalaryScale() {
   }, [selectedYear, wageDescriptionsSorted]);
 
   // ─── Handlers ────────────────────────────────────────────────────────────
+
+  const newScaleYearOptions = useMemo(() => {
+    const existingYears = new Set(availableYears);
+
+    // example: generate years 2020–2035
+    const allPossibleYears = Array.from({ length: 16 }, (_, i) => 2020 + i);
+
+    return allPossibleYears.filter((year) => !existingYears.has(year));
+  }, [availableYears]);
 
   const handleAmountChange = (item: SalaryScaleItem, newValue: string) => {
     const num = parseFloat(newValue);
@@ -406,10 +410,6 @@ export default function AddSalaryScale() {
     }
   };
 
-  console.log(availableVesselTypes);
-  console.log("Current display items:", currentDisplayItems);
-  console.log("Pending changes:", pendingChanges);
-
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="py-8 px-4">
@@ -508,14 +508,11 @@ export default function AddSalaryScale() {
               className="border rounded px-3 py-2"
             >
               <option value="">Select Year to Add</option>
-              {Array.from({ length: 8 }, (_, i) => {
-                const year = new Date().getFullYear() + i;
-                return (
+                {newScaleYearOptions.map((year) => (
                   <option key={year} value={year}>
                     {year}
                   </option>
-                );
-              })}
+                ))}
             </select>
           </div>
 
