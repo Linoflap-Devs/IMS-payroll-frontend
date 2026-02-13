@@ -106,6 +106,15 @@ export default function AddSalaryScale() {
   }, [allItems, selectedYear, vesselTypes]);
 
   const currentDisplayItems = useMemo(() => {
+    console.log("Recomputing currentDisplayItems");
+    console.log({
+      selectedYear,
+      selectedVesselType,
+      activeWageType,
+      deletedIds,
+      pendingChanges
+    });
+
     if (!selectedYear || selectedVesselType === "" || !activeWageType)
       return [];
 
@@ -130,14 +139,20 @@ export default function AddSalaryScale() {
       );
     });
 
+    console.log("Filtered Items:", filtered);
+
     const pendingForThisWage = pendingChanges[activeWageType] || [];
     const pendingMap = new Map(
       pendingForThisWage.map((p) => [p.SalaryScaleDetailID, p])
     );
 
-    return filtered.map(
+    const finalItems = filtered.map(
       (item) => pendingMap.get(item.SalaryScaleDetailID) || item
     );
+
+    console.log("Final Display Items:", finalItems);
+
+    return finalItems;
   }, [
     allItems,
     selectedYear,
@@ -160,7 +175,6 @@ export default function AddSalaryScale() {
     fetchAllReferences();
   }, [fetchAllReferences]);
 
-  // Phase 1: Fetch all data once on mount (to populate initial years)
   useEffect(() => {
     if (hasFetchedRef.current) return;
     hasFetchedRef.current = true;
@@ -186,44 +200,6 @@ export default function AddSalaryScale() {
 
     fetchInitial();
   }, []);
-
-  // Phase 2: Refetch when year changes (even without vessel) or vessel changes
-  useEffect(() => {
-    if (!selectedYear) {
-      setAllItems([]);
-      return;
-    }
-
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const params: any = {
-          year: Number(selectedYear),
-        };
-
-        if (selectedVesselType !== "") {
-          params.vesselTypeId = selectedVesselType;
-        }
-
-        const res = await getWageScale(params);
-
-        if (res.success) {
-          setAllItems(res.data ?? []);
-        } else {
-          setError(res.message || "Failed to load data");
-        }
-      } catch (err) {
-        setError("Network/server error");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [selectedYear, selectedVesselType]);
 
   // Auto-select first wage type
   useEffect(() => {
@@ -430,6 +406,10 @@ export default function AddSalaryScale() {
     }
   };
 
+  console.log(availableVesselTypes);
+  console.log("Current display items:", currentDisplayItems);
+  console.log("Pending changes:", pendingChanges);
+
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="py-8 px-4">
@@ -528,7 +508,7 @@ export default function AddSalaryScale() {
               className="border rounded px-3 py-2"
             >
               <option value="">Select Year to Add</option>
-              {Array.from({ length: 5 }, (_, i) => {
+              {Array.from({ length: 8 }, (_, i) => {
                 const year = new Date().getFullYear() + i;
                 return (
                   <option key={year} value={year}>
