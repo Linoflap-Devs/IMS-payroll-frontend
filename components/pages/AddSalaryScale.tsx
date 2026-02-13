@@ -53,6 +53,7 @@ import {
 const NO_AVAILABLE_YEAR_OPTION = "__NO_AVAILABLE_YEAR__";
 const toScratchAmountKey = (wageId: number, rankId: number) =>
   `${wageId}-${rankId}`;
+const TEMP_ROW_START = -1;
 
 export default function AddSalaryScale() {
   const router = useRouter();
@@ -69,15 +70,18 @@ export default function AddSalaryScale() {
   const [itemToDelete, setItemToDelete] = useState<SalaryScaleItem | null>(null);
   const [resetRequested, setResetRequested] = useState(false);
   const [showRankChecklistDialog, setShowRankChecklistDialog] = useState(false);
+  const [rankDialogMode, setRankDialogMode] = useState<"scratch" | "existing">("scratch");
   const [showWageChecklistDialog, setShowWageChecklistDialog] = useState(false);
   const [scratchSelectedRankIds, setScratchSelectedRankIds] = useState<number[]>([]);
   const [scratchDraftRankIds, setScratchDraftRankIds] = useState<number[]>([]);
+  const [existingDraftRankIds, setExistingDraftRankIds] = useState<number[]>([]);
   const [scratchSelectedWageIds, setScratchSelectedWageIds] = useState<number[]>([]);
   const [scratchDraftWageIds, setScratchDraftWageIds] = useState<number[]>([]);
   const [scratchAmounts, setScratchAmounts] = useState<Record<string, number>>({});
   const { vesselTypes, wageDescriptions, crewRanks, fetchAllReferences } = useReferenceStore();
   const [newScaleYear, setNewScaleYear] = useState<string>("");
   const isScratchMode = selectedYear === NO_AVAILABLE_YEAR_OPTION;
+  const tempRowIdRef = useRef(TEMP_ROW_START);
 
   const hasFetchedRef = useRef(false);
 
@@ -184,13 +188,20 @@ export default function AddSalaryScale() {
       pendingForThisWage.map((p) => [p.SalaryScaleDetailID, p])
     );
 
-    const finalItems = filtered.map(
+    const mappedExisting = filtered.map(
       (item) => pendingMap.get(item.SalaryScaleDetailID) || item
+    );
+
+    const existingIds = new Set(mappedExisting.map((item) => item.SalaryScaleDetailID));
+    const addedPendingRows = pendingForThisWage.filter(
+      (item) =>
+        !existingIds.has(item.SalaryScaleDetailID) &&
+        !deletedIds.has(item.SalaryScaleDetailID)
     );
 
     // console.log("Final Display Items:", finalItems);
 
-    return finalItems;
+    return [...mappedExisting, ...addedPendingRows];
   }, [
     allItems,
     selectedYear,
@@ -207,6 +218,18 @@ export default function AddSalaryScale() {
       deletedIds.size > 0
     );
   }, [pendingChanges, deletedIds]);
+
+  const addableRanksForActiveWage = useMemo(() => {
+    if (isScratchMode || selectedVesselType === "" || !activeWageType) return [];
+    const activeRankSet = new Set(currentDisplayItems.map((item) => item.RankID));
+    return crewRanksSorted.filter((rank) => !activeRankSet.has(rank.RankID));
+  }, [
+    isScratchMode,
+    selectedVesselType,
+    activeWageType,
+    currentDisplayItems,
+    crewRanksSorted,
+  ]);
 
   useEffect(() => {
     if (!isScratchMode) return;
@@ -361,8 +384,6 @@ export default function AddSalaryScale() {
     setPendingVesselId(null);
   };
 
-  console.log(currentDisplayItems);
-
   const handleReset = () => {
     setSelectedYear("");
     setSelectedVesselType("");
@@ -373,9 +394,11 @@ export default function AddSalaryScale() {
     setAllItems([]); // clear data
     setNewScaleYear("");
     setShowRankChecklistDialog(false);
+    setRankDialogMode("scratch");
     setShowWageChecklistDialog(false);
     setScratchSelectedRankIds([]);
     setScratchDraftRankIds([]);
+    setExistingDraftRankIds([]);
     setScratchSelectedWageIds([]);
     setScratchDraftWageIds([]);
     setScratchAmounts({});
@@ -446,6 +469,14 @@ export default function AddSalaryScale() {
     allCurrent = allCurrent.map(
       (item) => pendingMap.get(item.SalaryScaleDetailID) || item
     );
+
+    const existingIds = new Set(allCurrent.map((item) => item.SalaryScaleDetailID));
+    const pendingAdditions = allPending.filter(
+      (item) =>
+        !existingIds.has(item.SalaryScaleDetailID) &&
+        !deletedIds.has(item.SalaryScaleDetailID)
+    );
+    allCurrent = [...allCurrent, ...pendingAdditions];
 
     const groupedByRank = new Map<
       number,
@@ -543,7 +574,9 @@ export default function AddSalaryScale() {
   };
 
   const toggleDraftRank = (rankId: number, checked: boolean) => {
-    setScratchDraftRankIds((prev) => {
+    const setter =
+      rankDialogMode === "scratch" ? setScratchDraftRankIds : setExistingDraftRankIds;
+    setter((prev) => {
       if (checked) {
         if (prev.includes(rankId)) return prev;
         return [...prev, rankId];
@@ -554,6 +587,48 @@ export default function AddSalaryScale() {
 
   const applyScratchRankSelection = () => {
     setScratchSelectedRankIds(scratchDraftRankIds);
+    setShowRankChecklistDialog(false);
+  };
+
+  const applyExistingRankSelection = () => {
+    if (!activeWageType || selectedVesselType === "") {
+      setShowRankChecklistDialog(false);
+      return;
+    }
+
+    const wageId = Number(activeWageType);
+    const wageDesc = wageDescriptionsSorted.find((w) => w.WageID === wageId);
+    const vessel = vesselTypes.find((v) => v.VesselTypeID === selectedVesselType);
+    const selectableRankMap = new Map(
+      addableRanksForActiveWage.map((rank) => [rank.RankID, rank])
+    );
+
+    const toAdd = existingDraftRankIds
+      .map((rankId) => selectableRankMap.get(rankId))
+      .filter((rank): rank is (typeof crewRanksSorted)[number] => !!rank)
+      .map((rank) => ({
+        SalaryScaleDetailID: tempRowIdRef.current--,
+        SalaryScaleHeaderID: 0,
+        RankID: rank.RankID,
+        WageID: wageId,
+        Rank: rank.RankName,
+        WageAmount: 0,
+        Wage: wageDesc?.WageName ?? "",
+        VesselTypeId: Number(selectedVesselType),
+        VesselTypeName: vessel?.VesselTypeName ?? "",
+        EffectivedateFrom: `${selectedYear}-01-01`,
+        EffectivedateTo: `${selectedYear}-12-31`,
+      }));
+
+    if (toAdd.length > 0) {
+      setPendingChanges((prev) => {
+        const key = activeWageType;
+        const existing = prev[key] || [];
+        return { ...prev, [key]: [...existing, ...toAdd] };
+      });
+    }
+
+    setExistingDraftRankIds([]);
     setShowRankChecklistDialog(false);
   };
 
@@ -617,13 +692,16 @@ export default function AddSalaryScale() {
                       : wageDescriptionsSorted.map((w) => w.WageID);
                   setScratchSelectedWageIds(wageIds);
                   setScratchDraftWageIds(wageIds);
+                  setRankDialogMode("scratch");
                   setScratchDraftRankIds(scratchSelectedRankIds);
                   setShowWageChecklistDialog(true);
                 } else {
                   setShowRankChecklistDialog(false);
+                  setRankDialogMode("scratch");
                   setShowWageChecklistDialog(false);
                   setScratchSelectedRankIds([]);
                   setScratchDraftRankIds([]);
+                  setExistingDraftRankIds([]);
                   setScratchSelectedWageIds([]);
                   setScratchDraftWageIds([]);
                   setScratchAmounts({});
@@ -761,6 +839,7 @@ export default function AddSalaryScale() {
               <Button
                 variant="outline"
                 onClick={() => {
+                  setRankDialogMode("scratch");
                   setScratchDraftRankIds(scratchSelectedRankIds);
                   setShowRankChecklistDialog(true);
                 }}
@@ -777,6 +856,7 @@ export default function AddSalaryScale() {
                 <Button
                   variant="outline"
                   onClick={() => {
+                    setRankDialogMode("scratch");
                     setScratchDraftRankIds(scratchSelectedRankIds);
                     setShowRankChecklistDialog(true);
                   }}
@@ -908,11 +988,25 @@ export default function AddSalaryScale() {
             No wage types found
           </div>
         ) : (
-          <Tabs
-            value={activeWageType ?? undefined}
-            onValueChange={setActiveWageType}
-            className="w-full"
-          >
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                disabled={!activeWageType}
+                onClick={() => {
+                  setRankDialogMode("existing");
+                  setExistingDraftRankIds([]);
+                  setShowRankChecklistDialog(true);
+                }}
+              >
+                Add Rank/s
+              </Button>
+            </div>
+            <Tabs
+              value={activeWageType ?? undefined}
+              onValueChange={setActiveWageType}
+              className="w-full"
+            >
             <TabsList
               className="
                 mb-6
@@ -1043,7 +1137,8 @@ export default function AddSalaryScale() {
                 </TabsContent>
               );
             })}
-          </Tabs>
+            </Tabs>
+          </div>
         )}
       </CardContent>
 
@@ -1121,25 +1216,38 @@ export default function AddSalaryScale() {
       >
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Select Ranks</DialogTitle>
+            <DialogTitle>
+              {rankDialogMode === "scratch" ? "Select Ranks" : "Add Rank/s"}
+            </DialogTitle>
             <DialogDescription>
-              Pick the ranks to include in scratch mode.
+              {rankDialogMode === "scratch"
+                ? "Pick the ranks to include in scratch mode."
+                : "Pick rank/s to add for the selected wage type."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="max-h-[360px] overflow-y-auto rounded-md border p-3 space-y-2">
-            {crewRanksSorted.length === 0 ? (
+            {(rankDialogMode === "scratch" ? crewRanksSorted : addableRanksForActiveWage).length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No ranks found.
+                {rankDialogMode === "scratch"
+                  ? "No ranks found."
+                  : "No additional ranks available for this wage type."}
               </p>
             ) : (
-              crewRanksSorted.map((rank) => (
+              (rankDialogMode === "scratch"
+                ? crewRanksSorted
+                : addableRanksForActiveWage
+              ).map((rank) => (
                 <label
                   key={rank.RankID}
                   className="flex items-center gap-3 rounded px-2 py-2 hover:bg-muted/50"
                 >
                   <Checkbox
-                    checked={scratchDraftRankIds.includes(rank.RankID)}
+                    checked={
+                      rankDialogMode === "scratch"
+                        ? scratchDraftRankIds.includes(rank.RankID)
+                        : existingDraftRankIds.includes(rank.RankID)
+                    }
                     onCheckedChange={(checked) =>
                       toggleDraftRank(rank.RankID, checked === true)
                     }
@@ -1154,14 +1262,24 @@ export default function AddSalaryScale() {
             <Button
               variant="outline"
               onClick={() => {
-                setScratchDraftRankIds(scratchSelectedRankIds);
+                if (rankDialogMode === "scratch") {
+                  setScratchDraftRankIds(scratchSelectedRankIds);
+                } else {
+                  setExistingDraftRankIds([]);
+                }
                 setShowRankChecklistDialog(false);
               }}
             >
               Cancel
             </Button>
-            <Button onClick={applyScratchRankSelection}>
-              Apply Ranks
+            <Button
+              onClick={
+                rankDialogMode === "scratch"
+                  ? applyScratchRankSelection
+                  : applyExistingRankSelection
+              }
+            >
+              {rankDialogMode === "scratch" ? "Apply Ranks" : "Add Rank/s"}
             </Button>
           </DialogFooter>
         </DialogContent>
