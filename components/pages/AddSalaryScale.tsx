@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  addSalaryScale,
   getWageScale,
   SalaryScaleItem,
 } from "@/src/services/wages/salaryScale.api";
@@ -57,6 +58,8 @@ export default function AddSalaryScale() {
   const [resetRequested, setResetRequested] = useState(false);
   const { vesselTypes, wageDescriptions, fetchAllReferences } =
     useReferenceStore();
+  const [newScaleYear, setNewScaleYear] = useState<string>("");
+
   const hasFetchedRef = useRef(false);
 
   // ─── Derived data ────────────────────────────────────────────────────────
@@ -254,8 +257,8 @@ export default function AddSalaryScale() {
         (e) => e.SalaryScaleDetailID === item.SalaryScaleDetailID
       )
         ? existing.map((e) =>
-            e.SalaryScaleDetailID === item.SalaryScaleDetailID ? updated : e
-          )
+          e.SalaryScaleDetailID === item.SalaryScaleDetailID ? updated : e
+        )
         : [...existing, updated];
 
       return { ...prev, [key]: updatedList };
@@ -377,8 +380,8 @@ export default function AddSalaryScale() {
     });
 
     return {
-      vesselTypeId: selectedVesselType,
-      year: Number(selectedYear),
+      vesselTypeId: Number(selectedVesselType),
+      year: Number(newScaleYear),
       salaryData: Array.from(groupedByRank.entries()).map(
         ([rankId, wages]) => ({
           rankId,
@@ -389,16 +392,42 @@ export default function AddSalaryScale() {
   };
 
   const handleSave = async () => {
-    if (!selectedYear || selectedVesselType === "") return;
+    try {
+      if (!selectedYear || selectedVesselType === "") {
+        alert("Please select Year and Vessel Type first.");
+        return;
+      }
 
-    const payload = buildPayload();
-    console.log("FULL PAYLOAD (all rows):", payload);
+      const payload = buildPayload();
 
-    // TODO: await yourUpdateApi(payload);
+      if (!payload.salaryData.length) {
+        alert("No changes to save.");
+        return;
+      }
 
-    alert("Save logic not implemented yet — see console");
-    setPendingChanges({});
-    setDeletedIds(new Set());
+      console.log("FULL PAYLOAD (all rows):", payload);
+
+      // Optional: set loading state here
+      // setLoading(true);
+
+      const response = await addSalaryScale(payload);
+
+      if (response?.success === false) {
+        throw new Error(response?.message || "Failed to save salary scale.");
+      }
+
+      alert("Salary scale saved successfully!");
+
+      // Clear local change trackers ONLY after success
+      setPendingChanges({});
+      setDeletedIds(new Set());
+
+    } catch (error: any) {
+      console.error("Save error:", error);
+      alert(error?.message || "Something went wrong while saving.");
+    } finally {
+      // Optional: setLoading(false);
+    }
   };
 
   // ─── Render ──────────────────────────────────────────────────────────────
@@ -459,10 +488,10 @@ export default function AddSalaryScale() {
                     isLoading
                       ? "Loading vessels..."
                       : !selectedYear
-                      ? "Select a year first"
-                      : availableVesselTypes.length === 0
-                      ? `No vessels for year ${selectedYear}`
-                      : "Select vessel type"
+                        ? "Select a year first"
+                        : availableVesselTypes.length === 0
+                          ? `No vessels for year ${selectedYear}`
+                          : "Select vessel type"
                   }
                 />
               </SelectTrigger>
@@ -489,6 +518,25 @@ export default function AddSalaryScale() {
                 Walang vessel type na available para sa taong {selectedYear}
               </p>
             )}
+
+          </div>
+
+          <div className="space-y-2">
+            <select
+              value={newScaleYear}
+              onChange={(e) => setNewScaleYear(e.target.value)}
+              className="border rounded px-3 py-2"
+            >
+              <option value="">Select Year to Add</option>
+              {Array.from({ length: 5 }, (_, i) => {
+                const year = new Date().getFullYear() + i;
+                return (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                );
+              })}
+            </select>
           </div>
 
           <div className="flex items-end gap-3 md:col-span-2">
@@ -622,9 +670,8 @@ export default function AddSalaryScale() {
                                     onChange={(e) =>
                                       handleAmountChange(item, e.target.value)
                                     }
-                                    className={`w-32 mx-auto text-right ${
-                                      isDirty ? "bg-amber-50" : ""
-                                    }`}
+                                    className={`w-32 mx-auto text-right ${isDirty ? "bg-amber-50" : ""
+                                      }`}
                                   />
                                 </TableCell>
                                 <TableCell className="text-center">

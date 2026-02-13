@@ -72,3 +72,31 @@ export const updateSalaryScale = async (
   );
   return response.data;
 };
+
+interface WageItem {
+  wageId: number;
+  amount: number;
+}
+
+interface SalaryDataItem {
+  rankId: number;
+  wages: WageItem[];
+}
+
+export interface AddSalaryScalePayload {
+  vesselTypeId: number;
+  year: number;
+  salaryData: SalaryDataItem[];
+}
+
+export const addSalaryScale = async (
+  payload: AddSalaryScalePayload
+): Promise<UpdateSalaryScaleResponse> => {
+  const response = await axiosInstance.post<UpdateSalaryScaleResponse>(
+    "/wages/scale",
+    payload
+  );
+
+  return response.data;
+};
+
