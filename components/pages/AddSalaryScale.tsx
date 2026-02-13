@@ -424,7 +424,7 @@ export default function AddSalaryScale() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <div className="space-y-2">
             <Label>Available Years</Label>
             <Select
@@ -502,21 +502,26 @@ export default function AddSalaryScale() {
           </div>
 
           <div className="space-y-2">
-            <select
+            <Label>Select Year</Label>
+            <Select
               value={newScaleYear}
-              onChange={(e) => setNewScaleYear(e.target.value)}
-              className="border rounded px-3 py-2"
+              onValueChange={(value) => setNewScaleYear(value)}
             >
-              <option value="">Select Year to Add</option>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Year to Add" />
+              </SelectTrigger>
+
+              <SelectContent>
                 {newScaleYearOptions.map((year) => (
-                  <option key={year} value={year}>
+                  <SelectItem key={year} value={year.toString()}>
                     {year}
-                  </option>
+                  </SelectItem>
                 ))}
-            </select>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex items-end gap-3 md:col-span-2">
+          <div className="col-span-2 flex items-end justify-end gap-2">
             <Button
               variant="outline"
               onClick={handleResetClick}
