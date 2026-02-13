@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { updateVesselType } from "@/src/services/vessel/vesselType.api"; // Import the new API function
+import { updateVesselType } from "@/src/services/vessel/vesselType.api";
 import { VesselTypeItem } from "@/src/services/vessel/vesselType.api";
 import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";

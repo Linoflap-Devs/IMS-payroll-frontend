@@ -519,7 +519,7 @@ export default function AddSalaryScale() {
 
             {selectedYear && availableVesselTypes.length === 0 && (
               <p className="text-xs text-amber-700 mt-1">
-                Walang vessel type na available para sa taong {selectedYear}
+                 No vessels available for year {selectedYear}
               </p>
             )}
 
@@ -742,7 +742,7 @@ export default function AddSalaryScale() {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Amount</span>
                   <span className="font-semibold text-primary">
-                    PHP {itemToDelete?.WageAmount.toLocaleString()}
+                    $ {itemToDelete?.WageAmount.toLocaleString()}
                   </span>
                 </div>
               </div>
