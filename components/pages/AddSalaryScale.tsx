@@ -671,7 +671,7 @@ export default function AddSalaryScale() {
   };
 
   return (
-    <div className="min-h-full w-full space-y-2 px-2 py-6 md:py-8">
+    <div className="min-h-full w-full space-y-2 px-2 md:py-8">
       <style jsx global>{`
           /* Hide scrollbar for Chrome, Safari and Opera */
           .scrollbar-hide::-webkit-scrollbar {
@@ -698,7 +698,7 @@ export default function AddSalaryScale() {
             scrollbar-width: none;
           }
         `}</style>
-      <div className="w-full rounded-xl py-4">
+      <div className="w-full rounded-xl">
         <CardHeader className="space-y-3 border-b bg-muted/20">
           <CardTitle className="text-2xl">Add Salary Scale</CardTitle>
           <div className="flex flex-wrap items-center gap-2 text-xs">
