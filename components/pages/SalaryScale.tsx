@@ -2,7 +2,7 @@
 
 import { Calendar, MoreHorizontal, Pencil, Plus, Search, Trash } from "lucide-react";
 import { Input } from "../ui/input";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -25,7 +25,6 @@ import { DataTable } from "../ui/data-table";
 import { DialogSelectOption, EditSalaryScaleDialog } from "../dialogs/EditSalaryScaleDialog";
 import dayjs from "dayjs";
 import Link from "next/link";
-import { useReferenceStore } from "@/src/store/useAddSalaryScale";
 
 export default function SalaryScale() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -263,33 +262,57 @@ export default function SalaryScale() {
     setFilteredSalaryScale(filtered);
   }, [searchTerm, selectedYear, selectedVesselTypeId, selectedWageTypeId, salaryScaleItems]);
 
+  const uniqueRanksForDialog: DialogSelectOption[] = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          salaryScaleItems
+            .filter((item) => item.RankID != null && item.Rank)
+            .map((item) => [item.RankID, { id: item.RankID, name: item.Rank }])
+        ).values()
+      ).sort((a, b) => a.name.localeCompare(b.name)),
+    [salaryScaleItems]
+  );
+
+  const uniqueWageTypesForDialog: DialogSelectOption[] = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          salaryScaleItems
+            .filter((item) => item.WageID != null && item.Wage)
+            .map((item) => [item.WageID, { id: item.WageID, name: item.Wage }])
+        ).values()
+      ).sort((a, b) => a.name.localeCompare(b.name)),
+    [salaryScaleItems]
+  );
+
   // Callback for successful salary scale update
-  const handleSalaryScaleUpdateSuccess = (updatedItem: SalaryScaleItem) => {
-    setSalaryScaleItems((prevItems) =>
-      prevItems.map((item) =>
-        item.SalaryScaleDetailID === updatedItem.SalaryScaleDetailID
-          ? updatedItem
-          : item
-      )
-    );
+  const handleSalaryScaleUpdateSuccess = (_updatedItem: SalaryScaleItem) => {
+    fetchSalaryScaleData();
     setEditDialogOpen(false);
   };
 
   return (
-    <div className="h-full w-full p-3 pt-3 overflow-hidden">
+    <div className="h-full w-full p-3 pt-3">
       <style jsx global>{`
+          /* Hide scrollbar for Chrome, Safari and Opera */
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
           }
+
+          /* Hide scrollbar for IE, Edge and Firefox */
           .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
           }
+
+          /* Hide scrollbar for all scrollable elements in the component */
           .overflow-y-auto::-webkit-scrollbar,
           .overflow-auto::-webkit-scrollbar,
           .overflow-scroll::-webkit-scrollbar {
             display: none;
           }
+
           .overflow-y-auto,
           .overflow-auto,
           .overflow-scroll {
@@ -297,7 +320,7 @@ export default function SalaryScale() {
             scrollbar-width: none;
           }
         `}</style>
-      <div className="h-full overflow-hidden">
+      <div className="h-full">
         <div className="p-3 pt-0 sm:p-4 flex flex-col space-y-4 sm:space-y-5 h-full">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-semibold mb-0">Salary Scale</h1>
@@ -364,6 +387,7 @@ export default function SalaryScale() {
                 </Link>
               </div>
             </div>
+
             {isLoading && (
               <div className="flex justify-center items-center h-40">
                 <p className="text-muted-foreground">
@@ -371,23 +395,25 @@ export default function SalaryScale() {
                 </p>
               </div>
             )}
+
             {error && (
               <div className="flex justify-center items-center h-40">
                 <p className="text-red-500">{error}</p>
               </div>
             )}
+
             {!isLoading && !error && (
               <div className="bg-[#F9F9F9] rounded-md border mb-3">
                 <DataTable
                   columns={salaryScaleColumns}
                   data={filteredSalaryScale}
-                  pageSize={10}
+                  pageSize={8}
                 />
               </div>
             )}
           </div>
 
-          {/* {selectedSalaryScale && editDialogOpen && (
+          {selectedSalaryScale && editDialogOpen && (
             <EditSalaryScaleDialog
               open={editDialogOpen}
               onOpenChange={setEditDialogOpen}
@@ -396,7 +422,7 @@ export default function SalaryScale() {
               wageTypes={uniqueWageTypesForDialog}
               onUpdateSuccess={handleSalaryScaleUpdateSuccess}
             />
-          )} */}
+          )}
         </div>
       </div>
     </div>

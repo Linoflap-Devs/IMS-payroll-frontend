@@ -662,7 +662,33 @@ export default function AddSalaryScale() {
   };
 
   return (
-    <div className="py-8 px-4">
+    <div className="h-full w-full py-8 px-4">
+      <style jsx global>{`
+          /* Hide scrollbar for Chrome, Safari and Opera */
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+
+          /* Hide scrollbar for IE, Edge and Firefox */
+          .scrollbar-hide {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+          }
+
+          /* Hide scrollbar for all scrollable elements in the component */
+          .overflow-y-auto::-webkit-scrollbar,
+          .overflow-auto::-webkit-scrollbar,
+          .overflow-scroll::-webkit-scrollbar {
+            display: none;
+          }
+
+          .overflow-y-auto,
+          .overflow-auto,
+          .overflow-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
       <CardHeader>
         <CardTitle className="text-2xl mb-4">Add Salary Scale</CardTitle>
       </CardHeader>
@@ -744,10 +770,10 @@ export default function AddSalaryScale() {
                       : isScratchMode
                         ? "Select vessel type"
                         : !selectedYear
-                        ? "Select a year first"
-                        : availableVesselTypes.length === 0
-                          ? `No vessels for year ${selectedYear}`
-                          : "Select vessel type"
+                          ? "Select a year first"
+                          : availableVesselTypes.length === 0
+                            ? `No vessels for year ${selectedYear}`
+                            : "Select vessel type"
                   }
                 />
               </SelectTrigger>
@@ -771,7 +797,7 @@ export default function AddSalaryScale() {
 
             {selectedYear && availableVesselTypes.length === 0 && (
               <p className="text-xs text-amber-700 mt-1">
-                 No vessels available for year {selectedYear}
+                No vessels available for year {selectedYear}
               </p>
             )}
 
@@ -1007,8 +1033,8 @@ export default function AddSalaryScale() {
               onValueChange={setActiveWageType}
               className="w-full"
             >
-            <TabsList
-              className="
+              <TabsList
+                className="
                 mb-6
                 flex
                 w-full
@@ -1018,125 +1044,125 @@ export default function AddSalaryScale() {
                 whitespace-nowrap
                 scrollbar-hide
             "
-            >
-              {wageDescriptionsSorted.map((w) => {
-                const wageIdStr = w.WageID.toString();
+              >
+                {wageDescriptionsSorted.map((w) => {
+                  const wageIdStr = w.WageID.toString();
 
+                  return (
+                    <TabsTrigger
+                      key={w.WageID}
+                      value={wageIdStr}
+                      className="flex items-center gap-1 px-4"
+                    >
+                      <span className="truncate max-w-[160px] sm:max-w-none">
+                        {w.WageName.trim()}
+                      </span>
+
+                      {pendingChanges[wageIdStr]?.length > 0 && (
+                        <Pencil className="h-3.5 w-3.5 shrink-0" />
+                      )}
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+
+              {wageDescriptionsSorted.map((wageDesc) => {
+                const wageIdStr = wageDesc.WageID.toString();
                 return (
-                  <TabsTrigger
-                    key={w.WageID}
+                  <TabsContent
+                    key={wageDesc.WageID}
                     value={wageIdStr}
-                    className="flex items-center gap-1 px-4"
+                    className="mt-0"
                   >
-                    <span className="truncate max-w-[160px] sm:max-w-none">
-                      {w.WageName.trim()}
-                    </span>
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Rank</TableHead>
+                            <TableHead className="text-center">
+                              Amount (USD)
+                            </TableHead>
+                            <TableHead className="text-center">Status</TableHead>
+                            <TableHead className="w-20 text-center">
+                              Actions
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {currentDisplayItems.length === 0 ? (
+                            <TableRow>
+                              <TableCell
+                                colSpan={4}
+                                className="text-center py-12 text-muted-foreground"
+                              >
+                                No entries for this wage type
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            currentDisplayItems.map((item) => {
+                              const isDirty = pendingChanges[
+                                activeWageType!
+                              ]?.some(
+                                (p) =>
+                                  p.SalaryScaleDetailID ===
+                                  item.SalaryScaleDetailID
+                              );
 
-                    {pendingChanges[wageIdStr]?.length > 0 && (
-                      <Pencil className="h-3.5 w-3.5 shrink-0" />
-                    )}
-                  </TabsTrigger>
+                              return (
+                                <TableRow
+                                  key={item.SalaryScaleDetailID}
+                                  className={
+                                    deletedIds.has(item.SalaryScaleDetailID)
+                                      ? "opacity-50 line-through"
+                                      : ""
+                                  }
+                                >
+                                  <TableCell className="font-medium">
+                                    {item.Rank.trim()}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      value={item.WageAmount}
+                                      onChange={(e) =>
+                                        handleAmountChange(item, e.target.value)
+                                      }
+                                      className={`w-32 mx-auto text-right ${isDirty ? "bg-amber-50" : ""
+                                        }`}
+                                    />
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {isDirty ? (
+                                      <div className="flex items-center justify-center gap-1.5 text-amber-700 text-sm font-medium">
+                                        <span>Edited</span>
+                                        <Pencil className="h-4 w-4" />
+                                      </div>
+                                    ) : (
+                                      <span className="text-muted-foreground text-sm">
+                                        —
+                                      </span>
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleDeleteClick(item)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-red-600" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TabsContent>
                 );
               })}
-            </TabsList>
-
-            {wageDescriptionsSorted.map((wageDesc) => {
-              const wageIdStr = wageDesc.WageID.toString();
-              return (
-                <TabsContent
-                  key={wageDesc.WageID}
-                  value={wageIdStr}
-                  className="mt-0"
-                >
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Rank</TableHead>
-                          <TableHead className="text-center">
-                            Amount (USD)
-                          </TableHead>
-                          <TableHead className="text-center">Status</TableHead>
-                          <TableHead className="w-20 text-center">
-                            Actions
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {currentDisplayItems.length === 0 ? (
-                          <TableRow>
-                            <TableCell
-                              colSpan={4}
-                              className="text-center py-12 text-muted-foreground"
-                            >
-                              No entries for this wage type
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          currentDisplayItems.map((item) => {
-                            const isDirty = pendingChanges[
-                              activeWageType!
-                            ]?.some(
-                              (p) =>
-                                p.SalaryScaleDetailID ===
-                                item.SalaryScaleDetailID
-                            );
-
-                            return (
-                              <TableRow
-                                key={item.SalaryScaleDetailID}
-                                className={
-                                  deletedIds.has(item.SalaryScaleDetailID)
-                                    ? "opacity-50 line-through"
-                                    : ""
-                                }
-                              >
-                                <TableCell className="font-medium">
-                                  {item.Rank.trim()}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={item.WageAmount}
-                                    onChange={(e) =>
-                                      handleAmountChange(item, e.target.value)
-                                    }
-                                    className={`w-32 mx-auto text-right ${isDirty ? "bg-amber-50" : ""
-                                      }`}
-                                  />
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  {isDirty ? (
-                                    <div className="flex items-center justify-center gap-1.5 text-amber-700 text-sm font-medium">
-                                      <span>Edited</span>
-                                      <Pencil className="h-4 w-4" />
-                                    </div>
-                                  ) : (
-                                    <span className="text-muted-foreground text-sm">
-                                      —
-                                    </span>
-                                  )}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDeleteClick(item)}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-              );
-            })}
             </Tabs>
           </div>
         )}

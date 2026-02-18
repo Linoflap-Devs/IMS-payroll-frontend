@@ -166,7 +166,9 @@ export function EditSalaryScaleDialog({
               disabled={isLoading}>
               <SelectTrigger
                 id="rank-edit"
-                className="w-full border border-[#E0E0E0] rounded-md">
+                className="w-full border border-[#E0E0E0] rounded-md"
+                disabled
+                >
                 <SelectValue placeholder="Select rank" />
               </SelectTrigger>
               <SelectContent className="h-70">
@@ -189,6 +191,7 @@ export function EditSalaryScaleDialog({
               disabled={isLoading}>
               <SelectTrigger
                 id="wageType-edit"
+                disabled
                 className="w-full border border-[#E0E0E0] rounded-md">
                 <SelectValue placeholder="Select wage type" />
               </SelectTrigger>
