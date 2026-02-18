@@ -219,6 +219,15 @@ export default function AddSalaryScale() {
     );
   }, [pendingChanges, deletedIds]);
 
+  const editedRowsCount = useMemo(
+    () =>
+      Object.values(pendingChanges).reduce(
+        (total, rows) => total + rows.length,
+        0
+      ),
+    [pendingChanges]
+  );
+
   const addableRanksForActiveWage = useMemo(() => {
     if (isScratchMode || selectedVesselType === "" || !activeWageType) return [];
     const activeRankSet = new Set(currentDisplayItems.map((item) => item.RankID));
@@ -662,7 +671,7 @@ export default function AddSalaryScale() {
   };
 
   return (
-    <div className="h-full w-full py-8 px-4">
+    <div className="min-h-full w-full space-y-2 px-2 py-6 md:py-8">
       <style jsx global>{`
           /* Hide scrollbar for Chrome, Safari and Opera */
           .scrollbar-hide::-webkit-scrollbar {
@@ -689,20 +698,35 @@ export default function AddSalaryScale() {
             scrollbar-width: none;
           }
         `}</style>
-      <CardHeader>
-        <CardTitle className="text-2xl mb-4">Add Salary Scale</CardTitle>
-      </CardHeader>
+      <div className="w-full rounded-xl py-4">
+        <CardHeader className="space-y-3 border-b bg-muted/20">
+          <CardTitle className="text-2xl">Add Salary Scale</CardTitle>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-full border bg-background px-3 py-1 text-muted-foreground">
+              Edited: <strong className="text-foreground">{editedRowsCount}</strong>
+            </span>
+            <span className="rounded-full border bg-background px-3 py-1 text-muted-foreground">
+              Deleted: <strong className="text-foreground">{deletedIds.size}</strong>
+            </span>
+            <span className="rounded-full border bg-background px-3 py-1 text-muted-foreground">
+              Mode:{" "}
+              <strong className="text-foreground">
+                {isScratchMode ? "Scratch" : "Existing"}
+              </strong>
+            </span>
+          </div>
+        </CardHeader>
 
-      <CardContent>
+        <CardContent className="pt-6">
         {error && (
           <div className="bg-destructive/15 text-destructive px-4 py-3 rounded mb-6">
             {error}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-6">
           <div className="space-y-2">
-            <Label>Available Years</Label>
+            <Label className="text-sm font-medium">Available Year</Label>
             <Select
               value={selectedYear}
               onValueChange={(v) => {
@@ -756,7 +780,7 @@ export default function AddSalaryScale() {
           </div>
 
           <div className="space-y-2">
-            <Label>Vessel Type</Label>
+            <Label className="text-sm font-medium">Vessel Type</Label>
             <Select
               value={selectedVesselType.toString()}
               onValueChange={handleVesselChange}
@@ -804,7 +828,7 @@ export default function AddSalaryScale() {
           </div>
 
           <div className="space-y-2">
-            <Label>Select Year</Label>
+            <Label className="text-sm font-medium">Target Year</Label>
             <Select
               value={newScaleYear}
               onValueChange={(value) => setNewScaleYear(value)}
@@ -823,7 +847,7 @@ export default function AddSalaryScale() {
             </Select>
           </div>
 
-          <div className="col-span-2 flex items-end justify-end gap-2">
+          <div className="flex items-end justify-end gap-2 lg:col-span-2">
             <Button
               variant="outline"
               onClick={handleResetClick}
@@ -836,7 +860,7 @@ export default function AddSalaryScale() {
               onClick={handleSave}
               disabled={isLoading}
             >
-              {hasUnsavedChanges ? "Save Changes *" : "Save Changes"}
+              {hasUnsavedChanges ? "Save Changes" : "Save"}
             </Button>
           </div>
         </div>
@@ -875,46 +899,52 @@ export default function AddSalaryScale() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between border rounded-lg px-4 py-3 bg-muted/20">
-                <p className="text-sm text-muted-foreground">
-                  Selected ranks: <strong>{selectedScratchRanks.length}</strong>
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setRankDialogMode("scratch");
-                    setScratchDraftRankIds(scratchSelectedRankIds);
-                    setShowRankChecklistDialog(true);
-                  }}
-                >
-                  Edit Rank Checklist
-                </Button>
-              </div>
-
-              <div className="border rounded-lg px-4 py-3 bg-muted/20 space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Selected wage types: <strong>{selectedScratchWageDescriptions.length}</strong>
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setScratchDraftWageIds(scratchSelectedWageIds);
-                      setShowWageChecklistDialog(true);
-                    }}
-                  >
-                    Edit Wage Checklist
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {selectedScratchWageDescriptions.map((wage) => (
-                    <span
-                      key={wage.WageID}
-                      className="text-xs px-2 py-1 rounded bg-background border"
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-lg border bg-muted/20 px-4 py-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Rank Selection
+                      </p>
+                      <p className="text-sm">
+                        <strong>{selectedScratchRanks.length}</strong> rank(s) selected
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="h-9"
+                      onClick={() => {
+                        setRankDialogMode("scratch");
+                        setScratchDraftRankIds(scratchSelectedRankIds);
+                        setShowRankChecklistDialog(true);
+                      }}
                     >
-                      {wage.WageName.trim()}
-                    </span>
-                  ))}
+                      Edit Ranks
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border bg-muted/20 px-4 py-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Wage Type Selection
+                      </p>
+                      <p className="text-sm">
+                        <strong>{selectedScratchWageDescriptions.length}</strong> wage type(s) selected
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="h-9"
+                      onClick={() => {
+                        setScratchDraftWageIds(scratchSelectedWageIds);
+                        setShowWageChecklistDialog(true);
+                      }}
+                    >
+                      Edit Wage Types
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -923,18 +953,7 @@ export default function AddSalaryScale() {
                 onValueChange={setActiveWageType}
                 className="w-full"
               >
-                <TabsList
-                  className="
-                    mb-6
-                    flex
-                    w-full
-                    justify-start
-                    gap-3
-                    overflow-x-auto
-                    whitespace-nowrap
-                    scrollbar-hide
-                "
-                >
+                <TabsList className="mb-6 flex w-full justify-start gap-2 overflow-x-auto whitespace-nowrap rounded-lg border bg-muted/30 p-1 scrollbar-hide">
                   {selectedScratchWageDescriptions.map((w) => (
                     <TabsTrigger
                       key={w.WageID}
@@ -954,7 +973,7 @@ export default function AddSalaryScale() {
                     value={wageDesc.WageID.toString()}
                     className="mt-0"
                   >
-                    <div className="rounded-md border">
+                    <div className="overflow-x-auto rounded-md border">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -1015,36 +1034,12 @@ export default function AddSalaryScale() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                disabled={!activeWageType}
-                onClick={() => {
-                  setRankDialogMode("existing");
-                  setExistingDraftRankIds([]);
-                  setShowRankChecklistDialog(true);
-                }}
-              >
-                Add Rank/s
-              </Button>
-            </div>
             <Tabs
               value={activeWageType ?? undefined}
               onValueChange={setActiveWageType}
               className="w-full"
             >
-              <TabsList
-                className="
-                mb-6
-                flex
-                w-full
-                justify-start
-                gap-3
-                overflow-x-auto
-                whitespace-nowrap
-                scrollbar-hide
-            "
-              >
+              <TabsList className="mb-6 flex w-full justify-start gap-2 overflow-x-auto whitespace-nowrap rounded-lg border bg-muted/30 p-1 scrollbar-hide">
                 {wageDescriptionsSorted.map((w) => {
                   const wageIdStr = w.WageID.toString();
 
@@ -1074,7 +1069,7 @@ export default function AddSalaryScale() {
                     value={wageIdStr}
                     className="mt-0"
                   >
-                    <div className="rounded-md border">
+                    <div className="overflow-x-auto rounded-md border">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -1095,7 +1090,19 @@ export default function AddSalaryScale() {
                                 colSpan={4}
                                 className="text-center py-12 text-muted-foreground"
                               >
-                                No entries for this wage type
+                                <div className="space-y-3">
+                                  <p>No entries for this wage type</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      setRankDialogMode("existing");
+                                      setExistingDraftRankIds([]);
+                                      setShowRankChecklistDialog(true);
+                                    }}
+                                  >
+                                    Add Rank/s
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ) : (
@@ -1362,6 +1369,7 @@ export default function AddSalaryScale() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
