@@ -1,10 +1,10 @@
-import Wages from "@/components/pages/Wages";
+import WagesDescription from "@/components/pages/WagesDescription";
 import { Suspense } from "react";
 
 export default function page() {
   return (
      <Suspense fallback={<div></div>}>
-      <Wages />
+      <WagesDescription />
     </Suspense>
   );
 }

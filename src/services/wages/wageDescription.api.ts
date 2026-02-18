@@ -43,7 +43,6 @@ export interface IWageDescriptionResponse {
   data?: WageDescriptionItem;
 }
 
-
 export const addWageDescription = async (payload: AddWageDescriptionPayload) => {
   const response = await axiosInstance.post<IWageDescriptionResponse>("/wages/description", {
     wageCode: payload.wageCode,
@@ -52,7 +51,6 @@ export const addWageDescription = async (payload: AddWageDescriptionPayload) => 
   });
   return response.data;
 }
-
 
 export const updateWageDescription = async (
   payload: updateWageDescriptionPayload

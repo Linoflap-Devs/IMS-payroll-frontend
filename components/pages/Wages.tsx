@@ -889,6 +889,7 @@ export default function Wages() {
                     )}
                   </div>
                 </TabsContent>
+                
                 <TabsContent
                   value="wage-description"
                   className="p-2 mt-0 overflow-y-auto flex-1"

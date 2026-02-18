@@ -45,11 +45,10 @@ export function Sidebar({
   // onToggleCollapse,
   onLogout,
 }: SidebarProps) {
-  const [openDropdowns, setOpenDropdowns] = useState<{
-    [key: string]: boolean;
+  const [openDropdowns, setOpenDropdowns] = useState<{[key: string]: boolean;
   }>({
-    Deduction: true,
-  });  
+    Deduction: false,
+  });
   const toggleDropdown = (label: string) => {
     setOpenDropdowns((prev) => ({
       ...prev,
@@ -107,11 +106,11 @@ export function Sidebar({
                         "py-3 text-base font-medium",
                         route.active
                           ? cn(
-                              "text-primary bg-white shadow-md font-bold",
-                              isCollapsed
-                                ? ""
-                                : "border-l-4 border-primary pl-2"
-                            )
+                            "text-primary bg-white shadow-md font-bold",
+                            isCollapsed
+                              ? ""
+                              : "border-l-4 border-primary pl-2"
+                          )
                           : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                       )}
                       onClick={(e) => {
@@ -142,6 +141,7 @@ export function Sidebar({
                         </>
                       )}
                     </Link>
+
                     {!isCollapsed && openDropdowns[route.label] && (
                       <div className="ml-8 mt-1 space-y-1">
                         {route.subItems.map((subItem) => (
@@ -170,9 +170,9 @@ export function Sidebar({
                       "py-3 text-base font-medium",
                       route.active
                         ? cn(
-                            "text-primary bg-white shadow-md font-bold",
-                            isCollapsed ? "" : "border-l-4 border-primary pl-2"
-                          )
+                          "text-primary bg-white shadow-md font-bold",
+                          isCollapsed ? "" : "border-l-4 border-primary pl-2"
+                        )
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     )}
                     title={isCollapsed ? route.label : ""}
@@ -213,6 +213,7 @@ export function Sidebar({
                 {user?.Email ? user?.Email.substring(0, 2).toUpperCase() : ""}
               </AvatarFallback>
             </Avatar>
+
             {!isCollapsed && (
               <>
                 <div className="flex flex-col min-w-0 overflow-hidden">

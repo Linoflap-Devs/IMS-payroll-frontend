@@ -54,7 +54,6 @@ export function AddWageDescriptionDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uniqueError, setUniqueError] = useState<boolean>(false);
 
-  // Initialize form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -122,7 +121,7 @@ export function AddWageDescriptionDialog({
       <DialogContent className="p-6 max-w-[600px] gap-0 border rounded-lg overflow-hidden bg-[#FCFCFC]">
         <DialogHeader> 
           <DialogTitle className="text-center text-2xl font-semibold text-[#2E37A4]">
-            Add Wage Type
+            Add Wage Description
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>

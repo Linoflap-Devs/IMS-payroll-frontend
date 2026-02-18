@@ -105,7 +105,7 @@ export function EditWageDescriptionDialog({
         <DialogHeader className="p-4 pb-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-semibold text-primary w-full text-center">
-              Edit Wage Type
+              Edit Wage Description
             </DialogTitle>
           </div>
         </DialogHeader>
