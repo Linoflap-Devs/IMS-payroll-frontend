@@ -194,40 +194,6 @@ export default function VesselPayslip() {
     setShowPreview(true);
   };
 
-  // const handleDownloadFromPreview = async () => {
-  //   if (!previewData) return;
-    
-  //   try {
-  //     // Generate PDF blob
-  //     const blob = await generatePayrollPDFBlob(
-  //       previewData.data,
-  //       previewData.month,
-  //       previewData.year
-  //     );
-      
-  //     // Download the blob
-  //     const fileName = `Payslip-${previewData.data.crewName.replace(' ', '-')}_${previewData.month}-${previewData.year}.pdf`;
-  //     downloadBlob(blob, fileName);
-      
-  //     // Close the preview
-  //     setShowPreview(false);
-  //     setPreviewData(null);
-      
-  //     toast({
-  //       title: "Success",
-  //       description: "PDF downloaded successfully!",
-  //       variant: "default",
-  //     });
-  //   } catch (error) {
-  //     console.error("Error downloading PDF:", error);
-  //     toast({
-  //       title: "Error",
-  //       description: "Failed to download PDF. Please try again.",
-  //       variant: "destructive",
-  //     });
-  //   }
-  // };
-
   const handleGeneratePayslipExcel = () => {
     if (!PayslipPDFData) {
       console.error("No payslip data available for PDF generation.");

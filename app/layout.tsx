@@ -1,32 +1,28 @@
+import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { getSettingsConfig } from "@/src/services/settings/settings.api";
-import { getSiteSettings } from "@/src/services/settings/settings.helpers";
-import ThemeInitializer from "@/src/utils/ThemeInitializer";
+import IdleLogout from "@/components/pages/crew/IdleLogout";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
 });
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const settingsConfig = await getSettingsConfig();
-  const { companyAbbreviation: siteTitle, companyAppName: siteDescription } =
-    getSiteSettings(settingsConfig.data);
+export const metadata: Metadata = {
+  title: "IMS Payroll System",
+  description: "Payroll System for IMS",
+};
 
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
-      <head>
-        <title>{siteTitle}</title>
-        <meta name="description" content={siteDescription} />
-      </head>
-      <body className={`${montserrat.variable} antialiased`}>
-        <ThemeInitializer settingsConfig={settingsConfig.data} />
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${montserrat.variable} antialiased`} suppressHydrationWarning>
+        <IdleLogout timeout={300000} warningTime={5000} />
         {children}
         <Toaster />
       </body>

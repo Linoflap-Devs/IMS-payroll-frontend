@@ -20,7 +20,7 @@ export function proxy(req: NextRequest) {
 
     // Role-based route access map
     const roleMap: Record<number, string[]> = {
-      1: ["/home/dashboard", "/home/profile", "/home/manage-users", "/home/login-history", "/home/audit-log", "/home/payroll-unposting", "/home/settings"],
+      1: ["/home/dashboard", "/home/profile", "/home/manage-users", "/home/login-history", "/home/audit-log", "/home/payroll-unposting"],
       3: [
         "/home/dashboard",
         "/home/profile",
@@ -33,10 +33,9 @@ export function proxy(req: NextRequest) {
         "/home/crew-payroll",
         "/home/crew-movement",
         "/home/application_crew",
-        "/home/settings"
       ],
-      4: ["/home/dashboard", "/home/profile", "/home/crew-payroll", "/home/allotment", "/home/settings"],
-      5: ["/home/dashboard", "/home/profile", "/home/crew-govt-records", "/home/payment-reference", "/home/deduction", "/home/settings"],
+      4: ["/home/dashboard", "/home/profile", "/home/crew-payroll", "/home/allotment"],
+      5: ["/home/dashboard", "/home/profile", "/home/crew-govt-records", "/home/payment-reference", "/home/deduction",]
     };
 
     const currentPath = req.nextUrl.pathname;
