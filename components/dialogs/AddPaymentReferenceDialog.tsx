@@ -224,13 +224,29 @@ export function AddPaymentReference({
             <FormField
               control={form.control}
               name="deductionType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm text-gray-600">
+              render={({ field, fieldState }) => (
+                <FormItem className="w-full gap-1">
+                  <FormLabel className="text-sm text-gray-600 font-medium">
                     Deduction Type
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter deduction type" {...field} />
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger
+                        className={cn(
+                          "w-full rounded-md h-10",
+                          fieldState.invalid
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-[#E0E0E0]"
+                        )}
+                      >
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                        <SelectContent className="w-full">
+                          <SelectItem value="SSS">SSS</SelectItem>
+                          <SelectItem value="PAG-IBIG">PAG-IBIG</SelectItem>
+                          <SelectItem value="PHILHEALTH">PHILHEALTH</SelectItem>
+                        </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

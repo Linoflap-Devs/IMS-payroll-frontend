@@ -266,17 +266,15 @@ export default function PaymentReference() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="text-xs sm:text-sm">
-                <DropdownMenuItem asChild className="text-xs sm:text-sm">
-                  <DropdownMenuItem
-                    className="text-xs sm:text-sm"
-                    onClick={() => {
-                      setSelectedPaymentData(row.original);
-                      setEditselectedPaymentDialogOpen(true);
-                    }}
-                  >
-                    <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
-                    Edit Payment Reference
-                  </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-xs sm:text-sm"
+                  onClick={() => {
+                    setSelectedPaymentData(row.original);
+                    setEditselectedPaymentDialogOpen(true);
+                  }}
+                >
+                  <Pencil className="mr-1.5 sm:mr-2 h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  Edit Payment Reference
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -411,7 +409,13 @@ export default function PaymentReference() {
       {selectedPaymentData && editselectedPaymentDialogOpen && (
         <EditPaymentReference
           open={editselectedPaymentDialogOpen}
-          onOpenChange={setEditselectedPaymentDialogOpen}
+          onOpenChange={(open) => {
+            setEditselectedPaymentDialogOpen(open);
+
+            if (!open) {
+              setSelectedPaymentData(null);
+            }
+          }}
           paymentReferenceData={selectedPaymentData}
           onSuccess={handlePaymentUpdated}
         />
