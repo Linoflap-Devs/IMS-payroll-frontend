@@ -15,8 +15,7 @@ export default function Home() {
         />
         <div className="relative z-10 p-12 text-white">
           <div className="flex items-center gap-3 mb-20">
-            <Image src="/ims-logo.png" alt="IMS PHIL Logo" width={70} height={70} />
-            <span className="text-2xl font-medium">IMS Phil Payroll</span>
+            <Image src="/ims-logo.png" alt="IMS PHIL Logo" width={130} height={130} />
           </div>
           <div className="flex justify-center flex-col gap-1">
             <h1 className="text-8xl font-bold leading-tight mb-1 mt-16">
