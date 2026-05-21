@@ -237,8 +237,7 @@ export default function Login() {
                     className="mx-auto"
                   />
                   <DialogDescription className="text-md text-center text-primary">
-                    To reset your password, please send a request to the
-                    administrator at admin@gmail.com.
+                    Please reach out to the system administrator for password reset assistance.
                   </DialogDescription>
                   <DialogClose asChild className="mt-2">
                     <Button
