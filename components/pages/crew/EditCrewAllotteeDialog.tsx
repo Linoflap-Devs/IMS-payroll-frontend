@@ -351,6 +351,8 @@ export function EditAllotteeDialog({
     onOpenChange(false);
   };
 
+  console.log(cities);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[750px] bg-[#FCFCFC] p-10">
@@ -403,6 +405,26 @@ export function EditAllotteeDialog({
                   currentDraft.relationship ??
                   SelectedAllotteeData?.relationship ??
                   undefined;
+
+                console.log("========== RELATION DEBUG ==========");
+                console.log("SelectedAllotteeData", SelectedAllotteeData);
+                console.log("SelectedAllotteeData.relationship", SelectedAllotteeData?.relationship);
+                console.log("draftId", draftId);
+                console.log("currentDraft", currentDraft);
+                console.log("currentDraft.relationship", currentDraft.relationship);
+                console.log("computed value", value);
+                console.log("field.value", field.value);
+                console.log("field.value type", typeof field.value);
+                console.log("allRelationshipData", allRelationshipData);
+                console.log(
+                  "matching relationship",
+                  allRelationshipData.find(
+                    (rel) =>
+                      rel.RelationID.toString() ===
+                      (field.value?.toString() ?? "")
+                  )
+                );
+                console.log("====================================");
 
                 return (
                   <FormItem>
