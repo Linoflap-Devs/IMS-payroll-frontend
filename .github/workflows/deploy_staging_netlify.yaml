@@ -1,0 +1,13 @@
+name: Trigger Netlify IMS Payroll Frontend Staging
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger Netlify Build
+        run: curl -X POST -d {} ${{ secrets.NETLIFY_DEPLOY_STAGING_WEBHOOK }}
