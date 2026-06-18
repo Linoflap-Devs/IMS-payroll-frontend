@@ -1,3 +1,4 @@
+import IdleLogout from "@/components/pages/crew/IdleLogout";
 import HomeLayoutClient from "@/components/pages/HomeClient";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -18,14 +19,17 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
   if (!session?.isAuthenticated) redirect("/");
 
   return (
-    <HomeLayoutClient
-      user={{
-        Email: session.email,
-        UserType: session.userType,
-        isAuthenticated: session.isAuthenticated,
-      }}
-    >
-      {children}
-    </HomeLayoutClient>
+    <>
+      <HomeLayoutClient
+        user={{
+          Email: session.email,
+          UserType: session.userType,
+          isAuthenticated: session.isAuthenticated,
+        }}
+      >
+        {children}
+      </HomeLayoutClient>
+      <IdleLogout timeout={300000} warningTime={5000} />
+    </>
   );
 }

@@ -262,7 +262,7 @@ export function AddAllotteeReqDialog({
                   value={
                     requestData.AllotmentType === 1
                       ? "Fixed Amount"
-                      : requestData.AllotmentType === 0
+                      : requestData.AllotmentType === 2
                         ? "Percentage"
                         : "N/A"
                   }

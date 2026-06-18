@@ -123,7 +123,7 @@ export default function CrewApplication() {
       id: "fullName",
       header: "Crew Name",
       accessorFn: (row) => {
-        const middleInitial = row.MiddleName
+        const middleInitial = row.MiddleName && row.MiddleName !== "Unknown"
           ? ` ${row.MiddleName.charAt(0)}. `
           : " ";
         return `${row.FirstName}${middleInitial}${row.LastName}`;
@@ -202,11 +202,6 @@ export default function CrewApplication() {
       ),
     },
   ];
-
-  const columns: ColumnDef<Application>[] =
-    activeTab === "declined"
-      ? baseColumns.filter((col) => col.id !== "actions")
-      : baseColumns;
 
   const filteredApplications = applications.filter((app) => {
     const matchesStatus = activeTab === app.ApplicationStatus.toLowerCase();
