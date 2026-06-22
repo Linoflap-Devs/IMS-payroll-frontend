@@ -26,6 +26,7 @@ export default function Home() {
               MARITIME CORP
             </h1>
             <p className="font-bold text-5xl mt-0">Crew Payroll System</p>
+            <p className="text-sm italic text-gray-50 mt-4">Last Update: June 22, 2026; 2:17 PM</p>
           </div>
         </div>
       </div>

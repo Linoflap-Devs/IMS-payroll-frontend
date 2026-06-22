@@ -47,6 +47,13 @@ const editAllotteeSchema = z.object({
 
 type EditAllotteeFormData = z.infer<typeof editAllotteeSchema>;
 
+const toOptionalNumber = (value: unknown): number | undefined => {
+  if (value === undefined || value === null || value === "") return undefined;
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+};
+
 interface EditUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -88,7 +95,6 @@ export function EditAllotteeDialog({
 }: EditUserDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const [editingAllottee, setEditingAllottee] = useState<AllotteeUiModel | null>(null);
   const [searchCity, setSearchCity] = useState("");
   const [searchProvince, setSearchProvince] = useState("");
   const [searchBranch, setSearchBranch] = useState("");
@@ -123,9 +129,12 @@ export function EditAllotteeDialog({
     );
   }, [provinces, searchProvince]);
 
+  const watchedProvince = form.watch("province");
+  const watchedBank = form.watch("bank");
+
   // Cities (with search + province filter)
   const filteredCities = useMemo(() => {
-    const provinceId = form.watch("province") || editingAllottee?.province || 0;
+    const provinceId = watchedProvince || 0;
 
     let filtered = cities;
 
@@ -140,9 +149,7 @@ export function EditAllotteeDialog({
     }
 
     return filtered.slice(0, 100);
-  }, [cities, searchCity, form.watch("province"), editingAllottee?.province]);
-
-  const watchedBank = form.watch("bank"); // watch outside of useMemo
+  }, [cities, searchCity, watchedProvince]);
 
   const filteredBranch = useMemo(() => {
     const bankId =
@@ -163,8 +170,6 @@ export function EditAllotteeDialog({
         b.BankBranchName.toLowerCase().includes(searchBranch.toLowerCase())
       );
     }
-
-    //console.log("Filtered Branches:", branchesForThisBank);
 
     return branchesForThisBank.slice(0, 100);
   }, [
@@ -187,22 +192,21 @@ export function EditAllotteeDialog({
     // Only initialize if there’s no draft yet
     if (draftData && draftData.relationship !== undefined) return;
 
-    const relationName = SelectedAllotteeData.relationship;
-    const matchedRelation = allRelationshipData.find(
-      (r) => r.RelationName === relationName
-    );
-
-    const relationId = matchedRelation?.RelationID
-      ? Number(matchedRelation.RelationID)
-      : SelectedAllotteeData.relationshipId
-        ? Number(SelectedAllotteeData.relationshipId)
-        : undefined;
+    const relationId =
+      toOptionalNumber(SelectedAllotteeData.relationshipId) ??
+      toOptionalNumber(SelectedAllotteeData.relation) ??
+      toOptionalNumber(SelectedAllotteeData.relationship) ??
+      toOptionalNumber(
+        allRelationshipData.find(
+          (r) => r.RelationName === SelectedAllotteeData.relationship
+        )?.RelationID
+      );
 
     const currentRelation = form.getValues().relation;
     if (relationId !== currentRelation) {
       form.setValue("relation", relationId);
     }
-  }, [SelectedAllotteeData, allRelationshipData, form]);
+  }, [SelectedAllotteeData, drafts, allRelationshipData, form]);
 
   useEffect(() => {
     if (!SelectedAllotteeData || provinces.length === 0 || cities.length === 0)
@@ -218,31 +222,29 @@ export function EditAllotteeDialog({
     )
       return;
 
-    const provinceName = SelectedAllotteeData.province;
-    const matchedProvince = provinces.find(
-      (p) => p.ProvinceName === provinceName
-    );
     const provinceId =
-      matchedProvince?.ProvinceID ??
-      (SelectedAllotteeData.provinceId
-        ? Number(SelectedAllotteeData.provinceId)
-        : undefined);
+      toOptionalNumber(SelectedAllotteeData.provinceId) ??
+      toOptionalNumber(SelectedAllotteeData.province) ??
+      toOptionalNumber(
+        provinces.find((p) => p.ProvinceName === SelectedAllotteeData.province)
+          ?.ProvinceID
+      );
 
     const provinceCities = cities.filter((c) => c.ProvinceID === provinceId);
-    const cityName = SelectedAllotteeData.city;
-    const matchedCity = provinceCities.find((c) => c.CityName === cityName);
     const cityId =
-      matchedCity?.CityID ??
-      (SelectedAllotteeData.cityId
-        ? Number(SelectedAllotteeData.cityId)
-        : undefined);
+      toOptionalNumber(SelectedAllotteeData.cityId) ??
+      toOptionalNumber(SelectedAllotteeData.city) ??
+      toOptionalNumber(
+        provinceCities.find((c) => c.CityName === SelectedAllotteeData.city)
+          ?.CityID
+      );
 
     const currentProvince = form.getValues().province;
     const currentCity = form.getValues().city;
 
     if (provinceId !== currentProvince) form.setValue("province", provinceId);
     if (cityId !== currentCity) form.setValue("city", cityId);
-  }, [SelectedAllotteeData, provinces, cities, form]);
+  }, [SelectedAllotteeData, drafts, provinces, cities, form]);
 
   useEffect(() => {
     if (!SelectedAllotteeData || uniqueBanks.length === 0) return;
@@ -255,27 +257,32 @@ export function EditAllotteeDialog({
       return;
     }
 
-    const matchedBank = uniqueBanks.find(
-      (b) => b.BankName === SelectedAllotteeData.bankName
-    );
+    const bankId =
+      toOptionalNumber(SelectedAllotteeData.bankId) ??
+      toOptionalNumber(
+        uniqueBanks.find((b) => b.BankName === SelectedAllotteeData.bankName)
+          ?.BankID
+      );
 
-    if (!matchedBank) return;
+    if (!bankId) return;
 
     if (!currentBankValue) {
-      form.setValue("bank", matchedBank.BankID);
-      setSelectedBankId(matchedBank.BankID);
+      form.setValue("bank", bankId);
+      setSelectedBankId(bankId);
     }
 
-    if (!currentBranchValue && SelectedAllotteeData.bankBranch) {
-      const branchesForThisBank = getBranchesByBankId(matchedBank.BankID);
-      const matchedBranch = branchesForThisBank.find(
-        (b) => b.BankBranchName === SelectedAllotteeData.bankBranch
-      );
-      if (matchedBranch) {
-        form.setValue("branch", matchedBranch.BankBranchID);
-      }
+    if (!currentBranchValue) {
+      const branchId =
+        toOptionalNumber(SelectedAllotteeData.branchId) ??
+        toOptionalNumber(
+          getBranchesByBankId(bankId).find(
+            (b) => b.BankBranchName === SelectedAllotteeData.bankBranch
+          )?.BankBranchID
+        );
+
+      if (branchId) form.setValue("branch", branchId);
     }
-  }, [SelectedAllotteeData, uniqueBanks, form, setSelectedBankId]);
+  }, [SelectedAllotteeData, uniqueBanks, form, setSelectedBankId, getBranchesByBankId]);
 
   const isInitialLoad = useRef(true);
 
@@ -285,27 +292,67 @@ export function EditAllotteeDialog({
     const draftId = Number(SelectedAllotteeData.id);
     const draftData = drafts[draftId] ?? {};
 
+    const provinceId =
+      toOptionalNumber(draftData.province) ??
+      toOptionalNumber(SelectedAllotteeData.provinceId) ??
+      toOptionalNumber(SelectedAllotteeData.province) ??
+      toOptionalNumber(
+        provinces.find((p) => p.ProvinceName === SelectedAllotteeData.province)
+          ?.ProvinceID
+      );
+
+    const cityOptions = provinceId
+      ? cities.filter((c) => c.ProvinceID === provinceId)
+      : cities;
+    const cityId =
+      toOptionalNumber(draftData.city) ??
+      toOptionalNumber(SelectedAllotteeData.cityId) ??
+      toOptionalNumber(SelectedAllotteeData.city) ??
+      toOptionalNumber(
+        cityOptions.find((c) => c.CityName === SelectedAllotteeData.city)
+          ?.CityID
+      );
+
+    const bankId =
+      toOptionalNumber(draftData.bank) ??
+      toOptionalNumber(SelectedAllotteeData.bankId) ??
+      toOptionalNumber(
+        uniqueBanks.find((b) => b.BankName === SelectedAllotteeData.bankName)
+          ?.BankID
+      );
+
+    const branchId =
+      toOptionalNumber(draftData.branch) ??
+      toOptionalNumber(SelectedAllotteeData.branchId) ??
+      toOptionalNumber(
+        bankId
+          ? getBranchesByBankId(bankId).find(
+              (b) => b.BankBranchName === SelectedAllotteeData.bankBranch
+            )?.BankBranchID
+          : undefined
+      );
+
+    const relationId =
+      toOptionalNumber(draftData.relationship) ??
+      toOptionalNumber(SelectedAllotteeData.relationshipId) ??
+      toOptionalNumber(SelectedAllotteeData.relation) ??
+      toOptionalNumber(SelectedAllotteeData.relationship) ??
+      toOptionalNumber(
+        allRelationshipData.find(
+          (r) => r.RelationName === SelectedAllotteeData.relationship
+        )?.RelationID
+      );
+
     const initialValues = {
       name: draftData.name ?? SelectedAllotteeData.name ?? "",
       contactNumber: draftData.contactNumber ?? SelectedAllotteeData.contactNumber ?? " ",
 
       address: draftData.address ?? SelectedAllotteeData.address ?? "",
-      province: Number(
-        draftData.province ?? SelectedAllotteeData.provinceId ?? undefined
-      ),
-      city: Number(draftData.city ?? SelectedAllotteeData.cityId ?? undefined),
-      bank: Number(
-        draftData.bank ?? SelectedAllotteeData.bankName ?? undefined
-      ),
-      branch: Number(
-        draftData.branch ?? SelectedAllotteeData.bankBranch ?? undefined
-      ),
-      relation:
-        draftData.relationship !== undefined
-          ? Number(draftData.relationship)
-          : SelectedAllotteeData.relationship !== undefined
-            ? Number(SelectedAllotteeData.relationship)
-            : undefined,
+      province: provinceId,
+      city: cityId,
+      bank: bankId,
+      branch: branchId,
+      relation: relationId,
       accountNumber: String(
         draftData.accountNumber ?? SelectedAllotteeData.accountNumber ?? ""
       ),
@@ -313,9 +360,20 @@ export function EditAllotteeDialog({
     };
 
     reset(initialValues);
+    if (bankId) setSelectedBankId(bankId);
 
     isInitialLoad.current = false;
-  }, [SelectedAllotteeData, drafts, reset]);
+  }, [
+    SelectedAllotteeData,
+    drafts,
+    reset,
+    provinces,
+    cities,
+    uniqueBanks,
+    allRelationshipData,
+    getBranchesByBankId,
+    setSelectedBankId,
+  ]);
 
   const handleSaveDraft = (data: EditAllotteeFormData) => {
     const draftId = Number(SelectedAllotteeData.id);
@@ -350,8 +408,6 @@ export function EditAllotteeDialog({
     // Close modal
     onOpenChange(false);
   };
-
-  console.log(cities);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -398,34 +454,6 @@ export function EditAllotteeDialog({
               control={form.control}
               name="relation"
               render={({ field, fieldState }) => {
-                const draftId = Number(SelectedAllotteeData?.id);
-                const currentDraft = drafts[draftId] ?? {};
-
-                const value =
-                  currentDraft.relationship ??
-                  SelectedAllotteeData?.relationship ??
-                  undefined;
-
-                console.log("========== RELATION DEBUG ==========");
-                console.log("SelectedAllotteeData", SelectedAllotteeData);
-                console.log("SelectedAllotteeData.relationship", SelectedAllotteeData?.relationship);
-                console.log("draftId", draftId);
-                console.log("currentDraft", currentDraft);
-                console.log("currentDraft.relationship", currentDraft.relationship);
-                console.log("computed value", value);
-                console.log("field.value", field.value);
-                console.log("field.value type", typeof field.value);
-                console.log("allRelationshipData", allRelationshipData);
-                console.log(
-                  "matching relationship",
-                  allRelationshipData.find(
-                    (rel) =>
-                      rel.RelationID.toString() ===
-                      (field.value?.toString() ?? "")
-                  )
-                );
-                console.log("====================================");
-
                 return (
                   <FormItem>
                     <FormLabel>Relationship</FormLabel>
@@ -541,6 +569,7 @@ export function EditAllotteeDialog({
                         setDraft(Number(SelectedAllotteeData.id), {
                           ...drafts[Number(SelectedAllotteeData.id)],
                           province: numericValue,
+                          city: undefined,
                         });
 
                         // Reset city when province changes
@@ -598,7 +627,7 @@ export function EditAllotteeDialog({
                     <Select
                       disabled={!isEditingAllottee && !isAddingAllottee}
                       onValueChange={(value) => {
-                        const numericValue = Number(value); // relationship ID
+                        const numericValue = Number(value);
                         field.onChange(numericValue); // update react-hook-form
                         setDraft(Number(SelectedAllotteeData.id), {
                           city: numericValue,
@@ -656,10 +685,13 @@ export function EditAllotteeDialog({
                     <Select
                       disabled={!isEditingAllottee && !isAddingAllottee}
                       onValueChange={(value) => {
-                        const numericValue = Number(value); // relationship ID
+                        const numericValue = Number(value);
                         field.onChange(numericValue); // update react-hook-form
+                        setSelectedBankId(numericValue);
+                        form.setValue("branch", undefined);
                         setDraft(Number(SelectedAllotteeData.id), {
                           bank: numericValue,
+                          branch: undefined,
                         }); // update draft in Zustand
                       }}
                       value={

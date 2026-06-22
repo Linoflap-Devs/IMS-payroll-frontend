@@ -74,6 +74,15 @@ export type SavedAllotmentData = {
   receivePayslips: (number | undefined)[];
 };
 
+const toPayloadId = (...values: unknown[]): number => {
+  const value = values.find(
+    (item) => item !== undefined && item !== null && item !== ""
+  );
+  const parsed = Number(value);
+
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
 export function CrewAllottee({
   isEditingAllottee = false,
   triggerSave,
@@ -533,17 +542,17 @@ export function CrewAllottee({
             allotment: draftData.allotment ?? allottee.allotment,
             name: draftData.name ?? allottee.name,
             address: draftData.address ?? allottee.address,
-            relation: Number(draftData.relationship ?? allottee.relationshipId),
+            relation: toPayloadId(draftData.relationship, allottee.relationshipId),
             contactNumber: draftData.contactNumber
               ? String(draftData.contactNumber)
               : " ",
             accountNumber: draftData.accountNumber
               ? String(draftData.accountNumber)
               : "",
-            city: Number(draftData.city ?? allottee.cityId),
-            province: Number(draftData.province ?? allottee.provinceId),
-            bank: draftData.bank ?? 0,
-            branch: draftData.branch ?? 0,
+            city: toPayloadId(draftData.city, allottee.cityId),
+            province: toPayloadId(draftData.province, allottee.provinceId),
+            bank: toPayloadId(draftData.bank, allottee.bankId),
+            branch: toPayloadId(draftData.branch, allottee.branchId),
             receivePayslip: Number(
               draftData.receivePayslip ?? allottee.receivePayslip
             ),
